@@ -2,9 +2,17 @@ const createInitializeSwapInstructions = require("../programInstructions/createI
 const sendBundledTransactions = require("../utils/sendBundledTransactions.function");
 
 async function initializeSwap(swapData, signer, cluster, preSeed) {
-    const initSwapData = await createInitializeSwapInstructions(swapData, signer, preSeed);
+    const initSwapData = await createInitializeSwapInstructions(
+        swapData,
+        signer.publicKey,
+        preSeed
+    );
     // console.log("initSwapData", initSwapData);
-    const transactionHashes = await sendBundledTransactions(initSwapData.transactions, cluster);
+    const transactionHashes = await sendBundledTransactions(
+        initSwapData.transactions,
+        signer,
+        cluster
+    );
     // console.log("transactionHashes", transactionHashes);
     return { ...initSwapData, transactionHashes };
 }

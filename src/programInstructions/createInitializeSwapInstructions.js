@@ -3,20 +3,28 @@ const getSwapDataAccountFromData = require("../utils/getSwapDataAccountFromData.
 const { SystemProgram, Transaction } = require("@solana/web3.js");
 const getSwapDataAccountFromPublicKey = require("../utils/getSwapDataAccountFromPublicKey.function");
 
-async function createInitializeSwapInstructions(swapData, signer, preSeed, cluster) {
+async function createInitializeSwapInstructions(swapData, signer_publicKey, preSeed, cluster) {
     if (!preSeed) preSeed = "0000";
-    const { program } = getProgram(signer, cluster);
+    const { program } = getProgram(cluster);
 
     const swapIdentity = await getSwapDataAccountFromData(swapData, preSeed);
 
     try {
-        const initInstruction = await getInitInitilizeInstruction(program, swapIdentity, signer);
-        const addInstructions = await getAddInitilizeInstructions(program, swapIdentity, signer);
+        const initInstruction = await getInitInitilizeInstruction(
+            program,
+            swapIdentity,
+            signer_publicKey
+        );
+        const addInstructions = await getAddInitilizeInstructions(
+            program,
+            swapIdentity,
+            signer_publicKey
+        );
 
         const validateInstruction = await getValidateInitilizeInstruction(
             program,
             swapIdentity,
-            signer
+            signer_publicKey
         );
 
         let transactions = [];
@@ -24,7 +32,7 @@ async function createInitializeSwapInstructions(swapData, signer, preSeed, clust
         if (initInstruction) {
             transactions.push({
                 tx: new Transaction().add(initInstruction),
-                signers: [signer],
+                // signers: [signer],
             });
         }
 
@@ -32,7 +40,7 @@ async function createInitializeSwapInstructions(swapData, signer, preSeed, clust
             addInstructions.map((addInstruction) => {
                 transactions.push({
                     tx: new Transaction().add(...addInstruction),
-                    signers: [signer],
+                    // signers: [signer],
                 });
             });
         } else {
@@ -42,7 +50,7 @@ async function createInitializeSwapInstructions(swapData, signer, preSeed, clust
         if (validateInstruction) {
             transactions.push({
                 tx: new Transaction().add(validateInstruction),
-                signers: [signer],
+                // signers: [signer],
             });
         } else {
             throw "nothing to initialize";
@@ -62,7 +70,7 @@ async function createInitializeSwapInstructions(swapData, signer, preSeed, clust
     }
 }
 module.exports = createInitializeSwapInstructions;
-async function getInitInitilizeInstruction(program, swapIdentity, signer) {
+async function getInitInitilizeInstruction(program, swapIdentity, signer_publicKey) {
     let { status, initializer, items } = swapIdentity.swapData;
     const num_items = items.length;
     const initSwapData = {
@@ -75,28 +83,30 @@ async function getInitInitilizeInstruction(program, swapIdentity, signer) {
         swapIdentity.swapDataAccount_publicKey
     );
     if (balanceSda === 0) {
-        return program.methods
-            .initInitialize(
-                swapIdentity.swapDataAccount_seed,
-                swapIdentity.swapDataAccount_bump,
-                initSwapData,
-                num_items
-            )
-            .accounts({
-                swapDataAccount: swapIdentity.swapDataAccount_publicKey.toBase58(),
-                signer: signer.publicKey.toBase58(),
-                systemProgram: SystemProgram.programId.toBase58(),
-                splTokenProgram: process.env.SOLANA_SPL_ATA_PROGRAM_ID,
-            })
-            .signers([signer])
-            .instruction();
+        return (
+            program.methods
+                .initInitialize(
+                    swapIdentity.swapDataAccount_seed,
+                    swapIdentity.swapDataAccount_bump,
+                    initSwapData,
+                    num_items
+                )
+                .accounts({
+                    swapDataAccount: swapIdentity.swapDataAccount_publicKey.toBase58(),
+                    signer: signer_publicKey.toBase58(),
+                    systemProgram: SystemProgram.programId.toBase58(),
+                    splTokenProgram: process.env.SOLANA_SPL_ATA_PROGRAM_ID,
+                })
+                // .signers([signer])
+                .instruction()
+        );
     } else {
         console.log("swap Account already initialized");
         return undefined;
     }
 }
 
-async function getAddInitilizeInstructions(program, swapIdentity, signer) {
+async function getAddInitilizeInstructions(program, swapIdentity, signer_publicKey) {
     const bcData = await getSwapDataAccountFromPublicKey(
         program,
         swapIdentity.swapDataAccount_publicKey
@@ -133,9 +143,9 @@ async function getAddInitilizeInstructions(program, swapIdentity, signer) {
                             )
                             .accounts({
                                 swapDataAccount: swapIdentity.swapDataAccount_publicKey.toBase58(),
-                                signer: signer.publicKey.toBase58(),
+                                signer: signer_publicKey.toBase58(),
                             })
-                            .signers([signer])
+                            // .signers([signer])
                             .instruction()
                     );
                 }
@@ -148,13 +158,18 @@ async function getAddInitilizeInstructions(program, swapIdentity, signer) {
     return undefined;
 }
 
-async function getValidateInitilizeInstruction(program, swapIdentity, signer) {
-    return program.methods
-        .validateInitialize(swapIdentity.swapDataAccount_seed, swapIdentity.swapDataAccount_bump)
-        .accounts({
-            swapDataAccount: swapIdentity.swapDataAccount_publicKey.toBase58(),
-            signer: signer.publicKey.toBase58(),
-        })
-        .signers([signer])
-        .instruction();
+async function getValidateInitilizeInstruction(program, swapIdentity, signer_publicKey) {
+    return (
+        program.methods
+            .validateInitialize(
+                swapIdentity.swapDataAccount_seed,
+                swapIdentity.swapDataAccount_bump
+            )
+            .accounts({
+                swapDataAccount: swapIdentity.swapDataAccount_publicKey.toBase58(),
+                signer: signer_publicKey.toBase58(),
+            })
+            // .signers([signer])
+            .instruction()
+    );
 }
