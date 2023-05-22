@@ -1,14 +1,14 @@
-const createInitializeSwapInstructions = require("./src/programInstructions/createInitializeSwapInstructions");
+const createInitializeSwapInstructions = require("./src/programInstructions/initializeSwap.instructions");
 const initializeSwap = require("./src/processor/initializeSwap");
 const getProgram = require("./src/utils/getProgram.obj");
 const getSwapDataAccountFromPublicKey = require("./src/utils/getSwapDataAccountFromPublicKey.function");
-const getSwapDataAccountFromData = require("./src/utils/getSwapDataAccountFromData.function");
+const getSwapIdentityFromData = require("./src/utils/getSwapIdentityFromData.function");
 const sendBundledTransactions = require("./src/utils/sendBundledTransactions.function");
 
 let utils = {
     getProgram,
     getSwapDataAccountFromPublicKey,
-    getSwapDataAccountFromData,
+    getSwapIdentityFromData,
     sendBundledTransactions,
 };
 let createInstructions = {

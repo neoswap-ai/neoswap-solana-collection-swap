@@ -1,4 +1,4 @@
-const createInitializeSwapInstructions = require("../programInstructions/createInitializeSwapInstructions");
+const createInitializeSwapInstructions = require("../programInstructions/initializeSwap.instructions");
 const sendBundledTransactions = require("../utils/sendBundledTransactions.function");
 
 async function initializeSwap(swapData, signer, cluster, preSeed) {

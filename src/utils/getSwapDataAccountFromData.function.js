@@ -2,10 +2,12 @@ const { PublicKey } = require("@solana/web3.js");
 const { utils } = require("@project-serum/anchor");
 const CONSTS = require("./const");
 
-async function getSwapDataAccountFromData(swapData, preSeed) {
+async function getSwapIdentityFromData(swapData, preSeed) {
     // console.log(preSeed);
     try {
-        if (!preSeed) preSeed = "0000";
+        if (!preSeed) {
+            preSeed = swapData.preSeed;
+        }
         let seed = preSeed;
 
         swapData.items
@@ -40,4 +42,4 @@ async function getSwapDataAccountFromData(swapData, preSeed) {
         throw error;
     }
 }
-module.exports = getSwapDataAccountFromData;
+module.exports = getSwapIdentityFromData;

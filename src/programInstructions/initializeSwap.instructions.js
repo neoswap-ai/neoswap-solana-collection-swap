@@ -1,13 +1,13 @@
 const getProgram = require("../utils/getProgram.obj");
-const getSwapDataAccountFromData = require("../utils/getSwapDataAccountFromData.function");
-const { SystemProgram, Transaction } = require("@solana/web3.js");
+const getSwapIdentityFromData = require("../utils/getSwapIdentityFromData.function");
 const getSwapDataAccountFromPublicKey = require("../utils/getSwapDataAccountFromPublicKey.function");
+const { SystemProgram, Transaction } = require("@solana/web3.js");
 
 async function createInitializeSwapInstructions(swapData, signer_publicKey, preSeed, cluster) {
     if (!preSeed) preSeed = "0000";
     const { program } = getProgram(cluster);
 
-    const swapIdentity = await getSwapDataAccountFromData(swapData, preSeed);
+    const swapIdentity = await getSwapIdentityFromData(swapData, preSeed);
 
     try {
         const initInstruction = await getInitInitilizeInstruction(

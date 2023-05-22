@@ -1,5 +1,4 @@
 const idl = require("./neoSwap.idl");
-const { PublicKey, Connection, clusterApiUrl, Keypair } = require("@solana/web3.js");
 const { Program, Wallet, AnchorProvider, getProvider } = require("@project-serum/anchor");
 const CONSTS = require("./const");
 
