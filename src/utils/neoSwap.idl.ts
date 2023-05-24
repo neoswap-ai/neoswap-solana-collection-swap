@@ -1,4 +1,5 @@
-const idl = {
+import { Idl } from "@project-serum/anchor";
+export const idl: Idl = {
     version: "0.1.0",
     name: "neo_swap",
     docs: ["@title List of function to manage NeoSwap's multi-items swaps"],
@@ -1017,4 +1018,4 @@ const idl = {
     ],
 };
 
-module.exports = idl;
+// module.exports = idl;

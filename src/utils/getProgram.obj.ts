@@ -1,8 +1,10 @@
-const idl = require("./neoSwap.idl");
-const { Program, Wallet, AnchorProvider, getProvider } = require("@project-serum/anchor");
-const CONSTS = require("./const");
+import { Cluster, Connection, Keypair, PublicKey, Signer, clusterApiUrl } from "@solana/web3.js";
 
-function getProgram(cluster, signer) {
+import { idl } from "./neoSwap.idl";
+import { Program, Wallet, AnchorProvider, getProvider } from "@project-serum/anchor";
+import { SWAP_PROGRAM_ID } from "./const";
+
+export function getProgram(cluster: Cluster, signer: Keypair) {
     let clusterUrl = clusterApiUrl(cluster);
     if (cluster === "devnet")
         clusterUrl =
@@ -12,8 +14,8 @@ function getProgram(cluster, signer) {
     const wallet = new Wallet(signer);
 
     const provider = new AnchorProvider(connection, wallet, AnchorProvider.defaultOptions());
-    const program = new Program(idl, new PublicKey(CONSTS.SWAP_PROGRAM_ID), provider);
+    const program = new Program(idl, new PublicKey(SWAP_PROGRAM_ID), provider);
 
     return { program };
 }
-module.exports = getProgram;
+// module.exports = getProgram;

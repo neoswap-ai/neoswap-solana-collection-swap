@@ -1,13 +1,21 @@
 {
-    "name": "neo-swap-npm_git",
+    "name": "@biboux.neoswap/neo-swap-npm",
     "version": "0.0.1",
-    "repository": "",
-    "description": "NPM package for NeoSwap",
-    "author": "",
-    "license": "MIT",
-    "scripts": {
-        "compile": "rm -rf dist/lib && tsc && tsc --build tsconfig.es5.json"
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/neoswap-ai/neo-swap-npm.git"
     },
+    "description": "NPM package for NeoSwap",
+    "author": "NeoSwap",
+    "license": "MIT",
+    "main": "./lib/es5/index.js",
+    "module": "./lib/es6/index.js",
+    "sideEffects": false,
+    "files": [
+        "lib",
+        "package.json",
+        "README.md"
+    ],
     "dependencies": {
         "@metaplex-foundation/js": "^0.19.3",
         "@metaplex-foundation/mpl-token-metadata": "^2.11.1",

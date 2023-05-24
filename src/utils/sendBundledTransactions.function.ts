@@ -1,6 +1,16 @@
-const getProgram = require("./getProgram.obj");
+import { Cluster, Keypair, Signer, Transaction } from "@solana/web3.js";
+import { getProgram } from "./getProgram.obj";
 
-async function sendBundledTransactions(txsWithoutSigners, signer, cluster) {
+// const getProgram = require("./getProgram.obj");
+
+export async function sendBundledTransactions(
+    txsWithoutSigners: {
+        tx: Transaction;
+        signers?: Signer[];
+    }[],
+    signer: Keypair,
+    cluster: Cluster
+) {
     try {
         // console.log(txWithSigners);
         let { program } = getProgram(cluster, signer);
@@ -12,6 +22,9 @@ async function sendBundledTransactions(txsWithoutSigners, signer, cluster) {
             })
         );
         // console.log("txsWithSigners", txsWithSigners);
+        if (!program.provider.sendAll)
+            throw { message: "your provider is not an AnchorProvider type" };
+
         const transactionHashes = await program.provider.sendAll(txsWithSigners, {
             // skipPreflight: true,
         });
@@ -21,4 +34,4 @@ async function sendBundledTransactions(txsWithoutSigners, signer, cluster) {
         throw error;
     }
 }
-module.exports = sendBundledTransactions;
+// module.exports = sendBundledTransactions;
