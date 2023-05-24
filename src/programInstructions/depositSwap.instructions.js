@@ -44,7 +44,7 @@ async function createDepositSwapInstructions(sdaPubkey, userPbkey, programId, cl
 
         // let depositInstructionTransaction: Array<TransactionInstruction> = [];
         let depositInstruction = [];
-        let apiInstructions = [];
+        let depositInstructions = [];
         let itemsToDeposit = [];
         let ataList = [];
         let isUserPartOfTrade = false;
@@ -74,15 +74,7 @@ async function createDepositSwapInstructions(sdaPubkey, userPbkey, programId, cl
                             swapIdentity,
                             ataList,
                         });
-                        const depositingApi = {
-                            blockchain: "solana",
-                            type: "deposit NFT",
-                            order: 0,
-                            description: `Escrow your NFT ${swapDataItem.mint} in swap ${sdaPubkey}`,
-                            config: depositing.instructions,
-                        };
-                        console.log("depositingApi", depositingApi);
-                        apiInstructions.push(depositingApi);
+
                         let isPush = true;
                         depositing.mintAta.forEach((element) => {
                             ataList.forEach((ataElem) => {
@@ -103,7 +95,7 @@ async function createDepositSwapInstructions(sdaPubkey, userPbkey, programId, cl
                     ) {
                         isUserAlreadyDeposited = true;
                     }
-                    break;swapDataAccount_publicKey
+                    break;
                 case false:
                     if (
                         swapDataItem.owner.toBase58() === userPbkey.toBase58() &&
@@ -116,21 +108,10 @@ async function createDepositSwapInstructions(sdaPubkey, userPbkey, programId, cl
                             program: program,
                             signer: userPbkey,
                             swapIdentity,
-                            // from: userPbkey,
-                            // to: sdaPubkey,
-                            // seed: swapIdentity.seed.toString(),
-                            // bump: swapIdentity.bump,
                         });
                         console.log("depositSolInstruction", depositSolInstruction);
-                        apiInstructions.push({
-                            blockchain: "solana",
-                            type: "deposit SOL",
-                            order: 0,
-                            description: `Escrow your SOL in swap ${sdaPubkey}`,
-                            config: [depositSolInstruction],
-                        });
+
                         depositInstruction.push(depositSolInstruction);
-                        // depositing.instruction.forEach((element) => {});
 
                         console.log("depositSolinstruction added", depositSolInstruction);
                     } else if (
@@ -154,7 +135,7 @@ async function createDepositSwapInstructions(sdaPubkey, userPbkey, programId, cl
                 },
             ];
         } else if (
-            apiInstructions.length === 0 &&
+            depositInstruction.length === 0 &&
             isUserPartOfTrade === true &&
             isUserAlreadyDeposited === true
         ) {
@@ -166,7 +147,7 @@ async function createDepositSwapInstructions(sdaPubkey, userPbkey, programId, cl
                     description: "You have already escrowed your items in this swap",
                 },
             ];
-        } else if (apiInstructions.length === 0 && isUserPartOfTrade === true) {
+        } else if (depositInstruction.length === 0 && isUserPartOfTrade === true) {
             return [
                 {
                     blockchain: "solana",
@@ -176,32 +157,9 @@ async function createDepositSwapInstructions(sdaPubkey, userPbkey, programId, cl
                 },
             ];
         }
-        for (let index = 0; index < apiInstructions.length; index++) {
-            const element = apiInstructions[index];
-            element.order = index;
-        }
-        console.log("apiInstructions", apiInstructions);
-        let finalDepositInstruction = [
-            {
-                blockchain: "solana",
-                type: "deposit",
-                order: 0,
-                description: "Escrow your SOL and/or NFTs to the contract",
-                config: [],
-            },
-        ];
-        apiInstructions.forEach((apiInstruction) => {
-            console.log("apiInstruction.description", apiInstruction.description);
-            finalDepositInstruction[0].description.concat(apiInstruction.description);
 
-            apiInstruction.config.forEach((element) => {
-                element.programId = programId;
-            });
-            console.log("apiInstruction.config", apiInstruction.config);
-            finalDepositInstruction[0].config.push(...apiInstruction.config);
-        });
-        console.log("finalDepositInstruction", finalDepositInstruction);
-        return finalDepositInstruction;
+        console.log("depositInstruction.length", depositInstruction.length);
+        return depositInstruction;
     } catch (error) {
         return [error];
     }

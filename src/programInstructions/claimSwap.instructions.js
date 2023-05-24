@@ -140,3 +140,5 @@ async function createClaimSwapInstructions(
         return [error];
     }
 }
+
+module.exports = createClaimSwapInstructions;

@@ -1,6 +1,6 @@
 const { SystemProgram } = require("@solana/web3.js");
 
-export async function cancelSol({ program, user, signer, swapIdentity }) {
+async function cancelSol({ program, user, signer, swapIdentity }) {
     return {
         instruction: await program.methods
             .cancelSol(swapIdentity.swapDataAccount_seed, swapIdentity.swapDataAccount_bump)
@@ -14,4 +14,4 @@ export async function cancelSol({ program, user, signer, swapIdentity }) {
     };
 }
 
-export default cancelSol;
+module.exports = cancelSol;

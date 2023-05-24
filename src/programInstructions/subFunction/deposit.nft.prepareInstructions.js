@@ -2,6 +2,10 @@ const findOrCreateAta = require("../../utils/findOrCreateAta.function");
 const { SystemProgram } = require("@solana/web3.js");
 const { TOKEN_PROGRAM_ID } = require("@solana/spl-token");
 const { TokenStandard, Uses } = require("@metaplex-foundation/mpl-token-metadata");
+const findNftDataAndMetadataAccount = require("../../utils/findNftDataAndMetadataAccount.function");
+const findNftMasterEdition = require("../../utils/findNftMasterEdition.function");
+const findUserTokenRecord = require("../../utils/findUserTokenRecord.function");
+const findRuleSet = require("../../utils/findRuleSet.function");
 
 async function prepareDepositNftInstruction({
     program,
@@ -62,25 +66,25 @@ async function prepareDepositNftInstruction({
 
     if (tokenStandard === TokenStandard.ProgrammableNonFungible) {
         ///if New metaplex standard
-        const { adddress: nftMasterEdition } = solanaNFT.findNftMasterEdition({
+        const { adddress: nftMasterEdition } = findNftMasterEdition({
             mint,
         });
         // console.log('nftMasterEdition', nftMasterEdition.toBase58());
-        const { adddress: ownerTokenRecord } = solanaNFT.findUserTokenRecord({
+        const { adddress: ownerTokenRecord } = findUserTokenRecord({
             mint,
             userMintAta: userAta,
         });
         // console.log("ownerTokenRecord", ownerTokenRecord.toBase58());
-        const { adddress: destinationTokenRecord } = solanaNFT.findUserTokenRecord({
+        const { adddress: destinationTokenRecord } = findUserTokenRecord({
             mint,
             userMintAta: pdaAta,
         });
         // console.log('destinationTokenRecord', destinationTokenRecord.toBase58());
-        const authRules = await solanaNFT.findRuleSet({
+        const authRules = await findRuleSet({
             connection: program.provider.connection,
             mint,
         });
-        
+
         instructions.push({
             programId: program.programId.toString(),
             type: "depositNft",
@@ -110,7 +114,7 @@ async function prepareDepositNftInstruction({
                 },
             },
         });
-        console.log("depositNftTx - seed", instructions.at(-1).data.arguments.SDA_seed.toString());
+        console.log("depositNftTx - seed", swapIdentity.swapDataAccount_seed.toString());
     } else {
         instructions.push({
             programId: program.programId.toString(),
@@ -136,7 +140,7 @@ async function prepareDepositNftInstruction({
                     nftMasterEdition: program.programId,
                     ownerTokenRecord: program.programId,
                     destinationTokenRecord: program.programId,
-                    authRulesProgram: program.programId,
+                    authRulesProgram: CONSTS.METAPLEX_AUTH_RULES_PROGRAM,
                     authRules: program.programId,
                 },
             },

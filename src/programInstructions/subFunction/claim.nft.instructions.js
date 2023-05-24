@@ -1,39 +1,49 @@
-const { TokenStandard } = require("@metaplex-foundation/mpl-token-metadata");
 const findOrCreateAta = require("../../utils/findOrCreateAta.function");
 const { SystemProgram } = require("@solana/web3.js");
 const { TOKEN_PROGRAM_ID } = require("@solana/spl-token");
+const { TokenStandard } = require("@metaplex-foundation/mpl-token-metadata");
 const findNftDataAndMetadataAccount = require("../../utils/findNftDataAndMetadataAccount.function");
+const findNftMasterEdition = require("../../utils/findNftMasterEdition.function");
+const findUserTokenRecord = require("../../utils/findUserTokenRecord.function");
+const findRuleSet = require("../../utils/findRuleSet.function");
 
-async function getClaimNftInstructions({ program, user, mint, signer, swapIdentity, ataList }) {
+async function getClaimNftInstructions({
+    program,
+    destinary,
+    mint,
+    signer,
+    swapIdentity,
+    ataList,
+}) {
     let instruction = [];
     let mintAta = [];
 
-    const { mintAta: userMintAta, instruction: userMintAtaTx } = await findOrCreateAta({
-        program: program,
-        owner: user,
-        mint: mint,
-        signer: signer,
+    const { mintAta: destinaryMintAta, instruction: destinaryMintAtaTx } = await findOrCreateAta({
+        program,
+        owner: destinary,
+        mint,
+        signer,
     });
-    mintAta.push(userMintAta);
+    mintAta.push(destinaryMintAta);
 
-    let addUserTx = true;
+    let adddestinaryTx = true;
     ataList.forEach((ata) => {
-        if (ata.toString() === userMintAta.toString()) {
-            addUserTx = false;
+        if (ata.toString() === destinaryMintAta.toString()) {
+            adddestinaryTx = false;
         }
     });
-    if (userMintAtaTx && addUserTx) {
-        userMintAtaTx.forEach((userMintAtaTxItem) => {
-            instruction.push(userMintAtaTxItem);
+    if (destinaryMintAtaTx && adddestinaryTx) {
+        destinaryMintAtaTx.forEach((destinaryMintAtaTxItem) => {
+            instruction.push(destinaryMintAtaTxItem);
         });
-        console.log("createUserAta ClaimNft Tx Added");
+        console.log("createdestinaryAta ClaimNft Tx Added");
     }
 
     const { mintAta: pdaMintAta, instruction: pdaMintAtaTx } = await findOrCreateAta({
-        program: program,
-        owner: swapDataAccount,
-        mint: mint,
-        signer: signer,
+        program,
+        owner: swapIdentity.swapDataAccount_publicKey,
+        mint,
+        signer,
     });
     mintAta.push(pdaMintAta);
 
@@ -63,35 +73,42 @@ async function getClaimNftInstructions({ program, user, mint, signer, swapIdenti
 
     if (tokenStandard === TokenStandard.ProgrammableNonFungible) {
         ///if pNFT
-        const { adddress: nftMasterEdition, bump: nftMasterEdition_bump } =
-            solanaNFT.findNftMasterEdition({ mint });
+        const nftMasterEdition = findNftMasterEdition({
+            mint,
+        });
         // console.log('nftMasterEdition', nftMasterEdition.toBase58());
-        const { adddress: ownerTokenRecord, bump: ownerTokenRecord_bump } =
-            solanaNFT.findUserTokenRecord({
-                mint,
-                userMintAta: pdaAta,
-            });
-        console.log("ownerTokenRecord", ownerTokenRecord.toBase58());
-        const { adddress: destinationTokenRecord, bump: destinationTokenRecord_bump } =
-            solanaNFT.findUserTokenRecord({
-                mint,
-                userMintAta: userAta,
-            });
-        console.log("destinationTokenRecord", destinationTokenRecord.toBase58());
-        const authRules = await solanaNFT.findRuleSet({
+
+        const ownerTokenRecord = findUserTokenRecord({
+            mint,
+            userMintAta: pdaMintAta,
+        });
+        // console.log("ownerTokenRecord", ownerTokenRecord.toBase58());
+
+        const destinationTokenRecord = findUserTokenRecord({
+            mint,
+            userMintAta: destinaryMintAta,
+        });
+        // console.log("destinationTokenRecord", destinationTokenRecord.toBase58());
+
+        const authRules = await findRuleSet({
             connection: program.provider.connection,
             mint,
         });
-        instructions.push(
+
+        instruction.push(
             await program.methods
-                .claimNft(SDA.seed, SDA.bump, nftMetadata_bump)
+                .claimNft(
+                    swapIdentity.swapDataAccount_seed,
+                    swapIdentity.swapDataAccount_bump,
+                    nftMetadata_bump
+                )
                 .accounts({
                     systemProgram: SystemProgram.programId.toBase58(),
                     metadataProgram: process.env.TOKEN_METADATA_PROGRAM,
                     sysvarInstructions: SYSVAR_INSTRUCTIONS_PUBKEY.toBase58(),
                     splTokenProgram: TOKEN_PROGRAM_ID.toBase58(),
                     splAtaProgram: process.env.SOLANA_SPL_ATA_PROGRAM_ID,
-                    swapDataAccount: SDA.SDA,
+                    swapDataAccount: swapIdentity.swapDataAccount_publicKey,
                     user: owner.toBase58(),
                     signer: signer.publicKey.toBase58(),
                     itemFromDeposit: pdaAta.toBase58(),
@@ -104,33 +121,35 @@ async function getClaimNftInstructions({ program, user, mint, signer, swapIdenti
                     authRulesProgram: CONSTS.METAPLEX_AUTH_RULES_PROGRAM,
                     authRules,
                 })
-                .signers([signer])
                 .instruction()
         );
     } else {
-        instructions.push(
+        instruction.push(
             await program.methods
-                .claimNft(SDA.seed, SDA.bump, nftMetadata_bump)
+                .claimNft(
+                    swapIdentity.swapDataAccount_seed,
+                    swapIdentity.swapDataAccount_bump,
+                    nftMetadata_bump
+                )
                 .accounts({
                     systemProgram: SystemProgram.programId.toBase58(),
                     metadataProgram: process.env.TOKEN_METADATA_PROGRAM,
                     sysvarInstructions: SYSVAR_INSTRUCTIONS_PUBKEY.toBase58(),
                     splTokenProgram: TOKEN_PROGRAM_ID.toBase58(),
                     splAtaProgram: process.env.SOLANA_SPL_ATA_PROGRAM_ID,
-                    swapDataAccount: SDA.SDA,
+                    swapDataAccount: swapIdentity.swapDataAccount_publicKey,
                     user: owner.toBase58(),
                     signer: signer.publicKey.toBase58(),
                     itemFromDeposit: pdaAta.toBase58(),
                     itemToDeposit: userAta.toBase58(),
                     mint: mint.toBase58(),
-                    nftMetadata: nftMetatoBase58(),
+                    nftMetadata: nftMetadata.toBase58(),
                     nftMasterEdition: program.programId.toBase58(),
                     ownerTokenRecord: program.programId.toBase58(),
                     destinationTokenRecord: program.programId.toBase58(),
-                    authRulesProgram: program.programId.toBase58(),
+                    authRulesProgram: CONSTS.METAPLEX_AUTH_RULES_PROGRAM,
                     authRules: program.programId.toBase58(),
                 })
-                .signers([signer])
                 .instruction()
         );
     }
