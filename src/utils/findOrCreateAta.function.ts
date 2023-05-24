@@ -1,17 +1,25 @@
-const {
+import {
     createSyncNativeInstruction,
     createAssociatedTokenAccountInstruction,
     TOKEN_PROGRAM_ID,
     NATIVE_MINT,
-} = require("@solana/spl-token");
-const { PublicKey } = require("@solana/web3.js");
+} from "@solana/spl-token";
+import { PublicKey } from "@solana/web3.js";
+import { SOLANA_SPL_ATA_PROGRAM_ID } from "../utils/const";
+import { Program } from "@project-serum/anchor";
 
-async function findOrCreateAta({program, owner, mint, signer,isFrontEndFunction}) {
+export async function findOrCreateAta(Data: {
+    program: Program;
+    owner: PublicKey;
+    mint: PublicKey;
+    signer: PublicKey;
+    isFrontEndFunction?: boolean;
+}) {
     try {
         return {
             mintAta: (
-                await program.provider.connection.getTokenAccountsByOwner(owner, {
-                    mint: mint,
+                await Data.program.provider.connection.getTokenAccountsByOwner(Data.owner, {
+                    mint: Data.mint,
                 })
             ).value[0].pubkey,
         };
@@ -21,28 +29,28 @@ async function findOrCreateAta({program, owner, mint, signer,isFrontEndFunction}
         //     res = await solanaSwap.createPdaAtaforDeposit({ mint, signer, owner });
         // } else {
         const [mintAta, mintAta_bump] = PublicKey.findProgramAddressSync(
-            [owner.toBuffer(), TOKEN_PROGRAM_ID.toBuffer(), mint.toBuffer()],
-            new PublicKey(process.env.SOLANA_SPL_ATA_PROGRAM_ID)
+            [Data.owner.toBuffer(), TOKEN_PROGRAM_ID.toBuffer(), Data.mint.toBuffer()],
+            SOLANA_SPL_ATA_PROGRAM_ID
         );
-        if (isFrontEndFunction) {
+        if (Data.isFrontEndFunction) {
             return {
                 mintAta,
                 prepareInstruction: {
                     type: "createAssociatedTokenAccountInstruction",
                     data: {
-                        payer: signer.publicKey,
+                        payer: Data.signer,
                         associatedToken: mintAta,
-                        owner,
-                        mint,
+                        owner: Data.owner,
+                        mint: Data.mint,
                     },
                 },
             };
         } else {
             const instruction = createAssociatedTokenAccountInstruction(
-                signer.publicKey,
+                Data.signer,
                 mintAta,
-                owner,
-                mint
+                Data.owner,
+                Data.mint
             );
 
             return { mintAta, instruction };
@@ -50,4 +58,3 @@ async function findOrCreateAta({program, owner, mint, signer,isFrontEndFunction}
     }
 }
 
-module.exports = findOrCreateAta;

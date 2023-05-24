@@ -1,6 +1,6 @@
-const { Connection, clusterApiUrl } = require("@solana/web3.js");
+import { Cluster, Connection, Keypair, clusterApiUrl } from "@solana/web3.js";
 
-function getConnection(cluster, walletSecret) {
+export function getConnection(cluster: Cluster) {
     let clusterLink = "";
     if (cluster === "devnet" || cluster === "mainnet-beta" || cluster === "testnet") {
         clusterLink = clusterApiUrl(cluster);

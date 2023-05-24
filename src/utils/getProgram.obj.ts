@@ -4,11 +4,18 @@ import { idl } from "./neoSwap.idl";
 import { Program, Wallet, AnchorProvider, getProvider } from "@project-serum/anchor";
 import { SWAP_PROGRAM_ID } from "./const";
 
-export function getProgram(cluster: Cluster, signer: Keypair) {
-    let clusterUrl = clusterApiUrl(cluster);
-    if (cluster === "devnet")
+export function getProgram(cluster: Cluster | string, signer?: Keypair) {
+    let clusterUrl;
+
+    if (cluster === "mainnet-beta" || cluster === "testnet") {
+        clusterUrl = clusterApiUrl(cluster);
+    } else if (cluster === "devnet") {
         clusterUrl =
             "https://purple-alpha-orb.solana-devnet.quiknode.pro/da30b6f0da74d8a084df9aac72c5da241ab4f9a8/";
+    } else {
+        clusterUrl = cluster;
+    }
+    
     const connection = new Connection(clusterUrl, "confirmed");
     if (!signer) signer = Keypair.generate();
     const wallet = new Wallet(signer);
@@ -18,4 +25,3 @@ export function getProgram(cluster: Cluster, signer: Keypair) {
 
     return { program };
 }
-// module.exports = getProgram;

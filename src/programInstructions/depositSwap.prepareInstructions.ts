@@ -1,24 +1,39 @@
-const getProgram = require("../utils/getProgram.obj");
-const getSwapDataAccountFromPublicKey = require("../utils/getSwapDataAccountFromPublicKey.function");
-const getSwapIdentityFromData = require("../utils/getSwapIdentityFromData.function");
-const prepareDepositNftInstruction = require("./subFunction/deposit.nft.prepareInstructions");
-const prepareDepositSolInstruction = require("./subFunction/deposit.sol.prepareInstructions");
+import { Cluster, PublicKey } from "@solana/web3.js";
+import { getProgram } from "../utils/getProgram.obj";
+import { getSwapDataAccountFromPublicKey } from "../utils/getSwapDataAccountFromPublicKey.function";
+import { getSwapIdentityFromData } from "../utils/getSwapIdentityFromData.function";
+import { prepareDepositNftInstruction } from "./subFunction/deposit.nft.prepareInstructions";
+import { prepareDepositSolInstruction } from "./subFunction/deposit.sol.prepareInstructions";
+import { ApiProcessorData } from "../utils/types";
 
-async function prepareDepositSwapInstructions(sdaPubkey, userPbkey, programId, cluster) {
+async function prepareDepositSwapInstructions(Data: {
+    swapDataAccount: PublicKey;
+    user: PublicKey;
+    cluster: Cluster;
+}) {
     try {
-        const { program } = getProgram(cluster);
+        const { program } = getProgram(Data.cluster);
 
         // console.log(programId);
         // const program = solanaSwap.getEscrowProgramInstance();
         console.log("programId", program.programId.toBase58());
-        const swapData = await getSwapDataAccountFromPublicKey(program, sdaPubkey);
+        const swapData = await getSwapDataAccountFromPublicKey(program, Data.swapDataAccount);
+        if (!swapData)
+            return [
+                {
+                    blockchain: "solana",
+                    type: "error",
+                    order: 0,
+                    description:
+                        "Swap initialization in progress or not initialized. Please try again later.",
+                },
+            ];
 
         const swapIdentity = await getSwapIdentityFromData({
-            program,
             swapData,
         });
 
-        if (!swapIdentity | !swapData)
+        if (!swapIdentity || !swapData)
             return [
                 {
                     blockchain: "solana",
@@ -44,16 +59,16 @@ async function prepareDepositSwapInstructions(sdaPubkey, userPbkey, programId, c
 
         // let depositInstructionTransaction: Array<TransactionInstruction> = [];
         let depositInstruction = [];
-        let apiInstructions = [];
+        let apiInstructions: ApiProcessorData = [];
         let itemsToDeposit = [];
-        let ataList = [];
+        let ataList: PublicKey[] = [];
         let isUserPartOfTrade = false;
         let isUserAlreadyDeposited = false;
         for (let item = 0; item < swapData.items.length; item++) {
             let swapDataItem = swapData.items[item];
             if (
                 isUserPartOfTrade === false &&
-                swapDataItem.owner.toBase58() === userPbkey.toBase58()
+                swapDataItem.owner.toBase58() === Data.user.toBase58()
             ) {
                 isUserPartOfTrade = true;
             }
@@ -61,7 +76,7 @@ async function prepareDepositSwapInstructions(sdaPubkey, userPbkey, programId, c
             switch (swapDataItem.isNft) {
                 case true:
                     if (
-                        swapDataItem.owner.toBase58() === userPbkey.toBase58() &&
+                        swapDataItem.owner.toBase58() === Data.user.toBase58() &&
                         swapDataItem.status === 10
                     ) {
                         console.log("XXXXXXX - Deposit NFT item n° ", item, " XXXXXXX");
@@ -69,7 +84,7 @@ async function prepareDepositSwapInstructions(sdaPubkey, userPbkey, programId, c
 
                         let depositing = await prepareDepositNftInstruction({
                             program,
-                            signer: userPbkey,
+                            signer: Data.user,
                             mint: swapDataItem.mint,
                             swapIdentity,
                             ataList,
@@ -78,7 +93,7 @@ async function prepareDepositSwapInstructions(sdaPubkey, userPbkey, programId, c
                             blockchain: "solana",
                             type: "deposit NFT",
                             order: 0,
-                            description: `Escrow your NFT ${swapDataItem.mint} in swap ${sdaPubkey}`,
+                            description: `Escrow your NFT ${swapDataItem.mint} in swap ${Data.swapDataAccount}`,
                             config: depositing.instructions,
                         };
                         console.log("depositingApi", depositingApi);
@@ -98,7 +113,7 @@ async function prepareDepositSwapInstructions(sdaPubkey, userPbkey, programId, c
                             depositInstruction.push(depositIx);
                         });
                     } else if (
-                        swapDataItem.owner.toBase58() === userPbkey.toBase58() &&
+                        swapDataItem.owner.toBase58() === Data.user.toBase58() &&
                         swapDataItem.status === 20
                     ) {
                         isUserAlreadyDeposited = true;
@@ -106,7 +121,7 @@ async function prepareDepositSwapInstructions(sdaPubkey, userPbkey, programId, c
                     break;
                 case false:
                     if (
-                        swapDataItem.owner.toBase58() === userPbkey.toBase58() &&
+                        swapDataItem.owner.toBase58() === Data.user.toBase58() &&
                         swapDataItem.status === 11
                     ) {
                         console.log("XXXXXXX - Deposit SOL item n° ", item, " XXXXXXX");
@@ -114,17 +129,16 @@ async function prepareDepositSwapInstructions(sdaPubkey, userPbkey, programId, c
 
                         const depositSolInstruction = await prepareDepositSolInstruction({
                             // program: program,
-                            from: userPbkey,
-                            to: sdaPubkey,
+                            from: Data.user,
+                            to: Data.swapDataAccount,
                             swapIdentity,
-                     
                         });
                         console.log("depositSolInstruction", depositSolInstruction);
                         apiInstructions.push({
                             blockchain: "solana",
                             type: "deposit SOL",
                             order: 0,
-                            description: `Escrow your SOL in swap ${sdaPubkey}`,
+                            description: `Escrow your SOL in swap ${Data.swapDataAccount}`,
                             config: [depositSolInstruction],
                         });
                         depositInstruction.push(depositSolInstruction);
@@ -132,7 +146,7 @@ async function prepareDepositSwapInstructions(sdaPubkey, userPbkey, programId, c
 
                         console.log("depositSolinstruction added", depositSolInstruction);
                     } else if (
-                        swapDataItem.owner.toBase58() === userPbkey.toBase58() &&
+                        swapDataItem.owner.toBase58() === Data.user.toBase58() &&
                         swapDataItem.status === 21
                     ) {
                         isUserAlreadyDeposited = true;
@@ -179,7 +193,7 @@ async function prepareDepositSwapInstructions(sdaPubkey, userPbkey, programId, c
             element.order = index;
         }
         console.log("apiInstructions", apiInstructions);
-        let finalDepositInstruction = [
+        let finalDepositInstruction: ApiProcessorData = [
             {
                 blockchain: "solana",
                 type: "deposit",
@@ -193,7 +207,7 @@ async function prepareDepositSwapInstructions(sdaPubkey, userPbkey, programId, c
             finalDepositInstruction[0].description.concat(apiInstruction.description);
 
             apiInstruction.config.forEach((element) => {
-                element.programId = programId;
+                element.programId = program.programId;
             });
             console.log("apiInstruction.config", apiInstruction.config);
             finalDepositInstruction[0].config.push(...apiInstruction.config);
@@ -204,4 +218,3 @@ async function prepareDepositSwapInstructions(sdaPubkey, userPbkey, programId, c
         return [error];
     }
 }
-module.exports = prepareDepositSwapInstructions;

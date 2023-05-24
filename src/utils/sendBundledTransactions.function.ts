@@ -1,23 +1,23 @@
 import { Cluster, Keypair, Signer, Transaction } from "@solana/web3.js";
 import { getProgram } from "./getProgram.obj";
 
-// const getProgram = require("./getProgram.obj");
+// const getProgram  from "./getProgram.obj");
 
-export async function sendBundledTransactions(
+export async function sendBundledTransactions(Data: {
     txsWithoutSigners: {
         tx: Transaction;
         signers?: Signer[];
-    }[],
-    signer: Keypair,
-    cluster: Cluster
-) {
+    }[];
+    signer: Keypair;
+    cluster: Cluster | string;
+}) {
     try {
         // console.log(txWithSigners);
-        let { program } = getProgram(cluster, signer);
+        let { program } = getProgram(Data.cluster, Data.signer);
         const txsWithSigners = await Promise.all(
-            txsWithoutSigners.map((txWithoutSigners) => {
-                txWithoutSigners.signers = [signer];
-                txWithoutSigners.tx.feePayer = signer.publicKey;
+            Data.txsWithoutSigners.map((txWithoutSigners) => {
+                txWithoutSigners.signers = [Data.signer];
+                txWithoutSigners.tx.feePayer = Data.signer.publicKey;
                 return txWithoutSigners;
             })
         );
@@ -34,4 +34,3 @@ export async function sendBundledTransactions(
         throw error;
     }
 }
-// module.exports = sendBundledTransactions;

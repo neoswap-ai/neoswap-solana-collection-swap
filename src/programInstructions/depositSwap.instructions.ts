@@ -1,24 +1,38 @@
-const getProgram = require("../utils/getProgram.obj");
-const getSwapDataAccountFromPublicKey = require("../utils/getSwapDataAccountFromPublicKey.function");
-const getSwapIdentityFromData = require("../utils/getSwapIdentityFromData.function");
-const getDepositNftInstruction = require("./subFunction/deposit.nft.instructions");
-const getDepositSolInstruction = require("./subFunction/deposit.sol.instructions");
+import { Cluster, PublicKey, TransactionInstruction } from "@solana/web3.js";
+import { getProgram } from "../utils/getProgram.obj";
+import { getSwapDataAccountFromPublicKey } from "../utils/getSwapDataAccountFromPublicKey.function";
+import { getSwapIdentityFromData } from "../utils/getSwapIdentityFromData.function";
+import { getDepositNftInstruction } from "./subFunction/deposit.nft.instructions";
+import { getDepositSolInstruction } from "./subFunction/deposit.sol.instructions";
 
-async function createDepositSwapInstructions(sdaPubkey, userPbkey, programId, cluster) {
+async function createDepositSwapInstructions(Data: {
+    swapDataAccount: PublicKey;
+    user: PublicKey;
+    cluster: Cluster;
+}) {
     try {
-        const { program } = getProgram(cluster);
+        const { program } = getProgram(Data.cluster);
 
         // console.log(programId);
         // const program = solanaSwap.getEscrowProgramInstance();
         console.log("programId", program.programId.toBase58());
-        const swapData = await getSwapDataAccountFromPublicKey(program, sdaPubkey);
+        const swapData = await getSwapDataAccountFromPublicKey(program, Data.swapDataAccount);
+        if (!swapData)
+            return [
+                {
+                    blockchain: "solana",
+                    type: "error",
+                    order: 0,
+                    description:
+                        "Swap initialization in progress or not initialized. Please try again later.",
+                },
+            ];
 
         const swapIdentity = await getSwapIdentityFromData({
-            program,
             swapData,
         });
 
-        if (!swapIdentity | !swapData)
+        if (!swapIdentity || !swapData)
             return [
                 {
                     blockchain: "solana",
@@ -43,17 +57,17 @@ async function createDepositSwapInstructions(sdaPubkey, userPbkey, programId, cl
             ];
 
         // let depositInstructionTransaction: Array<TransactionInstruction> = [];
-        let depositInstruction = [];
-        let depositInstructions = [];
-        let itemsToDeposit = [];
-        let ataList = [];
+        let depositInstruction: TransactionInstruction[] = [];
+        // let depositInstructions = [];
+        // let itemsToDeposit = [];
+        let ataList: PublicKey[] = [];
         let isUserPartOfTrade = false;
         let isUserAlreadyDeposited = false;
         for (let item = 0; item < swapData.items.length; item++) {
             let swapDataItem = swapData.items[item];
             if (
                 isUserPartOfTrade === false &&
-                swapDataItem.owner.toBase58() === userPbkey.toBase58()
+                swapDataItem.owner.toBase58() === Data.user.toBase58()
             ) {
                 isUserPartOfTrade = true;
             }
@@ -61,15 +75,15 @@ async function createDepositSwapInstructions(sdaPubkey, userPbkey, programId, cl
             switch (swapDataItem.isNft) {
                 case true:
                     if (
-                        swapDataItem.owner.toBase58() === userPbkey.toBase58() &&
+                        swapDataItem.owner.toBase58() === Data.user.toBase58() &&
                         swapDataItem.status === 10
                     ) {
                         console.log("XXXXXXX - Deposit NFT item n° ", item, " XXXXXXX");
-                        itemsToDeposit.push(swapDataItem);
+                        // itemsToDeposit.push(swapDataItem);
 
                         let depositing = await getDepositNftInstruction({
                             program: program,
-                            signer: userPbkey,
+                            signer: Data.user,
                             mint: swapDataItem.mint,
                             swapIdentity,
                             ataList,
@@ -90,7 +104,7 @@ async function createDepositSwapInstructions(sdaPubkey, userPbkey, programId, cl
                             depositInstruction.push(depositIx);
                         });
                     } else if (
-                        swapDataItem.owner.toBase58() === userPbkey.toBase58() &&
+                        swapDataItem.owner.toBase58() === Data.user.toBase58() &&
                         swapDataItem.status === 20
                     ) {
                         isUserAlreadyDeposited = true;
@@ -98,15 +112,15 @@ async function createDepositSwapInstructions(sdaPubkey, userPbkey, programId, cl
                     break;
                 case false:
                     if (
-                        swapDataItem.owner.toBase58() === userPbkey.toBase58() &&
+                        swapDataItem.owner.toBase58() === Data.user.toBase58() &&
                         swapDataItem.status === 11
                     ) {
                         console.log("XXXXXXX - Deposit SOL item n° ", item, " XXXXXXX");
-                        itemsToDeposit.push(swapDataItem);
+                        // itemsToDeposit.push(swapDataItem);
 
                         const depositSolInstruction = await getDepositSolInstruction({
                             program: program,
-                            signer: userPbkey,
+                            signer: Data.user,
                             swapIdentity,
                         });
                         console.log("depositSolInstruction", depositSolInstruction);
@@ -115,7 +129,7 @@ async function createDepositSwapInstructions(sdaPubkey, userPbkey, programId, cl
 
                         console.log("depositSolinstruction added", depositSolInstruction);
                     } else if (
-                        swapDataItem.owner.toBase58() === userPbkey.toBase58() &&
+                        swapDataItem.owner.toBase58() === Data.user.toBase58() &&
                         swapDataItem.status === 21
                     ) {
                         isUserAlreadyDeposited = true;
@@ -164,4 +178,3 @@ async function createDepositSwapInstructions(sdaPubkey, userPbkey, programId, cl
         return [error];
     }
 }
-module.exports = createDepositSwapInstructions;

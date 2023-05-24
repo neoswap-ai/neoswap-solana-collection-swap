@@ -1018,4 +1018,3 @@ export const idl: Idl = {
     ],
 };
 
-// module.exports = idl;

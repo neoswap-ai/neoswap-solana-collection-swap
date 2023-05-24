@@ -1,16 +1,20 @@
-const { PublicKey } = require("@solana/web3.js");
-const { utils } = require("@project-serum/anchor");
-const CONSTS = require("./const");
+import { PublicKey } from "@solana/web3.js";
+import { utils } from "@project-serum/anchor";
+import { SWAP_PROGRAM_ID } from "./const";
+import { SwapData, SwapIdentity } from "./types";
 
-async function getSwapIdentityFromData(swapData, preSeed) {
+export async function getSwapIdentityFromData(Data: {
+    swapData: SwapData;
+    // preSeed: string;
+}): Promise<SwapIdentity> {
     // console.log(preSeed);
     try {
-        if (!preSeed) {
-            preSeed = swapData.preSeed;
-        }
-        let seed = preSeed;
+        // if (!Data.preSeed) {
+        //     Data.preSeed = Data.swapData.preSeed;
+        // }
+        let seed = Data.swapData.preSeed;
 
-        swapData.items
+        Data.swapData.items
             .sort((x, y) => {
                 return (
                     x.mint.toString() +
@@ -28,18 +32,16 @@ async function getSwapIdentityFromData(swapData, preSeed) {
 
         const [swapDataAccount_publicKey, swapDataAccount_bump] = PublicKey.findProgramAddressSync(
             [swapDataAccount_seed],
-            CONSTS.SWAP_PROGRAM_ID
+            SWAP_PROGRAM_ID
         );
 
         return {
             swapDataAccount_publicKey,
             swapDataAccount_seed,
             swapDataAccount_bump,
-            preSeed,
-            swapData,
+            swapData: Data.swapData,
         };
     } catch (error) {
         throw error;
     }
 }
-module.exports = getSwapIdentityFromData;
