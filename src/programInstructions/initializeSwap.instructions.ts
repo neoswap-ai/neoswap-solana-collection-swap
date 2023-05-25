@@ -73,7 +73,7 @@ export async function createInitializeSwapInstructions(Data: {
         }
 
         return {
-            ...swapIdentity,
+            swapIdentity,
             programId: program.programId.toBase58(),
             transactions,
         };

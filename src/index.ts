@@ -1,22 +1,22 @@
-// export { getProgram } from "./utils/getProgram.obj";
-// export { sendBundledTransactions } from "./utils/sendBundledTransactions.function";
-import { createInitializeSwapInstructions } from "./programInstructions/initializeSwap.instructions";
+export { getProgram } from "./utils/getProgram.obj";
+export { sendBundledTransactions } from "./utils/sendBundledTransactions.function";
 import { initializeSwap } from "./processor/initializeSwap";
+import { createInitializeSwapInstructions } from "./programInstructions/initializeSwap.instructions";
 import { getProgram } from "./utils/getProgram.obj";
 import { getSwapDataAccountFromPublicKey } from "./utils/getSwapDataAccountFromPublicKey.function";
 import { getSwapIdentityFromData } from "./utils/getSwapIdentityFromData.function";
 import { sendBundledTransactions } from "./utils/sendBundledTransactions.function";
 
-let utils = {
+const utils = {
     getProgram,
     getSwapDataAccountFromPublicKey,
     getSwapIdentityFromData,
     sendBundledTransactions,
 };
-let createInstructions = {
+const createInstructions = {
     createInitializeSwapInstructions,
 };
-export let neoSwapNpm = {
+export const neoSwapNpm = {
     initializeSwap,
     utils,
     createInstructions,

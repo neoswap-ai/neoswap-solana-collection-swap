@@ -1,7 +1,8 @@
 import { Connection, PublicKey } from "@solana/web3.js";
 import { utils } from "@project-serum/anchor";
 import { TOKEN_METADATA_PROGRAM, METAPLEX_AUTH_RULES } from "./const";
-import { Metaplex } from "@metaplex-foundation/js";
+// import { Metaplex } from "@metaplex-foundation/js";
+const { Metaplex } = require("@metaplex-foundation/js");
 
 export async function findNftDataAndMetadataAccount(Data: {
     connection: Connection;
