@@ -34,11 +34,6 @@ export const idl: Idl = {
                     isMut: false,
                     isSigner: false,
                 },
-                {
-                    name: "associatedTokenProgram",
-                    isMut: false,
-                    isSigner: false,
-                },
             ],
             args: [
                 {
@@ -541,7 +536,7 @@ export const idl: Idl = {
             name: "cancelSol",
             docs: [
                 "@notice Cancels an item from escrow, retrieving funds if deposited previously. /!\\ initializer function",
-                "@dev Function that iterates through Swap's Data from PDA to find the relevant information linked with accounts shared and transfer lamports to destinary if needed, change the item status to cancelled and Swap's status to 90 (cancelled) if not already. /!\\ this function can only be triggered by initializer",
+                "@dev Function that iterates through Swap's Data from PDA to find the relevant information linked with accounts shared and transfer lamports to destinary if needed, change the item status to canceled and Swap's status to 90 (canceled) if not already. /!\\ this function can only be triggered by initializer",
                 "@param seed: u8[] => Seed buffer corresponding to Swap's PDA",
                 '@param bump: u8 => "Bump corresponding to Swap\'s PDA"',
                 "@accounts system_program: Pubkey = system_program_id",
@@ -768,16 +763,20 @@ export const idl: Idl = {
                         type: "u8",
                     },
                     {
+                        name: "nbItems",
+                        type: "u32",
+                    },
+                    {
+                        name: "preSeed",
+                        type: "string",
+                    },
+                    {
                         name: "items",
                         type: {
                             vec: {
                                 defined: "NftSwapItem",
                             },
                         },
-                    },
-                    {
-                        name: "nbItems",
-                        type: "u32",
                     },
                 ],
             },
@@ -834,10 +833,10 @@ export const idl: Idl = {
                         name: "Closed",
                     },
                     {
-                        name: "Cancelling",
+                        name: "Canceling",
                     },
                     {
-                        name: "Cancelled",
+                        name: "Canceled",
                     },
                 ],
             },
@@ -857,10 +856,10 @@ export const idl: Idl = {
                         name: "NFTClaimed",
                     },
                     {
-                        name: "NFTCancelled",
+                        name: "NFTCanceled",
                     },
                     {
-                        name: "NFTCancelledRecovered",
+                        name: "NFTCanceledRecovered",
                     },
                     {
                         name: "SolPending",
@@ -875,10 +874,10 @@ export const idl: Idl = {
                         name: "SolClaimed",
                     },
                     {
-                        name: "SolCancelled",
+                        name: "SolCanceled",
                     },
                     {
-                        name: "SolCancelledRecovered",
+                        name: "SolCanceledRecovered",
                     },
                 ],
             },
@@ -1017,4 +1016,3 @@ export const idl: Idl = {
         },
     ],
 };
-

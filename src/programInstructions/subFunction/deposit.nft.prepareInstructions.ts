@@ -11,7 +11,7 @@ import {
 
 import { Program } from "@project-serum/anchor";
 import { SwapIdentity } from "../../utils/types";
-import { METAPLEX_AUTH_RULES_PROGRAM } from "../../utils/const";
+import { METAPLEX_AUTH_RULES_PROGRAM, SOLANA_SPL_ATA_PROGRAM_ID, TOKEN_METADATA_PROGRAM } from "../../utils/const";
 
 export async function prepareDepositNftInstruction(Data: {
     program: Program;
@@ -95,10 +95,10 @@ export async function prepareDepositNftInstruction(Data: {
                 },
                 accounts: {
                     systemProgram: SystemProgram.programId.toBase58(),
-                    metadataProgram: process.env.TOKEN_METADATA_PROGRAM,
+                    metadataProgram: TOKEN_METADATA_PROGRAM,
                     sysvarInstructions: SYSVAR_INSTRUCTIONS_PUBKEY.toBase58(),
                     splTokenProgram: TOKEN_PROGRAM_ID.toBase58(),
-                    splAtaProgram: process.env.SOLANA_SPL_ATA_PROGRAM_ID,
+                    splAtaProgram: SOLANA_SPL_ATA_PROGRAM_ID,
                     swapDataAccount: Data.swapIdentity.swapDataAccount_publicKey.toBase58(),
                     signer: Data.signer.toBase58(),
                     itemFromDeposit: userAta.toBase58(),
@@ -113,7 +113,7 @@ export async function prepareDepositNftInstruction(Data: {
                 },
             },
         });
-        console.log("depositNftTx - seed", Data.swapIdentity.swapDataAccount_seed.toString());
+        // console.log("depositNftTx - seed", Data.swapIdentity.swapDataAccount_seed.toString());
     } else {
         instructions.push({
             programId: Data.program.programId.toString(),
@@ -126,10 +126,10 @@ export async function prepareDepositNftInstruction(Data: {
                 },
                 accounts: {
                     systemProgram: SystemProgram.programId.toBase58(),
-                    metadataProgram: process.env.TOKEN_METADATA_PROGRAM,
+                    metadataProgram: TOKEN_METADATA_PROGRAM,
                     sysvarInstructions: SYSVAR_INSTRUCTIONS_PUBKEY.toBase58(),
                     splTokenProgram: TOKEN_PROGRAM_ID.toBase58(),
-                    splAtaProgram: process.env.SOLANA_SPL_ATA_PROGRAM_ID,
+                    splAtaProgram: SOLANA_SPL_ATA_PROGRAM_ID,
                     swapDataAccount: Data.swapIdentity.swapDataAccount_publicKey.toBase58(),
                     signer: Data.signer.toBase58(),
                     itemFromDeposit: userAta.toBase58(),

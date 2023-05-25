@@ -1,15 +1,16 @@
-import { Cluster, PublicKey, TransactionInstruction } from "@solana/web3.js";
+import { Cluster, PublicKey, Transaction, TransactionInstruction } from "@solana/web3.js";
 import { getProgram } from "../utils/getProgram.obj";
 import { getSwapDataAccountFromPublicKey } from "../utils/getSwapDataAccountFromPublicKey.function";
 import { getSwapIdentityFromData } from "../utils/getSwapIdentityFromData.function";
 import { getClaimNftInstructions } from "./subFunction/claim.nft.instructions";
 import { getClaimSolInstructions } from "./subFunction/claim.sol.instructions";
+import { ErrorFeedback, TradeStatus, TxWithSigner } from "../utils/types";
 
 export async function createClaimSwapInstructions(Data: {
     swapDataAccount: PublicKey;
     signer: PublicKey;
     cluster: Cluster | string;
-}) {
+}): Promise<TxWithSigner | ErrorFeedback | undefined> {
     try {
         const { program } = getProgram(Data.cluster);
 
@@ -17,7 +18,7 @@ export async function createClaimSwapInstructions(Data: {
         // const program = solanaSwap.getEscrowProgramInstance();
         console.log("programId", program.programId.toBase58());
         const swapData = await getSwapDataAccountFromPublicKey(program, Data.swapDataAccount);
-        if (!swapData)
+        if (!swapData) {
             return [
                 {
                     blockchain: "solana",
@@ -27,61 +28,101 @@ export async function createClaimSwapInstructions(Data: {
                         "Swap initialization in progress or not initialized. Please try again later.",
                 },
             ];
-
-        const swapIdentity = await getSwapIdentityFromData({
+        } else if (
+            !(
+                swapData.status === TradeStatus.WaitingToClaim ||
+                swapData.status === TradeStatus.WaitingToDeposit
+            )
+        ) {
+            return [
+                {
+                    blockchain: "solana",
+                    type: "error",
+                    order: 0,
+                    description: "Swap is't in the adequate status for Validate Claim.",
+                    status: swapData.status,
+                },
+            ];
+        }
+        let init = false;
+        if (swapData.initializer.equals(Data.signer)) {
+            init = true;
+        } else if (swapData.status !== TradeStatus.WaitingToClaim) {
+            [
+                {
+                    blockchain: "solana",
+                    type: "error",
+                    order: 0,
+                    description:
+                        "Swap is't in the adequate status for Claiming an item & you're not Initializer",
+                    status: swapData.status,
+                },
+            ];
+        }
+        const swapIdentity = getSwapIdentityFromData({
             swapData,
         });
 
-        if (!swapIdentity || !swapData)
+        if (!swapIdentity)
             return [
                 {
                     blockchain: "solana",
                     type: "error",
                     order: 0,
                     description:
-                        "Swap initialization in progress or not initialized. Please try again later.",
+                        "Data retrieved from the Swap did not allow to build the SwapIdentity.",
                 },
             ];
-        console.log("SwapData", swapIdentity);
+
+        // console.log("swapIdentity", swapIdentity);
         // let depositInstructionTransaction: Array<TransactionInstruction> = [];
-        let claimTransactionInstruction: TransactionInstruction[] = [];
+        let claimTransactionInstruction: TxWithSigner = [];
         let ataList: PublicKey[] = [];
 
         for (const item of swapData.items) {
-            switch (item.isNft) {
-                case true:
-                    if (item.status === 20) {
-                        const { instruction, mintAta } = await getClaimNftInstructions({
-                            program,
-                            destinary: item.destinary,
-                            mint: item.mint,
-                            signer: Data.signer,
-                            swapIdentity,
-                            ataList,
-                        });
-                        claimTransactionInstruction.push(...instruction);
-                        ataList.push(...mintAta);
-                        console.log("claimNftinstruction added");
-                    }
-                    break;
+            if (init === true || item.destinary.equals(Data.signer)) {
+                switch (item.isNft) {
+                    case true:
+                        if (item.status === 20) {
+                            const { instruction, mintAta } = await getClaimNftInstructions({
+                                program,
+                                destinary: item.destinary,
+                                mint: item.mint,
+                                signer: Data.signer,
+                                swapIdentity,
+                                ataList,
+                            });
+                            claimTransactionInstruction.push({
+                                tx: new Transaction().add(...instruction),
+                            });
+                            ataList.push(...mintAta);
+                            console.log("claimNftinstruction added", item.mint.toBase58());
+                        }
+                        break;
 
-                case false:
-                    if (item.status === 22) {
-                        const { instruction } = await getClaimSolInstructions({
-                            program: program,
-                            user: item.owner,
-                            signer: Data.signer,
-                            swapIdentity,
-                        });
-                        claimTransactionInstruction.push(instruction);
-                        console.log("claimSolinstruction added");
-                    }
-                    break;
+                    case false:
+                        if (item.status === 22) {
+                            const { instruction } = await getClaimSolInstructions({
+                                program: program,
+                                user: item.owner,
+                                signer: Data.signer,
+                                swapIdentity,
+                            });
+                            claimTransactionInstruction.push({
+                                tx: new Transaction().add(instruction),
+                            });
+                            console.log("claimSolinstruction added");
+                        }
+                        break;
+                }
             }
         }
-
-        return { instructions: claimTransactionInstruction, ataList };
+        if (claimTransactionInstruction.length > 0) {
+            return claimTransactionInstruction;
+        } else {
+            return undefined;
+        }
     } catch (error) {
-        return [error];
+        return [{ blockchain: "solana", type: "error", order: 0, description: error }];
     }
 }

@@ -4,9 +4,9 @@ import { getSwapDataAccountFromPublicKey } from "../utils/getSwapDataAccountFrom
 import { getSwapIdentityFromData } from "../utils/getSwapIdentityFromData.function";
 import { prepareDepositNftInstruction } from "./subFunction/deposit.nft.prepareInstructions";
 import { prepareDepositSolInstruction } from "./subFunction/deposit.sol.prepareInstructions";
-import { ApiProcessorData } from "../utils/types";
+import { ApiProcessorData, TradeStatus } from "../utils/types";
 
-async function prepareDepositSwapInstructions(Data: {
+export async function prepareDepositSwapInstructions(Data: {
     swapDataAccount: PublicKey;
     user: PublicKey;
     cluster: Cluster;
@@ -16,9 +16,9 @@ async function prepareDepositSwapInstructions(Data: {
 
         // console.log(programId);
         // const program = solanaSwap.getEscrowProgramInstance();
-        console.log("programId", program.programId.toBase58());
+        // console.log("programId", program.programId.toBase58());
         const swapData = await getSwapDataAccountFromPublicKey(program, Data.swapDataAccount);
-        if (!swapData)
+        if (!swapData) {
             return [
                 {
                     blockchain: "solana",
@@ -28,39 +28,37 @@ async function prepareDepositSwapInstructions(Data: {
                         "Swap initialization in progress or not initialized. Please try again later.",
                 },
             ];
-
-        const swapIdentity = await getSwapIdentityFromData({
-            swapData,
-        });
-
-        if (!swapIdentity || !swapData)
+        } else if (swapData.status !== TradeStatus.WaitingToDeposit)
             return [
                 {
                     blockchain: "solana",
                     type: "error",
                     order: 0,
-                    description:
-                        "Swap initialization in progress or not initialized. Please try again later.",
-                },
-            ];
-        console.log("SwapData", swapIdentity);
-        if (swapData.status !== 1)
-            //1
-            return [
-                {
-                    blockchain: "solana",
-                    type: "error",
-                    order: 0,
-                    description:
-                        "Status of the swap isn't in a deposit state. Please contact support.",
+                    description: "Status of the swap isn't in a depositing state.",
                     status: swapData.status,
                 },
             ];
 
+        const swapIdentity = getSwapIdentityFromData({
+            swapData,
+        });
+
+        if (!swapIdentity)
+            return [
+                {
+                    blockchain: "solana",
+                    type: "error",
+                    order: 0,
+                    description:
+                        "Data retrieved from the Swap did not allow to build the SwapIdentity.",
+                },
+            ];
+        // console.log("swapIdentity", swapIdentity);
+
         // let depositInstructionTransaction: Array<TransactionInstruction> = [];
-        let depositInstruction = [];
+        // let depositInstruction = [];
+        // let itemsToDeposit = [];
         let apiInstructions: ApiProcessorData = [];
-        let itemsToDeposit = [];
         let ataList: PublicKey[] = [];
         let isUserPartOfTrade = false;
         let isUserAlreadyDeposited = false;
@@ -80,7 +78,7 @@ async function prepareDepositSwapInstructions(Data: {
                         swapDataItem.status === 10
                     ) {
                         console.log("XXXXXXX - Deposit NFT item n° ", item, " XXXXXXX");
-                        itemsToDeposit.push(swapDataItem);
+                        // itemsToDeposit.push(swapDataItem);
 
                         let depositing = await prepareDepositNftInstruction({
                             program,
@@ -109,9 +107,9 @@ async function prepareDepositSwapInstructions(Data: {
 
                             if (isPush) ataList.push(element);
                         });
-                        depositing.instructions.forEach((depositIx) => {
-                            depositInstruction.push(depositIx);
-                        });
+                        // depositing.instructions.forEach((depositIx) => {
+                        //     depositInstruction.push(depositIx);
+                        // });
                     } else if (
                         swapDataItem.owner.toBase58() === Data.user.toBase58() &&
                         swapDataItem.status === 20
@@ -125,7 +123,7 @@ async function prepareDepositSwapInstructions(Data: {
                         swapDataItem.status === 11
                     ) {
                         console.log("XXXXXXX - Deposit SOL item n° ", item, " XXXXXXX");
-                        itemsToDeposit.push(swapDataItem);
+                        // itemsToDeposit.push(swapDataItem);
 
                         const depositSolInstruction = await prepareDepositSolInstruction({
                             // program: program,
@@ -141,7 +139,7 @@ async function prepareDepositSwapInstructions(Data: {
                             description: `Escrow your SOL in swap ${Data.swapDataAccount}`,
                             config: [depositSolInstruction],
                         });
-                        depositInstruction.push(depositSolInstruction);
+                        // depositInstruction.push(depositSolInstruction);
                         // depositing.instruction.forEach((element) => {});
 
                         console.log("depositSolinstruction added", depositSolInstruction);

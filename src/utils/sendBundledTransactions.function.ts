@@ -1,13 +1,11 @@
 import { Cluster, Keypair, Signer, Transaction } from "@solana/web3.js";
 import { getProgram } from "./getProgram.obj";
+import { TxWithSigner } from "./types";
 
 // const getProgram  from "./getProgram.obj");
 
 export async function sendBundledTransactions(Data: {
-    txsWithoutSigners: {
-        tx: Transaction;
-        signers?: Signer[];
-    }[];
+    txsWithoutSigners: TxWithSigner;
     signer: Keypair;
     cluster: Cluster | string;
 }) {

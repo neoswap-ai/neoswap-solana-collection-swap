@@ -6,7 +6,7 @@ import {
     TransactionInstruction,
 } from "@solana/web3.js";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
-import { METAPLEX_AUTH_RULES_PROGRAM } from "../../utils/const";
+import { METAPLEX_AUTH_RULES_PROGRAM, SOLANA_SPL_ATA_PROGRAM_ID, TOKEN_METADATA_PROGRAM } from "../../utils/const";
 import { TokenStandard } from "@metaplex-foundation/mpl-token-metadata";
 import {
     findNftDataAndMetadataAccount,
@@ -90,10 +90,10 @@ export async function getCancelNftInstructions(Data: {
                 )
                 .accounts({
                     systemProgram: SystemProgram.programId.toBase58(),
-                    metadataProgram: process.env.TOKEN_METADATA_PROGRAM,
+                    metadataProgram: TOKEN_METADATA_PROGRAM,
                     sysvarInstructions: SYSVAR_INSTRUCTIONS_PUBKEY.toBase58(),
                     splTokenProgram: TOKEN_PROGRAM_ID.toBase58(),
-                    splAtaProgram: process.env.SOLANA_SPL_ATA_PROGRAM_ID,
+                    splAtaProgram: SOLANA_SPL_ATA_PROGRAM_ID,
                     swapDataAccount: Data.swapIdentity.swapDataAccount_publicKey.toBase58(),
                     user: Data.owner.toBase58(),
                     signer: Data.signer.toBase58(),
@@ -119,10 +119,10 @@ export async function getCancelNftInstructions(Data: {
                 )
                 .accounts({
                     systemProgram: SystemProgram.programId.toBase58(),
-                    metadataProgram: process.env.TOKEN_METADATA_PROGRAM,
+                    metadataProgram: TOKEN_METADATA_PROGRAM,
                     sysvarInstructions: SYSVAR_INSTRUCTIONS_PUBKEY.toBase58(),
                     splTokenProgram: TOKEN_PROGRAM_ID.toBase58(),
-                    splAtaProgram: process.env.SOLANA_SPL_ATA_PROGRAM_ID,
+                    splAtaProgram: SOLANA_SPL_ATA_PROGRAM_ID,
                     swapDataAccount: Data.swapIdentity.swapDataAccount_publicKey.toBase58(),
                     user: Data.owner.toBase58(),
                     signer: Data.signer.toBase58(),

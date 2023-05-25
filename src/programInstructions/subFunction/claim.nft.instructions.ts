@@ -11,7 +11,11 @@ import {
 
 import { Program } from "@project-serum/anchor";
 import { SwapIdentity } from "../../utils/types";
-import { METAPLEX_AUTH_RULES_PROGRAM } from "../../utils/const";
+import {
+    METAPLEX_AUTH_RULES_PROGRAM,
+    SOLANA_SPL_ATA_PROGRAM_ID,
+    TOKEN_METADATA_PROGRAM,
+} from "../../utils/const";
 
 export async function getClaimNftInstructions(Data: {
     program: Program;
@@ -41,7 +45,7 @@ export async function getClaimNftInstructions(Data: {
     if (destinaryMintAtaTx && adddestinaryTx) {
         instruction.push(destinaryMintAtaTx);
 
-        console.log("createdestinaryAta ClaimNft Tx Added");
+        console.log("createdestinaryAta ClaimNft Tx Added", destinaryMintAta.toBase58());
     }
 
     const { mintAta: pdaMintAta, instruction: pdaMintAtaTx } = await findOrCreateAta({
@@ -71,7 +75,7 @@ export async function getClaimNftInstructions(Data: {
         connection: Data.program.provider.connection,
         mint: Data.mint,
     });
-    console.log("nftMetadata", nftMetadata.toBase58());
+    // console.log("nftMetadata", nftMetadata.toBase58());
 
     if (tokenStandard === TokenStandard.ProgrammableNonFungible) {
         ///if pNFT
@@ -106,10 +110,10 @@ export async function getClaimNftInstructions(Data: {
                 )
                 .accounts({
                     systemProgram: SystemProgram.programId.toBase58(),
-                    metadataProgram: process.env.TOKEN_METADATA_PROGRAM,
+                    metadataProgram: TOKEN_METADATA_PROGRAM,
                     sysvarInstructions: SYSVAR_INSTRUCTIONS_PUBKEY.toBase58(),
                     splTokenProgram: TOKEN_PROGRAM_ID.toBase58(),
-                    splAtaProgram: process.env.SOLANA_SPL_ATA_PROGRAM_ID,
+                    splAtaProgram: SOLANA_SPL_ATA_PROGRAM_ID,
                     swapDataAccount: Data.swapIdentity.swapDataAccount_publicKey,
                     user: Data.destinary.toBase58(),
                     signer: Data.signer.toBase58(),
@@ -135,10 +139,10 @@ export async function getClaimNftInstructions(Data: {
                 )
                 .accounts({
                     systemProgram: SystemProgram.programId.toBase58(),
-                    metadataProgram: process.env.TOKEN_METADATA_PROGRAM,
+                    metadataProgram: TOKEN_METADATA_PROGRAM,
                     sysvarInstructions: SYSVAR_INSTRUCTIONS_PUBKEY.toBase58(),
                     splTokenProgram: TOKEN_PROGRAM_ID.toBase58(),
-                    splAtaProgram: process.env.SOLANA_SPL_ATA_PROGRAM_ID,
+                    splAtaProgram: SOLANA_SPL_ATA_PROGRAM_ID,
                     swapDataAccount: Data.swapIdentity.swapDataAccount_publicKey,
                     user: Data.destinary.toBase58(),
                     signer: Data.signer.toBase58(),
@@ -157,4 +161,3 @@ export async function getClaimNftInstructions(Data: {
     }
     return { instruction, mintAta };
 }
-

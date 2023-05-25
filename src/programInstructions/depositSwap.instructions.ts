@@ -1,23 +1,25 @@
-import { Cluster, PublicKey, TransactionInstruction } from "@solana/web3.js";
+import { Cluster, PublicKey, Signer, Transaction, TransactionInstruction } from "@solana/web3.js";
 import { getProgram } from "../utils/getProgram.obj";
 import { getSwapDataAccountFromPublicKey } from "../utils/getSwapDataAccountFromPublicKey.function";
 import { getSwapIdentityFromData } from "../utils/getSwapIdentityFromData.function";
 import { getDepositNftInstruction } from "./subFunction/deposit.nft.instructions";
 import { getDepositSolInstruction } from "./subFunction/deposit.sol.instructions";
+import { ErrorFeedback, TradeStatus, TxWithSigner } from "../utils/types";
 
-async function createDepositSwapInstructions(Data: {
+export async function createDepositSwapInstructions(Data: {
     swapDataAccount: PublicKey;
     user: PublicKey;
-    cluster: Cluster;
-}) {
+    cluster: Cluster | string;
+}): Promise<TxWithSigner | ErrorFeedback> {
     try {
         const { program } = getProgram(Data.cluster);
 
         // console.log(programId);
         // const program = solanaSwap.getEscrowProgramInstance();
-        console.log("programId", program.programId.toBase58());
+        // console.log("programId", program.programId.toBase58());
+        // console.log("swapDataAccount", Data.swapDataAccount.toBase58());
         const swapData = await getSwapDataAccountFromPublicKey(program, Data.swapDataAccount);
-        if (!swapData)
+        if (!swapData) {
             return [
                 {
                     blockchain: "solana",
@@ -27,39 +29,37 @@ async function createDepositSwapInstructions(Data: {
                         "Swap initialization in progress or not initialized. Please try again later.",
                 },
             ];
-
-        const swapIdentity = await getSwapIdentityFromData({
-            swapData,
-        });
-
-        if (!swapIdentity || !swapData)
+        } else if (swapData.status !== TradeStatus.WaitingToDeposit)
             return [
                 {
                     blockchain: "solana",
                     type: "error",
                     order: 0,
-                    description:
-                        "Swap initialization in progress or not initialized. Please try again later.",
-                },
-            ];
-        console.log("SwapData", swapIdentity);
-        if (swapData.status !== 1)
-            //1
-            return [
-                {
-                    blockchain: "solana",
-                    type: "error",
-                    order: 0,
-                    description:
-                        "Status of the swap isn't in a deposit state. Please contact support.",
+                    description: "Status of the swap isn't in a depositing state.",
                     status: swapData.status,
                 },
             ];
 
+        const swapIdentity = getSwapIdentityFromData({
+            swapData,
+        });
+
+        if (!swapIdentity)
+            return [
+                {
+                    blockchain: "solana",
+                    type: "error",
+                    order: 0,
+                    description:
+                        "Data retrieved from the Swap did not allow to build the SwapIdentity.",
+                },
+            ];
+        // console.log("swapIdentity", swapIdentity);
+
         // let depositInstructionTransaction: Array<TransactionInstruction> = [];
-        let depositInstruction: TransactionInstruction[] = [];
         // let depositInstructions = [];
         // let itemsToDeposit = [];
+        let depositInstruction: TxWithSigner = [];
         let ataList: PublicKey[] = [];
         let isUserPartOfTrade = false;
         let isUserAlreadyDeposited = false;
@@ -100,8 +100,8 @@ async function createDepositSwapInstructions(Data: {
 
                             if (isPush) ataList.push(element);
                         });
-                        depositing.instructions.forEach((depositIx) => {
-                            depositInstruction.push(depositIx);
+                        depositInstruction.push({
+                            tx: new Transaction().add(...depositing.instructions),
                         });
                     } else if (
                         swapDataItem.owner.toBase58() === Data.user.toBase58() &&
@@ -125,7 +125,9 @@ async function createDepositSwapInstructions(Data: {
                         });
                         console.log("depositSolInstruction", depositSolInstruction);
 
-                        depositInstruction.push(depositSolInstruction);
+                        depositInstruction.push({
+                            tx: new Transaction().add(depositSolInstruction),
+                        });
 
                         console.log("depositSolinstruction added", depositSolInstruction);
                     } else if (
@@ -172,9 +174,10 @@ async function createDepositSwapInstructions(Data: {
             ];
         }
 
-        console.log("depositInstruction.length", depositInstruction.length);
+        // console.log("depositInstruction.length", depositInstruction.length);
+
         return depositInstruction;
     } catch (error) {
-        return [error];
+        return [{ blockchain: "solana", description: error, order: 0, type: "error" }];
     }
 }
