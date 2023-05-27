@@ -138,11 +138,11 @@ export async function getDepositNftInstruction(Data: {
                     mint: Data.mint.toBase58(),
                     nftMetadata: nftMetadata.toBase58(),
                     itemToDeposit: pdaAta.toBase58(),
-                    nftMasterEdition: Data.program.programId,
-                    ownerTokenRecord: Data.program.programId,
-                    destinationTokenRecord: Data.program.programId,
+                    nftMasterEdition: Data.signer.toBase58(),
+                    ownerTokenRecord: Data.signer.toBase58(),
+                    destinationTokenRecord: Data.signer.toBase58(),
                     authRulesProgram: METAPLEX_AUTH_RULES_PROGRAM,
-                    authRules: Data.program.programId,
+                    authRules: Data.signer.toBase58(),
                 })
                 .instruction()
         );

@@ -1,5 +1,3 @@
-export { getProgram } from "./utils/getProgram.obj";
-export { sendBundledTransactions } from "./utils/sendBundledTransactions.function";
 import { cancelAndCloseSwap } from "./processor/cancelAndCloseSwap";
 import { claimAndCloseSwap } from "./processor/claimAndCloseSwap";
 import { depositSwap } from "./processor/depositSwap";
@@ -12,13 +10,26 @@ import { createInitializeSwapInstructions } from "./programInstructions/initiali
 import { getProgram } from "./utils/getProgram.obj";
 import { getSwapDataAccountFromPublicKey } from "./utils/getSwapDataAccountFromPublicKey.function";
 import { getSwapIdentityFromData } from "./utils/getSwapIdentityFromData.function";
+import { isError, isErrorInit } from "./utils/isError.function";
 import { sendBundledTransactions } from "./utils/sendBundledTransactions.function";
+import {
+    ApiProcessorData,
+    ErrorFeedback,
+    ItemStatus,
+    NftSwapItem,
+    SwapData,
+    SwapIdentity,
+    TradeStatus,
+    TxWithSigner,
+} from "./utils/types";
 
 const utils = {
     getProgram,
     getSwapDataAccountFromPublicKey,
     getSwapIdentityFromData,
     sendBundledTransactions,
+    isError,
+    isErrorInit,
 };
 const createInstructions = {
     createInitializeSwapInstructions,
@@ -27,11 +38,23 @@ const createInstructions = {
     createCancelSwapInstructions,
     prepareDepositSwapInstructions,
 };
-export const neoSwapNpm = {
+
+const types = {
+    // NftSwapItem,
+    // SwapData,
+    // SwapIdentity,
+    // ApiProcessorData,
+    // ErrorFeedback,
+    // TxWithSigner,
+};
+
+const neoSwapNpm = {
     initializeSwap,
     depositSwap,
     claimAndCloseSwap,
     cancelAndCloseSwap,
     utils,
     createInstructions,
+    types,
 };
+export default neoSwapNpm;

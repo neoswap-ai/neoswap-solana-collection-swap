@@ -14,9 +14,6 @@ export async function createClaimSwapInstructions(Data: {
     try {
         const { program } = getProgram(Data.cluster);
 
-        // console.log(programId);
-        // const program = solanaSwap.getEscrowProgramInstance();
-        console.log("programId", program.programId.toBase58());
         const swapData = await getSwapDataAccountFromPublicKey(program, Data.swapDataAccount);
         if (!swapData) {
             return [

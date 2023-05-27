@@ -9,12 +9,7 @@ export async function depositSwap(Data: {
     signer: Keypair;
     cluster: Cluster | string;
     // preSeed: string;
-}): Promise<
-    | {
-          transactionHashes: string[];
-      }
-    | ErrorFeedback
-> {
+}): Promise<string[] | ErrorFeedback> {
     let depositSwapData = await createDepositSwapInstructions({
         swapDataAccount: Data.swapDataAccount,
         user: Data.signer.publicKey,
@@ -22,13 +17,13 @@ export async function depositSwap(Data: {
     });
 
     if (!isError(depositSwapData)) {
-        console.log(
-            "User ",
-            Data.signer.publicKey.toBase58(),
-            " has found to have ",
-            depositSwapData.length,
-            " items to deposit\nBroadcasting to blockchain ..."
-        );
+        // console.log(
+        //     "User ",
+        //     Data.signer.publicKey.toBase58(),
+        //     " has found to have ",
+        //     depositSwapData.length,
+        //     " items to deposit\nBroadcasting to blockchain ..."
+        // );
 
         const { transactionHashes } = await sendBundledTransactions({
             txsWithoutSigners: depositSwapData,
@@ -36,7 +31,6 @@ export async function depositSwap(Data: {
             cluster: Data.cluster,
         });
 
-        return { transactionHashes };
+        return transactionHashes;
     } else return depositSwapData;
 }
-

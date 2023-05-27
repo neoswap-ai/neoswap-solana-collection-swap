@@ -10,12 +10,7 @@ export async function cancelAndCloseSwap(Data: {
     signer: Keypair;
     cluster: Cluster | string;
     // preSeed: string;
-}): Promise<
-    | {
-          transactionHashes: string[];
-      }
-    | ErrorFeedback
-> {
+}): Promise<string[] | ErrorFeedback> {
     let txToSend: TxWithSigner = [];
 
     let cancelTxData = await createCancelSwapInstructions({
@@ -46,7 +41,7 @@ export async function cancelAndCloseSwap(Data: {
         console.log("skip validateCancel");
     } else return validateCancelTxData;
 
-    console.log("sending ", txToSend.length, " transactions to blockchain ...");
+    // console.log("sending ", txToSend.length, " transactions to blockchain ...");
 
     const { transactionHashes } = await sendBundledTransactions({
         txsWithoutSigners: txToSend,
@@ -54,5 +49,5 @@ export async function cancelAndCloseSwap(Data: {
         cluster: Data.cluster,
     });
 
-    return { transactionHashes };
+    return transactionHashes;
 }

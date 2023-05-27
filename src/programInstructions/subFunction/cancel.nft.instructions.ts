@@ -130,11 +130,11 @@ export async function getCancelNftInstructions(Data: {
                     itemToDeposit: destinaryAta.toBase58(),
                     mint: Data.mint.toBase58(),
                     nftMetadata: nftMetadata.toBase58(),
-                    nftMasterEdition: Data.program.programId.toBase58(),
-                    ownerTokenRecord: Data.program.programId.toBase58(),
-                    destinationTokenRecord: Data.program.programId.toBase58(),
+                    nftMasterEdition: Data.signer.toBase58(),
+                    ownerTokenRecord: Data.signer.toBase58(),
+                    destinationTokenRecord: Data.signer.toBase58(),
                     authRulesProgram: METAPLEX_AUTH_RULES_PROGRAM,
-                    authRules: Data.program.programId.toBase58(),
+                    authRules: Data.signer.toBase58(),
                 })
                 .instruction()
         );

@@ -11,12 +11,8 @@ export async function claimAndCloseSwap(Data: {
     signer: Keypair;
     cluster: Cluster | string;
     // preSeed: string;
-}): Promise<
-    | {
-          transactionHashes: string[];
-      }
-    | ErrorFeedback
-> {
+}): Promise<string[] | ErrorFeedback> {
+    // | ErrorFeedback
     let txToSend: TxWithSigner = [];
     let validateDepositTxData = await validateDeposit({
         swapDataAccount: Data.swapDataAccount,
@@ -57,11 +53,12 @@ export async function claimAndCloseSwap(Data: {
         console.log("skip validateClaimed");
     } else return validateClaimTxData;
 
+    
     const { transactionHashes } = await sendBundledTransactions({
         txsWithoutSigners: txToSend,
         signer: Data.signer,
         cluster: Data.cluster,
     });
 
-    return { transactionHashes };
+    return transactionHashes;
 }

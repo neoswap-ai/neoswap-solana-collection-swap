@@ -10,7 +10,7 @@ import {
 } from "@solana/web3.js";
 import { ErrorFeedback, SwapData, SwapIdentity, TxWithSigner } from "../utils/types";
 import { Program } from "@project-serum/anchor";
-import { SOLANA_SPL_ATA_PROGRAM_ID } from "../utils/const";
+// import { SOLANA_SPL_ATA_PROGRAM_ID } from "../utils/const";
 
 export async function createInitializeSwapInstructions(Data: {
     swapData: SwapData;
@@ -32,6 +32,8 @@ export async function createInitializeSwapInstructions(Data: {
         swapData: Data.swapData,
         // preSeed: Data.preSeed,
     });
+    console.log("swapIdentity", swapIdentity);
+
     try {
         // console.log("swapIdentity before init", swapIdentity);
         const initInstruction = await getInitInitilizeInstruction({
@@ -39,7 +41,7 @@ export async function createInitializeSwapInstructions(Data: {
             swapIdentity,
             signer: Data.signer,
         });
-        // console.log("swapIdentity before add", swapIdentity);
+        console.log("swapIdentity before add", initInstruction);
 
         const addInstructions = await getAddInitilizeInstructions({
             program,
@@ -110,21 +112,33 @@ async function getInitInitilizeInstruction(Data: {
     signer: PublicKey;
 }) {
     // Data.swapIdentity.swapData.nbItems = Data.swapIdentity.swapData.items.length;
-    let initSwapData = { ...Data.swapIdentity.swapData };
-    initSwapData.items = [];
+    let initSwapData: SwapData = {
+        initializer: Data.swapIdentity.swapData.initializer,
+        items: [],
+        nbItems: Data.swapIdentity.swapData.nbItems,
+        preSeed: Data.swapIdentity.swapData.preSeed,
+        status: Data.swapIdentity.swapData.status,
+    };
+    // initSwapData.items = [];
     const balanceSda = await Data.program.provider.connection.getBalance(
         Data.swapIdentity.swapDataAccount_publicKey
     );
     // console.log("Data.swapIdentity.swapData.preSeed", Data.swapIdentity.swapData.preSeed);
 
     if (balanceSda === 0) {
+        console.log(Data.swapIdentity.swapDataAccount_seed);
+        console.log(Data.swapIdentity.swapDataAccount_bump);
+        console.log(initSwapData);
+        console.log(Data.swapIdentity.swapDataAccount_publicKey.toBase58());
+        console.log(Data.signer.toBase58());
+        console.log(SystemProgram.programId.toBase58());
         return (
             Data.program.methods
                 .initInitialize(
                     Data.swapIdentity.swapDataAccount_seed,
                     Data.swapIdentity.swapDataAccount_bump,
-                    initSwapData,
-                    initSwapData.nbItems
+                    initSwapData
+                    // initSwapData.nbItems
                     // initSwapData.preSeed
                 )
                 .accounts({

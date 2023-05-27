@@ -11,6 +11,7 @@ export async function sendBundledTransactions(Data: {
 }) {
     try {
         // console.log(txWithSigners);
+
         let { program } = getProgram(Data.cluster, Data.signer);
         const txsWithSigners = await Promise.all(
             Data.txsWithoutSigners.map((txWithoutSigners) => {
@@ -20,13 +21,20 @@ export async function sendBundledTransactions(Data: {
             })
         );
         // console.log("txsWithSigners", txsWithSigners);
+        console.log(
+            "User ",
+            Data.signer.publicKey.toBase58(),
+            " has found to have ",
+            txsWithSigners.length,
+            " items to deposit\nBroadcasting to blockchain ..."
+        );
         if (!program.provider.sendAll)
             throw { message: "your provider is not an AnchorProvider type" };
 
         const transactionHashes = await program.provider.sendAll(txsWithSigners, {
             // skipPreflight: true,
         });
-        // console.log(transactionHashes);
+        console.log(transactionHashes);
         return { transactionHashes };
     } catch (error) {
         throw error;
