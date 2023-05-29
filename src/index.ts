@@ -12,7 +12,7 @@ import { getSwapDataAccountFromPublicKey } from "./utils/getSwapDataAccountFromP
 import { getSwapIdentityFromData } from "./utils/getSwapIdentityFromData.function";
 import { isError, isErrorInit } from "./utils/isError.function";
 import { sendBundledTransactions } from "./utils/sendBundledTransactions.function";
-import {
+export {
     ApiProcessorData,
     ErrorFeedback,
     ItemStatus,
@@ -39,15 +39,6 @@ const createInstructions = {
     prepareDepositSwapInstructions,
 };
 
-const types = {
-    // NftSwapItem,
-    // SwapData,
-    // SwapIdentity,
-    // ApiProcessorData,
-    // ErrorFeedback,
-    // TxWithSigner,
-};
-
 const neoSwapNpm = {
     initializeSwap,
     depositSwap,
@@ -55,6 +46,6 @@ const neoSwapNpm = {
     cancelAndCloseSwap,
     utils,
     createInstructions,
-    types,
 };
+
 export default neoSwapNpm;
