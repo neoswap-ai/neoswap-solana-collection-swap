@@ -2,7 +2,7 @@ import { Cluster, Keypair, PublicKey, Transaction } from "@solana/web3.js";
 import { createInitializeSwapInstructions } from "../programInstructions/initializeSwap.instructions";
 import { sendBundledTransactions } from "../utils/sendBundledTransactions.function";
 import { ErrorFeedback, SwapData, SwapIdentity, TxWithSigner } from "../utils/types";
-import { isError, isErrorInit } from "../utils/isError.function";
+import { isError, isErrorInitTx } from "../utils/isError.function";
 
 export async function initializeSwap(Data: {
     swapData: SwapData;
@@ -23,9 +23,9 @@ export async function initializeSwap(Data: {
         // preSeed: Data.preSeed,
         cluster: Data.cluster,
     });
-    // console.log("initSwapData", initSwapData);
+    console.log("initSwapData", initSwapData);
 
-    if (isErrorInit(initSwapData)) return initSwapData;
+    if (isErrorInitTx(initSwapData)) return initSwapData;
 
     const { transactionHashes } = await sendBundledTransactions({
         txsWithoutSigners: initSwapData.transactions,
@@ -34,5 +34,10 @@ export async function initializeSwap(Data: {
     });
     // delete initSwapData.transactions;
     // console.log("transactionHashes", transactionHashes);
-    return { ...initSwapData, transactionHashes };
+    initSwapData.swapIdentity;
+    return {
+        programId: initSwapData.programId,
+        swapIdentity: initSwapData.swapIdentity,
+        transactionHashes,
+    };
 }

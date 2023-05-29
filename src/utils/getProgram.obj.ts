@@ -1,10 +1,10 @@
 import { Cluster, Connection, Keypair, PublicKey, Signer, clusterApiUrl } from "@solana/web3.js";
 
 import { idl } from "./neoSwap.idl";
-import { Program, Wallet, AnchorProvider, getProvider } from "@project-serum/anchor";
+import { Program, Wallet, AnchorProvider } from "@project-serum/anchor";
 import { SWAP_PROGRAM_ID } from "./const";
 
-export function getProgram(cluster: Cluster | string, signer?: Keypair) {
+export function getProgram(cluster: Cluster | string, signer?: Keypair): Program {
     let clusterUrl;
 
     if (cluster === "mainnet-beta" || cluster === "testnet") {
@@ -15,7 +15,7 @@ export function getProgram(cluster: Cluster | string, signer?: Keypair) {
     } else {
         clusterUrl = cluster;
     }
-    
+
     const connection = new Connection(clusterUrl, "confirmed");
     if (!signer) signer = Keypair.generate();
     const wallet = new Wallet(signer);
@@ -23,5 +23,5 @@ export function getProgram(cluster: Cluster | string, signer?: Keypair) {
     const provider = new AnchorProvider(connection, wallet, AnchorProvider.defaultOptions());
     const program = new Program(idl, new PublicKey(SWAP_PROGRAM_ID), provider);
 
-    return { program };
+    return program;
 }

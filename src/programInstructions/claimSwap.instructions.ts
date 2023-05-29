@@ -12,7 +12,7 @@ export async function createClaimSwapInstructions(Data: {
     cluster: Cluster | string;
 }): Promise<TxWithSigner | ErrorFeedback | undefined> {
     try {
-        const { program } = getProgram(Data.cluster);
+        const program= getProgram(Data.cluster);
 
         const swapData = await getSwapDataAccountFromPublicKey(program, Data.swapDataAccount);
         if (!swapData) {

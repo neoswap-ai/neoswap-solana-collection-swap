@@ -12,7 +12,7 @@ export async function createCancelSwapInstructions(Data: {
     cluster: Cluster | string;
 }): Promise<TxWithSigner | ErrorFeedback> {
     try {
-        const { program } = getProgram(Data.cluster);
+        const program= getProgram(Data.cluster);
 
         // console.log(programId);
         // const program = getEscrowProgramInstance();

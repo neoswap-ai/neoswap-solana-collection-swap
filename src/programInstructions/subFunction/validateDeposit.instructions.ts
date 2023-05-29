@@ -9,7 +9,7 @@ export const validateDeposit = async (Data: {
     signer: PublicKey;
     cluster: Cluster | string;
 }): Promise<TxWithSigner | ErrorFeedback | undefined> => {
-    const { program } = getProgram(Data.cluster);
+    const program= getProgram(Data.cluster);
     const swapData = await getSwapDataAccountFromPublicKey(program, Data.swapDataAccount);
     if (!swapData) {
         return [

@@ -12,7 +12,7 @@ export async function prepareDepositSwapInstructions(Data: {
     cluster: Cluster;
 }) {
     try {
-        const { program } = getProgram(Data.cluster);
+        const program= getProgram(Data.cluster);
 
         // console.log(programId);
         // const program = solanaSwap.getEscrowProgramInstance();

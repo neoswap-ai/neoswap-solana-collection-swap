@@ -12,7 +12,7 @@ export async function sendBundledTransactions(Data: {
     try {
         // console.log(txWithSigners);
 
-        let { program } = getProgram(Data.cluster, Data.signer);
+        let program= getProgram(Data.cluster, Data.signer);
         const txsWithSigners = await Promise.all(
             Data.txsWithoutSigners.map((txWithoutSigners) => {
                 txWithoutSigners.signers = [Data.signer];
