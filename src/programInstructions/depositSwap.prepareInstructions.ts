@@ -4,15 +4,15 @@ import { getSwapDataAccountFromPublicKey } from "../utils/getSwapDataAccountFrom
 import { getSwapIdentityFromData } from "../utils/getSwapIdentityFromData.function";
 import { prepareDepositNftInstruction } from "./subFunction/deposit.nft.prepareInstructions";
 import { prepareDepositSolInstruction } from "./subFunction/deposit.sol.prepareInstructions";
-import { ApiProcessorData, TradeStatus } from "../utils/types";
+import { ApiProcessorData, ErrorFeedback, TradeStatus } from "../utils/types";
 
 export async function prepareDepositSwapInstructions(Data: {
     swapDataAccount: PublicKey;
     user: PublicKey;
-    cluster: Cluster;
-}) {
+    cluster: Cluster | string;
+}): Promise<ErrorFeedback | ApiProcessorData> {
     try {
-        const program= getProgram(Data.cluster);
+        const program = getProgram(Data.cluster);
 
         // console.log(programId);
         // const program = solanaSwap.getEscrowProgramInstance();
@@ -126,7 +126,7 @@ export async function prepareDepositSwapInstructions(Data: {
                         // itemsToDeposit.push(swapDataItem);
 
                         const depositSolInstruction = await prepareDepositSolInstruction({
-                            // program: program,
+                            programId: program.programId,
                             from: Data.user,
                             to: Data.swapDataAccount,
                             swapIdentity,
@@ -205,7 +205,7 @@ export async function prepareDepositSwapInstructions(Data: {
             finalDepositInstruction[0].description.concat(apiInstruction.description);
 
             apiInstruction.config.forEach((element) => {
-                element.programId = program.programId;
+                element.programId = program.programId.toString();
             });
             console.log("apiInstruction.config", apiInstruction.config);
             finalDepositInstruction[0].config.push(...apiInstruction.config);
@@ -213,6 +213,6 @@ export async function prepareDepositSwapInstructions(Data: {
         console.log("finalDepositInstruction", finalDepositInstruction);
         return finalDepositInstruction;
     } catch (error) {
-        return [error];
+        return [{ blockchain: "solana", description: error, order: 0, type: "error" }];
     }
 }

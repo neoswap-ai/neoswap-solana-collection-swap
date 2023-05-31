@@ -30,8 +30,32 @@ export type ApiProcessorData = {
     type: string;
     order: number;
     description: string;
-    config: any[];
+    config: ApiProcessorConfigType[];
 }[];
+
+export type ApiProcessorConfigType =
+    | {
+          type: "createAssociatedTokenAccountInstruction";
+          data: ApiProcessorCreateATAType;
+          programId?: string;
+      }
+    | {
+          type: "depositNft" | "depositSol";
+          data: ApiProcessorDepositType;
+          programId?: string;
+      };
+
+export type ApiProcessorDepositType = {
+    arguments: { [key: string]: string | number };
+    accounts: { [key: string]: string };
+};
+
+export type ApiProcessorCreateATAType = {
+    payer: string;
+    associatedToken: string;
+    owner: string;
+    mint: string;
+};
 
 export type ErrorFeedback = [
     {

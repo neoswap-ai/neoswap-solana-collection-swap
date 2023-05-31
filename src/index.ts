@@ -10,7 +10,12 @@ import { createInitializeSwapInstructions } from "./programInstructions/initiali
 import { getProgram } from "./utils/getProgram.obj";
 import { getSwapDataAccountFromPublicKey } from "./utils/getSwapDataAccountFromPublicKey.function";
 import { getSwapIdentityFromData } from "./utils/getSwapIdentityFromData.function";
-import { isError, isErrorInitTx, isErrorInitializeSwap } from "./utils/isError.function";
+import {
+    isError,
+    isErrorApiProcessor,
+    isErrorInitTx,
+    isErrorInitializeSwap,
+} from "./utils/isError.function";
 import { sendBundledTransactions } from "./utils/sendBundledTransactions.function";
 export {
     ApiProcessorData,
@@ -21,6 +26,9 @@ export {
     SwapIdentity,
     TradeStatus,
     TxWithSigner,
+    ApiProcessorConfigType,
+    ApiProcessorCreateATAType,
+    ApiProcessorDepositType,
 } from "./utils/types";
 
 const utils = {
@@ -31,6 +39,7 @@ const utils = {
     isErrorInitializeSwap,
     isError,
     isErrorInitTx,
+    isErrorApiProcessor,
 };
 const createInstructions = {
     createInitializeSwapInstructions,

@@ -4,9 +4,10 @@ import {
     TOKEN_PROGRAM_ID,
     NATIVE_MINT,
 } from "@solana/spl-token";
-import { PublicKey } from "@solana/web3.js";
+import { PublicKey, Transaction, TransactionInstruction } from "@solana/web3.js";
 import { SOLANA_SPL_ATA_PROGRAM_ID } from "../utils/const";
 import { Program } from "@project-serum/anchor";
+import { ApiProcessorConfigType } from "./types";
 
 export async function findOrCreateAta(Data: {
     program: Program;
@@ -14,7 +15,11 @@ export async function findOrCreateAta(Data: {
     mint: PublicKey;
     signer: PublicKey;
     isFrontEndFunction?: boolean;
-}) {
+}): Promise<{
+    mintAta: PublicKey;
+    prepareInstruction?: ApiProcessorConfigType;
+    instruction?: TransactionInstruction;
+}> {
     try {
         let mintAta = (
             await Data.program.provider.connection.getTokenAccountsByOwner(Data.owner, {
@@ -45,10 +50,10 @@ export async function findOrCreateAta(Data: {
                 prepareInstruction: {
                     type: "createAssociatedTokenAccountInstruction",
                     data: {
-                        payer: Data.signer,
-                        associatedToken: mintAta,
-                        owner: Data.owner,
-                        mint: Data.mint,
+                        payer: Data.signer.toString(),
+                        associatedToken: mintAta.toString(),
+                        owner: Data.owner.toString(),
+                        mint: Data.mint.toString(),
                     },
                 },
             };

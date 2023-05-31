@@ -52,13 +52,16 @@ export function findUserTokenRecord(Data: { mint: PublicKey; userMintAta: Public
     )[0];
 }
 
-export async function findRuleSet(Data: { connection: Connection; mint: PublicKey }) {
+export async function findRuleSet(Data: {
+    connection: Connection;
+    mint: PublicKey;
+}): Promise<string> {
     const metaplex = new Metaplex(Data.connection);
     const nft = await metaplex.nfts().findByMint({ mintAddress: Data.mint });
     // console.log("nft", nft.programmableConfig.ruleSet);
     if (nft.programmableConfig?.ruleSet) {
-        return nft.programmableConfig.ruleSet;
+        return nft.programmableConfig.ruleSet.toString();
     } else {
-        return METAPLEX_AUTH_RULES;
+        return METAPLEX_AUTH_RULES.toString();
     }
 }
