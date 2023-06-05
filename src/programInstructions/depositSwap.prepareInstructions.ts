@@ -17,7 +17,10 @@ export async function prepareDepositSwapInstructions(Data: {
         // console.log(programId);
         // const program = solanaSwap.getEscrowProgramInstance();
         // console.log("programId", program.programId.toBase58());
-        const swapData = await getSwapDataAccountFromPublicKey(program, Data.swapDataAccount);
+        const swapData = await getSwapDataAccountFromPublicKey({
+            program,
+            swapDataAccount_publicKey: Data.swapDataAccount,
+        });
         if (!swapData) {
             return [
                 {

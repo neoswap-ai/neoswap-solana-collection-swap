@@ -14,7 +14,7 @@ export async function createClaimSwapInstructions(Data: {
     try {
         const program= getProgram(Data.cluster);
 
-        const swapData = await getSwapDataAccountFromPublicKey(program, Data.swapDataAccount);
+        const swapData = await getSwapDataAccountFromPublicKey({program, swapDataAccount_publicKey:Data.swapDataAccount});
         if (!swapData) {
             return [
                 {

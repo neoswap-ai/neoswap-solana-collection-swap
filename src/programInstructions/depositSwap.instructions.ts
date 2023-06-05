@@ -12,13 +12,11 @@ export async function createDepositSwapInstructions(Data: {
     cluster: Cluster | string;
 }): Promise<TxWithSigner | ErrorFeedback> {
     try {
-        const program= getProgram(Data.cluster);
-
-        // console.log(programId);
-        // const program = solanaSwap.getEscrowProgramInstance();
-        // console.log("programId", program.programId.toBase58());
-        // console.log("swapDataAccount", Data.swapDataAccount.toBase58());
-        const swapData = await getSwapDataAccountFromPublicKey(program, Data.swapDataAccount);
+        const program = getProgram(Data.cluster);
+        const swapData = await getSwapDataAccountFromPublicKey({
+            program,
+            swapDataAccount_publicKey: Data.swapDataAccount,
+        });
         if (!swapData) {
             return [
                 {
@@ -54,11 +52,7 @@ export async function createDepositSwapInstructions(Data: {
                         "Data retrieved from the Swap did not allow to build the SwapIdentity.",
                 },
             ];
-        // console.log("swapIdentity", swapIdentity);
 
-        // let depositInstructionTransaction: Array<TransactionInstruction> = [];
-        // let depositInstructions = [];
-        // let itemsToDeposit = [];
         let depositInstruction: TxWithSigner = [];
         let ataList: PublicKey[] = [];
         let isUserPartOfTrade = false;
@@ -79,7 +73,6 @@ export async function createDepositSwapInstructions(Data: {
                         swapDataItem.status === 10
                     ) {
                         console.log("XXXXXXX - Deposit NFT item n° ", item, " XXXXXXX");
-                        // itemsToDeposit.push(swapDataItem);
 
                         let depositing = await getDepositNftInstruction({
                             program: program,
@@ -116,7 +109,6 @@ export async function createDepositSwapInstructions(Data: {
                         swapDataItem.status === 11
                     ) {
                         console.log("XXXXXXX - Deposit SOL item n° ", item, " XXXXXXX");
-                        // itemsToDeposit.push(swapDataItem);
 
                         const depositSolInstruction = await getDepositSolInstruction({
                             program: program,
@@ -173,8 +165,6 @@ export async function createDepositSwapInstructions(Data: {
                 },
             ];
         }
-
-        // console.log("depositInstruction.length", depositInstruction.length);
 
         return depositInstruction;
     } catch (error) {

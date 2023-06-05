@@ -8,7 +8,7 @@ import {
     Transaction,
     TransactionInstruction,
 } from "@solana/web3.js";
-import { ErrorFeedback, SwapData, SwapIdentity, TxWithSigner } from "../utils/types";
+import { ErrorFeedback, ItemStatus, SwapData, SwapIdentity, TxWithSigner } from "../utils/types";
 import { Program } from "@project-serum/anchor";
 import { findOrCreateAta } from "../utils/findOrCreateAta.function";
 import { isError, isErrorAddInit } from "../utils/isError.function";
@@ -169,10 +169,10 @@ async function getAddInitilizeInstructions(Data: {
     swapIdentity: SwapIdentity;
     signer: PublicKey;
 }): Promise<ErrorFeedback | TransactionInstruction[][] | undefined> {
-    const bcData = await getSwapDataAccountFromPublicKey(
-        Data.program,
-        Data.swapIdentity.swapDataAccount_publicKey
-    );
+    const bcData = await getSwapDataAccountFromPublicKey({
+        program: Data.program,
+        swapDataAccount_publicKey: Data.swapIdentity.swapDataAccount_publicKey,
+    });
     // console.log("bcData", bcData);
     // console.log("Data.swapIdentity.swapData.items", Data.swapIdentity.swapData.items);
 
@@ -202,33 +202,35 @@ async function getAddInitilizeInstructions(Data: {
                     program: Data.program,
                     signer: Data.signer,
                 });
-                const balance = await Data.program.provider.connection.getTokenAccountBalance(
-                    tokenAccount.mintAta
-                );
-                console.log("balance: ", balance, tokenAccount.mintAta.toBase58());
+                if (item.status !== ItemStatus.SolToClaim) {
+                    const balance = await Data.program.provider.connection.getTokenAccountBalance(
+                        tokenAccount.mintAta
+                    );
+                    console.log("balance: ", balance, tokenAccount.mintAta.toBase58());
 
-                if (!balance.value.uiAmount) {
-                    return [
-                        {
-                            blockchain: "solana",
-                            order: 0,
-                            type: "error",
-                            description: `cannot retrieve the balance of ${tokenAccount.mintAta.toBase58()}`,
-                        },
-                    ] as ErrorFeedback;
-                } else if (balance.value.uiAmount < item.amount.toNumber()) {
-                    console.log("not ehough tokens");
+                    if (!balance.value.uiAmount) {
+                        return [
+                            {
+                                blockchain: "solana",
+                                order: 0,
+                                type: "error",
+                                description: `cannot retrieve the balance of ${tokenAccount.mintAta.toBase58()}`,
+                            },
+                        ] as ErrorFeedback;
+                    } else if (balance.value.uiAmount < item.amount.toNumber()) {
+                        console.log("not ehough tokens");
 
-                    return [
-                        {
-                            blockchain: "solana",
-                            order: 0,
-                            type: "error",
-                            description: `found ${
-                                balance.value.uiAmount
-                            } / ${item.amount.toNumber()}  in the associated token account ${tokenAccount.mintAta.toBase58()} linked to mint ${item.mint.toBase58()}`,
-                        },
-                    ] as ErrorFeedback;
+                        return [
+                            {
+                                blockchain: "solana",
+                                order: 0,
+                                type: "error",
+                                description: `found ${
+                                    balance.value.uiAmount
+                                } / ${item.amount.toNumber()}  in the associated token account ${tokenAccount.mintAta.toBase58()} linked to mint ${item.mint.toBase58()}`,
+                            },
+                        ] as ErrorFeedback;
+                    }
                 }
                 if (addTx) {
                     chunkIx.push(
