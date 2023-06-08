@@ -100,7 +100,7 @@ export async function prepareDepositSwapInstructions(Data: {
                         console.log("depositingApi", depositingApi);
                         apiInstructions.push(depositingApi);
                         let isPush = true;
-                        depositing.mintAta.forEach((element) => {
+                        depositing.newAtas.forEach((element) => {
                             ataList.forEach((ataElem) => {
                                 if (element === ataElem) {
                                     isPush = false;

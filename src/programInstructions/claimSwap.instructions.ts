@@ -12,9 +12,12 @@ export async function createClaimSwapInstructions(Data: {
     cluster: Cluster | string;
 }): Promise<TxWithSigner | ErrorFeedback | undefined> {
     try {
-        const program= getProgram(Data.cluster);
+        const program = getProgram(Data.cluster);
 
-        const swapData = await getSwapDataAccountFromPublicKey({program, swapDataAccount_publicKey:Data.swapDataAccount});
+        const swapData = await getSwapDataAccountFromPublicKey({
+            program,
+            swapDataAccount_publicKey: Data.swapDataAccount,
+        });
         if (!swapData) {
             return [
                 {
@@ -81,7 +84,7 @@ export async function createClaimSwapInstructions(Data: {
                 switch (item.isNft) {
                     case true:
                         if (item.status === 20) {
-                            const { instruction, mintAta } = await getClaimNftInstructions({
+                            const cllaimNftData = await getClaimNftInstructions({
                                 program,
                                 destinary: item.destinary,
                                 mint: item.mint,
@@ -90,23 +93,25 @@ export async function createClaimSwapInstructions(Data: {
                                 ataList,
                             });
                             claimTransactionInstruction.push({
-                                tx: new Transaction().add(...instruction),
+                                tx: new Transaction().add(...cllaimNftData.instruction),
                             });
-                            ataList.push(...mintAta);
+                            ataList.push(...cllaimNftData.newAtas);
                             console.log("claimNftinstruction added", item.mint.toBase58());
                         }
                         break;
 
                     case false:
                         if (item.status === 22) {
-                            const { instruction } = await getClaimSolInstructions({
+                            const claimSolData = await getClaimSolInstructions({
                                 program: program,
                                 user: item.owner,
                                 signer: Data.signer,
                                 swapIdentity,
+                                ataList,
+                                mint: item.mint,
                             });
                             claimTransactionInstruction.push({
-                                tx: new Transaction().add(instruction),
+                                tx: new Transaction().add(...claimSolData.instructions),
                             });
                             console.log("claimSolinstruction added");
                         }

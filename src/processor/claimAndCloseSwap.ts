@@ -4,7 +4,7 @@ import { ErrorFeedback, TxWithSigner } from "../utils/types";
 import { createClaimSwapInstructions } from "../programInstructions/claimSwap.instructions";
 import { validateDeposit } from "../programInstructions/subFunction/validateDeposit.instructions";
 import { createValidateClaimedInstructions } from "../programInstructions/subFunction/validateClaimed.instructions";
-import { isError } from "../utils/isError.function";
+import { isError, isErrorTxSigner } from "../utils/isError.function";
 
 export async function claimAndCloseSwap(Data: {
     swapDataAccount: PublicKey;
@@ -20,7 +20,7 @@ export async function claimAndCloseSwap(Data: {
         cluster: Data.cluster,
     });
     if (!validateDepositTxData) {
-    } else if (!isError(validateDepositTxData)) {
+    } else if (!isErrorTxSigner(validateDepositTxData)) {
         txToSend.push(...validateDepositTxData);
     } else if (
         validateDepositTxData[0].description === "Signer is not the initializer" ||
@@ -36,7 +36,7 @@ export async function claimAndCloseSwap(Data: {
     });
 
     if (!claimTxData) {
-    } else if (!isError(claimTxData)) {
+    } else if (!isErrorTxSigner(claimTxData)) {
         txToSend.push(...claimTxData);
         console.log("found ", claimTxData.length, " items to claim");
     } else return claimTxData;
@@ -47,7 +47,7 @@ export async function claimAndCloseSwap(Data: {
         cluster: Data.cluster,
     });
 
-    if (!isError(validateClaimTxData)) {
+    if (!isErrorTxSigner(validateClaimTxData)) {
         txToSend.push(...validateClaimTxData);
     } else if (validateClaimTxData[0].description === "Signer is not the initializer") {
         console.log("skip validateClaimed");

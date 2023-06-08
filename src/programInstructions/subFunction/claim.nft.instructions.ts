@@ -26,7 +26,7 @@ export async function getClaimNftInstructions(Data: {
     ataList: PublicKey[];
 }) {
     let instruction = [];
-    let mintAta = [];
+    let newAtas = [];
 
     const { mintAta: destinaryMintAta, instruction: destinaryMintAtaTx } = await findOrCreateAta({
         program: Data.program,
@@ -34,7 +34,7 @@ export async function getClaimNftInstructions(Data: {
         mint: Data.mint,
         signer: Data.signer,
     });
-    mintAta.push(destinaryMintAta);
+    newAtas.push(destinaryMintAta);
 
     let adddestinaryTx = true;
     Data.ataList.forEach((ata) => {
@@ -54,7 +54,7 @@ export async function getClaimNftInstructions(Data: {
         mint: Data.mint,
         signer: Data.signer,
     });
-    mintAta.push(pdaMintAta);
+    newAtas.push(pdaMintAta);
 
     let addPdaTx = true;
     Data.ataList.forEach((ata) => {
@@ -159,5 +159,5 @@ export async function getClaimNftInstructions(Data: {
                 .instruction()
         );
     }
-    return { instruction, mintAta };
+    return { instruction, newAtas };
 }

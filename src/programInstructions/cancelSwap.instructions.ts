@@ -12,12 +12,15 @@ export async function createCancelSwapInstructions(Data: {
     cluster: Cluster | string;
 }): Promise<TxWithSigner | ErrorFeedback> {
     try {
-        const program= getProgram(Data.cluster);
+        const program = getProgram(Data.cluster);
 
         // console.log(programId);
         // const program = getEscrowProgramInstance();
         // console.log("programId", program.programId.toBase58());
-        const swapData = await getSwapDataAccountFromPublicKey({program, swapDataAccount_publicKey:Data.swapDataAccount});
+        const swapData = await getSwapDataAccountFromPublicKey({
+            program,
+            swapDataAccount_publicKey: Data.swapDataAccount,
+        });
         if (!swapData) {
             return [
                 {
@@ -30,7 +33,7 @@ export async function createCancelSwapInstructions(Data: {
             ];
         } else if (
             !(
-                swapData.status === TradeStatus.canceling ||
+                swapData.status === TradeStatus.Canceling ||
                 swapData.status === TradeStatus.WaitingToDeposit
             )
         ) {
@@ -74,7 +77,7 @@ export async function createCancelSwapInstructions(Data: {
                 if ([20, 21].includes(item.status)) {
                     switch (item.isNft) {
                         case true:
-                            const { instructions, newAtas } = await getCancelNftInstructions({
+                            const claimNftData = await getCancelNftInstructions({
                                 program,
                                 owner: item.owner,
                                 mint: item.mint,
@@ -83,22 +86,26 @@ export async function createCancelSwapInstructions(Data: {
                                 ataList,
                             });
                             cancelTransactionInstruction.push({
-                                tx: new Transaction().add(...instructions),
+                                tx: new Transaction().add(...claimNftData.instructions),
                             });
-                            ataList.push(...newAtas);
+                            ataList.push(...claimNftData.newAtas);
                             console.log("cancelNftinstruction added", item.mint.toBase58());
                             break;
 
                         case false:
-                            const { instruction } = await getCancelSolInstructions({
+                            const claimSolData = await getCancelSolInstructions({
                                 program: program,
                                 user: item.owner,
                                 signer: Data.signer,
                                 swapIdentity,
+                                ataList,
+                                mint: item.mint,
                             });
                             cancelTransactionInstruction.push({
-                                tx: new Transaction().add(instruction),
+                                tx: new Transaction().add(...claimSolData.instructions),
                             });
+                            ataList.push(...claimSolData.newAtas);
+
                             console.log("cancelSolinstruction added");
                             break;
                     }

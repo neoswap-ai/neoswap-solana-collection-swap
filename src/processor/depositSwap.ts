@@ -2,7 +2,7 @@ import { Cluster, Keypair, PublicKey } from "@solana/web3.js";
 import { sendBundledTransactions } from "../utils/sendBundledTransactions.function";
 import { ErrorFeedback, TxWithSigner } from "../utils/types";
 import { createDepositSwapInstructions } from "../programInstructions/depositSwap.instructions";
-import { isError } from "../utils/isError.function";
+import { isError, isErrorTxSigner } from "../utils/isError.function";
 
 export async function depositSwap(Data: {
     swapDataAccount: PublicKey;
@@ -16,7 +16,7 @@ export async function depositSwap(Data: {
         cluster: Data.cluster,
     });
 
-    if (!isError(depositSwapData)) {
+    if (!isErrorTxSigner(depositSwapData)) {
         // console.log(
         //     "User ",
         //     Data.signer.publicKey.toBase58(),

@@ -25,7 +25,7 @@ export const createValidateCanceledInstructions = async (Data: {
     } else if (
         !(
             swapData.status === TradeStatus.WaitingToDeposit ||
-            swapData.status === TradeStatus.canceling
+            swapData.status === TradeStatus.Canceling
         )
     ) {
         return [
@@ -66,7 +66,7 @@ export const createValidateCanceledInstructions = async (Data: {
 
     if (
         swapData.status === TradeStatus.WaitingToDeposit ||
-        swapData.status === TradeStatus.canceling
+        swapData.status === TradeStatus.Canceling
     ) {
         return [
             {

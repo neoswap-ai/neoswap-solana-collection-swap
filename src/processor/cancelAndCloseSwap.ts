@@ -2,7 +2,7 @@ import { Cluster, Keypair, PublicKey } from "@solana/web3.js";
 import { sendBundledTransactions } from "../utils/sendBundledTransactions.function";
 import { ErrorFeedback, TxWithSigner } from "../utils/types";
 import { createCancelSwapInstructions } from "../programInstructions/cancelSwap.instructions";
-import { isError } from "../utils/isError.function";
+import { isError, isErrorTxSigner } from "../utils/isError.function";
 import { createValidateCanceledInstructions } from "../programInstructions/subFunction/validateCanceled.instructions";
 
 export async function cancelAndCloseSwap(Data: {
@@ -20,7 +20,7 @@ export async function cancelAndCloseSwap(Data: {
     });
     // console.log("cancelTxData", cancelTxData);
 
-    if (!isError(cancelTxData)) {
+    if (!isErrorTxSigner(cancelTxData)) {
         if (cancelTxData[0].tx.instructions.length > 0) {
             txToSend.push(...cancelTxData);
             console.log("found ", cancelTxData.length, " items to cancel");
@@ -35,7 +35,7 @@ export async function cancelAndCloseSwap(Data: {
         cluster: Data.cluster,
     });
 
-    if (!isError(validateCancelTxData)) {
+    if (!isErrorTxSigner(validateCancelTxData)) {
         txToSend.push(...validateCancelTxData);
     } else if (validateCancelTxData[0].description === "Signer is not the initializer") {
         console.log("skip validateCancel");

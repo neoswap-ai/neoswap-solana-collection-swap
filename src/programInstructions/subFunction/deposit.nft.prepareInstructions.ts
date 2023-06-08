@@ -25,10 +25,10 @@ export async function prepareDepositNftInstruction(Data: {
     ataList: PublicKey[];
 }): Promise<{
     instructions: ApiProcessorConfigType[];
-    mintAta: PublicKey[];
+    newAtas: PublicKey[];
 }> {
     let instructions: ApiProcessorConfigType[] = [];
-    let mintAta: PublicKey[] = [];
+    let newAtas: PublicKey[] = [];
 
     const { mintAta: userAta, prepareInstruction: userAtaIx } = await findOrCreateAta({
         program: Data.program,
@@ -39,7 +39,7 @@ export async function prepareDepositNftInstruction(Data: {
     });
     if (userAtaIx && !Data.ataList.includes(userAta)) {
         instructions.push(userAtaIx);
-        mintAta.push(userAta);
+        newAtas.push(userAta);
         console.log("createUserAta CancelNft Tx Added", userAtaIx);
     } else {
         console.log("user Ata skipped");
@@ -55,7 +55,7 @@ export async function prepareDepositNftInstruction(Data: {
     console.log("pdaAtaIx", pdaAtaIx);
     if (pdaAtaIx && !Data.ataList.includes(pdaAta)) {
         instructions.push(pdaAtaIx);
-        mintAta.push(pdaAta);
+        newAtas.push(pdaAta);
         console.log("createPdaAta DepositNft Tx Added", pdaAtaIx);
     } else {
         console.log("pda Ata skipped");
@@ -152,5 +152,5 @@ export async function prepareDepositNftInstruction(Data: {
             },
         });
     }
-    return { instructions, mintAta };
+    return { instructions, newAtas };
 }

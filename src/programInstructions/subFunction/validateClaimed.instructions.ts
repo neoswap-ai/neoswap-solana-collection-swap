@@ -10,8 +10,13 @@ export const createValidateClaimedInstructions = async (Data: {
     signer: PublicKey;
     cluster: Cluster | string;
 }): Promise<TxWithSigner | ErrorFeedback> => {
-    const program= getProgram(Data.cluster);
-    const swapData = await getSwapDataAccountFromPublicKey({program, swapDataAccount_publicKey:Data.swapDataAccount});
+    const program = getProgram(Data.cluster);
+    const swapData = await getSwapDataAccountFromPublicKey({
+        program,
+        swapDataAccount_publicKey: Data.swapDataAccount,
+    });
+    console.log("swapData", swapData);
+
     if (!swapData) {
         return [
             {

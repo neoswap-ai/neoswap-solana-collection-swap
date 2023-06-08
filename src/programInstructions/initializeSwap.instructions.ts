@@ -43,6 +43,7 @@ export async function createInitializeSwapInstructions(Data: {
             program,
             swapIdentity,
             signer: Data.signer,
+            acceptedPayement: Data.swapData.acceptedPayement,
         });
         // console.log("swapIdentity before add", initInstruction);
 
@@ -115,7 +116,7 @@ export async function createInitializeSwapInstructions(Data: {
 
 async function getInitInitilizeInstruction(Data: {
     program: Program;
-    // swapData: SwapData;
+    acceptedPayement: PublicKey;
     swapIdentity: SwapIdentity;
     signer: PublicKey;
 }) {
@@ -126,6 +127,7 @@ async function getInitInitilizeInstruction(Data: {
         nbItems: Data.swapIdentity.swapData.nbItems,
         preSeed: Data.swapIdentity.swapData.preSeed,
         status: Data.swapIdentity.swapData.status,
+        acceptedPayement: Data.acceptedPayement,
     };
     // initSwapData.items = [];
     const balanceSda = await Data.program.provider.connection.getBalance(

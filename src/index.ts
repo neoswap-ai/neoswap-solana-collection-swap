@@ -13,6 +13,7 @@ import { getSwapIdentityFromData } from "./utils/getSwapIdentityFromData.functio
 import {
     isError,
     isErrorApiProcessor,
+    isErrorTxSigner,
     isErrorInitTx,
     isErrorInitializeSwap,
 } from "./utils/isError.function";
@@ -40,6 +41,7 @@ const utils = {
     isError,
     isErrorInitTx,
     isErrorApiProcessor,
+    isErrorTxSigner,
 };
 const createInstructions = {
     createInitializeSwapInstructions,

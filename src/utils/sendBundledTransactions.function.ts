@@ -26,13 +26,13 @@ export async function sendBundledTransactions(Data: {
             Data.signer.publicKey.toBase58(),
             " has found to have ",
             txsWithSigners.length,
-            " items to deposit\nBroadcasting to blockchain ..."
+            " transaction(s) to send \nBroadcasting to blockchain ..."
         );
         if (!program.provider.sendAll)
             throw { message: "your provider is not an AnchorProvider type" };
 
         const transactionHashes = await program.provider.sendAll(txsWithSigners, {
-            // skipPreflight: true,
+            skipPreflight: true,
         });
         console.log(transactionHashes);
         return { transactionHashes };

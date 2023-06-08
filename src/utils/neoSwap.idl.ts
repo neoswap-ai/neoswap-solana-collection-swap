@@ -146,11 +146,11 @@ export const idl: Idl = {
                 "@accounts item_to_deposit => User ATA related to mint",
                 "@accounts mint => mint Account of the NFT",
                 "@accounts nft_metadata => metadata account",
-                "@accounts nft_master_edition => if !pNFT: programId / if pNFT: masterEdition account",
-                "@accounts owner_token_record => if !pNFT: programId / if pNFT: owner's token record account (seed:'metadata',METADATA_PROGRAM,mint,'token_record',swap_data_account_mint_ata; programAssociated:METADATA_PROGRAM)",
-                "@accounts destination_token_record => if !pNFT: programId / if pNFT: swap_data_account's token record account (seed:'metadata',METADATA_PROGRAM,mint,'token_record',initial_owner_mint_ata; programAssociated:METADATA_PROGRAM)",
+                "@accounts nft_master_edition => if !pNFT: signer / if pNFT: masterEdition account",
+                "@accounts owner_token_record => if !pNFT: signer / if pNFT: owner's token record account (seed:'metadata',METADATA_PROGRAM,mint,'token_record',swap_data_account_mint_ata; programAssociated:METADATA_PROGRAM)",
+                "@accounts destination_token_record => if !pNFT: signer / if pNFT: swap_data_account's token record account (seed:'metadata',METADATA_PROGRAM,mint,'token_record',initial_owner_mint_ata; programAssociated:METADATA_PROGRAM)",
                 "@accounts auth_rules_program => metaplex auth rules program (auth9SigNpDKz4sJJ1DfCTuZrZNSAgh9sFD3rboVmgg)",
-                "@accounts auth_rules => auth rules account linked to the mint (get from mint account data)",
+                "@accounts auth_rules => if !pNFT: signer / if pNFT: auth rules account linked to the mint (get from mint account data)",
                 "@return Void",
             ],
             accounts: [
@@ -269,7 +269,17 @@ export const idl: Idl = {
                     isSigner: false,
                 },
                 {
+                    name: "splTokenProgram",
+                    isMut: false,
+                    isSigner: false,
+                },
+                {
                     name: "swapDataAccount",
+                    isMut: true,
+                    isSigner: false,
+                },
+                {
+                    name: "swapDataAccountAta",
                     isMut: true,
                     isSigner: false,
                 },
@@ -277,6 +287,11 @@ export const idl: Idl = {
                     name: "signer",
                     isMut: true,
                     isSigner: true,
+                },
+                {
+                    name: "signerAta",
+                    isMut: true,
+                    isSigner: false,
                 },
             ],
             args: [
@@ -344,12 +359,27 @@ export const idl: Idl = {
                     isSigner: false,
                 },
                 {
+                    name: "splTokenProgram",
+                    isMut: false,
+                    isSigner: false,
+                },
+                {
                     name: "swapDataAccount",
                     isMut: true,
                     isSigner: false,
                 },
                 {
+                    name: "swapDataAccountAta",
+                    isMut: true,
+                    isSigner: false,
+                },
+                {
                     name: "user",
+                    isMut: true,
+                    isSigner: false,
+                },
+                {
+                    name: "userAta",
                     isMut: true,
                     isSigner: false,
                 },
@@ -390,11 +420,11 @@ export const idl: Idl = {
                 "@accounts item_to_deposit => User ATA related to mint",
                 "@accounts mint => mint Account of the NFT",
                 "@accounts nft_metadata => metadata account",
-                "@accounts nft_master_edition => if !pNFT: programId / if pNFT: masterEdition account",
-                "@accounts owner_token_record => if !pNFT: programId / if pNFT: swap_data_account's token record account (seed:'metadata',METADATA_PROGRAM,mint,'token_record',swap_data_account_mint_ata; programAssociated:METADATA_PROGRAM)",
-                "@accounts destination_token_record => if !pNFT: programId / if pNFT: initial owner's token record account (seed:'metadata',METADATA_PROGRAM,mint,'token_record',initial_owner_mint_ata; programAssociated:METADATA_PROGRAM)",
+                "@accounts nft_master_edition => if !pNFT: signer / if pNFT: masterEdition account",
+                "@accounts owner_token_record => if !pNFT: signer / if pNFT: swap_data_account's token record account (seed:'metadata',METADATA_PROGRAM,mint,'token_record',swap_data_account_mint_ata; programAssociated:METADATA_PROGRAM)",
+                "@accounts destination_token_record => if !pNFT: signer / if pNFT: initial owner's token record account (seed:'metadata',METADATA_PROGRAM,mint,'token_record',initial_owner_mint_ata; programAssociated:METADATA_PROGRAM)",
                 "@accounts auth_rules_program => metaplex auth rules program (auth9SigNpDKz4sJJ1DfCTuZrZNSAgh9sFD3rboVmgg)",
-                "@accounts auth_rules => auth rules account linked to the mint (get from mint account data)",
+                "@accounts auth_rules => if !pNFT: signer / if pNFT: auth rules account linked to the mint (get from mint account data)",
                 "@return Void",
             ],
             accounts: [
@@ -565,12 +595,27 @@ export const idl: Idl = {
                     isSigner: false,
                 },
                 {
+                    name: "splTokenProgram",
+                    isMut: false,
+                    isSigner: false,
+                },
+                {
                     name: "swapDataAccount",
                     isMut: true,
                     isSigner: false,
                 },
                 {
+                    name: "swapDataAccountAta",
+                    isMut: true,
+                    isSigner: false,
+                },
+                {
                     name: "user",
+                    isMut: true,
+                    isSigner: false,
+                },
+                {
+                    name: "userAta",
                     isMut: true,
                     isSigner: false,
                 },
@@ -610,11 +655,11 @@ export const idl: Idl = {
                 "@accounts item_to_deposit => User ATA related to mint",
                 "@accounts mint => mint Account of the NFT",
                 "@accounts nft_metadata => metadata account",
-                "@accounts nft_master_edition => if !pNFT: programId / if pNFT: masterEdition account",
-                "@accounts owner_token_record => if !pNFT: programId / if pNFT: swap_data_account's token record account (seed:'metadata',METADATA_PROGRAM,mint,'token_record',swap_data_account_mint_ata; programAssociated:METADATA_PROGRAM)",
-                "@accounts destination_token_record => if !pNFT: programId / if pNFT: initial owner's token record account (seed:'metadata',METADATA_PROGRAM,mint,'token_record',initial_owner_mint_ata; programAssociated:METADATA_PROGRAM)",
+                "@accounts nft_master_edition => if !pNFT: signer / if pNFT: masterEdition account",
+                "@accounts owner_token_record => if !pNFT: signer / if pNFT: swap_data_account's token record account (seed:'metadata',METADATA_PROGRAM,mint,'token_record',swap_data_account_mint_ata; programAssociated:METADATA_PROGRAM)",
+                "@accounts destination_token_record => if !pNFT: signer / if pNFT: initial owner's token record account (seed:'metadata',METADATA_PROGRAM,mint,'token_record',initial_owner_mint_ata; programAssociated:METADATA_PROGRAM)",
                 "@accounts auth_rules_program => metaplex auth rules program (auth9SigNpDKz4sJJ1DfCTuZrZNSAgh9sFD3rboVmgg)",
-                "@accounts auth_rules => auth rules account linked to the mint (get from mint account data)",
+                "@accounts auth_rules => if !pNFT: signer / if pNFT: auth rules account linked to the mint (get from mint account data)",
                 "@return Void",
             ],
             accounts: [
@@ -796,6 +841,10 @@ export const idl: Idl = {
                             },
                         },
                     },
+                    {
+                        name: "acceptedPayement",
+                        type: "publicKey",
+                    },
                 ],
             },
         },
@@ -874,10 +923,10 @@ export const idl: Idl = {
                         name: "NFTClaimed",
                     },
                     {
-                        name: "NFTCanceled",
+                        name: "NFTcanceled",
                     },
                     {
-                        name: "NFTCanceledRecovered",
+                        name: "NFTcanceledRecovered",
                     },
                     {
                         name: "SolPending",
@@ -892,10 +941,10 @@ export const idl: Idl = {
                         name: "SolClaimed",
                     },
                     {
-                        name: "SolCanceled",
+                        name: "Solcanceled",
                     },
                     {
-                        name: "SolCanceledRecovered",
+                        name: "SolcanceledRecovered",
                     },
                 ],
             },
@@ -960,7 +1009,7 @@ export const idl: Idl = {
         {
             code: 6011,
             name: "NotInit",
-            msg: "wrong signer, should be initializer to perform this action",
+            msg: "wrong signer, only initializer can perform this action",
         },
         {
             code: 6012,
@@ -1036,6 +1085,16 @@ export const idl: Idl = {
             code: 6026,
             name: "PreSeedTooLong",
             msg: "PreSeed has too many character (max: 32)",
+        },
+        {
+            code: 6027,
+            name: "NoAcceptedPaymentGiven",
+            msg: "The list of token accepted for payment is empty",
+        },
+        {
+            code: 6028,
+            name: "AlreadyExist",
+            msg: "The item you're trying to add already exists in the Swap",
         },
     ],
 };

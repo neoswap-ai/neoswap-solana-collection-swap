@@ -25,7 +25,7 @@ export async function getDepositNftInstruction(Data: {
     ataList: PublicKey[];
 }) {
     let instructions = [];
-    let mintAta = [];
+    let newAtas = [];
 
     const { mintAta: userAta, instruction: userAtaIx } = await findOrCreateAta({
         program: Data.program,
@@ -36,7 +36,7 @@ export async function getDepositNftInstruction(Data: {
     });
     if (userAtaIx && !Data.ataList.includes(userAta)) {
         instructions.push(userAtaIx);
-        mintAta.push(userAta);
+        newAtas.push(userAta);
         console.log("createUserAta CancelNft Tx Added", userAtaIx);
     } else {
         console.log("user Ata skipped", userAta.toBase58());
@@ -52,7 +52,7 @@ export async function getDepositNftInstruction(Data: {
     // console.log("pdaAtaIx", pdaAta.toBase58());
     if (pdaAtaIx && !Data.ataList.includes(pdaAta)) {
         instructions.push(pdaAtaIx);
-        mintAta.push(pdaAta);
+        newAtas.push(pdaAta);
         console.log("createPdaAta DepositNft Tx Added", pdaAta.toBase58());
     } else {
         console.log("pda Ata skipped", pdaAta.toBase58());
@@ -147,5 +147,5 @@ export async function getDepositNftInstruction(Data: {
                 .instruction()
         );
     }
-    return { instructions, mintAta };
+    return { instructions, newAtas };
 }

@@ -15,6 +15,7 @@ export type SwapData = {
     nbItems: number;
     preSeed: string;
     items: Array<NftSwapItem>;
+    acceptedPayement: PublicKey;
 };
 
 export type SwapIdentity = {
@@ -75,8 +76,8 @@ export enum TradeStatus {
     WaitingToClaim = 2,
     Closed = 3,
 
-    canceling = 100,
-    canceled = 101,
+    Canceling = 100,
+    Canceled = 101,
 }
 export enum ItemStatus {
     NFTPending = 10,
