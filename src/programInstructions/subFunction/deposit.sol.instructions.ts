@@ -61,7 +61,7 @@ export async function getDepositSolInstruction(Data: {
         await Data.program.methods
             .depositSol(
                 Data.swapIdentity.swapDataAccount_seed,
-                Data.swapIdentity.swapDataAccount_bump
+                // Data.swapIdentity.swapDataAccount_bump
             )
             .accounts({
                 systemProgram: SystemProgram.programId.toString(),

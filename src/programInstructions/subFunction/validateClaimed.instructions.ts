@@ -77,7 +77,7 @@ export const createValidateClaimedInstructions = async (Data: {
                     await program.methods
                         .validateClaimed(
                             swapIdentity.swapDataAccount_seed,
-                            swapIdentity.swapDataAccount_bump
+                            // swapIdentity.swapDataAccount_bump
                         )
                         .accounts({
                             systemProgram: SystemProgram.programId,

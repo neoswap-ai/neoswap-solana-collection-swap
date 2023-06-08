@@ -146,7 +146,7 @@ async function getInitInitilizeInstruction(Data: {
             Data.program.methods
                 .initInitialize(
                     Data.swapIdentity.swapDataAccount_seed,
-                    Data.swapIdentity.swapDataAccount_bump,
+                    // Data.swapIdentity.swapDataAccount_bump,
                     initSwapData
                     // initSwapData.nbItems
                     // initSwapData.preSeed
@@ -239,7 +239,7 @@ async function getAddInitilizeInstructions(Data: {
                         await Data.program.methods
                             .initializeAdd(
                                 Data.swapIdentity.swapDataAccount_seed,
-                                Data.swapIdentity.swapDataAccount_bump,
+                                // Data.swapIdentity.swapDataAccount_bump,
                                 item
                             )
                             .accounts({
@@ -295,7 +295,7 @@ async function getValidateInitilizeInstruction(Data: {
         Data.program.methods
             .validateInitialize(
                 Data.swapIdentity.swapDataAccount_seed,
-                Data.swapIdentity.swapDataAccount_bump
+                // Data.swapIdentity.swapDataAccount_bump
             )
             .accounts({
                 swapDataAccount: Data.swapIdentity.swapDataAccount_publicKey.toBase58(),

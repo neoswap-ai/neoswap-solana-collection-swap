@@ -74,7 +74,7 @@ export const createValidateCanceledInstructions = async (Data: {
                     await program.methods
                         .validateCancel(
                             swapIdentity.swapDataAccount_seed,
-                            swapIdentity.swapDataAccount_bump
+                            // swapIdentity.swapDataAccount_bump
                         )
                         .accounts({
                             systemProgram: SystemProgram.programId,

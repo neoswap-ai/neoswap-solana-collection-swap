@@ -74,7 +74,7 @@ export const validateDeposit = async (Data: {
                     await program.methods
                         .validateDeposit(
                             swapIdentity.swapDataAccount_seed,
-                            swapIdentity.swapDataAccount_bump
+                            // swapIdentity.swapDataAccount_bump
                         )
                         .accounts({
                             swapDataAccount: Data.swapDataAccount,

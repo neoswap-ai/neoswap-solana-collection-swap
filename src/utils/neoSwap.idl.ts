@@ -41,10 +41,6 @@ export const idl: Idl = {
                     type: "bytes",
                 },
                 {
-                    name: "bump",
-                    type: "u8",
-                },
-                {
                     name: "sentData",
                     type: {
                         defined: "SwapData",
@@ -82,10 +78,6 @@ export const idl: Idl = {
                     type: "bytes",
                 },
                 {
-                    name: "bump",
-                    type: "u8",
-                },
-                {
                     name: "tradeToAdd",
                     type: {
                         defined: "NftSwapItem",
@@ -120,10 +112,6 @@ export const idl: Idl = {
                 {
                     name: "seed",
                     type: "bytes",
-                },
-                {
-                    name: "bump",
-                    type: "u8",
                 },
             ],
         },
@@ -240,14 +228,6 @@ export const idl: Idl = {
                     name: "seed",
                     type: "bytes",
                 },
-                {
-                    name: "bump",
-                    type: "u8",
-                },
-                {
-                    name: "metadataBump",
-                    type: "u8",
-                },
             ],
         },
         {
@@ -299,10 +279,6 @@ export const idl: Idl = {
                     name: "seed",
                     type: "bytes",
                 },
-                {
-                    name: "bump",
-                    type: "u8",
-                },
             ],
         },
         {
@@ -332,10 +308,6 @@ export const idl: Idl = {
                 {
                     name: "seed",
                     type: "bytes",
-                },
-                {
-                    name: "bump",
-                    type: "u8",
                 },
             ],
         },
@@ -523,10 +495,6 @@ export const idl: Idl = {
                     name: "bump",
                     type: "u8",
                 },
-                {
-                    name: "metadataBump",
-                    type: "u8",
-                },
             ],
         },
         {
@@ -568,10 +536,6 @@ export const idl: Idl = {
                 {
                     name: "seed",
                     type: "bytes",
-                },
-                {
-                    name: "bump",
-                    type: "u8",
                 },
             ],
         },
@@ -758,10 +722,6 @@ export const idl: Idl = {
                     name: "bump",
                     type: "u8",
                 },
-                {
-                    name: "metadataBump",
-                    type: "u8",
-                },
             ],
         },
         {
@@ -803,10 +763,6 @@ export const idl: Idl = {
                 {
                     name: "seed",
                     type: "bytes",
-                },
-                {
-                    name: "bump",
-                    type: "u8",
                 },
             ],
         },

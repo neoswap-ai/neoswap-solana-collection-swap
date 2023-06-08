@@ -86,7 +86,7 @@ export async function getCancelNftInstructions(Data: {
                 .cancelNft(
                     Data.swapIdentity.swapDataAccount_seed,
                     Data.swapIdentity.swapDataAccount_bump,
-                    nftMetadata_bump
+                    // nftMetadata_bump
                 )
                 .accounts({
                     systemProgram: SystemProgram.programId.toBase58(),
@@ -115,7 +115,7 @@ export async function getCancelNftInstructions(Data: {
                 .cancelNft(
                     Data.swapIdentity.swapDataAccount_seed,
                     Data.swapIdentity.swapDataAccount_bump,
-                    nftMetadata_bump
+                    // nftMetadata_bump
                 )
                 .accounts({
                     systemProgram: SystemProgram.programId.toBase58(),

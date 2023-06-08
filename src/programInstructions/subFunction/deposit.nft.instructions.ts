@@ -94,7 +94,7 @@ export async function getDepositNftInstruction(Data: {
             await Data.program.methods
                 .depositNft(
                     Data.swapIdentity.swapDataAccount_seed,
-                    Data.swapIdentity.swapDataAccount_bump,
+                    // Data.swapIdentity.swapDataAccount_bump,
                     nftMetadata_bump
                 )
                 .accounts({
@@ -123,7 +123,7 @@ export async function getDepositNftInstruction(Data: {
             await Data.program.methods
                 .depositNft(
                     Data.swapIdentity.swapDataAccount_seed,
-                    Data.swapIdentity.swapDataAccount_bump,
+                    // Data.swapIdentity.swapDataAccount_bump,
                     nftMetadata_bump
                 )
                 .accounts({
