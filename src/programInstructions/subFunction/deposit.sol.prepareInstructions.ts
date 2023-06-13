@@ -14,7 +14,7 @@ export async function prepareDepositSolInstruction(Data: {
         data: {
             arguments: {
                 seed: Data.swapIdentity.swapDataAccount_seed.toString(),
-                bump: Data.swapIdentity.swapDataAccount_bump,
+                // bump: Data.swapIdentity.swapDataAccount_bump,
             },
             accounts: {
                 systemProgram: SystemProgram.programId.toString(),

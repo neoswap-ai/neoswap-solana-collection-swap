@@ -4,7 +4,7 @@ import { getSwapDataAccountFromPublicKey } from "../utils/getSwapDataAccountFrom
 import { getSwapIdentityFromData } from "../utils/getSwapIdentityFromData.function";
 import { prepareDepositNftInstruction } from "./subFunction/deposit.nft.prepareInstructions";
 import { prepareDepositSolInstruction } from "./subFunction/deposit.sol.prepareInstructions";
-import { ApiProcessorData, ErrorFeedback, TradeStatus } from "../utils/types";
+import { ApiProcessorData, ErrorFeedback, ItemStatus, TradeStatus } from "../utils/types";
 
 export async function prepareDepositSwapInstructions(Data: {
     swapDataAccount: PublicKey;
@@ -78,7 +78,7 @@ export async function prepareDepositSwapInstructions(Data: {
                 case true:
                     if (
                         swapDataItem.owner.toBase58() === Data.user.toBase58() &&
-                        swapDataItem.status === 10
+                        swapDataItem.status === ItemStatus.NFTPending
                     ) {
                         console.log("XXXXXXX - Deposit NFT item n° ", item, " XXXXXXX");
                         // itemsToDeposit.push(swapDataItem);
@@ -115,7 +115,7 @@ export async function prepareDepositSwapInstructions(Data: {
                         // });
                     } else if (
                         swapDataItem.owner.toBase58() === Data.user.toBase58() &&
-                        swapDataItem.status === 20
+                        swapDataItem.status === ItemStatus.NFTDeposited
                     ) {
                         isUserAlreadyDeposited = true;
                     }
@@ -123,7 +123,7 @@ export async function prepareDepositSwapInstructions(Data: {
                 case false:
                     if (
                         swapDataItem.owner.toBase58() === Data.user.toBase58() &&
-                        swapDataItem.status === 11
+                        swapDataItem.status === ItemStatus.SolPending
                     ) {
                         console.log("XXXXXXX - Deposit SOL item n° ", item, " XXXXXXX");
                         // itemsToDeposit.push(swapDataItem);
@@ -148,7 +148,7 @@ export async function prepareDepositSwapInstructions(Data: {
                         console.log("depositSolinstruction added", depositSolInstruction);
                     } else if (
                         swapDataItem.owner.toBase58() === Data.user.toBase58() &&
-                        swapDataItem.status === 21
+                        swapDataItem.status === ItemStatus.SolDeposited
                     ) {
                         isUserAlreadyDeposited = true;
                     }

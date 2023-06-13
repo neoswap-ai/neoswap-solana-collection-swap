@@ -17,6 +17,8 @@ export async function createDepositSwapInstructions(Data: {
             program,
             swapDataAccount_publicKey: Data.swapDataAccount,
         });
+        console.log("swapData", swapData?.items);
+
         if (!swapData) {
             return [
                 {
@@ -126,7 +128,7 @@ export async function createDepositSwapInstructions(Data: {
                         console.log("depositSolinstruction added", depositSolInstruction);
                     } else if (
                         swapDataItem.owner.toBase58() === Data.user.toBase58() &&
-                        swapDataItem.status === ItemStatus.NFTDeposited //21
+                        swapDataItem.status === ItemStatus.SolDeposited //21
                     ) {
                         isUserAlreadyDeposited = true;
                     }

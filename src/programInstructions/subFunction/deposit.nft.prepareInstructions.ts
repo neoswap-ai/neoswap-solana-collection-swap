@@ -97,8 +97,8 @@ export async function prepareDepositNftInstruction(Data: {
             data: {
                 arguments: {
                     SDA_seed: Data.swapIdentity.swapDataAccount_seed.toString(),
-                    SDA_bump: Data.swapIdentity.swapDataAccount_bump,
-                    nftMetadata_bump: nftMetadata_bump,
+                    // SDA_bump: Data.swapIdentity.swapDataAccount_bump,
+                    // nftMetadata_bump: nftMetadata_bump,
                 },
                 accounts: {
                     systemProgram: SystemProgram.programId.toString(),
@@ -128,8 +128,8 @@ export async function prepareDepositNftInstruction(Data: {
             data: {
                 arguments: {
                     SDA_seed: Data.swapIdentity.swapDataAccount_seed.toString(),
-                    SDA_bump: Data.swapIdentity.swapDataAccount_bump,
-                    nftMetadata_bump: nftMetadata_bump,
+                    // SDA_bump: Data.swapIdentity.swapDataAccount_bump,
+                    // nftMetadata_bump: nftMetadata_bump,
                 },
                 accounts: {
                     systemProgram: SystemProgram.programId.toString(),

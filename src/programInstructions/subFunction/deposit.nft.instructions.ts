@@ -95,7 +95,7 @@ export async function getDepositNftInstruction(Data: {
                 .depositNft(
                     Data.swapIdentity.swapDataAccount_seed,
                     // Data.swapIdentity.swapDataAccount_bump,
-                    nftMetadata_bump
+                    // nftMetadata_bump
                 )
                 .accounts({
                     systemProgram: SystemProgram.programId.toBase58(),
@@ -124,7 +124,7 @@ export async function getDepositNftInstruction(Data: {
                 .depositNft(
                     Data.swapIdentity.swapDataAccount_seed,
                     // Data.swapIdentity.swapDataAccount_bump,
-                    nftMetadata_bump
+                    // nftMetadata_bump
                 )
                 .accounts({
                     systemProgram: SystemProgram.programId.toBase58(),
