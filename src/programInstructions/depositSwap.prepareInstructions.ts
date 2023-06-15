@@ -134,7 +134,7 @@ export async function prepareDepositSwapInstructions(Data: {
                             to: Data.swapDataAccount,
                             swapIdentity,
                         });
-                        console.log("depositSolInstruction", depositSolInstruction);
+                        // console.log("depositSolInstruction", depositSolInstruction);
                         apiInstructions.push({
                             blockchain: "solana",
                             type: "deposit SOL",

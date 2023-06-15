@@ -26,7 +26,7 @@ export async function createInitializeSwapInstructions(Data: {
           programId: string;
           transactions: TxWithSigner;
       }
-    | ErrorFeedback
+    | { programId: string; swapIdentity?: SwapIdentity; error: ErrorFeedback }
 > {
     if (!Data.swapData.preSeed) Data.swapData.preSeed = "0000";
     const program = getProgram(Data.cluster);
@@ -35,7 +35,24 @@ export async function createInitializeSwapInstructions(Data: {
         swapData: Data.swapData,
         // preSeed: Data.preSeed,
     });
-    console.log("swapIdentity", swapIdentity);
+    if (!swapIdentity)
+        return {
+            programId: program.programId.toString(),
+            // swapIdentity: swapIdentity,
+            error: [
+                {
+                    blockchain: "solana",
+                    type: "error",
+                    order: 0,
+                    description: "Couldn't create the swapIdentity",
+                },
+            ] as ErrorFeedback,
+        };
+    // const bcData = await getSwapDataAccountFromPublicKey({
+    //     program: program,
+    //     swapDataAccount_publicKey: swapIdentity.swapDataAccount_publicKey,
+    // });
+    // console.log("swapIdentity", swapIdentity);
 
     try {
         // console.log("swapIdentity before init", swapIdentity);
@@ -52,7 +69,7 @@ export async function createInitializeSwapInstructions(Data: {
             swapIdentity,
             signer: Data.signer,
         });
-        console.log("addInstructions", addInstructions);
+        // console.log("addInstructions", addInstructions);
         // console.log("swapIdentity before validate", swapIdentity);
         const validateInstruction = await getValidateInitilizeInstruction({
             program,
@@ -68,14 +85,18 @@ export async function createInitializeSwapInstructions(Data: {
                 // signers: [signer],
             });
         } else {
-            console.log("Ainitialize swap skipped");
+            console.log("Initialize swap skipped");
         }
 
         if (addInstructions) {
             if (isErrorAddInit(addInstructions)) {
                 console.log("isErrorAddInit");
 
-                return addInstructions;
+                return {
+                    programId: program.programId.toString(),
+                    swapIdentity: swapIdentity,
+                    error: addInstructions,
+                };
             }
             addInstructions.map((addInstruction) => {
                 transactions.push({
@@ -87,14 +108,15 @@ export async function createInitializeSwapInstructions(Data: {
             console.log("Adding Items to swap skipped");
         }
 
-        if (validateInstruction) {
-            transactions.push({
-                tx: new Transaction().add(validateInstruction),
-                // signers: [signer],
-            });
-        } else {
-            throw "nothing to initialize";
-        }
+        transactions.push({
+            tx: new Transaction().add(validateInstruction),
+            // signers: [signer],
+        });
+
+        // if (validateInstruction) {
+        // } else {
+        //     throw "nothing to initialize";
+        // }
 
         return {
             swapIdentity,
@@ -102,6 +124,8 @@ export async function createInitializeSwapInstructions(Data: {
             transactions,
         };
     } catch (error) {
+        console.log("error init", error);
+
         throw [
             {
                 blockchain: "solana",
@@ -119,7 +143,7 @@ async function getInitInitilizeInstruction(Data: {
     acceptedPayement: PublicKey;
     swapIdentity: SwapIdentity;
     signer: PublicKey;
-}) {
+}): Promise<TransactionInstruction | undefined> {
     // Data.swapIdentity.swapData.nbItems = Data.swapIdentity.swapData.items.length;
     let initSwapData: SwapData = {
         initializer: Data.swapIdentity.swapData.initializer,
@@ -208,7 +232,7 @@ async function getAddInitilizeInstructions(Data: {
                     const balance = await Data.program.provider.connection.getTokenAccountBalance(
                         tokenAccount.mintAta
                     );
-                    console.log("balance: ", balance, tokenAccount.mintAta.toBase58());
+                    // console.log("balance: ", balance, tokenAccount.mintAta.toBase58());
 
                     if (!balance.value.uiAmount) {
                         return [
@@ -282,8 +306,11 @@ async function getAddInitilizeInstructions(Data: {
         ll += chunk.length;
     });
     console.log("there is ", ll, " items to deposit");
-    if (out.length > 0) return out;
-    return undefined;
+    if (ll > 0) {
+        return out;
+    } else {
+        return undefined;
+    }
 }
 
 async function getValidateInitilizeInstruction(Data: {
@@ -294,7 +321,7 @@ async function getValidateInitilizeInstruction(Data: {
     return (
         Data.program.methods
             .validateInitialize(
-                Data.swapIdentity.swapDataAccount_seed,
+                Data.swapIdentity.swapDataAccount_seed
                 // Data.swapIdentity.swapDataAccount_bump
             )
             .accounts({

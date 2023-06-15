@@ -11,8 +11,12 @@ export const isErrorInitTx = (
               programId: string;
               transactions: TxWithSigner;
           }
-        | ErrorFeedback
-): obj is ErrorFeedback => !Object.keys(obj).includes("swapIdentity");
+        | { programId: string; swapIdentity?: SwapIdentity; error: ErrorFeedback }
+): obj is {
+    programId: string;
+    swapIdentity?: SwapIdentity;
+    error: ErrorFeedback;
+} => Object.keys(obj).includes("error");
 
 export const isErrorAddInit = (
     obj: ErrorFeedback | TransactionInstruction[][]
@@ -20,13 +24,18 @@ export const isErrorAddInit = (
 
 export const isErrorInitializeSwap = (
     obj:
-        | ErrorFeedback
         | {
               programId: string;
               swapIdentity: SwapIdentity;
               transactionHashes: string[];
           }
-): obj is ErrorFeedback => !Object.keys(obj).includes("swapIdentity");
+        | {
+              programId: string;
+              swapIdentity?: SwapIdentity;
+              error: ErrorFeedback;
+          }
+): obj is { programId: string; swapIdentity?: SwapIdentity; error: ErrorFeedback } =>
+    Object.keys(obj).includes("error");
 
 export const isErrorApiProcessor = (obj: ErrorFeedback | ApiProcessorData): obj is ErrorFeedback =>
     !Object.keys(obj[0]).includes("config");

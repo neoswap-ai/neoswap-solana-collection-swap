@@ -7,7 +7,7 @@ export async function getSwapDataAccountFromPublicKey(Data: {
     swapDataAccount_publicKey: PublicKey;
 }): Promise<SwapData | undefined> {
     try {
-        // console.log(swapDataAccount_publicKey.toBase58());
+        // console.log(Data.swapDataAccount_publicKey.toBase58());
 
         const swapData = (await Data.program.account.swapData.fetch(
             Data.swapDataAccount_publicKey

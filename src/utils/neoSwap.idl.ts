@@ -604,7 +604,7 @@ export const idl: Idl = {
             name: "cancelNft",
             docs: [
                 "@notice Claim NFT from escrow, retrieving it if previously deposited.",
-                "@dev Function that iterates through Swap's Data from PDA to find the relevant information linked with accounts shared and transfers the NFT from the shared user to the escrow. If no more NFT is held by the PDA ATAs, close PDA ATA and send rent fund to user.",
+                "@dev Function that iterates through Swap's Data from PDA to find the relevant information linked with accounts shared and transfers the NFT from the escrow to the owner. If no more NFT is held by the PDA ATAs, close PDA ATA and send rent fund to user.",
                 "@param seed: u8[] => Seed buffer corresponding to Swap's PDA",
                 '@param bump: u8 => "Bump corresponding to Swap\'s PDA"',
                 "@accounts system_program = SYSTEM_PROGRAM_ID",

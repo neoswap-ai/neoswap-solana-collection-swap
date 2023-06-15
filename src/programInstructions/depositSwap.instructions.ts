@@ -4,7 +4,7 @@ import { getSwapDataAccountFromPublicKey } from "../utils/getSwapDataAccountFrom
 import { getSwapIdentityFromData } from "../utils/getSwapIdentityFromData.function";
 import { getDepositNftInstruction } from "./subFunction/deposit.nft.instructions";
 import { getDepositSolInstruction } from "./subFunction/deposit.sol.instructions";
-import { ErrorFeedback, ItemStatus, TradeStatus, TxWithSigner } from "../utils/types";
+import { ErrorFeedback, ItemStatus, SwapData, TradeStatus, TxWithSigner } from "../utils/types";
 
 export async function createDepositSwapInstructions(Data: {
     swapDataAccount: PublicKey;
@@ -13,11 +13,24 @@ export async function createDepositSwapInstructions(Data: {
 }): Promise<TxWithSigner | ErrorFeedback> {
     try {
         const program = getProgram(Data.cluster);
-        const swapData = await getSwapDataAccountFromPublicKey({
-            program,
-            swapDataAccount_publicKey: Data.swapDataAccount,
-        });
-        console.log("swapData", swapData?.items);
+        let swapData: SwapData | undefined;
+        try {
+            swapData = await getSwapDataAccountFromPublicKey({
+                program,
+                swapDataAccount_publicKey: Data.swapDataAccount,
+            });
+            // console.log("swapData", swapData);
+        } catch (error) {
+            return [
+                {
+                    blockchain: "solana",
+                    type: "error",
+                    order: 0,
+                    description: error,
+                },
+            ];
+        }
+        // console.log("swapData2", swapData);
 
         if (!swapData) {
             return [
@@ -119,13 +132,16 @@ export async function createDepositSwapInstructions(Data: {
                             ataList,
                             mint: swapDataItem.mint,
                         });
-                        console.log("depositSolInstruction", depositSolInstruction);
+                        console.log(
+                            "depositSolInstruction",
+                            depositSolInstruction.instructions.length
+                        );
 
                         depositInstruction.push({
                             tx: new Transaction().add(...depositSolInstruction.instructions),
                         });
 
-                        console.log("depositSolinstruction added", depositSolInstruction);
+                        // console.log("depositSolinstruction added", depositSolInstruction);
                     } else if (
                         swapDataItem.owner.toBase58() === Data.user.toBase58() &&
                         swapDataItem.status === ItemStatus.SolDeposited //21

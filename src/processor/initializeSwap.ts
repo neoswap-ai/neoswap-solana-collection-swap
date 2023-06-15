@@ -15,7 +15,11 @@ export async function initializeSwap(Data: {
           swapIdentity: SwapIdentity;
           transactionHashes: string[];
       }
-    | ErrorFeedback
+    | {
+          programId: string;
+          swapIdentity?: SwapIdentity;
+          error: ErrorFeedback;
+      }
 > {
     let initSwapData = await createInitializeSwapInstructions({
         swapData: Data.swapData,
@@ -23,21 +27,30 @@ export async function initializeSwap(Data: {
         // preSeed: Data.preSeed,
         cluster: Data.cluster,
     });
-    console.log("initSwapData", initSwapData);
+    // console.log("initSwapData", initSwapData);
 
     if (isErrorInitTx(initSwapData)) return initSwapData;
-
-    const { transactionHashes } = await sendBundledTransactions({
-        txsWithoutSigners: initSwapData.transactions,
-        signer: Data.signer,
-        cluster: Data.cluster,
-    });
-    // delete initSwapData.transactions;
-    // console.log("transactionHashes", transactionHashes);
-    initSwapData.swapIdentity;
-    return {
-        programId: initSwapData.programId,
-        swapIdentity: initSwapData.swapIdentity,
-        transactionHashes,
-    };
+    try {
+        const { transactionHashes } = await sendBundledTransactions({
+            txsWithoutSigners: initSwapData.transactions,
+            signer: Data.signer,
+            cluster: Data.cluster,
+        });
+        // delete initSwapData.transactions;
+        // console.log("transactionHashes", transactionHashes);
+        initSwapData.swapIdentity;
+        return {
+            programId: initSwapData.programId,
+            swapIdentity: initSwapData.swapIdentity,
+            transactionHashes,
+        };
+    } catch (error) {
+        return {
+            programId: initSwapData.programId,
+            swapIdentity: initSwapData.swapIdentity,
+            error: [
+                { blockchain: "solana", order: 0, type: "error", description: error },
+            ] as ErrorFeedback,
+        };
+    }
 }
