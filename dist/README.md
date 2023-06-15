@@ -18,7 +18,7 @@
 [![Issues][issues-shield]][issues-url] -->
 
 [![MIT License][license-shield]][license-url]
-[![neoswap-logo][neoswap-app]
+[![neoswap-logo][neoswap-logo]
 
 <!-- PROJECT LOGO -->
 <br />
