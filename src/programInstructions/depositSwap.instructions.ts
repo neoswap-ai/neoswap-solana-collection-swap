@@ -10,7 +10,7 @@ export async function createDepositSwapInstructions(Data: {
     swapDataAccount: PublicKey;
     user: PublicKey;
     cluster: Cluster | string;
-}): Promise<TxWithSigner | ErrorFeedback> {
+}): Promise<TxWithSigner> {
     try {
         const program = getProgram(Data.cluster);
         let swapData: SwapData | undefined;
@@ -21,35 +21,35 @@ export async function createDepositSwapInstructions(Data: {
             });
             // console.log("swapData", swapData);
         } catch (error) {
-            return [
+            throw [
                 {
                     blockchain: "solana",
-                    type: "error",
+                    status: "error",
                     order: 0,
-                    description: error,
+                    message: error,
                 },
             ];
         }
         // console.log("swapData2", swapData);
 
         if (!swapData) {
-            return [
+            throw [
                 {
                     blockchain: "solana",
-                    type: "error",
+                    status: "error",
                     order: 0,
-                    description:
+                    message:
                         "Swap initialization in progress or not initialized. Please try again later.",
                 },
             ];
         } else if (swapData.status !== TradeStatus.WaitingToDeposit)
-            return [
+            throw [
                 {
                     blockchain: "solana",
-                    type: "error",
+                    status: "error",
                     order: 0,
-                    description: "Status of the swap isn't in a depositing state.",
-                    status: swapData.status,
+                    message: "Status of the swap isn't in a depositing state.",
+                    swapStatus: swapData.status,
                 },
             ];
 
@@ -58,12 +58,12 @@ export async function createDepositSwapInstructions(Data: {
         });
 
         if (!swapIdentity)
-            return [
+            throw [
                 {
                     blockchain: "solana",
-                    type: "error",
+                    status: "error",
                     order: 0,
-                    description:
+                    message:
                         "Data retrieved from the Swap did not allow to build the SwapIdentity.",
                 },
             ];
@@ -72,8 +72,15 @@ export async function createDepositSwapInstructions(Data: {
         let ataList: PublicKey[] = [];
         let isUserPartOfTrade = false;
         let isUserAlreadyDeposited = false;
-        for (let item = 0; item < swapData.items.length; item++) {
-            let swapDataItem = swapData.items[item];
+        /// switch to map / filter  /!\ newAtas issue
+
+        let swapDataItems = swapData.items.filter((item) => {
+            item.owner.equals(Data.user);
+        });
+
+        for (let item = 0; item < swapDataItems.length; item++) {
+            let swapDataItem = swapDataItems[item];
+
             if (
                 isUserPartOfTrade === false &&
                 swapDataItem.owner.toBase58() === Data.user.toBase58()
@@ -84,7 +91,7 @@ export async function createDepositSwapInstructions(Data: {
             switch (swapDataItem.isNft) {
                 case true:
                     if (
-                        swapDataItem.owner.toBase58() === Data.user.toBase58() &&
+                        // swapDataItem.owner.toBase58() === Data.user.toBase58() &&
                         swapDataItem.status === ItemStatus.NFTPending //10
                     ) {
                         console.log("XXXXXXX - Deposit NFT item n° ", item, " XXXXXXX");
@@ -97,22 +104,16 @@ export async function createDepositSwapInstructions(Data: {
                             ataList,
                         });
 
-                        let isPush = true;
                         depositing.newAtas.forEach((element) => {
-                            ataList.forEach((ataElem) => {
-                                if (element === ataElem) {
-                                    isPush = false;
-                                    console.log("alreadyexist:", element);
-                                }
-                            });
-
-                            if (isPush) ataList.push(element);
+                            if (!ataList.includes(element)) {
+                                ataList.push(element);
+                            }
                         });
                         depositInstruction.push({
                             tx: new Transaction().add(...depositing.instructions),
                         });
                     } else if (
-                        swapDataItem.owner.toBase58() === Data.user.toBase58() &&
+                        // swapDataItem.owner.toBase58() === Data.user.toBase58() &&
                         swapDataItem.status === ItemStatus.NFTDeposited //20
                     ) {
                         isUserAlreadyDeposited = true;
@@ -132,10 +133,10 @@ export async function createDepositSwapInstructions(Data: {
                             ataList,
                             mint: swapDataItem.mint,
                         });
-                        console.log(
-                            "depositSolInstruction",
-                            depositSolInstruction.instructions.length
-                        );
+                        // console.log(
+                        //     "depositSolInstruction",
+                        //     depositSolInstruction.instructions.length
+                        // );
 
                         depositInstruction.push({
                             tx: new Transaction().add(...depositSolInstruction.instructions),
@@ -154,12 +155,12 @@ export async function createDepositSwapInstructions(Data: {
         }
 
         if (isUserPartOfTrade === false) {
-            return [
+            throw [
                 {
                     blockchain: "solana",
-                    type: "error",
+                    status: "error",
                     order: 0,
-                    description: "You are not a part of this swap",
+                    message: "You are not a part of this swap",
                 },
             ];
         } else if (
@@ -167,27 +168,27 @@ export async function createDepositSwapInstructions(Data: {
             isUserPartOfTrade === true &&
             isUserAlreadyDeposited === true
         ) {
-            return [
+            throw [
                 {
                     blockchain: "solana",
-                    type: "error",
+                    status: "error",
                     order: 0,
-                    description: "You have already escrowed your items in this swap",
+                    message: "You have already escrowed your items in this swap",
                 },
             ];
         } else if (depositInstruction.length === 0 && isUserPartOfTrade === true) {
-            return [
+            throw [
                 {
                     blockchain: "solana",
-                    type: "error",
+                    status: "error",
                     order: 0,
-                    description: "You have no items to escrow in this swap",
+                    message: "You have no items to escrow in this swap",
                 },
             ];
         }
 
         return depositInstruction;
     } catch (error) {
-        return [{ blockchain: "solana", description: error, order: 0, type: "error" }];
+        throw [{ blockchain: "solana", message: error, order: 0, status: "error" }];
     }
 }

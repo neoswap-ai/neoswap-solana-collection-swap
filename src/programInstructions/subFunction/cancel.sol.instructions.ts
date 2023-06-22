@@ -31,13 +31,15 @@ export async function getCancelSolInstructions(Data: {
             isFrontEndFunction: false,
         });
         userAta = foundUserAta;
+        
         if (userAtaIx && !Data.ataList.includes(userAta)) {
             instructions.push(userAtaIx);
             newAtas.push(userAta);
-            console.log("createUserAta CancelNft Tx Added", userAtaIx);
-        } else {
-            console.log("user Ata skipped", userAta.toBase58());
-        }
+            console.log("createUserAta CancelSol Tx Added", userAtaIx);
+        } 
+        // else {
+        //     console.log("user Ata skipped", userAta.toBase58());
+        // }
 
         const { mintAta: pdaAta, instruction: pdaAtaIx } = await findOrCreateAta({
             program: Data.program,
@@ -51,10 +53,11 @@ export async function getCancelSolInstructions(Data: {
         if (pdaAtaIx && !Data.ataList.includes(pdaAta)) {
             instructions.push(pdaAtaIx);
             newAtas.push(pdaAta);
-            console.log("createPdaAta DepositNft Tx Added", pdaAta.toBase58());
-        } else {
-            console.log("pda Ata skipped", pdaAta.toBase58());
-        }
+            console.log("createPdaAta CancelNft Tx Added", pdaAta.toBase58());
+        } 
+        // else {
+        //     console.log("pda Ata skipped", pdaAta.toBase58());
+        // }
     }
     instructions.push(
         await Data.program.methods

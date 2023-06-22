@@ -16,9 +16,9 @@ export const createValidateCanceledInstructions = async (Data: {
         return [
             {
                 blockchain: "solana",
-                type: "error",
+                status: "error",
                 order: 0,
-                description:
+                message:
                     "Swap initialization in progress or not initialized. Please try again later.",
             },
         ];
@@ -31,10 +31,10 @@ export const createValidateCanceledInstructions = async (Data: {
         return [
             {
                 blockchain: "solana",
-                type: "error",
+                status: "error",
                 order: 0,
-                description: "Swap is't in the adequate status for Validate Cancel.",
-                status: swapData.status,
+                message: "Swap is't in the adequate status for Validate Cancel.",
+                swapStatus: swapData.status,
             },
         ];
     }
@@ -43,8 +43,8 @@ export const createValidateCanceledInstructions = async (Data: {
             {
                 blockchain: "solana",
                 order: 0,
-                type: "error",
-                description: "Signer is not the initializer",
+                status: "error",
+                message: "Signer is not the initializer",
             },
         ];
         
@@ -56,9 +56,9 @@ export const createValidateCanceledInstructions = async (Data: {
         return [
             {
                 blockchain: "solana",
-                type: "error",
+                status: "error",
                 order: 0,
-                description:
+                message:
                     "Data retrieved from the Swap did not allow to build the SwapIdentity.",
             },
         ];
@@ -90,10 +90,10 @@ export const createValidateCanceledInstructions = async (Data: {
         return [
             {
                 blockchain: "solana",
-                type: "error",
+                status: "error",
                 order: 0,
-                description: "Swap is't in the adequate status for validating cancel.",
-                status: swapData.status,
+                message: "Swap is't in the adequate status for validating cancel.",
+                swapStatus: swapData.status,
             },
         ];
     }

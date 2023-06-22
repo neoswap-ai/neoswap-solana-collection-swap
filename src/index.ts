@@ -10,6 +10,7 @@ import { createInitializeSwapInstructions } from "./programInstructions/initiali
 import { getProgram } from "./utils/getProgram.obj";
 import { getSwapDataAccountFromPublicKey } from "./utils/getSwapDataAccountFromPublicKey.function";
 import { getSwapIdentityFromData } from "./utils/getSwapIdentityFromData.function";
+import { isConfirmedTx } from "./utils/isConfirmedTx.function";
 import {
     isError,
     isErrorApiProcessor,
@@ -37,11 +38,12 @@ const utils = {
     getSwapDataAccountFromPublicKey,
     getSwapIdentityFromData,
     sendBundledTransactions,
-    isErrorInitializeSwap,
-    isError,
-    isErrorInitTx,
-    isErrorApiProcessor,
-    isErrorTxSigner,
+    isConfirmedTx,
+    // isErrorInitializeSwap,
+    // isError,
+    // isErrorInitTx,
+    // isErrorApiProcessor,
+    // isErrorTxSigner,
 };
 const createInstructions = {
     createInitializeSwapInstructions,
@@ -51,7 +53,7 @@ const createInstructions = {
     prepareDepositSwapInstructions,
 };
 
-const neoSwapNpm = {
+export const neoSwapNpm = {
     initializeSwap,
     depositSwap,
     claimAndCloseSwap,
@@ -60,4 +62,4 @@ const neoSwapNpm = {
     createInstructions,
 };
 
-export default neoSwapNpm;
+// export neoSwapNpm;

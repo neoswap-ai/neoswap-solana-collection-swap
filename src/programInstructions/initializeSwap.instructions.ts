@@ -20,14 +20,12 @@ export async function createInitializeSwapInstructions(Data: {
     signer: PublicKey;
     // preSeed: string;
     cluster: Cluster | string;
-}): Promise<
-    | {
-          swapIdentity: SwapIdentity;
-          programId: string;
-          transactions: TxWithSigner;
-      }
-    | { programId: string; swapIdentity?: SwapIdentity; error: ErrorFeedback }
-> {
+}): Promise<{
+    swapIdentity: SwapIdentity;
+    programId: string;
+    transactions: TxWithSigner;
+}> {
+// | { programId: string; swapIdentity?: SwapIdentity; error: ErrorFeedback }
     if (!Data.swapData.preSeed) Data.swapData.preSeed = "0000";
     const program = getProgram(Data.cluster);
 
@@ -36,15 +34,15 @@ export async function createInitializeSwapInstructions(Data: {
         // preSeed: Data.preSeed,
     });
     if (!swapIdentity)
-        return {
+        throw {
             programId: program.programId.toString(),
             // swapIdentity: swapIdentity,
             error: [
                 {
                     blockchain: "solana",
-                    type: "error",
+                    status: "error",
                     order: 0,
-                    description: "Couldn't create the swapIdentity",
+                    message: "Couldn't create the swapIdentity",
                 },
             ] as ErrorFeedback,
         };
@@ -92,7 +90,7 @@ export async function createInitializeSwapInstructions(Data: {
             if (isErrorAddInit(addInstructions)) {
                 console.log("isErrorAddInit");
 
-                return {
+                throw {
                     programId: program.programId.toString(),
                     swapIdentity: swapIdentity,
                     error: addInstructions,
@@ -129,9 +127,9 @@ export async function createInitializeSwapInstructions(Data: {
         throw [
             {
                 blockchain: "solana",
-                type: "error",
+                status: "error",
                 order: 0,
-                description: error,
+                message: error,
                 ...swapIdentity,
             },
         ];
@@ -239,8 +237,8 @@ async function getAddInitilizeInstructions(Data: {
                             {
                                 blockchain: "solana",
                                 order: 0,
-                                type: "error",
-                                description: `cannot retrieve the balance of ${tokenAccount.mintAta.toBase58()}`,
+                                status: "error",
+                                message: `cannot retrieve the balance of ${tokenAccount.mintAta.toBase58()}`,
                             },
                         ] as ErrorFeedback;
                     } else if (balance.value.uiAmount < item.amount.toNumber()) {
@@ -250,8 +248,8 @@ async function getAddInitilizeInstructions(Data: {
                             {
                                 blockchain: "solana",
                                 order: 0,
-                                type: "error",
-                                description: `found ${
+                                status: "error",
+                                message: `found ${
                                     balance.value.uiAmount
                                 } / ${item.amount.toNumber()}  in the associated token account ${tokenAccount.mintAta.toBase58()} linked to mint ${item.mint.toBase58()}`,
                             },
@@ -282,22 +280,22 @@ async function getAddInitilizeInstructions(Data: {
     let errorFeedback: ErrorFeedback = [
         {
             blockchain: "solana",
-            type: "error",
+            status: "error",
             order: 0,
-            description: "",
+            message: "",
         },
     ];
     for (let index = 0; index < returnData.length; index++) {
         const element = returnData[index];
         if (element) {
-            errorFeedback[0].description =
-                String(errorFeedback[0].description) + `  /\/\  ` + String(element[0].description);
+            errorFeedback[0].message =
+                String(errorFeedback[0].message) + `  /\/\  ` + String(element[0].message);
 
             // return element;
         }
     }
 
-    if (errorFeedback[0].description !== "") {
+    if (errorFeedback[0].message !== "") {
         return errorFeedback;
     }
     let ll = 0;

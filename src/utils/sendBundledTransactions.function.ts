@@ -32,7 +32,7 @@ export async function sendBundledTransactions(Data: {
             throw { message: "your provider is not an AnchorProvider type" };
 
         const transactionHashes = await program.provider.sendAll(txsWithSigners, {
-            skipPreflight: true,
+            // skipPreflight: true,
         });
         console.log(transactionHashes);
         return { transactionHashes };

@@ -10,7 +10,7 @@ export async function prepareDepositSwapInstructions(Data: {
     swapDataAccount: PublicKey;
     user: PublicKey;
     cluster: Cluster | string;
-}): Promise<ErrorFeedback | ApiProcessorData> {
+}): Promise<ApiProcessorData> {
     try {
         const program = getProgram(Data.cluster);
 
@@ -22,23 +22,23 @@ export async function prepareDepositSwapInstructions(Data: {
             swapDataAccount_publicKey: Data.swapDataAccount,
         });
         if (!swapData) {
-            return [
+            throw [
                 {
                     blockchain: "solana",
-                    type: "error",
+                    status: "error",
                     order: 0,
-                    description:
+                    message:
                         "Swap initialization in progress or not initialized. Please try again later.",
                 },
             ];
         } else if (swapData.status !== TradeStatus.WaitingToDeposit)
-            return [
+            throw [
                 {
                     blockchain: "solana",
-                    type: "error",
+                    status: "error",
                     order: 0,
-                    description: "Status of the swap isn't in a depositing state.",
-                    status: swapData.status,
+                    message: "Status of the swap isn't in a depositing state.",
+                    swapStatus: swapData.status,
                 },
             ];
 
@@ -47,12 +47,12 @@ export async function prepareDepositSwapInstructions(Data: {
         });
 
         if (!swapIdentity)
-            return [
+            throw [
                 {
                     blockchain: "solana",
-                    type: "error",
+                    status: "error",
                     order: 0,
-                    description:
+                    message:
                         "Data retrieved from the Swap did not allow to build the SwapIdentity.",
                 },
             ];
@@ -129,10 +129,14 @@ export async function prepareDepositSwapInstructions(Data: {
                         // itemsToDeposit.push(swapDataItem);
 
                         const depositSolInstruction = await prepareDepositSolInstruction({
-                            programId: program.programId,
-                            from: Data.user,
-                            to: Data.swapDataAccount,
+                            program,
+                            // programId: program.programId,
                             swapIdentity,
+                            ataList,
+                            mint: swapDataItem.mint,
+                            signer: Data.user,
+                            // from: Data.user,
+                            // to: Data.swapDataAccount,
                         });
                         // console.log("depositSolInstruction", depositSolInstruction);
                         apiInstructions.push({
@@ -140,7 +144,7 @@ export async function prepareDepositSwapInstructions(Data: {
                             type: "deposit SOL",
                             order: 0,
                             description: `Escrow your SOL in swap ${Data.swapDataAccount}`,
-                            config: [depositSolInstruction],
+                            config: depositSolInstruction.instructions,
                         });
                         // depositInstruction.push(depositSolInstruction);
                         // depositing.instruction.forEach((element) => {});
@@ -158,12 +162,12 @@ export async function prepareDepositSwapInstructions(Data: {
         }
 
         if (isUserPartOfTrade === false) {
-            return [
+            throw [
                 {
                     blockchain: "solana",
-                    type: "error",
+                    status: "error",
                     order: 0,
-                    description: "You are not a part of this swap",
+                    message: "You are not a part of this swap",
                 },
             ];
         } else if (
@@ -171,21 +175,21 @@ export async function prepareDepositSwapInstructions(Data: {
             isUserPartOfTrade === true &&
             isUserAlreadyDeposited === true
         ) {
-            return [
+            throw [
                 {
                     blockchain: "solana",
-                    type: "error",
+                    status: "error",
                     order: 0,
-                    description: "You have already escrowed your items in this swap",
+                    message: "You have already escrowed your items in this swap",
                 },
             ];
         } else if (apiInstructions.length === 0 && isUserPartOfTrade === true) {
-            return [
+            throw [
                 {
                     blockchain: "solana",
-                    type: "error",
+                    status: "error",
                     order: 0,
-                    description: "You have no items to escrow in this swap",
+                    message: "You have no items to escrow in this swap",
                 },
             ];
         }
@@ -216,6 +220,6 @@ export async function prepareDepositSwapInstructions(Data: {
         console.log("finalDepositInstruction", finalDepositInstruction);
         return finalDepositInstruction;
     } catch (error) {
-        return [{ blockchain: "solana", description: error, order: 0, type: "error" }];
+        throw [{ blockchain: "solana", message: error, order: 0, status: "error" }];
     }
 }

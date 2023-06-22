@@ -40,10 +40,11 @@ export async function prepareDepositNftInstruction(Data: {
     if (userAtaIx && !Data.ataList.includes(userAta)) {
         instructions.push(userAtaIx);
         newAtas.push(userAta);
-        console.log("createUserAta CancelNft Tx Added", userAtaIx);
-    } else {
-        console.log("user Ata skipped");
-    }
+        console.log("createUserAta DepositNft Tx Added", userAta.toBase58());
+    } 
+    // else {
+    //     console.log("user Ata skipped", userAta.toBase58());
+    // }
 
     const { mintAta: pdaAta, prepareInstruction: pdaAtaIx } = await findOrCreateAta({
         program: Data.program,
@@ -56,10 +57,11 @@ export async function prepareDepositNftInstruction(Data: {
     if (pdaAtaIx && !Data.ataList.includes(pdaAta)) {
         instructions.push(pdaAtaIx);
         newAtas.push(pdaAta);
-        console.log("createPdaAta DepositNft Tx Added", pdaAtaIx);
-    } else {
-        console.log("pda Ata skipped");
-    }
+        console.log("createPdaAta DepositNft Tx Added", pdaAta.toBase58());
+    } 
+    // else {
+    //     console.log("pda Ata skipped", pdaAta.toBase58());
+    // }
 
     const {
         tokenStandard,

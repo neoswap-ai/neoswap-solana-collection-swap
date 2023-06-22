@@ -10,7 +10,7 @@ export async function createCancelSwapInstructions(Data: {
     swapDataAccount: PublicKey;
     signer: PublicKey;
     cluster: Cluster | string;
-}): Promise<TxWithSigner | ErrorFeedback> {
+}): Promise<TxWithSigner> {
     try {
         const program = getProgram(Data.cluster);
 
@@ -22,12 +22,12 @@ export async function createCancelSwapInstructions(Data: {
             swapDataAccount_publicKey: Data.swapDataAccount,
         });
         if (!swapData) {
-            return [
+            throw [
                 {
                     blockchain: "solana",
-                    type: "error",
+                    status: "error",
                     order: 0,
-                    description:
+                    message:
                         "Swap initialization in progress or not initialized. Please try again later.",
                 },
             ];
@@ -37,13 +37,13 @@ export async function createCancelSwapInstructions(Data: {
                 swapData.status === TradeStatus.WaitingToDeposit
             )
         ) {
-            return [
+            throw [
                 {
                     blockchain: "solana",
-                    type: "error",
+                    status: "error",
                     order: 0,
-                    description: "Swap is't in the adequate status for Validate Cancel.",
-                    status: swapData.status,
+                    message: "Swap is't in the adequate status for Validate Cancel.",
+                    swapStatus: swapData.status,
                 },
             ];
         }
@@ -57,12 +57,12 @@ export async function createCancelSwapInstructions(Data: {
         });
 
         if (!swapIdentity)
-            return [
+            throw [
                 {
                     blockchain: "solana",
-                    type: "error",
+                    status: "error",
                     order: 0,
-                    description:
+                    message:
                         "Data retrieved from the Swap did not allow to build the SwapIdentity.",
                 },
             ];
@@ -114,12 +114,12 @@ export async function createCancelSwapInstructions(Data: {
         }
 
         if (cancelTransactionInstruction.length === 0 && !init) {
-            return [
+            throw [
                 {
                     blockchain: "solana",
-                    type: "error",
+                    status: "error",
                     order: 0,
-                    description: "No item to cancel",
+                    message: "No item to cancel",
                 },
             ];
         } else {
@@ -129,12 +129,12 @@ export async function createCancelSwapInstructions(Data: {
             return cancelTransactionInstruction;
         }
     } catch (error) {
-        return [
+        throw [
             {
                 blockchain: "solana",
-                type: "error",
+                status: "error",
                 order: 0,
-                description: error,
+                message: error,
             },
         ];
     }

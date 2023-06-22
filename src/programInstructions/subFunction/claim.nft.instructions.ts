@@ -34,17 +34,10 @@ export async function getClaimNftInstructions(Data: {
         mint: Data.mint,
         signer: Data.signer,
     });
-    newAtas.push(destinaryMintAta);
 
-    let adddestinaryTx = true;
-    Data.ataList.forEach((ata) => {
-        if (ata.toString() === destinaryMintAta.toString()) {
-            adddestinaryTx = false;
-        }
-    });
-    if (destinaryMintAtaTx && adddestinaryTx) {
+    if (destinaryMintAtaTx && !Data.ataList.includes(destinaryMintAta)) {
         instruction.push(destinaryMintAtaTx);
-
+        newAtas.push(destinaryMintAta);
         console.log("createdestinaryAta ClaimNft Tx Added", destinaryMintAta.toBase58());
     }
 
@@ -54,23 +47,17 @@ export async function getClaimNftInstructions(Data: {
         mint: Data.mint,
         signer: Data.signer,
     });
-    newAtas.push(pdaMintAta);
 
-    let addPdaTx = true;
-    Data.ataList.forEach((ata) => {
-        if (ata.toString() === pdaMintAta.toString()) {
-            addPdaTx = false;
-        }
-    });
-    if (pdaMintAtaTx && addPdaTx) {
+    if (pdaMintAtaTx && !Data.ataList.includes(pdaMintAta)) {
         instruction.push(pdaMintAtaTx);
+        newAtas.push(pdaMintAta);
         console.log("createPdaAta ClaimNft Tx Added");
     }
 
     const {
         tokenStandard,
         metadataAddress: nftMetadata,
-        metadataBump: nftMetadata_bump,
+        // metadataBump: nftMetadata_bump,
     } = await findNftDataAndMetadataAccount({
         connection: Data.program.provider.connection,
         mint: Data.mint,
@@ -105,7 +92,7 @@ export async function getClaimNftInstructions(Data: {
             await Data.program.methods
                 .claimNft(
                     Data.swapIdentity.swapDataAccount_seed,
-                    Data.swapIdentity.swapDataAccount_bump,
+                    Data.swapIdentity.swapDataAccount_bump
                     // nftMetadata_bump
                 )
                 .accounts({
@@ -134,7 +121,7 @@ export async function getClaimNftInstructions(Data: {
             await Data.program.methods
                 .claimNft(
                     Data.swapIdentity.swapDataAccount_seed,
-                    Data.swapIdentity.swapDataAccount_bump,
+                    Data.swapIdentity.swapDataAccount_bump
                     // nftMetadata_bump
                 )
                 .accounts({

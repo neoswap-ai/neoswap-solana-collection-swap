@@ -34,7 +34,7 @@ export async function getDepositSolInstruction(Data: {
         if (userAtaIx && !Data.ataList.includes(userAta)) {
             instructions.push(userAtaIx);
             newAtas.push(userAta);
-            console.log("createUserAta CancelNft Tx Added", userAtaIx);
+            console.log("createUserAta DepositSol Tx Added", userAta.toBase58());
         } else {
             console.log("user Ata skipped", userAta.toBase58());
         }
@@ -51,10 +51,11 @@ export async function getDepositSolInstruction(Data: {
         if (pdaAtaIx && !Data.ataList.includes(pdaAta)) {
             instructions.push(pdaAtaIx);
             newAtas.push(pdaAta);
-            console.log("createPdaAta DepositNft Tx Added", pdaAta.toBase58());
-        } else {
-            console.log("pda Ata skipped", pdaAta.toBase58());
-        }
+            console.log("createPdaAta DepositSol Tx Added", pdaAta.toBase58());
+        } 
+        // else {
+        //     console.log("pda Ata skipped", pdaAta.toBase58());
+        // }
     }
 
     instructions.push(

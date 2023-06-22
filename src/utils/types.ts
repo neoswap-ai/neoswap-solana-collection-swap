@@ -58,13 +58,14 @@ export type ApiProcessorCreateATAType = {
     mint: string;
 };
 
+// change to throw error
 export type ErrorFeedback = [
     {
         blockchain: "solana";
-        type: "error";
+        status: "error";
         order: number;
-        description: string | unknown;
-        status?: number;
+        message: string | unknown;
+        swapStatus?: number;
     }
 ];
 

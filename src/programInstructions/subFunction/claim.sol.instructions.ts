@@ -31,15 +31,16 @@ export async function getClaimSolInstructions(Data: {
             isFrontEndFunction: false,
         });
         userAta = foundUserAta;
-        console.log("userAta", userAta);
+        // console.log("userAta", userAta);
 
         if (userAtaIx && !Data.ataList.includes(userAta)) {
             instructions.push(userAtaIx);
             newAtas.push(userAta);
-            console.log("createUserAta CancelNft Tx Added", userAtaIx);
-        } else {
-            console.log("user Ata skipped", userAta.toBase58());
-        }
+            console.log("createdestinaryAta ClaimSol Tx Added", userAta.toBase58());
+        } 
+        // else {
+        //     console.log("user Ata ClaimSol skipped", userAta.toBase58());
+        // }
 
         const { mintAta: pdaAta, instruction: pdaAtaIx } = await findOrCreateAta({
             program: Data.program,
@@ -53,10 +54,11 @@ export async function getClaimSolInstructions(Data: {
         if (pdaAtaIx && !Data.ataList.includes(pdaAta)) {
             instructions.push(pdaAtaIx);
             newAtas.push(pdaAta);
-            console.log("createPdaAta DepositNft Tx Added", pdaAta.toBase58());
-        } else {
-            console.log("pda Ata skipped", pdaAta.toBase58());
-        }
+            console.log("createPdaAta ClaimSol Tx Added", pdaAta.toBase58());
+        } 
+        // else {
+        //     console.log("pda Ata ClaimSol skipped", pdaAta.toBase58());
+        // }
     }
     // console.log(" TOKEN_PROGRAM_ID)", TOKEN_PROGRAM_ID);
     // console.log(" Data.swapIdentity", Data.swapIdentity.swapDataAccount_publicKey);
