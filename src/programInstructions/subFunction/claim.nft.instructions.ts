@@ -1,5 +1,10 @@
 import { findOrCreateAta } from "../../utils/findOrCreateAta.function";
-import { PublicKey, SYSVAR_INSTRUCTIONS_PUBKEY, SystemProgram } from "@solana/web3.js";
+import {
+    PublicKey,
+    SYSVAR_INSTRUCTIONS_PUBKEY,
+    SystemProgram,
+    TransactionInstruction,
+} from "@solana/web3.js";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { TokenStandard } from "@metaplex-foundation/mpl-token-metadata";
 import {
@@ -24,7 +29,10 @@ export async function getClaimNftInstructions(Data: {
     signer: PublicKey;
     swapIdentity: SwapIdentity;
     ataList: PublicKey[];
-}) {
+}): Promise<{
+    instruction: TransactionInstruction[];
+    newAtas: PublicKey[];
+}> {
     let instruction = [];
     let newAtas = [];
 
@@ -54,34 +62,26 @@ export async function getClaimNftInstructions(Data: {
         console.log("createPdaAta ClaimNft Tx Added");
     }
 
-    const {
-        tokenStandard,
-        metadataAddress: nftMetadata,
-        // metadataBump: nftMetadata_bump,
-    } = await findNftDataAndMetadataAccount({
+    const { tokenStandard, metadataAddress: nftMetadata } = await findNftDataAndMetadataAccount({
         connection: Data.program.provider.connection,
         mint: Data.mint,
     });
-    // console.log("nftMetadata", nftMetadata.toBase58());
 
     if (tokenStandard === TokenStandard.ProgrammableNonFungible) {
         ///if pNFT
         const nftMasterEdition = findNftMasterEdition({
             mint: Data.mint,
         });
-        // console.log('nftMasterEdition', nftMasterEdition.toBase58());
 
         const ownerTokenRecord = findUserTokenRecord({
             mint: Data.mint,
             userMintAta: pdaMintAta,
         });
-        // console.log("ownerTokenRecord", ownerTokenRecord.toBase58());
 
         const destinationTokenRecord = findUserTokenRecord({
             mint: Data.mint,
             userMintAta: destinaryMintAta,
         });
-        // console.log("destinationTokenRecord", destinationTokenRecord.toBase58());
 
         const authRules = await findRuleSet({
             connection: Data.program.provider.connection,
@@ -93,7 +93,6 @@ export async function getClaimNftInstructions(Data: {
                 .claimNft(
                     Data.swapIdentity.swapDataAccount_seed,
                     Data.swapIdentity.swapDataAccount_bump
-                    // nftMetadata_bump
                 )
                 .accounts({
                     systemProgram: SystemProgram.programId.toBase58(),
@@ -122,7 +121,6 @@ export async function getClaimNftInstructions(Data: {
                 .claimNft(
                     Data.swapIdentity.swapDataAccount_seed,
                     Data.swapIdentity.swapDataAccount_bump
-                    // nftMetadata_bump
                 )
                 .accounts({
                     systemProgram: SystemProgram.programId.toBase58(),

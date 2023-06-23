@@ -14,7 +14,7 @@ export async function findOrCreateAta(Data: {
     owner: PublicKey;
     mint: PublicKey;
     signer: PublicKey;
-    isFrontEndFunction?: boolean;
+    prepareInstructions?: boolean;
 }): Promise<{
     mintAta: PublicKey;
     prepareInstruction?: ApiProcessorConfigType;
@@ -28,13 +28,13 @@ export async function findOrCreateAta(Data: {
                 })
             ).value[0].pubkey,
         };
-    } catch (error) {
-        const [mintAta, mintAta_bump] = PublicKey.findProgramAddressSync(
+    } catch (_) {
+        const mintAta = PublicKey.findProgramAddressSync(
             [Data.owner.toBuffer(), TOKEN_PROGRAM_ID.toBuffer(), Data.mint.toBuffer()],
             SOLANA_SPL_ATA_PROGRAM_ID
-        );
+        )[0];
 
-        if (Data.isFrontEndFunction) {
+        if (Data.prepareInstructions) {
             return {
                 mintAta,
                 prepareInstruction: {

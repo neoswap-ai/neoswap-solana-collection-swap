@@ -28,44 +28,29 @@ export async function getClaimSolInstructions(Data: {
             owner: Data.user,
             mint: Data.mint,
             signer: Data.signer,
-            isFrontEndFunction: false,
         });
         userAta = foundUserAta;
-        // console.log("userAta", userAta);
 
         if (userAtaIx && !Data.ataList.includes(userAta)) {
             instructions.push(userAtaIx);
             newAtas.push(userAta);
             console.log("createdestinaryAta ClaimSol Tx Added", userAta.toBase58());
-        } 
-        // else {
-        //     console.log("user Ata ClaimSol skipped", userAta.toBase58());
-        // }
+        }
 
         const { mintAta: pdaAta, instruction: pdaAtaIx } = await findOrCreateAta({
             program: Data.program,
             owner: Data.swapIdentity.swapDataAccount_publicKey,
             mint: Data.mint,
             signer: Data.signer,
-            isFrontEndFunction: false,
         });
         swapDataAccountAta = pdaAta;
-        // console.log("pdaAtaIx", pdaAta.toBase58());
+
         if (pdaAtaIx && !Data.ataList.includes(pdaAta)) {
             instructions.push(pdaAtaIx);
             newAtas.push(pdaAta);
             console.log("createPdaAta ClaimSol Tx Added", pdaAta.toBase58());
-        } 
-        // else {
-        //     console.log("pda Ata ClaimSol skipped", pdaAta.toBase58());
-        // }
+        }
     }
-    // console.log(" TOKEN_PROGRAM_ID)", TOKEN_PROGRAM_ID);
-    // console.log(" Data.swapIdentity", Data.swapIdentity.swapDataAccount_publicKey);
-    // console.log(" swapDataAccountAta)", swapDataAccountAta);
-    // console.log(" Data.user", Data.user);
-    // console.log(" userAta)", userAta);
-    // console.log(" Data.signer", Data.signer);
     instructions.push(
         await Data.program.methods
             .claimSol(

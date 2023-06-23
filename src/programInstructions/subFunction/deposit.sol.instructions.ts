@@ -28,15 +28,12 @@ export async function getDepositSolInstruction(Data: {
             owner: Data.signer,
             mint: Data.mint,
             signer: Data.signer,
-            isFrontEndFunction: false,
         });
         signerAta = userAta;
         if (userAtaIx && !Data.ataList.includes(userAta)) {
             instructions.push(userAtaIx);
             newAtas.push(userAta);
             console.log("createUserAta DepositSol Tx Added", userAta.toBase58());
-        } else {
-            console.log("user Ata skipped", userAta.toBase58());
         }
 
         const { mintAta: pdaAta, instruction: pdaAtaIx } = await findOrCreateAta({
@@ -44,26 +41,18 @@ export async function getDepositSolInstruction(Data: {
             owner: Data.swapIdentity.swapDataAccount_publicKey,
             mint: Data.mint,
             signer: Data.signer,
-            isFrontEndFunction: false,
         });
         swapDataAccountAta = pdaAta;
-        // console.log("pdaAtaIx", pdaAta.toBase58());
         if (pdaAtaIx && !Data.ataList.includes(pdaAta)) {
             instructions.push(pdaAtaIx);
             newAtas.push(pdaAta);
             console.log("createPdaAta DepositSol Tx Added", pdaAta.toBase58());
-        } 
-        // else {
-        //     console.log("pda Ata skipped", pdaAta.toBase58());
-        // }
+        }
     }
 
     instructions.push(
         await Data.program.methods
-            .depositSol(
-                Data.swapIdentity.swapDataAccount_seed,
-                // Data.swapIdentity.swapDataAccount_bump
-            )
+            .depositSol(Data.swapIdentity.swapDataAccount_seed)
             .accounts({
                 systemProgram: SystemProgram.programId.toString(),
                 splTokenProgram: TOKEN_PROGRAM_ID,

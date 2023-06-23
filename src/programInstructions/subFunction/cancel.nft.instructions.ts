@@ -6,7 +6,11 @@ import {
     TransactionInstruction,
 } from "@solana/web3.js";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
-import { METAPLEX_AUTH_RULES_PROGRAM, SOLANA_SPL_ATA_PROGRAM_ID, TOKEN_METADATA_PROGRAM } from "../../utils/const";
+import {
+    METAPLEX_AUTH_RULES_PROGRAM,
+    SOLANA_SPL_ATA_PROGRAM_ID,
+    TOKEN_METADATA_PROGRAM,
+} from "../../utils/const";
 import { TokenStandard } from "@metaplex-foundation/mpl-token-metadata";
 import {
     findNftDataAndMetadataAccount,
@@ -24,7 +28,10 @@ export async function getCancelNftInstructions(Data: {
     mint: PublicKey;
     swapIdentity: SwapIdentity;
     ataList: PublicKey[];
-}) {
+}): Promise<{
+    instructions: TransactionInstruction[];
+    newAtas: PublicKey[];
+}> {
     let instructions: TransactionInstruction[] = [];
     let newAtas: PublicKey[] = [];
 
@@ -33,12 +40,11 @@ export async function getCancelNftInstructions(Data: {
         owner: Data.owner,
         mint: Data.mint,
         signer: Data.signer,
-        isFrontEndFunction: false,
     });
     if (destinaryAtaIx && !Data.ataList.includes(destinaryAta)) {
         instructions.push(destinaryAtaIx);
         newAtas.push(destinaryAta);
-        console.log("destinaryteUserAta CancelNft Tx Added", destinaryAtaIx);
+        console.log("createUserAta CancelNft Tx Added", destinaryAtaIx);
     }
 
     const { mintAta: pdaAta, instruction: pdaAtaIx } = await findOrCreateAta({
@@ -46,7 +52,6 @@ export async function getCancelNftInstructions(Data: {
         owner: Data.swapIdentity.swapDataAccount_publicKey,
         mint: Data.mint,
         signer: Data.signer,
-        isFrontEndFunction: false,
     });
     if (pdaAtaIx && !Data.ataList.includes(pdaAta)) {
         instructions.push(pdaAtaIx);
@@ -66,17 +71,14 @@ export async function getCancelNftInstructions(Data: {
     if (tokenStandard === TokenStandard.ProgrammableNonFungible) {
         ///if pNFT
         const nftMasterEdition = findNftMasterEdition({ mint: Data.mint });
-        // console.log('nftMasterEdition', nftMasterEdition.toBase58());
         const ownerTokenRecord = findUserTokenRecord({
             mint: Data.mint,
             userMintAta: pdaAta,
         });
-        // console.log('ownerTokenRecord', ownerTokenRecord.toBase58());
         const destinationTokenRecord = findUserTokenRecord({
             mint: Data.mint,
             userMintAta: destinaryAta,
         });
-        // console.log('destinationTokenRecord', destinationTokenRecord.toBase58());
         const authRules = await findRuleSet({
             connection: Data.program.provider.connection,
             mint: Data.mint,
@@ -85,8 +87,7 @@ export async function getCancelNftInstructions(Data: {
             await Data.program.methods
                 .cancelNft(
                     Data.swapIdentity.swapDataAccount_seed,
-                    Data.swapIdentity.swapDataAccount_bump,
-                    // nftMetadata_bump
+                    Data.swapIdentity.swapDataAccount_bump
                 )
                 .accounts({
                     systemProgram: SystemProgram.programId.toBase58(),
@@ -114,8 +115,7 @@ export async function getCancelNftInstructions(Data: {
             await Data.program.methods
                 .cancelNft(
                     Data.swapIdentity.swapDataAccount_seed,
-                    Data.swapIdentity.swapDataAccount_bump,
-                    // nftMetadata_bump
+                    Data.swapIdentity.swapDataAccount_bump
                 )
                 .accounts({
                     systemProgram: SystemProgram.programId.toBase58(),

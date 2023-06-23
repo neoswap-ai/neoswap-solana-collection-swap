@@ -12,10 +12,10 @@ export async function getCancelSolInstructions(Data: {
     swapIdentity: SwapIdentity;
     ataList: PublicKey[];
     mint: PublicKey;
-}) : Promise<{
+}): Promise<{
     instructions: TransactionInstruction[];
     newAtas: PublicKey[];
-}>{
+}> {
     let instructions: TransactionInstruction[] = [];
 
     let swapDataAccountAta = Data.swapIdentity.swapDataAccount_publicKey;
@@ -28,36 +28,27 @@ export async function getCancelSolInstructions(Data: {
             owner: Data.user,
             mint: Data.mint,
             signer: Data.signer,
-            isFrontEndFunction: false,
         });
         userAta = foundUserAta;
-        
+
         if (userAtaIx && !Data.ataList.includes(userAta)) {
             instructions.push(userAtaIx);
             newAtas.push(userAta);
-            console.log("createUserAta CancelSol Tx Added", userAtaIx);
-        } 
-        // else {
-        //     console.log("user Ata skipped", userAta.toBase58());
-        // }
+            console.log("createUserAta CancelSol Tx Added", userAta.toBase58());
+        }
 
         const { mintAta: pdaAta, instruction: pdaAtaIx } = await findOrCreateAta({
             program: Data.program,
             owner: Data.swapIdentity.swapDataAccount_publicKey,
             mint: Data.mint,
             signer: Data.signer,
-            isFrontEndFunction: false,
         });
         swapDataAccountAta = pdaAta;
-        // console.log("pdaAtaIx", pdaAta.toBase58());
         if (pdaAtaIx && !Data.ataList.includes(pdaAta)) {
             instructions.push(pdaAtaIx);
             newAtas.push(pdaAta);
-            console.log("createPdaAta CancelNft Tx Added", pdaAta.toBase58());
-        } 
-        // else {
-        //     console.log("pda Ata skipped", pdaAta.toBase58());
-        // }
+            console.log("createPdaAta CancelSol Tx Added", pdaAta.toBase58());
+        }
     }
     instructions.push(
         await Data.program.methods

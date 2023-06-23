@@ -5,9 +5,6 @@ import { Program } from "@project-serum/anchor";
 import { findOrCreateAta } from "../../utils/findOrCreateAta.function";
 
 export async function prepareDepositSolInstruction(Data: {
-    // programId: PublicKey;
-    // from: PublicKey;
-    // to: PublicKey;
     program: Program;
     swapIdentity: SwapIdentity;
     signer: PublicKey;
@@ -28,37 +25,29 @@ export async function prepareDepositSolInstruction(Data: {
             owner: Data.signer,
             mint: Data.mint,
             signer: Data.signer,
-            isFrontEndFunction: true,
+            prepareInstructions: true,
         });
         userAta = foundUserAta;
-        // console.log("userAta", userAta);
 
         if (userAtaIx && !Data.ataList.includes(userAta)) {
             instructions.push(userAtaIx);
             newAtas.push(userAta);
-            console.log("createdestinaryAta ClaimSol Tx Added", userAta.toBase58());
+            console.log("createUserAta DepositSol Tx Added", userAta.toBase58());
         }
-        // else {
-        //     console.log("user Ata ClaimSol skipped", userAta.toBase58());
-        // }
 
         const { mintAta: pdaAta, prepareInstruction: pdaAtaIx } = await findOrCreateAta({
             program: Data.program,
             owner: Data.swapIdentity.swapDataAccount_publicKey,
             mint: Data.mint,
             signer: Data.signer,
-            isFrontEndFunction: true,
+            prepareInstructions: true,
         });
         swapDataAccountAta = pdaAta;
-        // console.log("pdaAtaIx", pdaAta.toBase58());
         if (pdaAtaIx && !Data.ataList.includes(pdaAta)) {
             instructions.push(pdaAtaIx);
             newAtas.push(pdaAta);
-            console.log("createPdaAta ClaimSol Tx Added", pdaAta.toBase58());
+            console.log("createPdaAta DepositSol Tx Added", pdaAta.toBase58());
         }
-        // else {
-        //     console.log("pda Ata ClaimSol skipped", pdaAta.toBase58());
-        // }
     }
 
     instructions.push({
@@ -67,7 +56,6 @@ export async function prepareDepositSolInstruction(Data: {
         data: {
             arguments: {
                 seed: Data.swapIdentity.swapDataAccount_seed.toString(),
-                // bump: Data.swapIdentity.swapDataAccount_bump,
             },
             accounts: {
                 systemProgram: SystemProgram.programId.toString(),

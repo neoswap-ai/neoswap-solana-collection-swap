@@ -32,33 +32,24 @@ export async function getDepositNftInstruction(Data: {
         owner: Data.signer,
         mint: Data.mint,
         signer: Data.signer,
-        isFrontEndFunction: false,
     });
     if (userAtaIx && !Data.ataList.includes(userAta)) {
         instructions.push(userAtaIx);
         newAtas.push(userAta);
         console.log("createUserAta DepositNft Tx Added", userAta.toBase58());
-    } 
-    // else {
-    //     console.log("user Ata skipped", userAta.toBase58());
-    // }
+    }
 
     const { mintAta: pdaAta, instruction: pdaAtaIx } = await findOrCreateAta({
         program: Data.program,
         owner: Data.swapIdentity.swapDataAccount_publicKey,
         mint: Data.mint,
         signer: Data.signer,
-        isFrontEndFunction: false,
     });
-    // console.log("pdaAtaIx", pdaAta.toBase58());
     if (pdaAtaIx && !Data.ataList.includes(pdaAta)) {
         instructions.push(pdaAtaIx);
         newAtas.push(pdaAta);
         console.log("createPdaAta DepositNft Tx Added", pdaAta.toBase58());
-    } 
-    // else {
-    //     console.log("pda Ata skipped", pdaAta.toBase58());
-    // }
+    }
 
     const {
         tokenStandard,
@@ -74,19 +65,16 @@ export async function getDepositNftInstruction(Data: {
         const nftMasterEdition = findNftMasterEdition({
             mint: Data.mint,
         });
-        // console.log('nftMasterEdition', nftMasterEdition.toBase58());
 
         const ownerTokenRecord = findUserTokenRecord({
             mint: Data.mint,
             userMintAta: userAta,
         });
-        // console.log("ownerTokenRecord", ownerTokenRecord.toBase58());
 
         const destinationTokenRecord = findUserTokenRecord({
             mint: Data.mint,
             userMintAta: pdaAta,
         });
-        // console.log('destinationTokenRecord', destinationTokenRecord.toBase58());
 
         const authRules = await findRuleSet({
             connection: Data.program.provider.connection,
@@ -94,11 +82,7 @@ export async function getDepositNftInstruction(Data: {
         });
         instructions.push(
             await Data.program.methods
-                .depositNft(
-                    Data.swapIdentity.swapDataAccount_seed,
-                    // Data.swapIdentity.swapDataAccount_bump,
-                    // nftMetadata_bump
-                )
+                .depositNft(Data.swapIdentity.swapDataAccount_seed)
                 .accounts({
                     systemProgram: SystemProgram.programId.toBase58(),
                     metadataProgram: TOKEN_METADATA_PROGRAM,
@@ -119,15 +103,10 @@ export async function getDepositNftInstruction(Data: {
                 })
                 .instruction()
         );
-        // console.log("depositNftTx - seed", Data.swapIdentity.swapDataAccount_seed.toString());
     } else {
         instructions.push(
             await Data.program.methods
-                .depositNft(
-                    Data.swapIdentity.swapDataAccount_seed,
-                    // Data.swapIdentity.swapDataAccount_bump,
-                    // nftMetadata_bump
-                )
+                .depositNft(Data.swapIdentity.swapDataAccount_seed)
                 .accounts({
                     systemProgram: SystemProgram.programId.toBase58(),
                     metadataProgram: TOKEN_METADATA_PROGRAM,
