@@ -6,22 +6,23 @@ export async function getSwapDataAccountFromPublicKey(Data: {
     program: Program;
     swapDataAccount_publicKey: PublicKey;
 }): Promise<SwapData | undefined> {
-    // try {
-    // console.log(Data.swapDataAccount_publicKey.toBase58());
+    try {
+        const swapData = (await Data.program.account.swapData.fetch(
+            Data.swapDataAccount_publicKey
+        )) as SwapData;
 
-    const swapData = (await Data.program.account.swapData.fetch(
-        Data.swapDataAccount_publicKey
-    )) as SwapData;
-    // console.log("swapData", swapData);
-
-    if (!swapData) {
-        throw `No SwapData found ${Data.swapDataAccount_publicKey.toBase58()}`;
-    } else {
-        return swapData;
+        if (!swapData) {
+            throw `No SwapData found ${Data.swapDataAccount_publicKey.toBase58()}`;
+        } else {
+            return swapData;
+        }
+    } catch (error) {
+        throw [
+            {
+                blockchain: "solana",
+                status: "error",
+                message: error,
+            },
+        ];
     }
-    // } catch (error) {
-    //     console.log("error", error);
-
-    //     return err;
-    // }
 }

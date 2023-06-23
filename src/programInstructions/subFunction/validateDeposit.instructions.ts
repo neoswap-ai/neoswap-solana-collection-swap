@@ -8,47 +8,37 @@ export const validateDeposit = async (Data: {
     swapDataAccount: PublicKey;
     signer: PublicKey;
     cluster: Cluster | string;
-}): Promise<TxWithSigner | ErrorFeedback | undefined> => {
+}): Promise<TxWithSigner | undefined> => {
     const program = getProgram(Data.cluster);
     const swapData = await getSwapDataAccountFromPublicKey({
         program,
         swapDataAccount_publicKey: Data.swapDataAccount,
     });
     if (!swapData) {
-        return [
+        throw [
             {
                 blockchain: "solana",
                 status: "error",
-                order: 0,
                 message:
                     "Swap initialization in progress or not initialized. Please try again later.",
             },
         ];
     } else if (swapData.status === TradeStatus.WaitingToClaim) {
-        return [
-            {
-                blockchain: "solana",
-                order: 0,
-                status: "error",
-                message: "WaitingToClaim state",
-            },
-        ];
+        return;
     } else if (swapData.status !== TradeStatus.WaitingToDeposit) {
-        return [
+        throw [
             {
                 blockchain: "solana",
                 status: "error",
-                order: 0,
                 message: "Swap is't in the adequate status for validating deposit.",
                 swapStatus: swapData.status,
             },
         ];
     }
     if (!swapData.initializer.equals(Data.signer))
-        return [
+        throw [
             {
                 blockchain: "solana",
-                order: 0,
                 status: "error",
                 message: "Signer is not the initializer",
             },
@@ -58,45 +48,17 @@ export const validateDeposit = async (Data: {
         swapData,
     });
 
-    if (!swapIdentity)
-        return [
-            {
-                blockchain: "solana",
-                status: "error",
-                order: 0,
-                message: "Data retrieved from the Swap did not allow to build the SwapIdentity.",
-            },
-        ];
-    // console.log("swapIdentity", swapIdentity);
-
-    if (swapData.status === TradeStatus.WaitingToDeposit) {
-        return [
-            {
-                tx: new Transaction().add(
-                    await program.methods
-                        .validateDeposit(
-                            swapIdentity.swapDataAccount_seed
-                            // swapIdentity.swapDataAccount_bump
-                        )
-                        .accounts({
-                            swapDataAccount: Data.swapDataAccount,
-                            signer: Data.signer,
-                        })
-                        .instruction()
-                ),
-            },
-        ];
-    } else if (swapData.status === TradeStatus.WaitingToClaim) {
-        return undefined;
-    } else {
-        return [
-            {
-                blockchain: "solana",
-                status: "error",
-                order: 0,
-                message: "Swap is't in the adequate status for validating depositing.",
-                swapStatus: swapData.status,
-            },
-        ];
-    }
+    return [
+        {
+            tx: new Transaction().add(
+                await program.methods
+                    .validateDeposit(swapIdentity.swapDataAccount_seed)
+                    .accounts({
+                        swapDataAccount: Data.swapDataAccount,
+                        signer: Data.signer,
+                    })
+                    .instruction()
+            ),
+        },
+    ];
 };

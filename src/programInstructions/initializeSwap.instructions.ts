@@ -11,64 +11,36 @@ import {
 import { ErrorFeedback, ItemStatus, SwapData, SwapIdentity, TxWithSigner } from "../utils/types";
 import { Program } from "@project-serum/anchor";
 import { findOrCreateAta } from "../utils/findOrCreateAta.function";
-import { isError, isErrorAddInit } from "../utils/isError.function";
-// ("@project-serum/anchor");
-// import { SOLANA_SPL_ATA_PROGRAM_ID } from "../utils/const";
 
 export async function createInitializeSwapInstructions(Data: {
     swapData: SwapData;
     signer: PublicKey;
-    // preSeed: string;
     cluster: Cluster | string;
 }): Promise<{
     swapIdentity: SwapIdentity;
     programId: string;
     transactions: TxWithSigner;
 }> {
-    // | { programId: string; swapIdentity?: SwapIdentity; error: ErrorFeedback }
     if (!Data.swapData.preSeed) Data.swapData.preSeed = "0000";
     const program = getProgram(Data.cluster);
 
     const swapIdentity = getSwapIdentityFromData({
         swapData: Data.swapData,
-        // preSeed: Data.preSeed,
     });
-    if (!swapIdentity)
-        throw {
-            programId: program.programId.toString(),
-            // swapIdentity: swapIdentity,
-            error: [
-                {
-                    blockchain: "solana",
-                    status: "error",
-                    order: 0,
-                    message: "Couldn't create the swapIdentity",
-                },
-            ] as ErrorFeedback,
-        };
-    // const bcData = await getSwapDataAccountFromPublicKey({
-    //     program: program,
-    //     swapDataAccount_publicKey: swapIdentity.swapDataAccount_publicKey,
-    // });
-    // console.log("swapIdentity", swapIdentity);
-
+  
     try {
-        // console.log("swapIdentity before init", swapIdentity);
         const initInstruction = await getInitInitilizeInstruction({
             program,
             swapIdentity,
             signer: Data.signer,
             acceptedPayement: Data.swapData.acceptedPayement,
         });
-        // console.log("swapIdentity before add", initInstruction);
 
         const addInstructions = await getAddInitilizeInstructions({
             program,
             swapIdentity,
             signer: Data.signer,
         });
-        // console.log("addInstructions", addInstructions);
-        // console.log("swapIdentity before validate", swapIdentity);
         const validateInstruction = await getValidateInitilizeInstruction({
             program,
             swapIdentity,
@@ -86,35 +58,17 @@ export async function createInitializeSwapInstructions(Data: {
             console.log("Initialize swap skipped");
         }
 
-        if (addInstructions) {
-            if (isErrorAddInit(addInstructions)) {
-                console.log("isErrorAddInit");
-
-                throw {
-                    programId: program.programId.toString(),
-                    swapIdentity: swapIdentity,
-                    error: addInstructions,
-                };
-            }
+        if (addInstructions)
             addInstructions.map((addInstruction) => {
                 transactions.push({
                     tx: new Transaction().add(...addInstruction),
                     // signers: [signer],
                 });
             });
-        } else {
-            console.log("Adding Items to swap skipped");
-        }
 
         transactions.push({
             tx: new Transaction().add(validateInstruction),
-            // signers: [signer],
         });
-
-        // if (validateInstruction) {
-        // } else {
-        //     throw "nothing to initialize";
-        // }
 
         return {
             swapIdentity,
@@ -128,7 +82,6 @@ export async function createInitializeSwapInstructions(Data: {
             {
                 blockchain: "solana",
                 status: "error",
-                order: 0,
                 message: error,
                 ...swapIdentity,
             },
@@ -142,7 +95,6 @@ async function getInitInitilizeInstruction(Data: {
     swapIdentity: SwapIdentity;
     signer: PublicKey;
 }): Promise<TransactionInstruction | undefined> {
-    // Data.swapIdentity.swapData.nbItems = Data.swapIdentity.swapData.items.length;
     let initSwapData: SwapData = {
         initializer: Data.swapIdentity.swapData.initializer,
         items: [],
@@ -151,37 +103,19 @@ async function getInitInitilizeInstruction(Data: {
         status: Data.swapIdentity.swapData.status,
         acceptedPayement: Data.acceptedPayement,
     };
-    // initSwapData.items = [];
     const balanceSda = await Data.program.provider.connection.getBalance(
         Data.swapIdentity.swapDataAccount_publicKey
     );
-    // console.log("Data.swapIdentity.swapData.preSeed", Data.swapIdentity.swapData.preSeed);
 
     if (balanceSda === 0) {
-        // console.log(Data.swapIdentity.swapDataAccount_seed);
-        // console.log(Data.swapIdentity.swapDataAccount_bump);
-        // console.log(initSwapData);
-        // console.log(Data.swapIdentity.swapDataAccount_publicKey.toBase58());
-        // console.log(Data.signer.toBase58());
-        // console.log(SystemProgram.programId.toBase58());
-        return (
-            Data.program.methods
-                .initInitialize(
-                    Data.swapIdentity.swapDataAccount_seed,
-                    // Data.swapIdentity.swapDataAccount_bump,
-                    initSwapData
-                    // initSwapData.nbItems
-                    // initSwapData.preSeed
-                )
-                .accounts({
-                    swapDataAccount: Data.swapIdentity.swapDataAccount_publicKey.toBase58(),
-                    signer: Data.signer.toBase58(),
-                    systemProgram: SystemProgram.programId.toBase58(),
-                    // splTokenProgram: SOLANA_SPL_ATA_PROGRAM_ID,
-                })
-                // .signers([signer])
-                .instruction()
-        );
+        return Data.program.methods
+            .initInitialize(Data.swapIdentity.swapDataAccount_seed, initSwapData)
+            .accounts({
+                swapDataAccount: Data.swapIdentity.swapDataAccount_publicKey.toBase58(),
+                signer: Data.signer.toBase58(),
+                systemProgram: SystemProgram.programId.toBase58(),
+            })
+            .instruction();
     } else {
         console.log("swap Account already initialized");
         return undefined;
@@ -192,120 +126,101 @@ async function getAddInitilizeInstructions(Data: {
     program: Program;
     swapIdentity: SwapIdentity;
     signer: PublicKey;
-}): Promise<ErrorFeedback | TransactionInstruction[][] | undefined> {
+}): Promise<TransactionInstruction[][] | undefined> {
     const bcData = await getSwapDataAccountFromPublicKey({
         program: Data.program,
         swapDataAccount_publicKey: Data.swapIdentity.swapDataAccount_publicKey,
     });
-    // console.log("bcData", bcData);
-    // console.log("Data.swapIdentity.swapData.items", Data.swapIdentity.swapData.items);
 
-    let out = [];
+    let transactionInstructionBundle = [];
     let chunkSize = 6;
     let returnData: (ErrorFeedback | undefined)[] = [];
     for (let index = 0; index < Data.swapIdentity.swapData.items.length; index += chunkSize) {
         const chunkIx: TransactionInstruction[] = [];
         returnData = await Promise.all(
             Data.swapIdentity.swapData.items.slice(index, index + chunkSize).map(async (item) => {
-                let addTx = true;
-                bcData?.items.forEach((itemSDA) => {
-                    // console.log("itemSDA", itemSDA);
-
+                const alreadyExistItems = bcData?.items.filter((itemSDA) => {
+                    itemSDA.mint.equals(item.mint) &&
+                        itemSDA.owner.equals(item.owner) &&
+                        itemSDA.destinary.equals(item.destinary);
+                });
+                if (!alreadyExistItems || alreadyExistItems.length === 0) {
+                    const tokenAccount = await findOrCreateAta({
+                        mint: item.mint,
+                        owner: item.owner,
+                        program: Data.program,
+                        signer: Data.signer,
+                    });
                     if (
-                        itemSDA.mint.equals(item.mint) ||
-                        itemSDA.owner.equals(item.owner) ||
-                        itemSDA.destinary.equals(item.destinary)
+                        item.status !== ItemStatus.SolToClaim &&
+                        !item.mint.equals(SystemProgram.programId)
                     ) {
-                        console.log("already there", itemSDA);
-                        addTx = false;
-                    }
-                });
-                const tokenAccount = await findOrCreateAta({
-                    mint: item.mint,
-                    owner: item.owner,
-                    program: Data.program,
-                    signer: Data.signer,
-                });
-                if (item.status !== ItemStatus.SolToClaim) {
-                    const balance = await Data.program.provider.connection.getTokenAccountBalance(
-                        tokenAccount.mintAta
-                    );
-                    // console.log("balance: ", balance, tokenAccount.mintAta.toBase58());
+                        const balance =
+                            await Data.program.provider.connection.getTokenAccountBalance(
+                                tokenAccount.mintAta
+                            );
 
-                    if (!balance.value.uiAmount) {
-                        return [
-                            {
+                        if (!balance.value.uiAmount) {
+                            return {
                                 blockchain: "solana",
                                 order: 0,
                                 status: "error",
                                 message: `cannot retrieve the balance of ${tokenAccount.mintAta.toBase58()}`,
-                            },
-                        ] as ErrorFeedback;
-                    } else if (balance.value.uiAmount < item.amount.toNumber()) {
-                        console.log("not ehough tokens");
-
-                        return [
-                            {
+                            } as ErrorFeedback;
+                        } else if (balance.value.uiAmount < item.amount.toNumber()) {
+                            return {
                                 blockchain: "solana",
                                 order: 0,
                                 status: "error",
                                 message: `found ${
                                     balance.value.uiAmount
                                 } / ${item.amount.toNumber()}  in the associated token account ${tokenAccount.mintAta.toBase58()} linked to mint ${item.mint.toBase58()}`,
-                            },
-                        ] as ErrorFeedback;
+                            } as ErrorFeedback;
+                        }
                     }
-                }
-                if (addTx) {
                     chunkIx.push(
                         await Data.program.methods
-                            .initializeAdd(
-                                Data.swapIdentity.swapDataAccount_seed,
-                                // Data.swapIdentity.swapDataAccount_bump,
-                                item
-                            )
+                            .initializeAdd(Data.swapIdentity.swapDataAccount_seed, item)
                             .accounts({
                                 swapDataAccount:
                                     Data.swapIdentity.swapDataAccount_publicKey.toBase58(),
                                 signer: Data.signer.toBase58(),
                             })
-                            // .signers([signer])
                             .instruction()
                     );
                 }
             })
         );
-        if (chunkIx) out.push(chunkIx);
+        if (chunkIx.length > 0) transactionInstructionBundle.push(chunkIx);
     }
-    let errorFeedback: ErrorFeedback = [
-        {
+
+    if (returnData.length > 0) {
+        let errorFeedback: ErrorFeedback = {
             blockchain: "solana",
             status: "error",
-            order: 0,
             message: "",
-        },
-    ];
-    for (let index = 0; index < returnData.length; index++) {
-        const element = returnData[index];
-        if (element) {
-            errorFeedback[0].message =
-                String(errorFeedback[0].message) + `  /\/\  ` + String(element[0].message);
+        };
 
-            // return element;
+        for (let index = 0; index < returnData.length; index++) {
+            const element = returnData[index];
+            if (element) {
+                errorFeedback.message = String(errorFeedback.message).concat(
+                    `  /\/\  ` + String(element.message)
+                );
+            }
+        }
+
+        if (errorFeedback.message !== "") {
+            throw errorFeedback;
         }
     }
-
-    if (errorFeedback[0].message !== "") {
-        return errorFeedback;
-    }
-    let ll = 0;
-    out.forEach((chunk) => {
-        // console.log("chunk", chunk);
-        ll += chunk.length;
+    let nbItems = 0;
+    transactionInstructionBundle.forEach((transactionInstructionArray) => {
+        nbItems += transactionInstructionArray.length;
     });
-    console.log("there is ", ll, " items to deposit");
-    if (ll > 0) {
-        return out;
+    console.log("there is ", nbItems, " items to initialize");
+    if (nbItems > 0) {
+        return transactionInstructionBundle;
     } else {
         return undefined;
     }
@@ -316,17 +231,11 @@ async function getValidateInitilizeInstruction(Data: {
     swapIdentity: SwapIdentity;
     signer: PublicKey;
 }) {
-    return (
-        Data.program.methods
-            .validateInitialize(
-                Data.swapIdentity.swapDataAccount_seed
-                // Data.swapIdentity.swapDataAccount_bump
-            )
-            .accounts({
-                swapDataAccount: Data.swapIdentity.swapDataAccount_publicKey.toBase58(),
-                signer: Data.signer.toBase58(),
-            })
-            // .signers([signer])
-            .instruction()
-    );
+    return Data.program.methods
+        .validateInitialize(Data.swapIdentity.swapDataAccount_seed)
+        .accounts({
+            swapDataAccount: Data.swapIdentity.swapDataAccount_publicKey.toBase58(),
+            signer: Data.signer.toBase58(),
+        })
+        .instruction();
 }

@@ -10,195 +10,143 @@ export async function prepareDepositSwapInstructions(Data: {
     swapDataAccount: PublicKey;
     user: PublicKey;
     cluster: Cluster | string;
-}): Promise<ApiProcessorData> {
+}): Promise<ApiProcessorData[]> {
     try {
         const program = getProgram(Data.cluster);
 
-        // console.log(programId);
-        // const program = solanaSwap.getEscrowProgramInstance();
-        // console.log("programId", program.programId.toBase58());
         const swapData = await getSwapDataAccountFromPublicKey({
             program,
             swapDataAccount_publicKey: Data.swapDataAccount,
         });
         if (!swapData) {
-            throw [
-                {
-                    blockchain: "solana",
-                    status: "error",
-                    order: 0,
-                    message:
-                        "Swap initialization in progress or not initialized. Please try again later.",
-                },
-            ];
+            throw {
+                blockchain: "solana",
+                status: "error",
+                message:
+                    "Swap initialization in progress or not initialized. Please try again later.",
+            } as ErrorFeedback;
         } else if (swapData.status !== TradeStatus.WaitingToDeposit)
-            throw [
-                {
-                    blockchain: "solana",
-                    status: "error",
-                    order: 0,
-                    message: "Status of the swap isn't in a depositing state.",
-                    swapStatus: swapData.status,
-                },
-            ];
+            throw {
+                blockchain: "solana",
+                status: "error",
+                message: "Status of the swap isn't in a depositing state.",
+                swapStatus: swapData.status,
+            } as ErrorFeedback;
 
         const swapIdentity = getSwapIdentityFromData({
             swapData,
         });
 
-        if (!swapIdentity)
-            throw [
-                {
-                    blockchain: "solana",
-                    status: "error",
-                    order: 0,
-                    message:
-                        "Data retrieved from the Swap did not allow to build the SwapIdentity.",
-                },
-            ];
-        // console.log("swapIdentity", swapIdentity);
-
-        // let depositInstructionTransaction: Array<TransactionInstruction> = [];
-        // let depositInstruction = [];
-        // let itemsToDeposit = [];
-        let apiInstructions: ApiProcessorData = [];
+        let apiInstructions: ApiProcessorData[] = [];
         let ataList: PublicKey[] = [];
         let isUserPartOfTrade = false;
         let isUserAlreadyDeposited = false;
-        for (let item = 0; item < swapData.items.length; item++) {
-            let swapDataItem = swapData.items[item];
-            if (
-                isUserPartOfTrade === false &&
-                swapDataItem.owner.toBase58() === Data.user.toBase58()
-            ) {
-                isUserPartOfTrade = true;
-            }
 
-            switch (swapDataItem.isNft) {
-                case true:
-                    if (
-                        swapDataItem.owner.toBase58() === Data.user.toBase58() &&
-                        swapDataItem.status === ItemStatus.NFTPending
-                    ) {
-                        console.log("XXXXXXX - Deposit NFT item n° ", item, " XXXXXXX");
-                        // itemsToDeposit.push(swapDataItem);
+        let swapDataItems = swapData.items.filter((item) => {
+            item.owner.equals(Data.user);
+        });
 
-                        let depositing = await prepareDepositNftInstruction({
-                            program,
-                            signer: Data.user,
-                            mint: swapDataItem.mint,
-                            swapIdentity,
-                            ataList,
-                        });
-                        const depositingApi = {
-                            blockchain: "solana",
-                            type: "deposit NFT",
-                            order: 0,
-                            description: `Escrow your NFT ${swapDataItem.mint} in swap ${Data.swapDataAccount}`,
-                            config: depositing.instructions,
-                        };
-                        console.log("depositingApi", depositingApi);
-                        apiInstructions.push(depositingApi);
-                        let isPush = true;
-                        depositing.newAtas.forEach((element) => {
-                            ataList.forEach((ataElem) => {
-                                if (element === ataElem) {
-                                    isPush = false;
-                                    console.log("alreadyexist:", element);
-                                }
-                            });
+        if (swapDataItems.length > 0) isUserPartOfTrade = true;
 
-                            if (isPush) ataList.push(element);
-                        });
-                        // depositing.instructions.forEach((depositIx) => {
-                        //     depositInstruction.push(depositIx);
-                        // });
-                    } else if (
-                        swapDataItem.owner.toBase58() === Data.user.toBase58() &&
-                        swapDataItem.status === ItemStatus.NFTDeposited
-                    ) {
-                        isUserAlreadyDeposited = true;
-                    }
-                    break;
-                case false:
-                    if (
-                        swapDataItem.owner.toBase58() === Data.user.toBase58() &&
-                        swapDataItem.status === ItemStatus.SolPending
-                    ) {
-                        console.log("XXXXXXX - Deposit SOL item n° ", item, " XXXXXXX");
-                        // itemsToDeposit.push(swapDataItem);
+        for (const swapDataItem of swapDataItems) {
+            if (swapDataItem.isNft) {
+                if (swapDataItem.status === ItemStatus.NFTPending) {
+                    console.log(
+                        "XXX - Deposit NFT item with mint ",
+                        swapDataItem.mint.toBase58(),
+                        " from ",
+                        swapDataItem.owner.toBase58(),
+                        " - XXX"
+                    );
 
-                        const depositSolInstruction = await prepareDepositSolInstruction({
-                            program,
-                            // programId: program.programId,
-                            swapIdentity,
-                            ataList,
-                            mint: swapDataItem.mint,
-                            signer: Data.user,
-                            // from: Data.user,
-                            // to: Data.swapDataAccount,
-                        });
-                        // console.log("depositSolInstruction", depositSolInstruction);
-                        apiInstructions.push({
-                            blockchain: "solana",
-                            type: "deposit SOL",
-                            order: 0,
-                            description: `Escrow your SOL in swap ${Data.swapDataAccount}`,
-                            config: depositSolInstruction.instructions,
-                        });
-                        // depositInstruction.push(depositSolInstruction);
-                        // depositing.instruction.forEach((element) => {});
+                    let depositing = await prepareDepositNftInstruction({
+                        program,
+                        signer: Data.user,
+                        mint: swapDataItem.mint,
+                        swapIdentity,
+                        ataList,
+                    });
+                    const depositingApi = {
+                        blockchain: "solana",
+                        type: "deposit NFT",
+                        order: 0,
+                        description: `Escrow your NFT ${swapDataItem.mint} in swap ${Data.swapDataAccount}`,
+                        config: depositing.instructions,
+                    } as ApiProcessorData;
 
-                        console.log("depositSolinstruction added", depositSolInstruction);
-                    } else if (
-                        swapDataItem.owner.toBase58() === Data.user.toBase58() &&
-                        swapDataItem.status === ItemStatus.SolDeposited
-                    ) {
-                        isUserAlreadyDeposited = true;
-                    }
-
-                    break;
+                    apiInstructions.push(depositingApi);
+                    depositing.newAtas.forEach((element) => {
+                        if (!ataList.includes(element)) {
+                            ataList.push(element);
+                        }
+                    });
+                } else if (swapDataItem.status === ItemStatus.NFTDeposited) {
+                    isUserAlreadyDeposited = true;
+                }
+            } else {
+                if (swapDataItem.status === ItemStatus.SolPending) {
+                    console.log(
+                        "XXX - Deposit SOL item with mint ",
+                        swapDataItem.mint.toBase58(),
+                        " from ",
+                        swapDataItem.owner.toBase58(),
+                        " - XXX"
+                    );
+                    const depositSolInstruction = await prepareDepositSolInstruction({
+                        program,
+                        swapIdentity,
+                        ataList,
+                        mint: swapDataItem.mint,
+                        signer: Data.user,
+                    });
+                    depositSolInstruction.newAtas.forEach((element) => {
+                        if (!ataList.includes(element)) {
+                            ataList.push(element);
+                        }
+                    });
+                    apiInstructions.push({
+                        blockchain: "solana",
+                        type: "deposit SOL",
+                        order: 0,
+                        description: `Escrow your SOL in swap ${Data.swapDataAccount}`,
+                        config: depositSolInstruction.instructions,
+                    });
+                } else if (swapDataItem.status === ItemStatus.SolDeposited) {
+                    isUserAlreadyDeposited = true;
+                }
             }
         }
 
         if (isUserPartOfTrade === false) {
-            throw [
-                {
-                    blockchain: "solana",
-                    status: "error",
-                    order: 0,
-                    message: "You are not a part of this swap",
-                },
-            ];
+            throw {
+                blockchain: "solana",
+                status: "error",
+                message: "You are not a part of this swap",
+            } as ErrorFeedback;
         } else if (
             apiInstructions.length === 0 &&
             isUserPartOfTrade === true &&
             isUserAlreadyDeposited === true
         ) {
-            throw [
-                {
-                    blockchain: "solana",
-                    status: "error",
-                    order: 0,
-                    message: "You have already escrowed your items in this swap",
-                },
-            ];
+            throw {
+                blockchain: "solana",
+                status: "error",
+                message: "You have already escrowed your items in this swap",
+            } as ErrorFeedback;
         } else if (apiInstructions.length === 0 && isUserPartOfTrade === true) {
-            throw [
-                {
-                    blockchain: "solana",
-                    status: "error",
-                    order: 0,
-                    message: "You have no items to escrow in this swap",
-                },
-            ];
+            throw {
+                blockchain: "solana",
+                status: "error",
+                message: "You have no items to escrow in this swap",
+            } as ErrorFeedback;
         }
+
         for (let index = 0; index < apiInstructions.length; index++) {
             const element = apiInstructions[index];
             element.order = index;
         }
-        console.log("apiInstructions", apiInstructions);
-        let finalDepositInstruction: ApiProcessorData = [
+
+        let finalDepositInstruction: ApiProcessorData[] = [
             {
                 blockchain: "solana",
                 type: "deposit",
@@ -208,18 +156,14 @@ export async function prepareDepositSwapInstructions(Data: {
             },
         ];
         apiInstructions.forEach((apiInstruction) => {
-            console.log("apiInstruction.description", apiInstruction.description);
-            finalDepositInstruction[0].description.concat(apiInstruction.description);
-
             apiInstruction.config.forEach((element) => {
                 element.programId = program.programId.toString();
             });
-            console.log("apiInstruction.config", apiInstruction.config);
             finalDepositInstruction[0].config.push(...apiInstruction.config);
         });
-        console.log("finalDepositInstruction", finalDepositInstruction);
+
         return finalDepositInstruction;
     } catch (error) {
-        throw [{ blockchain: "solana", message: error, order: 0, status: "error" }];
+        throw { blockchain: "solana", message: error, order: 0, status: "error" } as ErrorFeedback;
     }
 }

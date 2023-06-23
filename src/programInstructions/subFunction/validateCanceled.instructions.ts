@@ -9,15 +9,17 @@ export const createValidateCanceledInstructions = async (Data: {
     swapDataAccount: PublicKey;
     signer: PublicKey;
     cluster: Cluster | string;
-}): Promise<TxWithSigner | ErrorFeedback> => {
-    const program= getProgram(Data.cluster);
-    const swapData = await getSwapDataAccountFromPublicKey({program, swapDataAccount_publicKey:Data.swapDataAccount});
+}): Promise<TxWithSigner | undefined> => {
+    const program = getProgram(Data.cluster);
+    const swapData = await getSwapDataAccountFromPublicKey({
+        program,
+        swapDataAccount_publicKey: Data.swapDataAccount,
+    });
     if (!swapData) {
-        return [
+        throw [
             {
                 blockchain: "solana",
                 status: "error",
-                order: 0,
                 message:
                     "Swap initialization in progress or not initialized. Please try again later.",
             },
@@ -28,73 +30,37 @@ export const createValidateCanceledInstructions = async (Data: {
             swapData.status === TradeStatus.Canceling
         )
     ) {
-        return [
+        throw [
             {
                 blockchain: "solana",
                 status: "error",
-                order: 0,
                 message: "Swap is't in the adequate status for Validate Cancel.",
                 swapStatus: swapData.status,
             },
         ];
     }
-    if (!swapData.initializer.equals(Data.signer))
-        return [
-            {
-                blockchain: "solana",
-                order: 0,
-                status: "error",
-                message: "Signer is not the initializer",
-            },
-        ];
-        
+    if (!swapData.initializer.equals(Data.signer)) return;
+
     const swapIdentity = getSwapIdentityFromData({
         swapData,
     });
 
-    if (!swapIdentity)
-        return [
-            {
-                blockchain: "solana",
-                status: "error",
-                order: 0,
-                message:
-                    "Data retrieved from the Swap did not allow to build the SwapIdentity.",
-            },
-        ];
-    // console.log("swapIdentity", swapIdentity);
-
-    if (
-        swapData.status === TradeStatus.WaitingToDeposit ||
-        swapData.status === TradeStatus.Canceling
-    ) {
-        return [
-            {
-                tx: new Transaction().add(
-                    await program.methods
-                        .validateCancel(
-                            swapIdentity.swapDataAccount_seed,
-                            // swapIdentity.swapDataAccount_bump
-                        )
-                        .accounts({
-                            systemProgram: SystemProgram.programId,
-                            splTokenProgram: SOLANA_SPL_ATA_PROGRAM_ID,
-                            swapDataAccount: Data.swapDataAccount,
-                            signer: Data.signer,
-                        })
-                        .instruction()
-                ),
-            },
-        ];
-    } else {
-        return [
-            {
-                blockchain: "solana",
-                status: "error",
-                order: 0,
-                message: "Swap is't in the adequate status for validating cancel.",
-                swapStatus: swapData.status,
-            },
-        ];
-    }
+    return [
+        {
+            tx: new Transaction().add(
+                await program.methods
+                    .validateCancel(
+                        swapIdentity.swapDataAccount_seed
+                        // swapIdentity.swapDataAccount_bump
+                    )
+                    .accounts({
+                        systemProgram: SystemProgram.programId,
+                        splTokenProgram: SOLANA_SPL_ATA_PROGRAM_ID,
+                        swapDataAccount: Data.swapDataAccount,
+                        signer: Data.signer,
+                    })
+                    .instruction()
+            ),
+        },
+    ];
 };

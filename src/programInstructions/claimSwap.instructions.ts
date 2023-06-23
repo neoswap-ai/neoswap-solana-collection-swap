@@ -4,7 +4,7 @@ import { getSwapDataAccountFromPublicKey } from "../utils/getSwapDataAccountFrom
 import { getSwapIdentityFromData } from "../utils/getSwapIdentityFromData.function";
 import { getClaimNftInstructions } from "./subFunction/claim.nft.instructions";
 import { getClaimSolInstructions } from "./subFunction/claim.sol.instructions";
-import { ErrorFeedback, TradeStatus, TxWithSigner } from "../utils/types";
+import { ErrorFeedback, ItemStatus, TradeStatus, TxWithSigner } from "../utils/types";
 
 export async function createClaimSwapInstructions(Data: {
     swapDataAccount: PublicKey;
@@ -19,103 +19,99 @@ export async function createClaimSwapInstructions(Data: {
             swapDataAccount_publicKey: Data.swapDataAccount,
         });
         if (!swapData) {
-            throw [
-                {
-                    blockchain: "solana",
-                    status: "error",
-                    order: 0,
-                    message:
-                        "Swap initialization in progress or not initialized. Please try again later.",
-                },
-            ];
+            throw {
+                blockchain: "solana",
+                status: "error",
+                message:
+                    "Swap initialization in progress or not initialized. Please try again later.",
+            } as ErrorFeedback;
         } else if (
             !(
                 swapData.status === TradeStatus.WaitingToClaim ||
                 swapData.status === TradeStatus.WaitingToDeposit
             )
         ) {
-            throw [
-                {
-                    blockchain: "solana",
-                    status: "error",
-                    order: 0,
-                    message: "Swap is't in the adequate status for Validate Claim.",
-                    swapStatus: swapData.status,
-                },
-            ];
+            throw {
+                blockchain: "solana",
+                status: "error",
+                message: "Swap is't in the adequate status for Validate Claim.",
+                swapStatus: swapData.status,
+            } as ErrorFeedback;
         }
         let init = false;
         if (swapData.initializer.equals(Data.signer)) {
             init = true;
+            /// check no bad outcome possible
         } else if (swapData.status !== TradeStatus.WaitingToClaim) {
-            throw [
-                {
-                    blockchain: "solana",
-                    status: "error",
-                    order: 0,
-                    message:
-                        "Swap is't in the adequate status for Claiming an item & you're not Initializer",
-                    swapStatus: swapData.status,
-                },
-            ];
+            throw {
+                blockchain: "solana",
+                status: "error",
+                message:
+                    "Swap is't in the adequate status for Claiming an item & you're not Initializer",
+                swapStatus: swapData.status,
+            } as ErrorFeedback;
         }
         const swapIdentity = getSwapIdentityFromData({
             swapData,
         });
 
-        if (!swapIdentity)
-            throw [
-                {
-                    blockchain: "solana",
-                    status: "error",
-                    order: 0,
-                    message:
-                        "Data retrieved from the Swap did not allow to build the SwapIdentity.",
-                },
-            ];
-
-        // console.log("swapIdentity", swapIdentity);
-        // let depositInstructionTransaction: Array<TransactionInstruction> = [];
         let claimTransactionInstruction: TxWithSigner = [];
         let ataList: PublicKey[] = [];
 
-        for (const item of swapData.items) {
-            if (init === true || item.destinary.equals(Data.signer)) {
-                switch (item.isNft) {
-                    case true:
-                        if (item.status === 20) {
-                            const cllaimNftData = await getClaimNftInstructions({
-                                program,
-                                destinary: item.destinary,
-                                mint: item.mint,
-                                signer: Data.signer,
-                                swapIdentity,
-                                ataList,
-                            });
-                            claimTransactionInstruction.push({
-                                tx: new Transaction().add(...cllaimNftData.instruction),
-                            });
-                            ataList.push(...cllaimNftData.newAtas);
-                            console.log("claimNftinstruction added", item.mint.toBase58());
-                        }
-                        break;
+        let swapDataItems = swapData.items.filter(
+            (swapDataItem) =>
+                swapDataItem.status === ItemStatus.NFTDeposited ||
+                swapDataItem.status === ItemStatus.SolToClaim
+        );
 
-                    case false:
-                        if (item.status === 22) {
-                            const claimSolData = await getClaimSolInstructions({
-                                program: program,
-                                user: item.owner,
-                                signer: Data.signer,
-                                swapIdentity,
-                                ataList,
-                                mint: item.mint,
-                            });
-                            claimTransactionInstruction.push({
-                                tx: new Transaction().add(...claimSolData.instructions),
-                            });
-                            console.log("claimSolinstruction added");
-                        }
-                        break;
+        for (const swapDataItem of swapDataItems) {
+            if (init === true || swapDataItem.destinary.equals(Data.signer)) {
+                if (swapDataItem.isNft) {
+                    console.log(
+                        "XXX - Claim NFT swapDataItem with mint ",
+                        swapDataItem.mint.toBase58(),
+                        " to ",
+                        swapDataItem.destinary.toBase58(),
+                        " - XXX"
+                    );
+                    const claimNftData = await getClaimNftInstructions({
+                        program,
+                        destinary: swapDataItem.destinary,
+                        mint: swapDataItem.mint,
+                        signer: Data.signer,
+                        swapIdentity,
+                        ataList,
+                    });
+
+                    claimTransactionInstruction.push({
+                        tx: new Transaction().add(...claimNftData.instruction),
+                    });
+                    claimNftData.newAtas.forEach((ata) => {
+                        if (!ataList.includes(ata)) ataList.push(ata);
+                    });
+                } else {
+                    console.log(
+                        "XXX - Claim Sol item mint ",
+                        swapDataItem.mint.toBase58(),
+                        "to ",
+                        swapDataItem.owner.toBase58(),
+                        " - XXX"
+                    );
+                    const claimSolData = await getClaimSolInstructions({
+                        program: program,
+                        user: swapDataItem.owner,
+                        signer: Data.signer,
+                        swapIdentity,
+                        ataList,
+                        mint: swapDataItem.mint,
+                    });
+
+                    claimTransactionInstruction.push({
+                        tx: new Transaction().add(...claimSolData.instructions),
+                    });
+                    claimSolData.newAtas.forEach((ata) => {
+                        if (!ataList.includes(ata)) ataList.push(ata);
+                    });
                 }
             }
         }
@@ -125,6 +121,6 @@ export async function createClaimSwapInstructions(Data: {
             return undefined;
         }
     } catch (error) {
-        throw [{ blockchain: "solana", status: "error", order: 0, message: error }];
+        throw { blockchain: "solana", status: "error", order: 0, message: error } as ErrorFeedback;
     }
 }

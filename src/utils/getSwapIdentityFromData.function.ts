@@ -3,9 +3,7 @@ import { utils } from "@project-serum/anchor";
 import { SWAP_PROGRAM_ID } from "./const";
 import { ErrorFeedback, SwapData, SwapIdentity } from "./types";
 
-export function getSwapIdentityFromData(Data: {
-    swapData: SwapData;
-}): SwapIdentity | undefined {
+export function getSwapIdentityFromData(Data: { swapData: SwapData }): SwapIdentity {
     // console.log("swapdata", Data.swapData);
     try {
         let seed = Data.swapData.preSeed;
@@ -38,7 +36,13 @@ export function getSwapIdentityFromData(Data: {
             swapData: Data.swapData,
         };
     } catch (error) {
-        return 
+        throw {
+            blockchain: "solana",
+            status: "error",
+            order: 0,
+            message: error,
+        } as ErrorFeedback;
+
         // [
         //     { blockchain: "solana", order: 0, type: "error", description: error },
         // ] as ErrorFeedback;

@@ -9,7 +9,7 @@ export const createValidateClaimedInstructions = async (Data: {
     swapDataAccount: PublicKey;
     signer: PublicKey;
     cluster: Cluster | string;
-}): Promise<TxWithSigner | ErrorFeedback> => {
+}): Promise<TxWithSigner> => {
     const program = getProgram(Data.cluster);
     const swapData = await getSwapDataAccountFromPublicKey({
         program,
@@ -18,85 +18,46 @@ export const createValidateClaimedInstructions = async (Data: {
     console.log("swapData", swapData);
 
     if (!swapData) {
-        return [
-            {
-                blockchain: "solana",
-                status: "error",
-                order: 0,
-                message:
-                    "Swap initialization in progress or not initialized. Please try again later.",
-            },
-        ];
+        throw {
+            blockchain: "solana",
+            status: "error",
+            message: "Swap initialization in progress or not initialized. Please try again later.",
+        } as ErrorFeedback;
     } else if (
         !(
             swapData.status === TradeStatus.WaitingToDeposit ||
             swapData.status === TradeStatus.WaitingToClaim
         )
     ) {
-        return [
-            {
-                blockchain: "solana",
-                status: "error",
-                order: 0,
-                message: "Swap is't in the adequate status for Validating Claiming.",
-                swapStatus: swapData.status,
-            },
-        ];
+        throw {
+            blockchain: "solana",
+            status: "error",
+            message: "Swap is't in the adequate status for Validating Claiming.",
+            swapStatus: swapData.status,
+        } as ErrorFeedback;
     } else if (!swapData.initializer.equals(Data.signer))
-        return [
-            {
-                blockchain: "solana",
-                order: 0,
-                status: "error",
-                message: "Signer is not the initializer",
-            },
-        ];
+        throw {
+            blockchain: "solana",
+            status: "error",
+            message: "Signer is not the initializer",
+        } as ErrorFeedback;
     const swapIdentity = getSwapIdentityFromData({
         swapData,
     });
 
-    if (!swapIdentity)
-        return [
-            {
-                blockchain: "solana",
-                status: "error",
-                order: 0,
-                message: "Data retrieved from the Swap did not allow to build the SwapIdentity.",
-            },
-        ];
-    // console.log("swapIdentity", swapIdentity);
-
-    if (
-        swapData.status === TradeStatus.WaitingToDeposit ||
-        swapData.status === TradeStatus.WaitingToClaim
-    ) {
-        return [
-            {
-                tx: new Transaction().add(
-                    await program.methods
-                        .validateClaimed(
-                            swapIdentity.swapDataAccount_seed
-                            // swapIdentity.swapDataAccount_bump
-                        )
-                        .accounts({
-                            systemProgram: SystemProgram.programId,
-                            splTokenProgram: SOLANA_SPL_ATA_PROGRAM_ID,
-                            swapDataAccount: Data.swapDataAccount,
-                            signer: Data.signer,
-                        })
-                        .instruction()
-                ),
-            },
-        ];
-    } else {
-        return [
-            {
-                blockchain: "solana",
-                status: "error",
-                order: 0,
-                message: "Swap is't in the adequate status for validating claim.",
-                swapStatus: swapData.status,
-            },
-        ];
-    }
+    return [
+        {
+            tx: new Transaction().add(
+                await program.methods
+                    .validateClaimed(swapIdentity.swapDataAccount_seed)
+                    .accounts({
+                        systemProgram: SystemProgram.programId,
+                        splTokenProgram: SOLANA_SPL_ATA_PROGRAM_ID,
+                        swapDataAccount: Data.swapDataAccount,
+                        signer: Data.signer,
+                    })
+                    .instruction()
+            ),
+        },
+    ];
 };

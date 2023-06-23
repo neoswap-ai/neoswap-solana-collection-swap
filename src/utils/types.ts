@@ -26,13 +26,29 @@ export type SwapIdentity = {
     swapData: SwapData;
 };
 
+export type UserDataInSwap = {
+    userNftToDeposit: NftSwapItem[] | undefined;
+    userNftDeposited: NftSwapItem[] | undefined;
+
+    userNftToReceive: NftSwapItem[] | undefined;
+    userNftReceived: NftSwapItem[] | undefined;
+
+    userNftCancelled: NftSwapItem[] | undefined;
+    userSolCancelled: NftSwapItem[] | undefined;
+
+    userSolToDeposit: NftSwapItem[] | undefined;
+    userSolDeposited: NftSwapItem[] | undefined;
+    userSolToClaim: NftSwapItem[] | undefined;
+    userSolClaimed: NftSwapItem[] | undefined;
+};
+
 export type ApiProcessorData = {
     blockchain: string;
     type: string;
     order: number;
     description: string;
     config: ApiProcessorConfigType[];
-}[];
+};
 
 export type ApiProcessorConfigType =
     | {
@@ -59,15 +75,12 @@ export type ApiProcessorCreateATAType = {
 };
 
 // change to throw error
-export type ErrorFeedback = [
-    {
-        blockchain: "solana";
-        status: "error";
-        order: number;
-        message: string | unknown;
-        swapStatus?: number;
-    }
-];
+export type ErrorFeedback = {
+    blockchain: "solana";
+    status: "error";
+    message: string | unknown;
+    swapStatus?: number;
+};
 
 export type TxWithSigner = { tx: Transaction; signers?: Signer[] }[];
 
@@ -80,6 +93,7 @@ export enum TradeStatus {
     Canceling = 100,
     Canceled = 101,
 }
+
 export enum ItemStatus {
     NFTPending = 10,
     SolPending = 11,
