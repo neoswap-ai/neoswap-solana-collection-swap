@@ -2,15 +2,16 @@ import { Cluster, Keypair, PublicKey } from "@solana/web3.js";
 import { sendBundledTransactions } from "../utils/sendBundledTransactions.function";
 import { ErrorFeedback, TxWithSigner } from "../utils/types";
 import { createCancelSwapInstructions } from "../programInstructions/cancelSwap.instructions";
-import { isError, isErrorTxSigner } from "../utils/isError.function";
 import { createValidateCanceledInstructions } from "../programInstructions/subFunction/validateCanceled.instructions";
+import { isConfirmedTx } from "../utils/isConfirmedTx.function";
 
 export async function cancelAndCloseSwap(Data: {
     swapDataAccount: PublicKey;
     signer: Keypair;
     cluster: Cluster | string;
+    skipSimulation?: boolean;
     // preSeed: string;
-}): Promise<string[] | ErrorFeedback> {
+}): Promise<string[]> {
     let txToSend: TxWithSigner = [];
 
     let cancelTxData = await createCancelSwapInstructions({
@@ -20,14 +21,7 @@ export async function cancelAndCloseSwap(Data: {
     });
     // console.log("cancelTxData", cancelTxData);
 
-    if (!isErrorTxSigner(cancelTxData)) {
-        if (cancelTxData[0].tx.instructions.length > 0) {
-            txToSend.push(...cancelTxData);
-            console.log("found ", cancelTxData.length, " items to cancel");
-        } else {
-            console.log("skip cancel but signer is initializer");
-        }
-    } else return cancelTxData;
+    if (cancelTxData) txToSend.push(...cancelTxData);
 
     let validateCancelTxData = await createValidateCanceledInstructions({
         swapDataAccount: Data.swapDataAccount,
@@ -35,19 +29,25 @@ export async function cancelAndCloseSwap(Data: {
         cluster: Data.cluster,
     });
 
-    if (!isErrorTxSigner(validateCancelTxData)) {
-        txToSend.push(...validateCancelTxData);
-    } else if (validateCancelTxData[0].description === "Signer is not the initializer") {
-        console.log("skip validateCancel");
-    } else return validateCancelTxData;
+    if (validateCancelTxData) txToSend.push(...validateCancelTxData);
 
-    // console.log("sending ", txToSend.length, " transactions to blockchain ...");
-
-    const { transactionHashes } = await sendBundledTransactions({
+    const { transactionHashs } = await sendBundledTransactions({
         txsWithoutSigners: txToSend,
         signer: Data.signer,
         cluster: Data.cluster,
+        skipPreflight: Data.skipSimulation,
     });
 
-    return transactionHashes;
+    if (Data.skipSimulation) {
+        const confirmArray = await isConfirmedTx({ cluster: Data.cluster, transactionHashs });
+        confirmArray.forEach((confirmTx) => {
+            if (!confirmTx.isConfirmed)
+                throw {
+                    blockchain: "solana",
+                    status: "error",
+                    message: `some transaction were not confirmed ${confirmArray}`,
+                } as ErrorFeedback;
+        });
+    }
+    return transactionHashs;
 }

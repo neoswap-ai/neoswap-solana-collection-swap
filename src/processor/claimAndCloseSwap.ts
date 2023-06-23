@@ -4,30 +4,23 @@ import { ErrorFeedback, TxWithSigner } from "../utils/types";
 import { createClaimSwapInstructions } from "../programInstructions/claimSwap.instructions";
 import { validateDeposit } from "../programInstructions/subFunction/validateDeposit.instructions";
 import { createValidateClaimedInstructions } from "../programInstructions/subFunction/validateClaimed.instructions";
-import { isError, isErrorTxSigner } from "../utils/isError.function";
+import { isConfirmedTx } from "../utils/isConfirmedTx.function";
 
 export async function claimAndCloseSwap(Data: {
     swapDataAccount: PublicKey;
     signer: Keypair;
     cluster: Cluster | string;
-    // preSeed: string;
-}): Promise<string[] | ErrorFeedback> {
-    // | ErrorFeedback
+    skipSimulation?: boolean;
+}): Promise<string[]> {
     let txToSend: TxWithSigner = [];
     let validateDepositTxData = await validateDeposit({
         swapDataAccount: Data.swapDataAccount,
         signer: Data.signer.publicKey,
         cluster: Data.cluster,
     });
-    if (!validateDepositTxData) {
-    } else if (!isErrorTxSigner(validateDepositTxData)) {
+    if (validateDepositTxData) {
         txToSend.push(...validateDepositTxData);
-    } else if (
-        validateDepositTxData[0].description === "Signer is not the initializer" ||
-        validateDepositTxData[0].description === "WaitingToClaim state"
-    ) {
-        console.log("skip validateDeposited");
-    } else return validateDepositTxData;
+    }
 
     let claimTxData = await createClaimSwapInstructions({
         swapDataAccount: Data.swapDataAccount,
@@ -35,11 +28,10 @@ export async function claimAndCloseSwap(Data: {
         cluster: Data.cluster,
     });
 
-    if (!claimTxData) {
-    } else if (!isErrorTxSigner(claimTxData)) {
+    if (claimTxData) {
         txToSend.push(...claimTxData);
         console.log("found ", claimTxData.length, " items to claim");
-    } else return claimTxData;
+    }
 
     let validateClaimTxData = await createValidateClaimedInstructions({
         swapDataAccount: Data.swapDataAccount,
@@ -47,18 +39,24 @@ export async function claimAndCloseSwap(Data: {
         cluster: Data.cluster,
     });
 
-    if (!isErrorTxSigner(validateClaimTxData)) {
-        txToSend.push(...validateClaimTxData);
-    } else if (validateClaimTxData[0].description === "Signer is not the initializer") {
-        console.log("skip validateClaimed");
-    } else return validateClaimTxData;
+    txToSend.push(...validateClaimTxData);
 
-    
-    const { transactionHashes } = await sendBundledTransactions({
+    const { transactionHashs } = await sendBundledTransactions({
         txsWithoutSigners: txToSend,
         signer: Data.signer,
         cluster: Data.cluster,
     });
+    if (Data.skipSimulation) {
+        const confirmArray = await isConfirmedTx({ cluster: Data.cluster, transactionHashs });
+        confirmArray.forEach((confirmTx) => {
+            if (!confirmTx.isConfirmed)
+                throw {
+                    blockchain: "solana",
+                    status: "error",
+                    message: `some transaction were not confirmed ${confirmArray}`,
+                } as ErrorFeedback;
+        });
+    }
 
-    return transactionHashes;
+    return transactionHashs;
 }

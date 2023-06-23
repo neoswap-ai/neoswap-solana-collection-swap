@@ -1,19 +1,19 @@
-import { Cluster, Keypair, PublicKey, Transaction } from "@solana/web3.js";
+import { Cluster, Keypair } from "@solana/web3.js";
 import { createInitializeSwapInstructions } from "../programInstructions/initializeSwap.instructions";
 import { sendBundledTransactions } from "../utils/sendBundledTransactions.function";
-import { ErrorFeedback, SwapData, SwapIdentity, TxWithSigner } from "../utils/types";
-import { isError, isErrorInitTx } from "../utils/isError.function";
+import { ErrorFeedback, SwapData, SwapIdentity } from "../utils/types";
+import { isConfirmedTx } from "../utils/isConfirmedTx.function";
 
 export async function initializeSwap(Data: {
     swapData: SwapData;
     signer: Keypair;
     cluster: Cluster | string;
-    // preSeed: string;
+    skipSimulation?: boolean;
 }): Promise<
     | {
           programId: string;
           swapIdentity: SwapIdentity;
-          transactionHashes: string[];
+          transactionHashs: string[];
       }
     | {
           programId: string;
@@ -24,33 +24,35 @@ export async function initializeSwap(Data: {
     let initSwapData = await createInitializeSwapInstructions({
         swapData: Data.swapData,
         signer: Data.signer.publicKey,
-        // preSeed: Data.preSeed,
         cluster: Data.cluster,
     });
-    // console.log("initSwapData", initSwapData);
-
-    if (isErrorInitTx(initSwapData)) return initSwapData;
     try {
-        const { transactionHashes } = await sendBundledTransactions({
+        const { transactionHashs } = await sendBundledTransactions({
             txsWithoutSigners: initSwapData.transactions,
             signer: Data.signer,
             cluster: Data.cluster,
         });
-        // delete initSwapData.transactions;
-        // console.log("transactionHashes", transactionHashes);
-        initSwapData.swapIdentity;
+        if (Data.skipSimulation) {
+            const confirmArray = await isConfirmedTx({ cluster: Data.cluster, transactionHashs });
+            confirmArray.forEach((confirmTx) => {
+                if (!confirmTx.isConfirmed)
+                    throw {
+                        blockchain: "solana",
+                        status: "error",
+                        message: `some transaction were not confirmed ${confirmArray}`,
+                    } as ErrorFeedback;
+            });
+        }
         return {
             programId: initSwapData.programId,
             swapIdentity: initSwapData.swapIdentity,
-            transactionHashes,
+            transactionHashs,
         };
     } catch (error) {
         return {
             programId: initSwapData.programId,
             swapIdentity: initSwapData.swapIdentity,
-            error: [
-                { blockchain: "solana", order: 0, type: "error", description: error },
-            ] as ErrorFeedback,
+            error: { blockchain: "solana", status: "error", message: error } as ErrorFeedback,
         };
     }
 }
