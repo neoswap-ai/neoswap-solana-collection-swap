@@ -11,17 +11,11 @@ import { getProgram } from "./utils/getProgram.obj";
 import { getSwapDataAccountFromPublicKey } from "./utils/getSwapDataAccountFromPublicKey.function";
 import { getSwapIdentityFromData } from "./utils/getSwapIdentityFromData.function";
 import { isConfirmedTx } from "./utils/isConfirmedTx.function";
-import {
-    isError,
-    isErrorApiProcessor,
-    isErrorTxSigner,
-    isErrorInitTx,
-    isErrorInitializeSwap,
-} from "./utils/isError.function";
 import { sendBundledTransactions } from "./utils/sendBundledTransactions.function";
 export {
     ApiProcessorData,
     ErrorFeedback,
+    UserDataInSwap,
     ItemStatus,
     NftSwapItem,
     SwapData,
@@ -39,11 +33,6 @@ const utils = {
     getSwapIdentityFromData,
     sendBundledTransactions,
     isConfirmedTx,
-    // isErrorInitializeSwap,
-    // isError,
-    // isErrorInitTx,
-    // isErrorApiProcessor,
-    // isErrorTxSigner,
 };
 const createInstructions = {
     createInitializeSwapInstructions,
