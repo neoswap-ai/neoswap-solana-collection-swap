@@ -1,6 +1,6 @@
 {
     "name": "@biboux.neoswap/neo-swap-npm",
-    "version": "0.0.64",
+    "version": "0.0.74",
     "repository": {
         "type": "git",
         "url": "git+https://github.com/neoswap-ai/neo-swap-npm.git"
@@ -15,5 +15,6 @@
         "lib",
         "package.json",
         "README.md"
-    ]
+    ],
+    "types": "./types"
 }

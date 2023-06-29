@@ -9,7 +9,7 @@ export const createValidateClaimedInstructions = async (Data: {
     swapDataAccount: PublicKey;
     signer: PublicKey;
     cluster: Cluster | string;
-}): Promise<TxWithSigner> => {
+}): Promise<TxWithSigner | undefined> => {
     const program = getProgram(Data.cluster);
     const swapData = await getSwapDataAccountFromPublicKey({
         program,
@@ -35,12 +35,12 @@ export const createValidateClaimedInstructions = async (Data: {
             message: "Swap is't in the adequate status for Validating Claiming.",
             swapStatus: swapData.status,
         } as ErrorFeedback;
-    } else if (!swapData.initializer.equals(Data.signer))
-        throw {
-            blockchain: "solana",
-            status: "error",
-            message: "Signer is not the initializer",
-        } as ErrorFeedback;
+    } else if (!swapData.initializer.equals(Data.signer)) return undefined;
+    // throw {
+    //     blockchain: "solana",
+    //     status: "error",
+    //     message: "Signer is not the initializer",
+    // } as ErrorFeedback;
     const swapIdentity = getSwapIdentityFromData({
         swapData,
     });

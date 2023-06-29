@@ -8,9 +8,7 @@
         "lib": ["ES2020", "DOM"],
         "allowSyntheticDefaultImports": true,
         "strict": true,
-        "esModuleInterop": true
-        // "pretty": true,
-        // "skipLibCheck": true
+        "esModuleInterop": true,
     },
-    "include": ["src/**/*"],
+    "include": ["src/**/*"]
 }

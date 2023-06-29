@@ -35,7 +35,7 @@ export async function cancelAndCloseSwap(Data: {
         txsWithoutSigners: txToSend,
         signer: Data.signer,
         cluster: Data.cluster,
-        skipPreflight: Data.skipSimulation,
+        skipSimulation: Data.skipSimulation,
     });
 
     if (Data.skipSimulation) {

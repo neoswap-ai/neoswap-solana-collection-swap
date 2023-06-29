@@ -38,8 +38,7 @@ export async function claimAndCloseSwap(Data: {
         signer: Data.signer.publicKey,
         cluster: Data.cluster,
     });
-
-    txToSend.push(...validateClaimTxData);
+    if (validateClaimTxData) txToSend.push(...validateClaimTxData);
 
     const { transactionHashs } = await sendBundledTransactions({
         txsWithoutSigners: txToSend,

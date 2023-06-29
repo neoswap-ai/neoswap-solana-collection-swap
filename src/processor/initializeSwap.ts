@@ -9,18 +9,12 @@ export async function initializeSwap(Data: {
     signer: Keypair;
     cluster: Cluster | string;
     skipSimulation?: boolean;
-}): Promise<
-    | {
-          programId: string;
-          swapIdentity: SwapIdentity;
-          transactionHashs: string[];
-      }
-    | {
-          programId: string;
-          swapIdentity?: SwapIdentity;
-          error: ErrorFeedback;
-      }
-> {
+    confirmTransaction?: boolean;
+}): Promise<{
+    programId: string;
+    swapIdentity: SwapIdentity;
+    transactionHashs: string[];
+}> {
     let initSwapData = await createInitializeSwapInstructions({
         swapData: Data.swapData,
         signer: Data.signer.publicKey,
@@ -31,8 +25,9 @@ export async function initializeSwap(Data: {
             txsWithoutSigners: initSwapData.transactions,
             signer: Data.signer,
             cluster: Data.cluster,
+            skipSimulation: Data.skipSimulation,
         });
-        if (Data.skipSimulation) {
+        if (Data.confirmTransaction) {
             const confirmArray = await isConfirmedTx({ cluster: Data.cluster, transactionHashs });
             confirmArray.forEach((confirmTx) => {
                 if (!confirmTx.isConfirmed)
@@ -49,10 +44,12 @@ export async function initializeSwap(Data: {
             transactionHashs,
         };
     } catch (error) {
-        return {
+        throw {
             programId: initSwapData.programId,
             swapIdentity: initSwapData.swapIdentity,
-            error: { blockchain: "solana", status: "error", message: error } as ErrorFeedback,
+            blockchain: "solana",
+            status: "error",
+            message: error,
         };
     }
 }

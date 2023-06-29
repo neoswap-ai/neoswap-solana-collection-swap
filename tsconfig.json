@@ -9,10 +9,6 @@
         "allowSyntheticDefaultImports": true,
         "strict": true,
         "esModuleInterop": true,
-        // "allowJs": true,
-        // "alwaysStrict": false
-        // "checkJs": true,
-        // "skipLibCheck": true
         "strictFunctionTypes": true
     },
     "include": ["src/**/*"]

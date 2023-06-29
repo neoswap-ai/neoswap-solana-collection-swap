@@ -12,21 +12,19 @@ import { getSwapDataAccountFromPublicKey } from "./utils/getSwapDataAccountFromP
 import { getSwapIdentityFromData } from "./utils/getSwapIdentityFromData.function";
 import { isConfirmedTx } from "./utils/isConfirmedTx.function";
 import { sendBundledTransactions } from "./utils/sendBundledTransactions.function";
-export {
-    ApiProcessorData,
-    ErrorFeedback,
-    UserDataInSwap,
-    ItemStatus,
-    NftSwapItem,
-    SwapData,
-    SwapIdentity,
-    TradeStatus,
-    TxWithSigner,
-    ApiProcessorConfigType,
-    ApiProcessorCreateATAType,
-    ApiProcessorDepositType,
-} from "./utils/types";
-
+export * as NeoTypes from "./utils/types";
+// ApiProcessorData,
+// ErrorFeedback,
+// UserDataInSwap,
+// ItemStatus,
+// NftSwapItem,
+// SwapData,
+// SwapIdentity,
+// TradeStatus,
+// TxWithSigner,
+// ApiProcessorConfigType,
+// ApiProcessorCreateATAType,
+// ApiProcessorDepositType,
 const utils = {
     getProgram,
     getSwapDataAccountFromPublicKey,
@@ -51,4 +49,4 @@ export const neoSwapNpm = {
     createInstructions,
 };
 
-// export neoSwapNpm;
+// export default neoSwapNpm;
