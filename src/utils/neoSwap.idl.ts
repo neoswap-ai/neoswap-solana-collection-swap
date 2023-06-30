@@ -930,7 +930,7 @@ export const idl: Idl = {
         {
             code: 6004,
             name: "NoSend",
-            msg: "Nothing was found in the program to be sent to you",
+            msg: "Nothing was found in the program to be sent to the swap or you",
         },
         {
             code: 6005,

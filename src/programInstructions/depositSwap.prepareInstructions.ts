@@ -42,9 +42,7 @@ export async function prepareDepositSwapInstructions(Data: {
         let isUserPartOfTrade = false;
         let isUserAlreadyDeposited = false;
 
-        let swapDataItems = swapData.items.filter((item) => {
-            item.owner.equals(Data.user);
-        });
+        let swapDataItems = swapData.items.filter((item) => item.owner.equals(Data.user));
 
         if (swapDataItems.length > 0) isUserPartOfTrade = true;
 

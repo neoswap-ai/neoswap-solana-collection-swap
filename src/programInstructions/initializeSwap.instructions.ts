@@ -27,7 +27,7 @@ export async function createInitializeSwapInstructions(Data: {
     const swapIdentity = getSwapIdentityFromData({
         swapData: Data.swapData,
     });
-  
+
     try {
         const initInstruction = await getInitInitilizeInstruction({
             program,
@@ -41,6 +41,7 @@ export async function createInitializeSwapInstructions(Data: {
             swapIdentity,
             signer: Data.signer,
         });
+
         const validateInstruction = await getValidateInitilizeInstruction({
             program,
             swapIdentity,
@@ -106,6 +107,7 @@ async function getInitInitilizeInstruction(Data: {
     const balanceSda = await Data.program.provider.connection.getBalance(
         Data.swapIdentity.swapDataAccount_publicKey
     );
+    // console.log("balance SDA", balanceSda);
 
     if (balanceSda === 0) {
         return Data.program.methods
@@ -127,10 +129,15 @@ async function getAddInitilizeInstructions(Data: {
     swapIdentity: SwapIdentity;
     signer: PublicKey;
 }): Promise<TransactionInstruction[][] | undefined> {
-    const bcData = await getSwapDataAccountFromPublicKey({
-        program: Data.program,
-        swapDataAccount_publicKey: Data.swapIdentity.swapDataAccount_publicKey,
-    });
+    let bcData: SwapData | undefined = undefined;
+    try {
+        bcData = await getSwapDataAccountFromPublicKey({
+            program: Data.program,
+            swapDataAccount_publicKey: Data.swapIdentity.swapDataAccount_publicKey,
+        });
+    } catch (error) {
+        // console.log("swapAccount doenst exist", error);
+    }
 
     let transactionInstructionBundle = [];
     let chunkSize = 6;
@@ -139,11 +146,12 @@ async function getAddInitilizeInstructions(Data: {
         const chunkIx: TransactionInstruction[] = [];
         returnData = await Promise.all(
             Data.swapIdentity.swapData.items.slice(index, index + chunkSize).map(async (item) => {
-                const alreadyExistItems = bcData?.items.filter((itemSDA) => {
-                    itemSDA.mint.equals(item.mint) &&
+                const alreadyExistItems = bcData?.items.filter(
+                    (itemSDA) =>
+                        itemSDA.mint.equals(item.mint) &&
                         itemSDA.owner.equals(item.owner) &&
-                        itemSDA.destinary.equals(item.destinary);
-                });
+                        itemSDA.destinary.equals(item.destinary)
+                );
                 if (!alreadyExistItems || alreadyExistItems.length === 0) {
                     const tokenAccount = await findOrCreateAta({
                         mint: item.mint,
