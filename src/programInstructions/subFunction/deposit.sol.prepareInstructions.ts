@@ -3,6 +3,7 @@ import { ApiProcessorConfigType, SwapIdentity } from "../../utils/types";
 import { SWAP_PROGRAM_ID } from "../../utils/const";
 import { Program } from "@project-serum/anchor";
 import { findOrCreateAta } from "../../utils/findOrCreateAta.function";
+import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 
 export async function prepareDepositSolInstruction(Data: {
     program: Program;
@@ -55,12 +56,15 @@ export async function prepareDepositSolInstruction(Data: {
         programId: Data.program.programId.toString(),
         data: {
             arguments: {
-                seed: Data.swapIdentity.swapDataAccount_seed.toString(),
+                SDA_seed: Data.swapIdentity.swapDataAccount_seed.toString(),
             },
             accounts: {
                 systemProgram: SystemProgram.programId.toString(),
-                swapDataAccount: swapDataAccountAta.toString(),
-                signer: userAta.toString(),
+                swapDataAccount: Data.swapIdentity.swapDataAccount_publicKey.toString(),
+                signer: Data.signer.toString(),
+                splTokenProgram: TOKEN_PROGRAM_ID.toString(),
+                swapDataAccountAta: swapDataAccountAta.toString(),
+                signerAta: userAta.toString(),
             },
         },
     });

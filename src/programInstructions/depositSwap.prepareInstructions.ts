@@ -9,10 +9,10 @@ import { ApiProcessorData, ErrorFeedback, ItemStatus, TradeStatus } from "../uti
 export async function prepareDepositSwapInstructions(Data: {
     swapDataAccount: PublicKey;
     user: PublicKey;
-    cluster: Cluster | string;
-}): Promise<ApiProcessorData[]> {
+    clusterOrUrl: Cluster | string;
+}): Promise<ApiProcessorData> {
     try {
-        const program = getProgram(Data.cluster);
+        const program = getProgram({ clusterOrUrl: Data.clusterOrUrl });
 
         const swapData = await getSwapDataAccountFromPublicKey({
             program,
@@ -144,20 +144,21 @@ export async function prepareDepositSwapInstructions(Data: {
             element.order = index;
         }
 
-        let finalDepositInstruction: ApiProcessorData[] = [
-            {
-                blockchain: "solana",
-                type: "deposit",
-                order: 0,
-                description: "Escrow your SOL and/or NFTs to the contract",
-                config: [],
-            },
-        ];
+        let finalDepositInstruction: ApiProcessorData = {
+            blockchain: "solana",
+            type: "deposit",
+            order: 0,
+            description: "Escrow your SOL and/or NFTs to the contract",
+            config: [],
+        };
         apiInstructions.forEach((apiInstruction) => {
             apiInstruction.config.forEach((element) => {
-                element.programId = program.programId.toString();
+                if (element.type !== "create-offer" && element.type !== "unwrap-sol") {
+                    element.programId = program.programId.toString();
+                } else {
+                }
             });
-            finalDepositInstruction[0].config.push(...apiInstruction.config);
+            finalDepositInstruction.config.push(...apiInstruction.config);
         });
 
         return finalDepositInstruction;

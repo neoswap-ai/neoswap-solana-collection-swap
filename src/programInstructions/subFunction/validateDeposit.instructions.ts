@@ -7,9 +7,9 @@ import { getSwapDataAccountFromPublicKey } from "../../utils/getSwapDataAccountF
 export const validateDeposit = async (Data: {
     swapDataAccount: PublicKey;
     signer: PublicKey;
-    cluster: Cluster | string;
-}): Promise<TxWithSigner | undefined> => {
-    const program = getProgram(Data.cluster);
+    clusterOrUrl: Cluster | string;
+}): Promise<TxWithSigner[] | undefined> => {
+    const program = getProgram({clusterOrUrl:Data.clusterOrUrl});
     const swapData = await getSwapDataAccountFromPublicKey({
         program,
         swapDataAccount_publicKey: Data.swapDataAccount,

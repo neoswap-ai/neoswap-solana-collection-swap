@@ -9,10 +9,10 @@ import { ErrorFeedback, ItemStatus, TradeStatus, TxWithSigner } from "../utils/t
 export async function createCancelSwapInstructions(Data: {
     swapDataAccount: PublicKey;
     signer: PublicKey;
-    cluster: Cluster | string;
-}): Promise<TxWithSigner | undefined> {
+    clusterOrUrl: Cluster | string;
+}): Promise<TxWithSigner[] | undefined> {
     try {
-        const program = getProgram(Data.cluster);
+        const program = getProgram({ clusterOrUrl: Data.clusterOrUrl });
 
         const swapData = await getSwapDataAccountFromPublicKey({
             program,
@@ -48,7 +48,7 @@ export async function createCancelSwapInstructions(Data: {
             swapData,
         });
 
-        let cancelTransactionInstruction: TxWithSigner = [];
+        let cancelTransactionInstruction: TxWithSigner[] = [];
         let ataList: PublicKey[] = [];
         let toBeCancelledItems = swapData.items.filter(
             (item) =>
@@ -105,7 +105,7 @@ export async function createCancelSwapInstructions(Data: {
 
         if (cancelTransactionInstruction.length === 0 && init) {
             console.log(
-                "no items found to cancel but initializer is proceeding to validate cancel"
+                "no items found to cancel but signer is initializer.\nproceeding to validate cancel"
             );
             return;
         } else if (cancelTransactionInstruction.length > 0) {

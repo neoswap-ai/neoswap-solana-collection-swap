@@ -1,26 +1,25 @@
-import { Cluster, Keypair, Signer, Transaction } from "@solana/web3.js";
+import { Cluster, Keypair } from "@solana/web3.js";
 import { getProgram } from "./getProgram.obj";
 import { TxWithSigner } from "./types";
 
 // const getProgram  from "./getProgram.obj");
 
 export async function sendBundledTransactions(Data: {
-    txsWithoutSigners: TxWithSigner;
+    txsWithoutSigners: TxWithSigner[];
     signer: Keypair;
-    cluster: Cluster | string;
+    clusterOrUrl: Cluster | string;
     skipSimulation?: boolean;
-}) {
+}): Promise<string[]> {
     try {
         // console.log(txWithSigners);
 
-        let program = getProgram(Data.cluster, Data.signer);
+        let program = getProgram({ clusterOrUrl: Data.clusterOrUrl, signer: Data.signer });
         const txsWithSigners = Data.txsWithoutSigners.map((txWithSigners) => {
             txWithSigners.signers = [Data.signer];
             txWithSigners.tx.feePayer = Data.signer.publicKey;
             return txWithSigners;
         });
 
-        // console.log("txsWithSigners", txsWithSigners);
         console.log(
             "User ",
             Data.signer.publicKey.toBase58(),
@@ -35,7 +34,7 @@ export async function sendBundledTransactions(Data: {
             skipPreflight: Data.skipSimulation,
         });
 
-        return { transactionHashs };
+        return transactionHashs;
     } catch (error) {
         throw error;
     }

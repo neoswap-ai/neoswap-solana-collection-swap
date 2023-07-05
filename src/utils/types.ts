@@ -42,36 +42,108 @@ export type UserDataInSwap = {
     userSolClaimed: NftSwapItem[] | undefined;
 };
 
-export type ApiProcessorData = {
+export interface ApiProcessorData {
     blockchain: string;
     type: string;
     order: number;
     description: string;
     config: ApiProcessorConfigType[];
-};
+}
 
 export type ApiProcessorConfigType =
-    | {
-          type: "createAssociatedTokenAccountInstruction";
-          data: ApiProcessorCreateATAType;
-          programId?: string;
-      }
-    | {
-          type: "depositNft" | "depositSol";
-          data: ApiProcessorDepositType;
-          programId?: string;
-      };
+    | CreateAssociatedTokenAccountInstructionData
+    | DepositNft
+    | DepositSol
+    | CreateOrdinalSwap
+    | UnwrapSol;
 
-export type ApiProcessorDepositType = {
-    arguments: { [key: string]: string | number };
-    accounts: { [key: string]: string };
+export interface DepositSol {
+    programId: string;
+    type: "depositSol";
+    data: {
+        arguments: {
+            SDA_seed: string;
+        };
+        accounts: {
+            systemProgram: string;
+            swapDataAccount: string;
+            signer: string;
+            splTokenProgram: string;
+            swapDataAccountAta: string;
+            signerAta: string;
+        };
+    };
+}
+export interface DepositNft {
+    programId: string;
+    type: "depositNft";
+    data: {
+        arguments: {
+            SDA_seed: string;
+        };
+        accounts: {
+            systemProgram: string;
+            metadataProgram: string;
+            sysvarInstructions: string;
+            splTokenProgram: string;
+            splAtaProgram: string;
+            swapDataAccount: string;
+            signer: string;
+            itemFromDeposit: string;
+            mint: string;
+            nftMetadata: string;
+            itemToDeposit: string;
+            nftMasterEdition: string;
+            ownerTokenRecord: string;
+            destinationTokenRecord: string;
+            authRulesProgram: string;
+            authRules: string;
+        };
+    };
+}
+
+export interface CreateAssociatedTokenAccountInstructionData {
+    programId: string;
+    type: "createAssociatedTokenAccountInstruction";
+    data: {
+        payer: string;
+        associatedToken: string;
+        owner: string;
+        mint: string;
+    };
+}
+
+export type OrdinalsOffer = {
+    sellerAddress: PublicKey;
+    buyerAddress: PublicKey;
+    bitcoinAddress: string;
+    ordinalsId: string;
+    cancelingTime: BN;
+    tokenAccepted: PublicKey;
+    amount: BN;
+    status: number;
+    transferOrdinalsHash: string;
+    neoswapFee: BN;
 };
-
-export type ApiProcessorCreateATAType = {
-    payer: string;
-    associatedToken: string;
-    owner: string;
-    mint: string;
+export type CreateOrdinalSwap = {
+    type: "create-offer";
+    ordinalsSc: string;
+    sellerAddress: string;
+    buyerAddress: string;
+    bitcoinAddress: string;
+    ordinalsId: string;
+    cancelingTime: number;
+    tokenAccepted: string;
+    amount: number;
+    status: number;
+    transferOrdinalsHash: string;
+    neoswapFee: number;
+};
+export type UnwrapSol = {
+    type: "unwrap-sol";
+    ordinalsSc: string;
+    user: string;
+    userAta: string;
 };
 
 // change to throw error
@@ -82,7 +154,7 @@ export type ErrorFeedback = {
     swapStatus?: number;
 };
 
-export type TxWithSigner = { tx: Transaction; signers?: Signer[] }[];
+export type TxWithSigner = { tx: Transaction; signers?: Signer[] };
 
 export enum TradeStatus {
     Initializing = 0,

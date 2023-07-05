@@ -10,7 +10,7 @@ import {
 } from "../../utils/findNftDataAndAccounts.function";
 
 import { Program } from "@project-serum/anchor";
-import { ApiProcessorConfigType, SwapIdentity } from "../../utils/types";
+import { ApiProcessorConfigType, DepositNft, SwapIdentity } from "../../utils/types";
 import {
     METAPLEX_AUTH_RULES_PROGRAM,
     SOLANA_SPL_ATA_PROGRAM_ID,
@@ -56,11 +56,7 @@ export async function prepareDepositNftInstruction(Data: {
         console.log("createPdaAta DepositNft Tx Added", pdaAta.toBase58());
     }
 
-    const {
-        tokenStandard,
-        metadataAddress: nftMetadata,
-        metadataBump: nftMetadata_bump,
-    } = await findNftDataAndMetadataAccount({
+    const { tokenStandard, metadataAddress: nftMetadata } = await findNftDataAndMetadataAccount({
         connection: Data.program.provider.connection,
         mint: Data.mint,
     });
@@ -108,7 +104,7 @@ export async function prepareDepositNftInstruction(Data: {
                     authRules: authRules.toString(),
                 },
             },
-        });
+        } as DepositNft);
     } else {
         instructions.push({
             programId: Data.program.programId.toString(),
@@ -136,7 +132,7 @@ export async function prepareDepositNftInstruction(Data: {
                     authRules: Data.signer.toString(),
                 },
             },
-        });
+        } as DepositNft);
     }
     return { instructions, newAtas };
 }

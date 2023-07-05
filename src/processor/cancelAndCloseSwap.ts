@@ -8,16 +8,17 @@ import { isConfirmedTx } from "../utils/isConfirmedTx.function";
 export async function cancelAndCloseSwap(Data: {
     swapDataAccount: PublicKey;
     signer: Keypair;
-    cluster: Cluster | string;
+    clusterOrUrl: Cluster | string;
     skipSimulation?: boolean;
+    confirmTransaction?: boolean;
     // preSeed: string;
 }): Promise<string[]> {
-    let txToSend: TxWithSigner = [];
+    let txToSend: TxWithSigner[] = [];
 
     let cancelTxData = await createCancelSwapInstructions({
         swapDataAccount: Data.swapDataAccount,
         signer: Data.signer.publicKey,
-        cluster: Data.cluster,
+        clusterOrUrl: Data.clusterOrUrl,
     });
     // console.log("cancelTxData", cancelTxData);
 
@@ -26,20 +27,23 @@ export async function cancelAndCloseSwap(Data: {
     let validateCancelTxData = await createValidateCanceledInstructions({
         swapDataAccount: Data.swapDataAccount,
         signer: Data.signer.publicKey,
-        cluster: Data.cluster,
+        clusterOrUrl: Data.clusterOrUrl,
     });
 
     if (validateCancelTxData) txToSend.push(...validateCancelTxData);
 
-    const { transactionHashs } = await sendBundledTransactions({
+    const transactionHashs = await sendBundledTransactions({
         txsWithoutSigners: txToSend,
         signer: Data.signer,
-        cluster: Data.cluster,
+        clusterOrUrl: Data.clusterOrUrl,
         skipSimulation: Data.skipSimulation,
     });
 
-    if (Data.skipSimulation) {
-        const confirmArray = await isConfirmedTx({ cluster: Data.cluster, transactionHashs });
+    if (Data.confirmTransaction) {
+        const confirmArray = await isConfirmedTx({
+            clusterOrUrl: Data.clusterOrUrl,
+            transactionHashs,
+        });
         confirmArray.forEach((confirmTx) => {
             if (!confirmTx.isConfirmed)
                 throw {

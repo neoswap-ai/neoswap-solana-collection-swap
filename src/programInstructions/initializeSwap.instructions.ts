@@ -15,14 +15,14 @@ import { findOrCreateAta } from "../utils/findOrCreateAta.function";
 export async function createInitializeSwapInstructions(Data: {
     swapData: SwapData;
     signer: PublicKey;
-    cluster: Cluster | string;
+    clusterOrUrl: Cluster | string;
 }): Promise<{
     swapIdentity: SwapIdentity;
     programId: string;
-    transactions: TxWithSigner;
+    transactions: TxWithSigner[];
 }> {
     if (!Data.swapData.preSeed) Data.swapData.preSeed = "0000";
-    const program = getProgram(Data.cluster);
+    const program = getProgram({ clusterOrUrl: Data.clusterOrUrl });
 
     const swapIdentity = getSwapIdentityFromData({
         swapData: Data.swapData,
@@ -48,7 +48,7 @@ export async function createInitializeSwapInstructions(Data: {
             signer: Data.signer,
         });
 
-        let transactions: TxWithSigner = [];
+        let transactions: TxWithSigner[] = [];
 
         if (initInstruction) {
             transactions.push({
@@ -56,16 +56,19 @@ export async function createInitializeSwapInstructions(Data: {
                 // signers: [signer],
             });
         } else {
-            console.log("Initialize swap skipped");
+            console.log("Init-Initialize swap skipped");
         }
 
-        if (addInstructions)
+        if (addInstructions) {
             addInstructions.map((addInstruction) => {
                 transactions.push({
                     tx: new Transaction().add(...addInstruction),
                     // signers: [signer],
                 });
             });
+        } else {
+            console.log("skip addInstrutions");
+        }
 
         transactions.push({
             tx: new Transaction().add(validateInstruction),
@@ -135,8 +138,10 @@ async function getAddInitilizeInstructions(Data: {
             program: Data.program,
             swapDataAccount_publicKey: Data.swapIdentity.swapDataAccount_publicKey,
         });
+        // console.log("bcData", bcData);
     } catch (error) {
-        // console.log("swapAccount doenst exist", error);
+        //@ts-ignore
+        // console.log("swapAccount doenst exist", error.message);
     }
 
     let transactionInstructionBundle = [];
@@ -152,17 +157,23 @@ async function getAddInitilizeInstructions(Data: {
                         itemSDA.owner.equals(item.owner) &&
                         itemSDA.destinary.equals(item.destinary)
                 );
-                if (!alreadyExistItems || alreadyExistItems.length === 0) {
+                // console.log("alreadyExistItems", alreadyExistItems?.length);
+                // if (!alreadyExistItems) {
+                //     console.log("should't go there");
+                // } else
+                if (alreadyExistItems?.length === 0 || !alreadyExistItems) {
+                    // console.log("alreadyExistItems", alreadyExistItems);
+                    // console.log("item", item);
+
                     const tokenAccount = await findOrCreateAta({
                         mint: item.mint,
                         owner: item.owner,
                         program: Data.program,
                         signer: Data.signer,
                     });
-                    if (
-                        item.status !== ItemStatus.SolToClaim &&
-                        !item.mint.equals(SystemProgram.programId)
-                    ) {
+                    if (!item.amount.isNeg() && !item.mint.equals(SystemProgram.programId)) {
+                        // console.log("check balance");
+
                         const balance =
                             await Data.program.provider.connection.getTokenAccountBalance(
                                 tokenAccount.mintAta
@@ -186,6 +197,16 @@ async function getAddInitilizeInstructions(Data: {
                             } as ErrorFeedback;
                         }
                     }
+
+                    console.log(
+                        "XXX - added item ",
+                        item.mint.toBase58(),
+                        " from ",
+                        item.owner.toBase58(),
+                        " amount ",
+                        item.amount.toNumber(),
+                        " - XXX"
+                    );
                     chunkIx.push(
                         await Data.program.methods
                             .initializeAdd(Data.swapIdentity.swapDataAccount_seed, item)
@@ -201,6 +222,7 @@ async function getAddInitilizeInstructions(Data: {
         );
         if (chunkIx.length > 0) transactionInstructionBundle.push(chunkIx);
     }
+    // console.log("returnData", returnData);
 
     if (returnData.length > 0) {
         let errorFeedback: ErrorFeedback = {

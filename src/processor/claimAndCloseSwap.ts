@@ -9,14 +9,15 @@ import { isConfirmedTx } from "../utils/isConfirmedTx.function";
 export async function claimAndCloseSwap(Data: {
     swapDataAccount: PublicKey;
     signer: Keypair;
-    cluster: Cluster | string;
+    clusterOrUrl: Cluster | string;
     skipSimulation?: boolean;
+    confirmTransaction?: boolean;
 }): Promise<string[]> {
-    let txToSend: TxWithSigner = [];
+    let txToSend: TxWithSigner[] = [];
     let validateDepositTxData = await validateDeposit({
         swapDataAccount: Data.swapDataAccount,
         signer: Data.signer.publicKey,
-        cluster: Data.cluster,
+        clusterOrUrl: Data.clusterOrUrl,
     });
     if (validateDepositTxData) {
         txToSend.push(...validateDepositTxData);
@@ -25,7 +26,7 @@ export async function claimAndCloseSwap(Data: {
     let claimTxData = await createClaimSwapInstructions({
         swapDataAccount: Data.swapDataAccount,
         signer: Data.signer.publicKey,
-        cluster: Data.cluster,
+        clusterOrUrl: Data.clusterOrUrl,
     });
 
     if (claimTxData) {
@@ -36,17 +37,21 @@ export async function claimAndCloseSwap(Data: {
     let validateClaimTxData = await createValidateClaimedInstructions({
         swapDataAccount: Data.swapDataAccount,
         signer: Data.signer.publicKey,
-        cluster: Data.cluster,
+        clusterOrUrl: Data.clusterOrUrl,
     });
     if (validateClaimTxData) txToSend.push(...validateClaimTxData);
 
-    const { transactionHashs } = await sendBundledTransactions({
+    const transactionHashs = await sendBundledTransactions({
         txsWithoutSigners: txToSend,
         signer: Data.signer,
-        cluster: Data.cluster,
+        clusterOrUrl: Data.clusterOrUrl,
+        skipSimulation: Data.skipSimulation,
     });
-    if (Data.skipSimulation) {
-        const confirmArray = await isConfirmedTx({ cluster: Data.cluster, transactionHashs });
+    if (Data.confirmTransaction) {
+        const confirmArray = await isConfirmedTx({
+            clusterOrUrl: Data.clusterOrUrl,
+            transactionHashs,
+        });
         confirmArray.forEach((confirmTx) => {
             if (!confirmTx.isConfirmed)
                 throw {

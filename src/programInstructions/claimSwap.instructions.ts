@@ -9,10 +9,10 @@ import { ErrorFeedback, ItemStatus, TradeStatus, TxWithSigner } from "../utils/t
 export async function createClaimSwapInstructions(Data: {
     swapDataAccount: PublicKey;
     signer: PublicKey;
-    cluster: Cluster | string;
-}): Promise<TxWithSigner | undefined> {
+    clusterOrUrl: Cluster | string;
+}): Promise<TxWithSigner[] | undefined> {
     try {
-        const program = getProgram(Data.cluster);
+        const program = getProgram({ clusterOrUrl: Data.clusterOrUrl });
 
         const swapData = await getSwapDataAccountFromPublicKey({
             program,
@@ -55,7 +55,7 @@ export async function createClaimSwapInstructions(Data: {
             swapData,
         });
 
-        let claimTransactionInstruction: TxWithSigner = [];
+        let claimTransactionInstruction: TxWithSigner[] = [];
         let ataList: PublicKey[] = [];
 
         let swapDataItems = swapData.items.filter(

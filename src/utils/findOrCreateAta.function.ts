@@ -7,7 +7,7 @@ import {
 import { PublicKey, Transaction, TransactionInstruction } from "@solana/web3.js";
 import { SOLANA_SPL_ATA_PROGRAM_ID } from "../utils/const";
 import { Program } from "@project-serum/anchor";
-import { ApiProcessorConfigType } from "./types";
+import { ApiProcessorConfigType, CreateAssociatedTokenAccountInstructionData } from "./types";
 
 export async function findOrCreateAta(Data: {
     program: Program;
@@ -17,7 +17,7 @@ export async function findOrCreateAta(Data: {
     prepareInstructions?: boolean;
 }): Promise<{
     mintAta: PublicKey;
-    prepareInstruction?: ApiProcessorConfigType;
+    prepareInstruction?: CreateAssociatedTokenAccountInstructionData;
     instruction?: TransactionInstruction;
 }> {
     try {
@@ -39,6 +39,7 @@ export async function findOrCreateAta(Data: {
                 mintAta,
                 prepareInstruction: {
                     type: "createAssociatedTokenAccountInstruction",
+                    programId: Data.program.programId.toString(),
                     data: {
                         payer: Data.signer.toString(),
                         associatedToken: mintAta.toString(),

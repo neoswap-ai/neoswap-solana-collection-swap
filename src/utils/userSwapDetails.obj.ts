@@ -4,11 +4,11 @@ import { getSwapDataAccountFromPublicKey } from "./getSwapDataAccountFromPublicK
 import { getProgram } from "./getProgram.obj";
 
 export async function userSwapDetails(Data: {
-    cluster: Cluster;
+    clusterOrUrl: Cluster | string;
     user: PublicKey;
     swapDataAccount_publicKey: PublicKey;
 }): Promise<UserDataInSwap> {
-    const program = getProgram(Data.cluster);
+    const program = getProgram({ clusterOrUrl: Data.clusterOrUrl });
     const swapData = await getSwapDataAccountFromPublicKey({
         program,
         swapDataAccount_publicKey: Data.swapDataAccount_publicKey,

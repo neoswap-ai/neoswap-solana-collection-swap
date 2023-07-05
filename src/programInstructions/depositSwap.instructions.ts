@@ -9,10 +9,10 @@ import { ErrorFeedback, ItemStatus, SwapData, TradeStatus, TxWithSigner } from "
 export async function createDepositSwapInstructions(Data: {
     swapDataAccount: PublicKey;
     user: PublicKey;
-    cluster: Cluster | string;
-}): Promise<TxWithSigner> {
+    clusterOrUrl: Cluster | string;
+}): Promise<TxWithSigner[]> {
     try {
-        const program = getProgram(Data.cluster);
+        const program = getProgram({ clusterOrUrl: Data.clusterOrUrl });
         let swapData = await getSwapDataAccountFromPublicKey({
             program,
             swapDataAccount_publicKey: Data.swapDataAccount,
@@ -39,7 +39,7 @@ export async function createDepositSwapInstructions(Data: {
         // console.log("swapData", swapData);
         // console.log("Data.user", Data.user);
 
-        let depositInstruction: TxWithSigner = [];
+        let depositInstruction: TxWithSigner[] = [];
         let ataList: PublicKey[] = [];
         let isUserPartOfTrade = false;
         let isUserAlreadyDeposited = false;

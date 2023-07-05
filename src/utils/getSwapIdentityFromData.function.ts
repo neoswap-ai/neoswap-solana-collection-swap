@@ -33,6 +33,7 @@ export function getSwapIdentityFromData(Data: { swapData: SwapData }): SwapIdent
             swapDataAccount_publicKey,
             swapDataAccount_seed,
             swapDataAccount_bump,
+            // preSeed: Data.swapData.preSeed,
             swapData: Data.swapData,
         };
     } catch (error) {

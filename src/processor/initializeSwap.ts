@@ -7,7 +7,7 @@ import { isConfirmedTx } from "../utils/isConfirmedTx.function";
 export async function initializeSwap(Data: {
     swapData: SwapData;
     signer: Keypair;
-    cluster: Cluster | string;
+    clusterOrUrl: Cluster | string;
     skipSimulation?: boolean;
     confirmTransaction?: boolean;
 }): Promise<{
@@ -18,17 +18,17 @@ export async function initializeSwap(Data: {
     let initSwapData = await createInitializeSwapInstructions({
         swapData: Data.swapData,
         signer: Data.signer.publicKey,
-        cluster: Data.cluster,
+        clusterOrUrl: Data.clusterOrUrl,
     });
     try {
-        const { transactionHashs } = await sendBundledTransactions({
+        const transactionHashs = await sendBundledTransactions({
             txsWithoutSigners: initSwapData.transactions,
             signer: Data.signer,
-            cluster: Data.cluster,
+            clusterOrUrl: Data.clusterOrUrl,
             skipSimulation: Data.skipSimulation,
         });
         if (Data.confirmTransaction) {
-            const confirmArray = await isConfirmedTx({ cluster: Data.cluster, transactionHashs });
+            const confirmArray = await isConfirmedTx({ clusterOrUrl: Data.clusterOrUrl, transactionHashs });
             confirmArray.forEach((confirmTx) => {
                 if (!confirmTx.isConfirmed)
                     throw {

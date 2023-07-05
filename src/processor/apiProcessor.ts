@@ -1,25 +1,25 @@
 import { Cluster, Keypair, PublicKey } from "@solana/web3.js";
 import { sendBundledTransactions } from "../utils/sendBundledTransactions.function";
-import { ErrorFeedback } from "../utils/types";
-import { createDepositSwapInstructions } from "../programInstructions/depositSwap.instructions";
+import { ApiProcessorConfigType, ApiProcessorData, ErrorFeedback } from "../utils/types";
+// import { createDepositSwapInstructions } from "../programInstructions/depositSwap.instructions";
 import { isConfirmedTx } from "../utils/isConfirmedTx.function";
+import { apiProcessorTranscript } from "../programInstructions/apiProcessor.transcript";
 
-export async function depositSwap(Data: {
-    swapDataAccount: PublicKey;
-    signer: Keypair;
+export async function apiProcessor(Data: {
     clusterOrUrl: Cluster | string;
+    apiProcessorData: ApiProcessorData;
+    signer: Keypair;
+    // swapDataAccount: PublicKey;
     skipSimulation?: boolean;
     confirmTransaction?: boolean;
 }): Promise<string[]> {
-    let depositSwapData = await createDepositSwapInstructions({
-        swapDataAccount: Data.swapDataAccount,
-        user: Data.signer.publicKey,
-        clusterOrUrl: Data.clusterOrUrl,
+    let apiProcessorData = await apiProcessorTranscript({
+        config: Data.apiProcessorData.config,
     });
 
     try {
         const transactionHashs = await sendBundledTransactions({
-            txsWithoutSigners: depositSwapData,
+            txsWithoutSigners: apiProcessorData,
             signer: Data.signer,
             clusterOrUrl: Data.clusterOrUrl,
             skipSimulation: Data.skipSimulation,

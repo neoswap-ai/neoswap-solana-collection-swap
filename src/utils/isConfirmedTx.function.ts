@@ -3,9 +3,9 @@ import { getProgram } from "./getProgram.obj";
 
 export async function isConfirmedTx(Data: {
     transactionHashs: string[];
-    cluster: Cluster | string;
+    clusterOrUrl: Cluster | string;
 }) {
-    let program = getProgram(Data.cluster);
+    let program = getProgram({ clusterOrUrl: Data.clusterOrUrl });
     const blockHashData = await program.provider.connection.getLatestBlockhash();
     let confirmArray: {
         transactionHash: string;

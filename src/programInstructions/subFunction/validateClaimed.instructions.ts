@@ -8,9 +8,9 @@ import { SOLANA_SPL_ATA_PROGRAM_ID } from "../../utils/const";
 export const createValidateClaimedInstructions = async (Data: {
     swapDataAccount: PublicKey;
     signer: PublicKey;
-    cluster: Cluster | string;
-}): Promise<TxWithSigner | undefined> => {
-    const program = getProgram(Data.cluster);
+    clusterOrUrl: Cluster | string;
+}): Promise<TxWithSigner[] | undefined> => {
+    const program = getProgram({ clusterOrUrl: Data.clusterOrUrl });
     const swapData = await getSwapDataAccountFromPublicKey({
         program,
         swapDataAccount_publicKey: Data.swapDataAccount,

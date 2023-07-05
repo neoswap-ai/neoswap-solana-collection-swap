@@ -1,6 +1,6 @@
 import { Program } from "@project-serum/anchor";
 import { PublicKey } from "@solana/web3.js";
-import { SwapData } from "./types";
+import { ErrorFeedback, SwapData } from "./types";
 
 export async function getSwapDataAccountFromPublicKey(Data: {
     program: Program;
@@ -17,12 +17,10 @@ export async function getSwapDataAccountFromPublicKey(Data: {
             return swapData;
         }
     } catch (error) {
-        throw [
-            {
-                blockchain: "solana",
-                status: "error",
-                message: error,
-            },
-        ];
+        throw {
+            blockchain: "solana",
+            status: "error",
+            message: error,
+        } as ErrorFeedback;
     }
 }
