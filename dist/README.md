@@ -81,7 +81,7 @@ Here's a blank template to get started: To avoid retyping too much info. Do a se
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 <!-- ### Data : -->
-<!-- 
+<!--
 ### Built With
 
 -   [![Next][Next.js]][Next-url]
@@ -101,7 +101,7 @@ Here's a blank template to get started: To avoid retyping too much info. Do a se
 
 <!-- This is an example of how you may give instructions on setting up your project locally.
 To get a local copy up and running follow these simple example steps. -->
-<!-- 
+<!--
 ### Prerequisites
 
 This is an example of how to list things you need to use the software and how to install them.
@@ -112,16 +112,19 @@ This is an example of how to list things you need to use the software and how to
     ``` -->
 
 ### Installation
-<!-- 
+
+<!--
 1. Get a free API Key at [https://example.com](https://example.com)
 2. Clone the repo
     ```sh
     git clone https://github.com/github_username/repo_name.git
     ``` -->
-3. Install NPM packages
-    ```sh
+
+Install NPM packages
+`sh
     npm install @neoswap/solana
-    ```
+    `
+
 <!-- 4. Enter your API in `config.js`
     ```js
     const API_KEY = "ENTER YOUR API";
@@ -133,15 +136,45 @@ This is an example of how to list things you need to use the software and how to
 
 ## Usage
 
-To Be Added
-<!-- Use this space to show useful examples of how a project can be used. Additional screenshots, code examples and demos work well in this space. You may also link to more resources.
+1. Import package
+   `js
+import { neoSwapNpm, neoConst, neoTypes } from "@biboux.neoswap/neo-swap-npm";
+    `
+2. Use package without broadcasting
+   `js
+const transactionArray: { tx: Transaction, signers?: Keypair[] } = await neoSwapNpm.createInstructions.createDepositSwapInstructions({
+      clusterOrUrl,      // "mainnet-beta" or "devnet" or URL
+      swapDataAccount,   // PublicKey of the swapDataAccount
+      user,              // PublicKey of the user that will be depositing asset and signing the transaction
+  });
+      `
+3. Broadcast to blockchain
+   `js
+const hashArray: string[] = await neoSwapNpm.utils.sendBundledTransactions({
+      txsWithoutSigners,    // transactionArray: { tx: Transaction, signers?: Keypair[] }
+      clusterOrUrl,         // "mainnet-beta" or "devnet" or URL
+      signer,               // Keypair of the user that will be depositing asset and signing the transaction
+      simulation            // boolean, default false, if true - will not fetch the confirmation from blockchain (not recommanded)
+  });
+      `
+   OR
+   `js
+const hashArray: string[] = await neoSwapNpm.depositSwap({
+      clusterOrUrl,       // "mainnet-beta" or "devnet" or URL
+      swapDataAccount,    // PublicKey of the swapDataAccount
+      signer,             // Keypair of the user that will be depositing asset and signing the transaction
+      simulation?,        // boolean, default false, if true - will test the transaction before sending (not recommanded) 
+      skipConfirmation?   // boolean, default false, if true - will not fetch the confirmation from blockchain (not recommanded)
+  });
+      `
+   <!-- Use this space to show useful examples of how a project can be used. Additional screenshots, code examples and demos work well in this space. You may also link to more resources.
 
 _For more examples, please refer to the [Documentation](https://example.com)_ -->
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 <!-- ROADMAP -->
-<!-- 
+<!--
 ## Roadmap
 
 -   [ ] Feature 1
@@ -154,7 +187,7 @@ See the [open issues](https://github.com/github_username/repo_name/issues) for a
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 <!-- CONTRIBUTING -->
-<!-- 
+<!--
 ## Contributing
 
 Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
@@ -179,9 +212,9 @@ Distributed under the MIT License. See `LICENSE.txt` for more information.
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 <!-- CONTACT -->
-<!-- 
+<!--
 ## Contact -->
-<!-- 
+<!--
 Your Name - [@twitter_handle](https://twitter.com/twitter_handle) - email@email_client.com
 
 Project Link: [https://github.com/github_username/repo_name](https://github.com/github_username/repo_name)
@@ -189,7 +222,7 @@ Project Link: [https://github.com/github_username/repo_name](https://github.com/
 <p align="right">(<a href="#readme-top">back to top</a>)</p>  -->
 
 <!-- ACKNOWLEDGMENTS -->
-<!-- 
+<!--
 ## Acknowledgments
 
 -   []()

@@ -9,7 +9,7 @@ export async function cancelAndCloseSwap(Data: {
     swapDataAccount: PublicKey;
     signer: Keypair;
     clusterOrUrl: Cluster | string;
-    skipSimulation?: boolean;
+    simulation?: boolean;
     confirmTransaction?: boolean;
     // preSeed: string;
 }): Promise<string[]> {
@@ -36,7 +36,7 @@ export async function cancelAndCloseSwap(Data: {
         txsWithoutSigners: txToSend,
         signer: Data.signer,
         clusterOrUrl: Data.clusterOrUrl,
-        skipSimulation: Data.skipSimulation,
+        simulation: Data.simulation,
     });
 
     if (Data.confirmTransaction) {

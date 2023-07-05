@@ -8,7 +8,7 @@ export async function sendBundledTransactions(Data: {
     txsWithoutSigners: TxWithSigner[];
     signer: Keypair;
     clusterOrUrl: Cluster | string;
-    skipSimulation?: boolean;
+    simulation?: boolean;
 }): Promise<string[]> {
     try {
         // console.log(txWithSigners);
@@ -31,7 +31,7 @@ export async function sendBundledTransactions(Data: {
             throw { message: "your provider is not an AnchorProvider type" };
 
         const transactionHashs = await program.provider.sendAll(txsWithSigners, {
-            skipPreflight: Data.skipSimulation,
+            skipPreflight: !Data.simulation,
         });
 
         return transactionHashs;

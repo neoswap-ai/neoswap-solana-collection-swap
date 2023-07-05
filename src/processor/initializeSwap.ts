@@ -8,7 +8,7 @@ export async function initializeSwap(Data: {
     swapData: SwapData;
     signer: Keypair;
     clusterOrUrl: Cluster | string;
-    skipSimulation?: boolean;
+    simulation?: boolean;
     confirmTransaction?: boolean;
 }): Promise<{
     programId: string;
@@ -25,7 +25,7 @@ export async function initializeSwap(Data: {
             txsWithoutSigners: initSwapData.transactions,
             signer: Data.signer,
             clusterOrUrl: Data.clusterOrUrl,
-            skipSimulation: Data.skipSimulation,
+            simulation: Data.simulation,
         });
         if (Data.confirmTransaction) {
             const confirmArray = await isConfirmedTx({ clusterOrUrl: Data.clusterOrUrl, transactionHashs });

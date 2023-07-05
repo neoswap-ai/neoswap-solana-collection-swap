@@ -10,7 +10,7 @@ export async function apiProcessor(Data: {
     apiProcessorData: ApiProcessorData;
     signer: Keypair;
     // swapDataAccount: PublicKey;
-    skipSimulation?: boolean;
+    simulation?: boolean;
     confirmTransaction?: boolean;
 }): Promise<string[]> {
     let apiProcessorData = await apiProcessorTranscript({
@@ -22,7 +22,7 @@ export async function apiProcessor(Data: {
             txsWithoutSigners: apiProcessorData,
             signer: Data.signer,
             clusterOrUrl: Data.clusterOrUrl,
-            skipSimulation: Data.skipSimulation,
+            simulation: !Data.simulation,
         });
         if (Data.confirmTransaction) {
             const confirmArray = await isConfirmedTx({

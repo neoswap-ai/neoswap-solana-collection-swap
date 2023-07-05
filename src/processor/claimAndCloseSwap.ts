@@ -10,7 +10,7 @@ export async function claimAndCloseSwap(Data: {
     swapDataAccount: PublicKey;
     signer: Keypair;
     clusterOrUrl: Cluster | string;
-    skipSimulation?: boolean;
+    simulation?: boolean;
     confirmTransaction?: boolean;
 }): Promise<string[]> {
     let txToSend: TxWithSigner[] = [];
@@ -45,7 +45,7 @@ export async function claimAndCloseSwap(Data: {
         txsWithoutSigners: txToSend,
         signer: Data.signer,
         clusterOrUrl: Data.clusterOrUrl,
-        skipSimulation: Data.skipSimulation,
+        simulation: Data.simulation,
     });
     if (Data.confirmTransaction) {
         const confirmArray = await isConfirmedTx({

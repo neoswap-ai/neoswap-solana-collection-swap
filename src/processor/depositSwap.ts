@@ -8,7 +8,7 @@ export async function depositSwap(Data: {
     swapDataAccount: PublicKey;
     signer: Keypair;
     clusterOrUrl: Cluster | string;
-    skipSimulation?: boolean;
+    simulation?: boolean;
     confirmTransaction?: boolean;
 }): Promise<string[]> {
     let depositSwapData = await createDepositSwapInstructions({
@@ -22,7 +22,7 @@ export async function depositSwap(Data: {
             txsWithoutSigners: depositSwapData,
             signer: Data.signer,
             clusterOrUrl: Data.clusterOrUrl,
-            skipSimulation: Data.skipSimulation,
+            simulation: Data.simulation,
         });
         if (Data.confirmTransaction) {
             const confirmArray = await isConfirmedTx({
