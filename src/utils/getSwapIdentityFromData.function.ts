@@ -1,4 +1,4 @@
-import { PublicKey } from "@solana/web3.js";
+import { PublicKey, SystemProgram } from "@solana/web3.js";
 import { utils } from "@project-serum/anchor";
 import { SWAP_PROGRAM_ID } from "./const";
 import { ErrorFeedback, SwapData, SwapIdentity } from "./types";
@@ -16,6 +16,7 @@ export function getSwapIdentityFromData(Data: { swapData: SwapData }): SwapIdent
                     x.destinary.toString()
                 ).localeCompare(y.mint.toString() + y.owner.toString() + y.destinary.toString());
             })
+
             .forEach((item) => {
                 seed += item.mint;
                 seed += item.owner;
@@ -28,7 +29,13 @@ export function getSwapIdentityFromData(Data: { swapData: SwapData }): SwapIdent
             [swapDataAccount_seed],
             SWAP_PROGRAM_ID
         );
-
+        if (!Data.swapData.acceptedPayement)
+            Data.swapData.items.map((item) => {
+                if (!item.mint.equals(SystemProgram.programId) && !item.isNft)
+                    Data.swapData.acceptedPayement = item.mint;
+            });
+        Data.swapData.nbItems = Data.swapData.items.length;
+        Data.swapData.status = 0;
         return {
             swapDataAccount_publicKey,
             swapDataAccount_seed,

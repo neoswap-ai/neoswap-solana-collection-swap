@@ -206,7 +206,13 @@ async function getAddInitilizeInstructions(Data: {
                         " amount ",
                         item.amount.toNumber(),
                         " - XXX",
-                        item
+                        item,
+                        "swapDataAccount_seed",
+                        Data.swapIdentity.swapDataAccount_seed,
+                        "swapDataAccount_publicKey",
+                        Data.swapIdentity.swapDataAccount_publicKey.toBase58(),
+                        "signer",
+                        Data.signer.toBase58()
                     );
                     chunkIx.push(
                         await Data.program.methods
