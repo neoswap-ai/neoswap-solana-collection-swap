@@ -1,10 +1,21 @@
 {
-    "name": "neo-swap-npm_git",
-    "version": "0.0.1",
-    "repository": "",
+    "name": "@neoswap/solana",
+    "version": "0.0.11",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/neoswap-ai/neo-swap-npm.git"
+    },
     "description": "NPM package for NeoSwap",
-    "author": "",
+    "author": "NeoSwap",
     "license": "MIT",
+    "main": "./dist/lib/es5/index.js",
+    "module": "./dist/lib/es6/index.js",
+    "sideEffects": false,
+    "files": [
+        "/dist/lib",
+        "./package.json",
+        "./dist/README.md"
+    ],
     "scripts": {
         "compile": "rm -rf dist/lib && tsc && tsc --build tsconfig.es5.json"
     },

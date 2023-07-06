@@ -11,7 +11,7 @@ export async function apiProcessor(Data: {
     signer: Keypair;
     // swapDataAccount: PublicKey;
     simulation?: boolean;
-    confirmTransaction?: boolean;
+    skipConfirmation?: boolean;
 }): Promise<string[]> {
     let apiProcessorData = await apiProcessorTranscript({
         config: Data.apiProcessorData.config,
@@ -24,7 +24,7 @@ export async function apiProcessor(Data: {
             clusterOrUrl: Data.clusterOrUrl,
             simulation: !Data.simulation,
         });
-        if (Data.confirmTransaction) {
+        if (!Data.skipConfirmation) {
             const confirmArray = await isConfirmedTx({
                 clusterOrUrl: Data.clusterOrUrl,
                 transactionHashs,

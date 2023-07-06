@@ -11,7 +11,7 @@ export async function claimAndCloseSwap(Data: {
     signer: Keypair;
     clusterOrUrl: Cluster | string;
     simulation?: boolean;
-    confirmTransaction?: boolean;
+    skipConfirmation?: boolean;
 }): Promise<string[]> {
     let txToSend: TxWithSigner[] = [];
     let validateDepositTxData = await validateDeposit({
@@ -47,7 +47,7 @@ export async function claimAndCloseSwap(Data: {
         clusterOrUrl: Data.clusterOrUrl,
         simulation: Data.simulation,
     });
-    if (Data.confirmTransaction) {
+    if (!Data.skipConfirmation) {
         const confirmArray = await isConfirmedTx({
             clusterOrUrl: Data.clusterOrUrl,
             transactionHashs,

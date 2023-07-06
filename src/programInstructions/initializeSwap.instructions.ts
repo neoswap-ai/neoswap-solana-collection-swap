@@ -171,7 +171,7 @@ async function getAddInitilizeInstructions(Data: {
                         program: Data.program,
                         signer: Data.signer,
                     });
-                    if (!item.amount.isNeg() && !item.mint.equals(SystemProgram.programId)) {
+                    if (item.amount.isNeg() && !item.mint.equals(SystemProgram.programId)) {
                         // console.log("check balance");
 
                         const balance =
@@ -205,7 +205,8 @@ async function getAddInitilizeInstructions(Data: {
                         item.owner.toBase58(),
                         " amount ",
                         item.amount.toNumber(),
-                        " - XXX"
+                        " - XXX",
+                        item
                     );
                     chunkIx.push(
                         await Data.program.methods

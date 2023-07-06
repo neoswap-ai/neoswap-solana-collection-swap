@@ -4,7 +4,7 @@ import { SWAP_PROGRAM_ID } from "./const";
 import { ErrorFeedback, SwapData, SwapIdentity } from "./types";
 
 export function getSwapIdentityFromData(Data: { swapData: SwapData }): SwapIdentity {
-    // console.log("swapdata", Data.swapData);
+    console.log("swapdata", Data.swapData);
     try {
         let seed = Data.swapData.preSeed;
 

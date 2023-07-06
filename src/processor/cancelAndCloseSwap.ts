@@ -10,7 +10,7 @@ export async function cancelAndCloseSwap(Data: {
     signer: Keypair;
     clusterOrUrl: Cluster | string;
     simulation?: boolean;
-    confirmTransaction?: boolean;
+    skipConfirmation?: boolean;
     // preSeed: string;
 }): Promise<string[]> {
     let txToSend: TxWithSigner[] = [];
@@ -39,7 +39,7 @@ export async function cancelAndCloseSwap(Data: {
         simulation: Data.simulation,
     });
 
-    if (Data.confirmTransaction) {
+    if (!Data.skipConfirmation) {
         const confirmArray = await isConfirmedTx({
             clusterOrUrl: Data.clusterOrUrl,
             transactionHashs,

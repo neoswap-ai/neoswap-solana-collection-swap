@@ -9,12 +9,14 @@ export async function initializeSwap(Data: {
     signer: Keypair;
     clusterOrUrl: Cluster | string;
     simulation?: boolean;
-    confirmTransaction?: boolean;
+    skipConfirmation?: boolean;
 }): Promise<{
     programId: string;
     swapIdentity: SwapIdentity;
     transactionHashs: string[];
 }> {
+    console.log("swapData", Data.swapData);
+
     let initSwapData = await createInitializeSwapInstructions({
         swapData: Data.swapData,
         signer: Data.signer.publicKey,
@@ -27,8 +29,11 @@ export async function initializeSwap(Data: {
             clusterOrUrl: Data.clusterOrUrl,
             simulation: Data.simulation,
         });
-        if (Data.confirmTransaction) {
-            const confirmArray = await isConfirmedTx({ clusterOrUrl: Data.clusterOrUrl, transactionHashs });
+        if (!Data.skipConfirmation) {
+            const confirmArray = await isConfirmedTx({
+                clusterOrUrl: Data.clusterOrUrl,
+                transactionHashs,
+            });
             confirmArray.forEach((confirmTx) => {
                 if (!confirmTx.isConfirmed)
                     throw {
