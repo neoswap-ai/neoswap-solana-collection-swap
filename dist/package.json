@@ -1,6 +1,6 @@
 {
     "name": "@neoswap/solana",
-    "version": "0.0.4",
+    "version": "0.0.",
     "repository": {
         "type": "git",
         "url": "git+https://github.com/neoswap-ai/neo-swap-npm.git"

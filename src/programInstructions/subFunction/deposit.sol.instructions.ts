@@ -20,7 +20,7 @@ export async function getDepositSolInstruction(Data: {
     let signerAta = Data.signer;
     let newAtas = Data.ataList;
 
-    if (Data.mint !== SystemProgram.programId) {
+    if (!Data.mint.equals(SystemProgram.programId)) {
         const { mintAta: userAta, instruction: userAtaIx } = await findOrCreateAta({
             program: Data.program,
             owner: Data.signer,

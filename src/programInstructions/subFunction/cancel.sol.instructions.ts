@@ -22,7 +22,7 @@ export async function getCancelSolInstructions(Data: {
     let userAta = Data.signer;
     let newAtas = [];
 
-    if (Data.mint !== SystemProgram.programId) {
+    if (!Data.mint.equals(SystemProgram.programId)) {
         const { mintAta: foundUserAta, instruction: userAtaIx } = await findOrCreateAta({
             program: Data.program,
             owner: Data.user,

@@ -2,6 +2,7 @@ import { PublicKey, SystemProgram } from "@solana/web3.js";
 import { utils } from "@project-serum/anchor";
 import { SWAP_PROGRAM_ID } from "./const";
 import { ErrorFeedback, SwapData, SwapIdentity } from "./types";
+import { bs58 } from "@project-serum/anchor/dist/cjs/utils/bytes";
 
 export function getSwapIdentityFromData(Data: { swapData: SwapData }): SwapIdentity {
     console.log("swapdata", Data.swapData);
@@ -40,7 +41,7 @@ export function getSwapIdentityFromData(Data: { swapData: SwapData }): SwapIdent
             swapDataAccount_publicKey,
             swapDataAccount_seed,
             swapDataAccount_bump,
-            // preSeed: Data.swapData.preSeed,
+            swapDataAccount_seedString: bs58.encode(swapDataAccount_seed),
             swapData: Data.swapData,
         };
     } catch (error) {

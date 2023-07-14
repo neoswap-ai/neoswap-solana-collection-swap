@@ -21,8 +21,8 @@ export type SwapData = {
 export type SwapIdentity = {
     swapDataAccount_publicKey: PublicKey;
     swapDataAccount_seed: Buffer;
+    swapDataAccount_seedString: string;
     swapDataAccount_bump: number;
-    // preSeed: string;
     swapData: SwapData;
 };
 

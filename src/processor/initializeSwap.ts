@@ -12,8 +12,9 @@ export async function initializeSwap(Data: {
     skipConfirmation?: boolean;
 }): Promise<{
     programId: string;
-    swapIdentity: SwapIdentity;
+    swapIdentity: string;
     transactionHashs: string[];
+    swapDataAccount: string;
 }> {
     console.log("swapData", Data.swapData);
 
@@ -45,13 +46,15 @@ export async function initializeSwap(Data: {
         }
         return {
             programId: initSwapData.programId,
-            swapIdentity: initSwapData.swapIdentity,
+
+            swapDataAccount: initSwapData.swapIdentity.swapDataAccount_publicKey.toString(),
+            swapIdentity: JSON.stringify(initSwapData.swapIdentity),
             transactionHashs,
         };
     } catch (error) {
         throw {
             programId: initSwapData.programId,
-            swapIdentity: initSwapData.swapIdentity,
+            swapIdentity: JSON.stringify(initSwapData.swapIdentity),
             blockchain: "solana",
             status: "error",
             message: error,

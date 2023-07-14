@@ -10,7 +10,7 @@ export async function prepareDepositSwapInstructions(Data: {
     swapDataAccount: PublicKey;
     user: PublicKey;
     clusterOrUrl: Cluster | string;
-}): Promise<ApiProcessorData> {
+}): Promise<ApiProcessorData[]> {
     try {
         const program = getProgram({ clusterOrUrl: Data.clusterOrUrl });
 
@@ -161,7 +161,7 @@ export async function prepareDepositSwapInstructions(Data: {
             finalDepositInstruction.config.push(...apiInstruction.config);
         });
 
-        return finalDepositInstruction;
+        return [finalDepositInstruction];
     } catch (error) {
         throw { blockchain: "solana", message: error, order: 0, status: "error" } as ErrorFeedback;
     }

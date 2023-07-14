@@ -25,15 +25,15 @@ import { userSwapDetails } from "./utils/userSwapDetails.obj";
 export * as neoTypes from "./utils/types";
 export * as neoConst from "./utils/const";
 
-const nftAccounts = {
+const NFT_ACCOUNTS = {
     findNftDataAndMetadataAccount,
     findNftMasterEdition,
     findRuleSet,
     findUserTokenRecord,
 };
 
-const utils = {
-    nftAccounts,
+const UTILS = {
+    NFT_ACCOUNTS,
     getProgram,
     getSwapDataAccountFromPublicKey,
     getSwapIdentityFromData,
@@ -42,7 +42,7 @@ const utils = {
     isConfirmedTx,
     findOrCreateAta,
 };
-const createInstructions = {
+const CREATE_INSTRUCTIONS = {
     createInitializeSwapInstructions,
     createDepositSwapInstructions,
     createClaimSwapInstructions,
@@ -51,14 +51,14 @@ const createInstructions = {
     apiProcessorTranscript,
 };
 
-export const neoSwapNpm = {
+export const neoSwap = {
     initializeSwap,
     depositSwap,
     claimAndCloseSwap,
     cancelAndCloseSwap,
     apiProcessor,
-    utils,
-    createInstructions,
+    UTILS,
+    CREATE_INSTRUCTIONS,
 };
 
 // export default neoSwapNpm;

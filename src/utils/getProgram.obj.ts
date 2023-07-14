@@ -1,13 +1,12 @@
 import { Cluster, Connection, Keypair, PublicKey, Signer, clusterApiUrl } from "@solana/web3.js";
 
 import { idlSwap } from "./neoSwap.idl";
-import { idlOrdinals } from "./ordinals.idl";
-import { Program, Wallet, AnchorProvider } from "@project-serum/anchor";
-import { SWAP_PROGRAM_ID, ORDINAL_PROGRAM_ID } from "./const";
+import { Program, AnchorProvider } from "@project-serum/anchor";
+import { SWAP_PROGRAM_ID } from "./const";
+import NodeWallet from "@project-serum/anchor/dist/cjs/nodewallet";
 
 export function getProgram(Data: {
     clusterOrUrl: Cluster | string;
-    isOrdinals?: boolean;
     programId?: PublicKey;
     signer?: Keypair;
 }): Program {
@@ -21,20 +20,16 @@ export function getProgram(Data: {
     } else {
         clusterUrl = Data.clusterOrUrl;
     }
+    console.log("clusterUrl", clusterUrl);
 
     const connection = new Connection(clusterUrl, "confirmed");
     if (!Data.signer) Data.signer = Keypair.generate();
-    const wallet = new Wallet(Data.signer);
+    const wallet = new NodeWallet(Data.signer);
 
     const provider = new AnchorProvider(connection, wallet, AnchorProvider.defaultOptions());
 
     let idl_ = idlSwap;
     let programId_ = new PublicKey(SWAP_PROGRAM_ID);
-
-    if (Data.isOrdinals) {
-        idl_ = idlOrdinals;
-        programId_ = new PublicKey(ORDINAL_PROGRAM_ID);
-    }
 
     if (Data.programId) programId_ = new PublicKey(Data.programId);
 

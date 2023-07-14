@@ -37,7 +37,6 @@ export const apiProcessorTranscript = async (Data: {
                 };
                 program = getProgram({
                     clusterOrUrl: "devnet",
-                    isOrdinals: true,
                     programId: Data.programId,
                 });
 
@@ -54,7 +53,6 @@ export const apiProcessorTranscript = async (Data: {
                 // program = await Data.getProgram(new PublicKey(item.ordinalsSc), ordinalIdl);
                 program = getProgram({
                     clusterOrUrl: "devnet",
-                    isOrdinals: true,
                     programId: Data.programId,
                 });
                 let closeAccountIx = createCloseAccountInstruction(

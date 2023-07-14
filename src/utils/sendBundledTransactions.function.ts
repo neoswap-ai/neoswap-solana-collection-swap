@@ -33,6 +33,7 @@ export async function sendBundledTransactions(Data: {
         const transactionHashs = await program.provider.sendAll(txsWithSigners, {
             skipPreflight: !Data.simulation,
         });
+        // console.log("transactionHashs: ", transactionHashs);
 
         return transactionHashs;
     } catch (error) {

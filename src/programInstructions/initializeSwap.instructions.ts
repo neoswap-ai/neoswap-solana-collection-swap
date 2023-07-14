@@ -22,6 +22,15 @@ export async function createInitializeSwapInstructions(Data: {
     transactions: TxWithSigner[];
 }> {
     if (!Data.swapData.preSeed) Data.swapData.preSeed = "0000";
+    if (Data.swapData.nbItems !== Data.swapData.items.length || !Data.swapData.nbItems) {
+        Data.swapData.nbItems = Data.swapData.items.length;
+    }
+    if (!Data.swapData.acceptedPayement) Data.swapData.acceptedPayement = SystemProgram.programId;
+    // throw {
+    //     blockchain: "solana",
+    //     status: "error",
+    //     message: "Missing acceptedPayement",
+    // };
     const program = getProgram({ clusterOrUrl: Data.clusterOrUrl });
 
     const swapIdentity = getSwapIdentityFromData({
@@ -82,14 +91,12 @@ export async function createInitializeSwapInstructions(Data: {
     } catch (error) {
         console.log("error init", error);
 
-        throw [
-            {
-                blockchain: "solana",
-                status: "error",
-                message: error,
-                ...swapIdentity,
-            },
-        ];
+        throw {
+            blockchain: "solana",
+            status: "error",
+            message: error,
+            ...swapIdentity,
+        };
     }
 }
 

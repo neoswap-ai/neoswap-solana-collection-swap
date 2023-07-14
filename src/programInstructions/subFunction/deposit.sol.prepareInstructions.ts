@@ -20,7 +20,7 @@ export async function prepareDepositSolInstruction(Data: {
     let userAta = Data.signer;
     let swapDataAccountAta = Data.swapIdentity.swapDataAccount_publicKey;
 
-    if (Data.mint !== SystemProgram.programId) {
+    if (!Data.mint.equals(SystemProgram.programId)) {
         const { mintAta: foundUserAta, prepareInstruction: userAtaIx } = await findOrCreateAta({
             program: Data.program,
             owner: Data.signer,
