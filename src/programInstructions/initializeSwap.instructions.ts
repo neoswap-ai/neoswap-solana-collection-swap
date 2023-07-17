@@ -76,7 +76,7 @@ export async function createInitializeSwapInstructions(Data: {
                 });
             });
         } else {
-            console.log("skip addInstrutions");
+            console.log("Add-Instrutions was skipped");
         }
 
         transactions.push({
@@ -129,7 +129,7 @@ async function getInitInitilizeInstruction(Data: {
             })
             .instruction();
     } else {
-        console.log("swap Account already initialized");
+        // console.log("swap Account already initialized");
         return undefined;
     }
 }
@@ -212,14 +212,7 @@ async function getAddInitilizeInstructions(Data: {
                         item.owner.toBase58(),
                         " amount ",
                         item.amount.toNumber(),
-                        " - XXX",
-                        item,
-                        "swapDataAccount_seed",
-                        Data.swapIdentity.swapDataAccount_seed,
-                        "swapDataAccount_publicKey",
-                        Data.swapIdentity.swapDataAccount_publicKey.toBase58(),
-                        "signer",
-                        Data.signer.toBase58()
+                        " - XXX"
                     );
                     chunkIx.push(
                         await Data.program.methods

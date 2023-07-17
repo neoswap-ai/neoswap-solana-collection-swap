@@ -19,9 +19,7 @@ export async function claimAndCloseSwap(Data: {
         signer: Data.signer.publicKey,
         clusterOrUrl: Data.clusterOrUrl,
     });
-    if (validateDepositTxData) {
-        txToSend.push(...validateDepositTxData);
-    }
+    if (validateDepositTxData) txToSend.push(...validateDepositTxData);
 
     let claimTxData = await createClaimSwapInstructions({
         swapDataAccount: Data.swapDataAccount,
@@ -29,10 +27,7 @@ export async function claimAndCloseSwap(Data: {
         clusterOrUrl: Data.clusterOrUrl,
     });
 
-    if (claimTxData) {
-        txToSend.push(...claimTxData);
-        console.log("found ", claimTxData.length, " items to claim");
-    }
+    if (claimTxData) txToSend.push(...claimTxData);
 
     let validateClaimTxData = await createValidateClaimedInstructions({
         swapDataAccount: Data.swapDataAccount,

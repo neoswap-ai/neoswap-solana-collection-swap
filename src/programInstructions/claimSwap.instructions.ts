@@ -116,6 +116,7 @@ export async function createClaimSwapInstructions(Data: {
             }
         }
         if (claimTransactionInstruction.length > 0) {
+            console.log("found ", claimTransactionInstruction.length, " items to claim");
             return claimTransactionInstruction;
         } else {
             return undefined;

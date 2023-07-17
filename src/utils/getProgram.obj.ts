@@ -20,7 +20,7 @@ export function getProgram(Data: {
     } else {
         clusterUrl = Data.clusterOrUrl;
     }
-    console.log("clusterUrl", clusterUrl);
+    // console.log("clusterUrl", clusterUrl);
 
     const connection = new Connection(clusterUrl, "confirmed");
     if (!Data.signer) Data.signer = Keypair.generate();

@@ -70,7 +70,7 @@ export const createDepositOrdinalIx = async (params: {
     }
     if (tokenWrappingIx.length !== 0) Ixs.push(...tokenWrappingIx);
 
-    console.log("deposit tokeens in the escrow");
+    console.log("deposit tokens in the escrow");
     const instruction = await params.program.methods
         .depositToken(offerSeed, offerBump, adminBump)
         .accounts({

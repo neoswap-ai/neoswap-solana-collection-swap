@@ -15,7 +15,7 @@ export const createValidateClaimedInstructions = async (Data: {
         program,
         swapDataAccount_publicKey: Data.swapDataAccount,
     });
-    console.log("swapData", swapData);
+    // console.log("swapData", swapData);
 
     if (!swapData) {
         throw {

@@ -127,6 +127,7 @@ export async function createDepositSwapInstructions(Data: {
             message: "You have no items to escrow in this swap",
         } as ErrorFeedback;
     }
+    console.log("found ", depositInstruction.length, " items to deposit");
 
     return depositInstruction;
 }

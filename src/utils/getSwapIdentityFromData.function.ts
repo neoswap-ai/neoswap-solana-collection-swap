@@ -5,7 +5,7 @@ import { ErrorFeedback, SwapData, SwapIdentity } from "./types";
 import { bs58 } from "@project-serum/anchor/dist/cjs/utils/bytes";
 
 export function getSwapIdentityFromData(Data: { swapData: SwapData }): SwapIdentity {
-    console.log("swapdata", Data.swapData);
+    // console.log("swapdata", Data.swapData);
     try {
         let seed = Data.swapData.preSeed;
 

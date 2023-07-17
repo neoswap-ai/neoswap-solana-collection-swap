@@ -16,7 +16,7 @@ export async function initializeSwap(Data: {
     transactionHashs: string[];
     swapDataAccount: string;
 }> {
-    console.log("swapData", Data.swapData);
+    // console.log("swapData", Data.swapData);
 
     let initSwapData = await createInitializeSwapInstructions({
         swapData: Data.swapData,

@@ -160,6 +160,7 @@ export async function prepareDepositSwapInstructions(Data: {
             });
             finalDepositInstruction.config.push(...apiInstruction.config);
         });
+        console.log("found ", finalDepositInstruction.config.length, " items to deposit");
 
         return [finalDepositInstruction];
     } catch (error) {
