@@ -8,7 +8,7 @@ import {
     Transaction,
     TransactionInstruction,
 } from "@solana/web3.js";
-import { ErrorFeedback, ItemStatus, SwapData, SwapIdentity, TxWithSigner } from "../utils/types";
+import { ErrorFeedback, InitializeData, ItemStatus, SwapData, SwapIdentity, TxWithSigner } from "../utils/types";
 import { Program } from "@project-serum/anchor";
 import { findOrCreateAta } from "../utils/findOrCreateAta.function";
 
@@ -16,11 +16,7 @@ export async function createInitializeSwapInstructions(Data: {
     swapData: SwapData;
     signer: PublicKey;
     clusterOrUrl: Cluster | string;
-}): Promise<{
-    swapIdentity: SwapIdentity;
-    programId: string;
-    transactions: TxWithSigner[];
-}> {
+}): Promise<InitializeData> {
     if (!Data.swapData.preSeed) Data.swapData.preSeed = "0000";
     if (Data.swapData.nbItems !== Data.swapData.items.length || !Data.swapData.nbItems) {
         Data.swapData.nbItems = Data.swapData.items.length;
@@ -57,10 +53,10 @@ export async function createInitializeSwapInstructions(Data: {
             signer: Data.signer,
         });
 
-        let transactions: TxWithSigner[] = [];
+        let txWithoutSigner: TxWithSigner[] = [];
 
         if (initInstruction) {
-            transactions.push({
+            txWithoutSigner.push({
                 tx: new Transaction().add(initInstruction),
                 // signers: [signer],
             });
@@ -70,7 +66,7 @@ export async function createInitializeSwapInstructions(Data: {
 
         if (addInstructions) {
             addInstructions.map((addInstruction) => {
-                transactions.push({
+                txWithoutSigner.push({
                     tx: new Transaction().add(...addInstruction),
                     // signers: [signer],
                 });
@@ -79,14 +75,14 @@ export async function createInitializeSwapInstructions(Data: {
             console.log("Add-Instrutions was skipped");
         }
 
-        transactions.push({
+        txWithoutSigner.push({
             tx: new Transaction().add(validateInstruction),
         });
 
         return {
             swapIdentity,
             programId: program.programId.toBase58(),
-            transactions,
+            txWithoutSigner,
         };
     } catch (error) {
         console.log("error init", error);

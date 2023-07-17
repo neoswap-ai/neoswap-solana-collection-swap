@@ -41,21 +41,8 @@ export async function claimAndCloseSwap(Data: {
         signer: Data.signer,
         clusterOrUrl: Data.clusterOrUrl,
         simulation: Data.simulation,
+        skipConfirmation: Data.skipConfirmation,
     });
-    if (!Data.skipConfirmation) {
-        const confirmArray = await isConfirmedTx({
-            clusterOrUrl: Data.clusterOrUrl,
-            transactionHashs,
-        });
-        confirmArray.forEach((confirmTx) => {
-            if (!confirmTx.isConfirmed)
-                throw {
-                    blockchain: "solana",
-                    status: "error",
-                    message: `some transaction were not confirmed ${confirmArray}`,
-                } as ErrorFeedback;
-        });
-    }
 
     return transactionHashs;
 }

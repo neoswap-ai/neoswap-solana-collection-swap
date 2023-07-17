@@ -1,6 +1,7 @@
 import { Cluster, Keypair } from "@solana/web3.js";
 import { getProgram } from "./getProgram.obj";
-import { TxWithSigner } from "./types";
+import { ErrorFeedback, TxWithSigner } from "./types";
+import { isConfirmedTx } from "./isConfirmedTx.function";
 
 // const getProgram  from "./getProgram.obj");
 
@@ -9,6 +10,7 @@ export async function sendBundledTransactions(Data: {
     signer: Keypair;
     clusterOrUrl: Cluster | string;
     simulation?: boolean;
+    skipConfirmation?: boolean;
 }): Promise<string[]> {
     try {
         // console.log(txWithSigners);
@@ -33,6 +35,21 @@ export async function sendBundledTransactions(Data: {
         const transactionHashs = await program.provider.sendAll(txsWithSigners, {
             skipPreflight: !Data.simulation,
         });
+
+        if (!Data.skipConfirmation) {
+            const confirmArray = await isConfirmedTx({
+                clusterOrUrl: Data.clusterOrUrl,
+                transactionHashs,
+            });
+            confirmArray.forEach((confirmTx) => {
+                if (!confirmTx.isConfirmed)
+                    throw {
+                        blockchain: "solana",
+                        status: "error",
+                        message: `some transaction were not confirmed ${confirmArray.toString()}`,
+                    } as ErrorFeedback;
+            });
+        }
         // console.log("transactionHashs: ", transactionHashs);
 
         return transactionHashs;

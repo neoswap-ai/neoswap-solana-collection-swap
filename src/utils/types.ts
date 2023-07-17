@@ -183,3 +183,9 @@ export enum ItemStatus {
     NFTcanceledRecovered = 110,
     SolcanceledRecovered = 111,
 }
+
+export type InitializeData = {
+    swapIdentity: SwapIdentity;
+    programId: string;
+    txWithoutSigner: TxWithSigner[];
+};
