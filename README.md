@@ -115,6 +115,42 @@ type ErrorFeedback = {
 };
 ```
 
+### Status
+
+#### Swap
+
+```
+TradeStatus:
+    0 => Initializing
+    1 => WaitingToDeposit
+    2 => WaitingToClaim
+    3 => Closed
+
+    100 => Canceling
+    101 => Canceled
+```
+
+#### Items
+
+```
+ItemStatus :
+    10 => NFTPending
+    11 => SolPending
+
+    20 => NFTDeposited
+    21 => SolDeposited
+    22 => SolToClaim
+
+    30 => NFTClaimed
+    31 => SolClaimed
+
+    100 => NFTcanceled
+    101 => Solcanceled
+
+    110 => NFTcanceledRecovered
+    111 => SolcanceledRecovered
+```
+
 ### Create Swap
 
 #### With signer
@@ -128,10 +164,10 @@ const initializeData: {
 } = await neoSwap.initializeSwap({
     clusterOrUrl: string, // "mainnet-beta" or "devnet" or URL
     swapPublicId: string, // IdentityString of the Swap
-    signer: Keypair, // User that will Create the swap and be admin
+    signer: Keypair, // Wallet that will Create the swap and be admin of the swap
     swapData: neoTypes.swapData, // Data of the swap
-    simulation: boolean, // default skip simulation and broadcast to blockchain (recommanded). If true: make simulation of the transactions before broadcasting them
-    skipConfirmation: boolean, // default iterates through the transactions to confirm status (return error if one fails with array of transactionhashes). If true: skip confirmation
+    simulation: Option<boolean>, // default skip simulation and broadcast to blockchain (recommanded). If true: make simulation of the transactions before broadcasting them
+    skipConfirmation: Option<boolean>, // default iterates through the transactions to confirm status (return error if one fails with array of transactionhashes). If true: skip confirmation
 });
 ```
 
@@ -146,7 +182,7 @@ const initializeSwapData: {
 } = await neoSwap.CREATE_INSTRUCTIONS.createInitializeSwapInstructions({
     clusterOrUrl: string, // "mainnet-beta" or "devnet" or URL
     swapData: neoTypes.swapData, // Data of the swap
-    signer: PublicKey, // User that will deposit assets in the swap
+    signer: PublicKey, // Wallet that will Create the swap and be admin of the swap
 });
 
 const provider = await getProvider(); //Import your own provider to broadcast transaction to blockchain via the user Wallet
@@ -169,10 +205,9 @@ const depositSwapHashes: string[] = // Array of confirmed transaction Hashes
     await neoSwap.depositSwap({
         clusterOrUrl: string, // "mainnet-beta" or "devnet" or URL
         swapDataAccount: PublicKey, // PublicKey of the PDA swapDataAccount
-        signer: Keypair, // User that will Create the swap and be admin
-        swapData: neoTypes.swapData, // Data of the swap
-        simulation: boolean, // default skip simulation and broadcast to blockchain (recommanded). If true: make simulation of the transactions before broadcasting them
-        skipConfirmation: boolean, // default iterates through the transactions to confirm status (return error if one fails with array of transactionhashes). If true: skip confirmation
+        signer: Keypair, // Wallet that will deposit in the swap
+        simulation: Option<boolean>, // OPTIONAL default: skip simulation and broadcast to blockchain (recommanded). If true: make simulation of the transactions before broadcasting them
+        skipConfirmation: Option<boolean>, // OPTIONAL default: iterates through the transactions to confirm status (return error if one fails with array of transactionhashes). If true: skip confirmation
     });
 ```
 
@@ -180,13 +215,92 @@ const depositSwapHashes: string[] = // Array of confirmed transaction Hashes
 
 ```ts
 import { neoSwap, neoTypes } from "@neoswap/solana";
-import { Transaction } from "@solana/web3.js";
 
 const transactionsWithoutSigners: neoTypes.TxWithSigner[] =
     await neoSwap.CREATE_INSTRUCTIONS.createDepositSwapInstructions({
         clusterOrUrl: string, // "mainnet-beta" or "devnet" or URL
-        swapPublicId: string, // IdentityString of the Swap
+        swapDataAccount: PublicKey, // PublicKey of the PDA swapDataAccount
         user: PublicKey, // User that will deposit assets in the swap
+    });
+
+const provider = await getProvider(); //Import your own provider to broadcast transaction to blockchain via the user Wallet
+
+for (let index = 0; index < transactionsWithoutSigners.length; index++) {
+    const transaction = transactionsWithoutSigners[index].tx;
+
+    const hash = await provider.sendAndConfirm(transaction);
+}
+```
+
+### claim Swap (requires to be admin)
+
+#### With signer
+
+```ts
+import { neoSwap, neoTypes } from "@neoswap/solana";
+
+const claimAndCloseSwapHashes: string[] = // Array of confirmed transaction Hashes
+    await neoSwap.claimAndCloseSwap({
+        clusterOrUrl: string, // "mainnet-beta" or "devnet" or URL
+        swapDataAccount: PublicKey, // PublicKey of the PDA swapDataAccount
+        signer: Keypair, // Wallet admin of swap
+        simulation: Option<boolean>, // OPTIONAL default: skip simulation and broadcast to blockchain (recommanded). If true: make simulation of the transactions before broadcasting them
+        skipConfirmation: Option<boolean>, // OPTIONAL default: iterates through the transactions to confirm status (return error if one fails with array of transactionhashes). If true: skip confirmation
+    });
+```
+
+#### Without signer
+
+```ts
+import { neoSwap, neoTypes } from "@neoswap/solana";
+
+const transactionsWithoutSigners: neoTypes.TxWithSigner[] =
+    await neoSwap.CREATE_INSTRUCTIONS.createClaimSwapInstructions({
+        clusterOrUrl: string, // "mainnet-beta" or "devnet" or URL
+        swapDataAccount: PublicKey, // PublicKey of the PDA swapDataAccount
+        signer: PublicKey, // Wallet admin of swap
+    });
+
+const provider = await getProvider(); //Import your own provider to broadcast transaction to blockchain via the user Wallet
+
+for (let index = 0; index < transactionsWithoutSigners.length; index++) {
+    const transaction = transactionsWithoutSigners[index].tx;
+
+    const hash = await provider.sendAndConfirm(transaction);
+}
+```
+
+### Cancel Swap (requires to be admin to finish closing accounts)
+
+Can only be cancelled when swap is initialized but not claimed (status: TradeStatus.WaitingToDeposit = 1)
+If the signer is the Initializer, it will cancel all items and close the PDA
+If signer is User, it will cancel his item ancd change the swap state to TradeStatus.Canceling (100)
+
+#### With signer
+
+```ts
+import { neoSwap, neoTypes } from "@neoswap/solana";
+
+const cancelAndCloseSwapHashes: string[] = // Array of confirmed transaction Hashes
+    await neoSwap.cancelAndCloseSwap({
+        clusterOrUrl: string, // "mainnet-beta" or "devnet" or URL
+        swapDataAccount: PublicKey, // PublicKey of the PDA swapDataAccount
+        signer: Keypair, // Wallet admin of swap OR User that want to cancel his item
+        simulation: Option<boolean>, // OPTIONAL default: skip simulation and broadcast to blockchain (recommanded). If true: make simulation of the transactions before broadcasting them
+        skipConfirmation: Option<boolean>, // OPTIONAL default: iterates through the transactions to confirm status (return error if one fails with array of transactionhashes). If true: skip confirmation
+    });
+```
+
+#### Without signer
+
+```ts
+import { neoSwap, neoTypes } from "@neoswap/solana";
+
+const transactionsWithoutSigners: neoTypes.TxWithSigner[] =
+    await neoSwap.CREATE_INSTRUCTIONS.createCancelSwapInstructions({
+        clusterOrUrl: string, // "mainnet-beta" or "devnet" or URL
+        swapDataAccount: PublicKey, // PublicKey of the PDA swapDataAccount
+        signer: PublicKey, // Wallet admin of swap OR User that want to cancel his item
     });
 
 const provider = await getProvider(); //Import your own provider to broadcast transaction to blockchain via the user Wallet
@@ -210,15 +324,13 @@ const hashArray: string[] = await neoSwap.UTILS.sendBundledTransactions({
     clusterOrUrl: string,                       // "mainnet-beta" or "devnet" or URL
     signer: Keypair,                            // Keypair of the wallet signing the transaction
     txsWithoutSigners: neoTypes.TxWithSigner[], // Array of transactions with empty Signer
-    simulation: boolean,                        // default skip simulation and broadcast to blockchain (recommanded). If true: make simulation of the transactions before broadcasting them
-    skipConfirmation: boolean,                  // default iterates through the transactions to confirm status (return error if one fails with array of transactionhashes). If true: skip confirmation
+    simulation: Option<boolean>,                // OPTIONAL default skip simulation and broadcast to blockchain (recommanded). If true: make simulation of the transactions before broadcasting them
+    skipConfirmation: Option<boolean>,          // OPTIONAL default iterates through the transactions to confirm status (return error if one fails with array of transactionhashes). If true: skip confirmation
 });
 ```
 
 <!-- MARKDOWN LINKS & IMAGES -->
-<!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
 
-[linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
 [neoswap-app]: https://www.neoswap.xyz
 [neoswap-logo2]: https://mma.prnewswire.com/media/2009538/NeoSwap_AI_Logo.jpg?w=200
 [neoswap-logo]: https://neoswap.xyz/static/media/logo.9762f0998529b1eaed83aee714bcb7cd.svg
