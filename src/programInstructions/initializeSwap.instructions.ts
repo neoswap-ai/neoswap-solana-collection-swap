@@ -8,7 +8,14 @@ import {
     Transaction,
     TransactionInstruction,
 } from "@solana/web3.js";
-import { ErrorFeedback, InitializeData, ItemStatus, SwapData, SwapIdentity, TxWithSigner } from "../utils/types";
+import {
+    ErrorFeedback,
+    InitializeData,
+    ItemStatus,
+    SwapData,
+    SwapIdentity,
+    TxWithSigner,
+} from "../utils/types";
 import { Program } from "@project-serum/anchor";
 import { findOrCreateAta } from "../utils/findOrCreateAta.function";
 
@@ -22,11 +29,8 @@ export async function createInitializeSwapInstructions(Data: {
         Data.swapData.nbItems = Data.swapData.items.length;
     }
     if (!Data.swapData.acceptedPayement) Data.swapData.acceptedPayement = SystemProgram.programId;
-    // throw {
-    //     blockchain: "solana",
-    //     status: "error",
-    //     message: "Missing acceptedPayement",
-    // };
+    console.log("swapData to initialize", Data.swapData);
+
     const program = getProgram({ clusterOrUrl: Data.clusterOrUrl });
 
     const swapIdentity = getSwapIdentityFromData({
@@ -81,7 +85,7 @@ export async function createInitializeSwapInstructions(Data: {
 
         return {
             swapIdentity,
-            programId: program.programId.toBase58(),
+            programId: program.programId,
             txWithoutSigner,
         };
     } catch (error) {

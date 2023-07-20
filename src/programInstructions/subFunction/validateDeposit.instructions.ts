@@ -35,14 +35,14 @@ export const validateDeposit = async (Data: {
             },
         ];
     }
-    if (!swapData.initializer.equals(Data.signer))
-        throw [
-            {
-                blockchain: "solana",
-                status: "error",
-                message: "Signer is not the initializer",
-            },
-        ];
+    // if (!swapData.initializer.equals(Data.signer))
+    //     throw [
+    //         {
+    //             blockchain: "solana",
+    //             status: "error",
+    //             message: "Signer is not the initializer",
+    //         },
+    //     ];
 
     const swapIdentity = getSwapIdentityFromData({
         swapData,

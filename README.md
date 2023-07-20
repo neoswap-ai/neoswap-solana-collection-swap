@@ -28,13 +28,13 @@
 
 <!-- ABOUT THE PROJECT -->
 
-### About The Project
+## About The Project
 
 [Neoswap Website](https://neoswap.xyz/)
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-### Install NPM package
+## Install NPM package
 
 ```sh
 npm install @neoswap/solana
@@ -44,9 +44,9 @@ npm install @neoswap/solana
 
 <!-- USAGE EXAMPLES -->
 
-## Usage
+# Usage
 
-### Types
+## Types
 
 SwapIdentity represents the Identity of the swap
 
@@ -102,7 +102,7 @@ TxWithSigner is an array of transaction to be broadcasted using sendAll method f
 type TxWithSigner = { tx: Transaction; signers?: Signer[] };
 ```
 
-### Error Type
+## Error Type
 
 ErrorFeedback represents the feedback thrown when an error is found
 
@@ -115,9 +115,9 @@ type ErrorFeedback = {
 };
 ```
 
-### Status
+## Status
 
-#### Swap
+### Swap
 
 ```
 TradeStatus:
@@ -130,7 +130,7 @@ TradeStatus:
     101 => Canceled
 ```
 
-#### Items
+### Items
 
 ```
 ItemStatus :
@@ -151,9 +151,9 @@ ItemStatus :
     111 => SolcanceledRecovered
 ```
 
-### Create Swap
+## Create Swap
 
-#### With signer
+### With signer
 
 ```ts
 import { neoSwap, neoTypes } from "@neoswap/solana";
@@ -171,11 +171,10 @@ const initializeData: {
 });
 ```
 
-#### Without signer
+### Without signer
 
 ```ts
 import { neoSwap, neoTypes } from "@neoswap/solana";
-import { Transaction } from "@solana/web3.js";
 
 const initializeSwapData: {
     initializeData: InitializeData; // Data after initializing the swap
@@ -194,9 +193,9 @@ for (let index = 0; index < initializeSwapData.transactions.length; index++) {
 }
 ```
 
-### Deposit Swap
+## Deposit Swap
 
-#### With signer
+### With signer
 
 ```ts
 import { neoSwap, neoTypes } from "@neoswap/solana";
@@ -211,7 +210,7 @@ const depositSwapHashes: string[] = // Array of confirmed transaction Hashes
     });
 ```
 
-#### Without signer
+### Without signer
 
 ```ts
 import { neoSwap, neoTypes } from "@neoswap/solana";
@@ -232,9 +231,9 @@ for (let index = 0; index < transactionsWithoutSigners.length; index++) {
 }
 ```
 
-### claim Swap (requires to be admin)
+## Claim Swap (requires to be admin)
 
-#### With signer
+### With signer
 
 ```ts
 import { neoSwap, neoTypes } from "@neoswap/solana";
@@ -249,7 +248,7 @@ const claimAndCloseSwapHashes: string[] = // Array of confirmed transaction Hash
     });
 ```
 
-#### Without signer
+### Without signer
 
 ```ts
 import { neoSwap, neoTypes } from "@neoswap/solana";
@@ -270,13 +269,15 @@ for (let index = 0; index < transactionsWithoutSigners.length; index++) {
 }
 ```
 
-### Cancel Swap (requires to be admin to finish closing accounts)
+## Cancel Swap (requires to be admin to finish closing accounts)
 
-Can only be cancelled when swap is initialized but not claimed (status: TradeStatus.WaitingToDeposit = 1)
-If the signer is the Initializer, it will cancel all items and close the PDA
+Can only be cancelled when swap is initialized (status: TradeStatus.WaitingToDeposit = 1)
+
+If the signer is the Initializer, it will cancel all items (or remaining ones) and close the PDA
+
 If signer is User, it will cancel his item ancd change the swap state to TradeStatus.Canceling (100)
 
-#### With signer
+### With signer
 
 ```ts
 import { neoSwap, neoTypes } from "@neoswap/solana";
@@ -291,7 +292,7 @@ const cancelAndCloseSwapHashes: string[] = // Array of confirmed transaction Has
     });
 ```
 
-#### Without signer
+### Without signer
 
 ```ts
 import { neoSwap, neoTypes } from "@neoswap/solana";

@@ -186,6 +186,6 @@ export enum ItemStatus {
 
 export type InitializeData = {
     swapIdentity: SwapIdentity;
-    programId: string;
+    programId: PublicKey;
     txWithoutSigner: TxWithSigner[];
 };
