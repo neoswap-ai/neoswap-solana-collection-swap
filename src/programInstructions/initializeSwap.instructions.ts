@@ -178,7 +178,10 @@ async function getAddInitilizeInstructions(Data: {
                         program: Data.program,
                         signer: Data.signer,
                     });
-                    if (item.amount.isNeg() && !item.mint.equals(SystemProgram.programId)) {
+                    if (
+                        Math.sign(item.amount.toNumber()) === 1 &&
+                        !item.mint.equals(SystemProgram.programId)
+                    ) {
                         // console.log("check balance");
 
                         const balance =

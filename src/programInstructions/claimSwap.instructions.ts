@@ -40,15 +40,16 @@ export async function createClaimSwapInstructions(Data: {
     if (swapData.initializer.equals(Data.signer)) {
         init = true;
         /// check no bad outcome possible
-    } else if (swapData.status !== TradeStatus.WaitingToClaim) {
-        throw {
-            blockchain: "solana",
-            status: "error",
-            message:
-                "Swap is't in the adequate status for Claiming an item & you're not Initializer",
-            swapStatus: swapData.status,
-        } as ErrorFeedback;
-    }
+    } 
+    // else if (swapData.status !== TradeStatus.WaitingToClaim) {
+    //     throw {
+    //         blockchain: "solana",
+    //         status: "error",
+    //         message:
+    //             "Swap is't in the adequate status for Claiming an item & you're not Initializer",
+    //         swapStatus: swapData.status,
+    //     } as ErrorFeedback;
+    // }
     const swapIdentity = getSwapIdentityFromData({
         swapData,
     });
@@ -61,6 +62,9 @@ export async function createClaimSwapInstructions(Data: {
             swapDataItem.status === ItemStatus.NFTDeposited ||
             swapDataItem.status === ItemStatus.SolToClaim
     );
+
+    if (!init)
+        swapDataItems = swapDataItems.filter((item) => item.destinary.equals(Data.signer));
 
     for (const swapDataItem of swapDataItems) {
         if (init === true || swapDataItem.destinary.equals(Data.signer)) {
