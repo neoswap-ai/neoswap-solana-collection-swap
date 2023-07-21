@@ -231,7 +231,11 @@ for (let index = 0; index < transactionsWithoutSigners.length; index++) {
 }
 ```
 
-## Claim Swap (requires to be admin)
+## Claim Swap
+
+- if signer is admin: function validates that all items are deposited (if needed), claims for all users (if needed) and closes the swap
+
+- if signer is user: function validates that all items are deposited (if needed) and claims for the user
 
 ### With signer
 
@@ -242,7 +246,7 @@ const claimAndCloseSwapHashes: string[] = // Array of confirmed transaction Hash
     await neoSwap.claimAndCloseSwap({
         clusterOrUrl: string, // "mainnet-beta" or "devnet" or URL
         swapDataAccount: PublicKey, // PublicKey of the PDA swapDataAccount
-        signer: Keypair, // Wallet admin of swap
+        signer: Keypair, // Wallet admin of swap or User that wish to claim his items
         simulation: Option<boolean>, // OPTIONAL default: skip simulation and broadcast to blockchain (recommanded). If true: make simulation of the transactions before broadcasting them
         skipConfirmation: Option<boolean>, // OPTIONAL default: iterates through the transactions to confirm status (return error if one fails with array of transactionhashes). If true: skip confirmation
     });
@@ -257,7 +261,7 @@ const transactionsWithoutSigners: neoTypes.TxWithSigner[] =
     await neoSwap.CREATE_INSTRUCTIONS.createClaimSwapInstructions({
         clusterOrUrl: string, // "mainnet-beta" or "devnet" or URL
         swapDataAccount: PublicKey, // PublicKey of the PDA swapDataAccount
-        signer: PublicKey, // Wallet admin of swap
+        signer: PublicKey, // Wallet admin of swap or User that wish to claim his items
     });
 
 const provider = await getProvider(); //Import your own provider to broadcast transaction to blockchain via the user Wallet
@@ -271,9 +275,9 @@ for (let index = 0; index < transactionsWithoutSigners.length; index++) {
 
 ## Cancel Swap (requires to be admin to finish closing accounts)
 
-Can only be cancelled when swap is initialized (status: TradeStatus.WaitingToDeposit = 1)
+Can only be cancelled when swap is in the state TradeStatus.WaitingToDeposit (1)
 
-If the signer is the Initializer, it will cancel all items (or remaining ones) and close the PDA
+If the signer is the Initializer, it will cancel all remaining items and close the PDA
 
 If signer is User, it will cancel his item ancd change the swap state to TradeStatus.Canceling (100)
 
