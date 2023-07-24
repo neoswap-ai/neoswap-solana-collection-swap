@@ -17,16 +17,34 @@ export async function findOrCreateAta(Data: {
     prepareInstructions?: boolean;
 }): Promise<{
     mintAta: PublicKey;
-    prepareInstruction?: CreateAssociatedTokenAccountInstructionData;
     instruction?: TransactionInstruction;
+    prepareInstruction?: CreateAssociatedTokenAccountInstructionData;
 }> {
     try {
+        let values: { address: PublicKey; value: number }[] = [];
+        let mintAtas = (
+            await Data.program.provider.connection.getTokenAccountsByOwner(Data.owner, {
+                mint: Data.mint,
+            })
+        ).value;
+
+        await Promise.all(
+            mintAtas.map(async (ata) => {
+                let balance = await Data.program.provider.connection.getTokenAccountBalance(
+                    ata.pubkey
+                );
+                if (balance.value.uiAmount || balance.value.uiAmount === 0)
+                    values.push({ value: balance.value.uiAmount, address: ata.pubkey });
+            })
+        );
+
+        values.sort((a, b) => b.value - a.value);
+        // console.log("users ATAs:"), values;
+
+        const mintAta = values[0].address;
+
         return {
-            mintAta: (
-                await Data.program.provider.connection.getTokenAccountsByOwner(Data.owner, {
-                    mint: Data.mint,
-                })
-            ).value[0].pubkey,
+            mintAta,
         };
     } catch (_) {
         const mintAta = PublicKey.findProgramAddressSync(
