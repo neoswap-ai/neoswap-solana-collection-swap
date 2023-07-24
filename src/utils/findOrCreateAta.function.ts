@@ -27,21 +27,23 @@ export async function findOrCreateAta(Data: {
                 mint: Data.mint,
             })
         ).value;
+        let mintAta = mintAtas[0].pubkey;
 
-        await Promise.all(
-            mintAtas.map(async (ata) => {
-                let balance = await Data.program.provider.connection.getTokenAccountBalance(
-                    ata.pubkey
-                );
-                if (balance.value.uiAmount || balance.value.uiAmount === 0)
-                    values.push({ value: balance.value.uiAmount, address: ata.pubkey });
-            })
-        );
+        if (mintAtas.length > 1) {
+            await Promise.all(
+                mintAtas.map(async (ata) => {
+                    let balance = await Data.program.provider.connection.getTokenAccountBalance(
+                        ata.pubkey
+                    );
+                    if (balance.value.uiAmount || balance.value.uiAmount === 0)
+                        values.push({ value: balance.value.uiAmount, address: ata.pubkey });
+                })
+            );
 
-        values.sort((a, b) => b.value - a.value);
+            values.sort((a, b) => b.value - a.value);
+            mintAta = values[0].address;
+        }
         // console.log("users ATAs:"), values;
-
-        const mintAta = values[0].address;
 
         return {
             mintAta,
