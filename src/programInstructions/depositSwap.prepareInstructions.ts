@@ -126,15 +126,11 @@ export async function prepareDepositSwapInstructions(Data: {
         isUserPartOfTrade === true &&
         isUserAlreadyDeposited === true
     ) {
-        return [
-            {
-                blockchain: "solana",
-                description: "You have already escrowed your items in this swap",
-                config: [],
-                order: 0,
-                type: "deposit",
-            },
-        ] as ApiProcessorData[];
+        throw {
+            blockchain: "solana",
+            message: "You have already escrowed your items in this swap",
+            status: "error",
+        } as ErrorFeedback;
     } else if (apiInstructions.length === 0 && isUserPartOfTrade === true) {
         throw {
             blockchain: "solana",
