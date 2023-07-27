@@ -1,5 +1,6 @@
 import { findOrCreateAta } from "../../utils/findOrCreateAta.function";
 import {
+    ComputeBudgetProgram,
     PublicKey,
     SYSVAR_INSTRUCTIONS_PUBKEY,
     SystemProgram,
@@ -34,7 +35,15 @@ export async function getCancelNftInstructions(Data: {
 }> {
     let instructions: TransactionInstruction[] = [];
     let newAtas: PublicKey[] = [];
+    const modifyComputeUnits = ComputeBudgetProgram.setComputeUnitLimit({
+        units: 600000,
+    });
 
+    const addPriorityFee = ComputeBudgetProgram.setComputeUnitPrice({
+        microLamports: 1,
+    });
+    instructions.push(modifyComputeUnits);
+    instructions.push(addPriorityFee);
     const { mintAta: destinaryAta, instruction: destinaryAtaIx } = await findOrCreateAta({
         program: Data.program,
         owner: Data.owner,

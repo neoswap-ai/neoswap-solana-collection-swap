@@ -1,6 +1,11 @@
 import { TokenStandard } from "@metaplex-foundation/mpl-token-metadata";
 import { findOrCreateAta } from "../../utils/findOrCreateAta.function";
-import { PublicKey, SYSVAR_INSTRUCTIONS_PUBKEY, SystemProgram } from "@solana/web3.js";
+import {
+    ComputeBudgetProgram,
+    PublicKey,
+    SYSVAR_INSTRUCTIONS_PUBKEY,
+    SystemProgram,
+} from "@solana/web3.js";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import {
     findNftDataAndMetadataAccount,
@@ -26,7 +31,15 @@ export async function getDepositNftInstruction(Data: {
 }) {
     let instructions = [];
     let newAtas = [];
+    const modifyComputeUnits = ComputeBudgetProgram.setComputeUnitLimit({
+        units: 600000,
+    });
 
+    const addPriorityFee = ComputeBudgetProgram.setComputeUnitPrice({
+        microLamports: 1,
+    });
+    instructions.push(modifyComputeUnits);
+    instructions.push(addPriorityFee);
     const { mintAta: userAta, instruction: userAtaIx } = await findOrCreateAta({
         program: Data.program,
         owner: Data.signer,
