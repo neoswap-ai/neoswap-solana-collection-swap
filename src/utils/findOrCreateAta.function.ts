@@ -38,7 +38,7 @@ export async function findOrCreateAta(Data: {
                 let balance = await Data.program.provider.connection.getTokenAccountBalance(
                     ata.pubkey
                 );
-                await delay(500);
+                await delay(1000);
                 if (balance.value.uiAmount || balance.value.uiAmount === 0)
                     values.push({ value: balance.value.uiAmount, address: ata.pubkey });
             }

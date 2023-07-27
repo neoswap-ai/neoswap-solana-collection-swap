@@ -192,7 +192,7 @@ async function getAddInitilizeInstructions(Data: {
                         tokenAccount.mintAta
                     );
                     console.log("balance ", balance.value.uiAmount, " / ", item.amount.toNumber());
-                    await delay(500);
+                    await delay(1000);
 
                     if (!balance.value.uiAmount && balance.value.uiAmount !== 0) {
                         returnData.push({
