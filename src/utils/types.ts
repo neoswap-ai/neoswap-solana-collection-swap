@@ -188,4 +188,5 @@ export type InitializeData = {
     swapIdentity: SwapIdentity;
     programId: PublicKey;
     txWithoutSigner: TxWithSigner[];
+    warning: string;
 };

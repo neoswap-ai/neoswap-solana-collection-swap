@@ -18,6 +18,7 @@ import {
 } from "../utils/types";
 import { Program } from "@project-serum/anchor";
 import { findOrCreateAta } from "../utils/findOrCreateAta.function";
+import { delay } from "../utils/delay";
 
 export async function createInitializeSwapInstructions(Data: {
     swapData: SwapData;
@@ -68,8 +69,8 @@ export async function createInitializeSwapInstructions(Data: {
             console.log("Init-Initialize swap skipped");
         }
 
-        if (addInstructions) {
-            addInstructions.map((addInstruction) => {
+        if (addInstructions.ix) {
+            addInstructions.ix.map((addInstruction) => {
                 txWithoutSigner.push({
                     tx: new Transaction().add(...addInstruction),
                     // signers: [signer],
@@ -87,6 +88,7 @@ export async function createInitializeSwapInstructions(Data: {
             swapIdentity,
             programId: program.programId,
             txWithoutSigner,
+            warning: addInstructions.warning,
         };
     } catch (error) {
         console.log("error init", error);
@@ -138,7 +140,10 @@ async function getAddInitilizeInstructions(Data: {
     program: Program;
     swapIdentity: SwapIdentity;
     signer: PublicKey;
-}): Promise<TransactionInstruction[][] | undefined> {
+}): Promise<{
+    ix: TransactionInstruction[][] | undefined;
+    warning: string;
+}> {
     let bcData: SwapData | undefined = undefined;
     try {
         bcData = await getSwapDataAccountFromPublicKey({
@@ -147,112 +152,107 @@ async function getAddInitilizeInstructions(Data: {
         });
         // console.log("bcData", bcData);
     } catch (error) {
-        //@ts-ignore
         // console.log("swapAccount doenst exist", error.message);
     }
 
     let transactionInstructionBundle = [];
     let chunkSize = 6;
-    let returnData: (ErrorFeedback | undefined)[] = [];
+    let returnData: ErrorFeedback[] = [];
     for (let index = 0; index < Data.swapIdentity.swapData.items.length; index += chunkSize) {
         const chunkIx: TransactionInstruction[] = [];
-        returnData = await Promise.all(
-            Data.swapIdentity.swapData.items.slice(index, index + chunkSize).map(async (item) => {
-                const alreadyExistItems = bcData?.items.filter(
-                    (itemSDA) =>
-                        itemSDA.mint.equals(item.mint) &&
-                        itemSDA.owner.equals(item.owner) &&
-                        itemSDA.destinary.equals(item.destinary)
-                );
-                // console.log("alreadyExistItems", alreadyExistItems?.length);
-                // if (!alreadyExistItems) {
-                //     console.log("should't go there");
-                // } else
-                if (alreadyExistItems?.length === 0 || !alreadyExistItems) {
-                    // console.log("alreadyExistItems", alreadyExistItems);
-                    // console.log("item", item);
 
+        for await (const item of Data.swapIdentity.swapData.items.slice(index, index + chunkSize)) {
+            const alreadyExistItems = bcData?.items.filter(
+                (itemSDA) =>
+                    itemSDA.mint.equals(item.mint) &&
+                    itemSDA.owner.equals(item.owner) &&
+                    itemSDA.destinary.equals(item.destinary)
+            );
+            // console.log("alreadyExistItems", alreadyExistItems?.length);
+            // if (!alreadyExistItems) {
+            //     console.log("should't go there");
+            // } else
+            if (alreadyExistItems?.length === 0 || !alreadyExistItems) {
+                // console.log("alreadyExistItems", alreadyExistItems);
+                // console.log("item", item);
+
+                if (
+                    Math.sign(item.amount.toNumber()) === 1 &&
+                    !item.mint.equals(SystemProgram.programId)
+                ) {
                     const tokenAccount = await findOrCreateAta({
                         mint: item.mint,
                         owner: item.owner,
                         program: Data.program,
                         signer: Data.signer,
                     });
-                    if (
-                        Math.sign(item.amount.toNumber()) === 1 &&
-                        !item.mint.equals(SystemProgram.programId)
-                    ) {
-                        // console.log("check balance");
+                    console.log("check balance");
 
-                        const balance =
-                            await Data.program.provider.connection.getTokenAccountBalance(
-                                tokenAccount.mintAta
-                            );
+                    const balance = await Data.program.provider.connection.getTokenAccountBalance(
+                        tokenAccount.mintAta
+                    );
+                    console.log("balance ", balance.value.uiAmount, " / ", item.amount.toNumber());
+                    await delay(500);
 
-                        if (!balance.value.uiAmount) {
-                            return {
-                                blockchain: "solana",
-                                order: 0,
-                                status: "error",
-                                message: `cannot retrieve the balance of ${tokenAccount.mintAta.toBase58()}`,
-                            } as ErrorFeedback;
-                        } else if (balance.value.uiAmount < item.amount.toNumber()) {
-                            return {
-                                blockchain: "solana",
-                                order: 0,
-                                status: "error",
-                                message: `found ${
-                                    balance.value.uiAmount
-                                } / ${item.amount.toNumber()}  in the associated token account ${tokenAccount.mintAta.toBase58()} linked to mint ${item.mint.toBase58()}`,
-                            } as ErrorFeedback;
-                        }
+                    if (!balance.value.uiAmount && balance.value.uiAmount !== 0) {
+                        returnData.push({
+                            blockchain: "solana",
+                            order: 0,
+                            status: "error",
+                            message: `\ncannot retrieve the balance of ${tokenAccount.mintAta.toBase58()} from user ${item.owner.toBase58()} with mint ${item.mint.toBase58()}}`,
+                        } as ErrorFeedback);
+                    } else if (balance.value.uiAmount < item.amount.toNumber()) {
+                        returnData.push({
+                            blockchain: "solana",
+                            order: 0,
+                            status: "error",
+                            message: `\nfound ${
+                                balance.value.uiAmount
+                            } / ${item.amount.toNumber()}  in the associated token account ${tokenAccount.mintAta.toBase58()} linked to mint ${item.mint.toBase58()} from user ${item.owner.toBase58()} `,
+                        } as ErrorFeedback);
                     }
-
-                    console.log(
-                        "XXX - added item ",
-                        item.mint.toBase58(),
-                        " from ",
-                        item.owner.toBase58(),
-                        " amount ",
-                        item.amount.toNumber(),
-                        " - XXX"
-                    );
-                    chunkIx.push(
-                        await Data.program.methods
-                            .initializeAdd(Data.swapIdentity.swapDataAccount_seed, item)
-                            .accounts({
-                                swapDataAccount:
-                                    Data.swapIdentity.swapDataAccount_publicKey.toBase58(),
-                                signer: Data.signer.toBase58(),
-                            })
-                            .instruction()
-                    );
                 }
-            })
-        );
-        if (chunkIx.length > 0) transactionInstructionBundle.push(chunkIx);
-    }
-    // console.log("returnData", returnData);
 
-    if (returnData.length > 0) {
-        let errorFeedback: ErrorFeedback = {
-            blockchain: "solana",
-            status: "error",
-            message: "",
-        };
-
-        for (let index = 0; index < returnData.length; index++) {
-            const element = returnData[index];
-            if (element) {
-                errorFeedback.message = String(errorFeedback.message).concat(
-                    `  /\/\  ` + String(element.message)
+                console.log(
+                    "XXX - added item ",
+                    item.mint.toBase58(),
+                    " from ",
+                    item.owner.toBase58(),
+                    " amount ",
+                    item.amount.toNumber(),
+                    " - XXX"
+                );
+                chunkIx.push(
+                    await Data.program.methods
+                        .initializeAdd(Data.swapIdentity.swapDataAccount_seed, item)
+                        .accounts({
+                            swapDataAccount: Data.swapIdentity.swapDataAccount_publicKey.toBase58(),
+                            signer: Data.signer.toBase58(),
+                        })
+                        .instruction()
                 );
             }
         }
 
-        if (errorFeedback.message !== "") {
-            throw errorFeedback;
+        // returnData = await Promise.all(
+        //     Data.swapIdentity.swapData.items.slice(index, index + chunkSize).map(async (item) => {})
+        // );
+        if (chunkIx.length > 0) transactionInstructionBundle.push(chunkIx);
+    }
+    // console.log("returnData", returnData);
+
+    let warning = "";
+    if (returnData.length > 0) {
+        for (let index = 0; index < returnData.length; index++) {
+            const element = returnData[index];
+            if (element) {
+                warning = String(warning).concat(`  /\/\  ` + String(element.message));
+            }
         }
+
+        // if (errorFeedback.message !== "") {
+        //     throw errorFeedback;
+        // }
     }
     let nbItems = 0;
     transactionInstructionBundle.forEach((transactionInstructionArray) => {
@@ -260,9 +260,9 @@ async function getAddInitilizeInstructions(Data: {
     });
     console.log("there is ", nbItems, " items to initialize");
     if (nbItems > 0) {
-        return transactionInstructionBundle;
+        return { ix: transactionInstructionBundle, warning };
     } else {
-        return undefined;
+        return { ix: undefined, warning };
     }
 }
 
