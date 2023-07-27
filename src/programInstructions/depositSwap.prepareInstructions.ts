@@ -128,7 +128,7 @@ export async function prepareDepositSwapInstructions(Data: {
     ) {
         throw {
             blockchain: "solana",
-            message: "You have already escrowed your items in this swap",
+            message: "You already escrowed your items",
             status: "error",
         } as ErrorFeedback;
     } else if (apiInstructions.length === 0 && isUserPartOfTrade === true) {
