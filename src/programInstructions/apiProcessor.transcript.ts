@@ -21,49 +21,6 @@ export const apiProcessorTranscript = async (Data: {
     let lastWasCreateAccount = false;
     for (const item of Data.config) {
         switch (item.type) {
-            case "create-offer":
-                console.log("OrdinalsOffer");
-                const offer: OrdinalsOffer = {
-                    sellerAddress: new PublicKey(item.sellerAddress),
-                    buyerAddress: new PublicKey(item.buyerAddress),
-                    bitcoinAddress: item.bitcoinAddress,
-                    ordinalsId: item.ordinalsId,
-                    cancelingTime: new BN(0),
-                    status: 0,
-                    tokenAccepted: new PublicKey(item.tokenAccepted),
-                    amount: new BN(item.amount * 10 ** 9),
-                    transferOrdinalsHash: item.transferOrdinalsHash,
-                    neoswapFee: new BN(item.neoswapFee),
-                };
-                program = getProgram({
-                    clusterOrUrl: "devnet",
-                    programId: Data.programId,
-                });
-
-                let createOrdinalSwapIx = await createNewOfferIx({ program, offer });
-                depositTransaction.push(new Transaction().add(createOrdinalSwapIx));
-
-                let depositOrdinalIx = await createDepositOrdinalIx({ program, offer });
-                depositTransaction[-1].add(...depositOrdinalIx);
-
-                lastWasCreateAccount = false;
-                break;
-
-            case "unwrap-sol":
-                // program = await Data.getProgram(new PublicKey(item.ordinalsSc), ordinalIdl);
-                program = getProgram({
-                    clusterOrUrl: "devnet",
-                    programId: Data.programId,
-                });
-                let closeAccountIx = createCloseAccountInstruction(
-                    new PublicKey(item.userAta),
-                    new PublicKey(item.user),
-                    new PublicKey(item.user)
-                );
-                console.log("unwrap sol");
-                depositTransaction.push(new Transaction().add(closeAccountIx));
-                lastWasCreateAccount = false;
-                break;
             case "createAssociatedTokenAccountInstruction":
                 // console.log("data", item.data);
                 let createAssociatedTokenAccountInstructionix =

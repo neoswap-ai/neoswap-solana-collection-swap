@@ -18,6 +18,34 @@ export type SwapData = {
     acceptedPayement: PublicKey;
 };
 
+export type SwapItem = {
+    address: string;
+    amount: number;
+    status?: "pending" | "deposited" | "claimed" | "returned";
+};
+
+export type SwapUserInfo = {
+    give: SwapItem[];
+    get: SwapItem[];
+    token: { amount: number; status?: string };
+    status?:
+        | "pending"
+        | "partiallyDeposited"
+        | "deposited"
+        | "partiallyClaimed"
+        | "claimed"
+        | "partiallyCanceled"
+        | "canceled";
+};
+
+export type SwapInfo = {
+    status?: "initializing" | "active" | "finalizing" | "finalized" | "canceling" | "canceled";
+    preSeed?: string;
+    currency: string;
+} & {
+    [userId: string]: SwapUserInfo;
+};
+
 export type SwapIdentity = {
     swapDataAccount_publicKey: PublicKey;
     swapDataAccount_seed: Buffer;
@@ -188,5 +216,5 @@ export type InitializeData = {
     swapIdentity: SwapIdentity;
     programId: PublicKey;
     txWithoutSigner: TxWithSigner[];
-    warning: string
+    warning: string;
 };

@@ -1,5 +1,5 @@
 export async function delay(time: number) {
-    console.log('delay');
+    // console.log('delay');
     
     return new Promise((resolve) => setTimeout(resolve, time));
 }

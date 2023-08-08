@@ -14,36 +14,32 @@ import {
     ItemStatus,
     SwapData,
     SwapIdentity,
+    SwapInfo,
     TxWithSigner,
 } from "../utils/types";
 import { Program } from "@project-serum/anchor";
 import { findOrCreateAta } from "../utils/findOrCreateAta.function";
 import { delay } from "../utils/delay";
+import { swapDataConverter } from "../utils/swapDataConverter.function";
 
 export async function createInitializeSwapInstructions(Data: {
-    swapData: SwapData;
+    swapInfo: SwapInfo;
     signer: PublicKey;
     clusterOrUrl: Cluster | string;
 }): Promise<InitializeData> {
-    if (!Data.swapData.preSeed) Data.swapData.preSeed = "0000";
-    if (Data.swapData.nbItems !== Data.swapData.items.length || !Data.swapData.nbItems) {
-        Data.swapData.nbItems = Data.swapData.items.length;
-    }
-    if (!Data.swapData.acceptedPayement) Data.swapData.acceptedPayement = SystemProgram.programId;
-    console.log("swapData to initialize", Data.swapData);
+    let swapIdentity = await swapDataConverter({ swapInfo: Data.swapInfo });
+    swapIdentity.swapData.initializer = Data.signer;
+    console.log("swapData to initialize", swapIdentity);
+    console.log("swapData ", swapIdentity.swapData.items);
 
     const program = getProgram({ clusterOrUrl: Data.clusterOrUrl });
-
-    const swapIdentity = getSwapIdentityFromData({
-        swapData: Data.swapData,
-    });
 
     try {
         const initInstruction = await getInitInitilizeInstruction({
             program,
             swapIdentity,
             signer: Data.signer,
-            acceptedPayement: Data.swapData.acceptedPayement,
+            // acceptedPayement: swapIdentity.swapData.acceptedPayement,
         });
 
         const addInstructions = await getAddInitilizeInstructions({
@@ -104,7 +100,7 @@ export async function createInitializeSwapInstructions(Data: {
 
 async function getInitInitilizeInstruction(Data: {
     program: Program;
-    acceptedPayement: PublicKey;
+    // acceptedPayement: PublicKey;
     swapIdentity: SwapIdentity;
     signer: PublicKey;
 }): Promise<TransactionInstruction | undefined> {
@@ -114,7 +110,7 @@ async function getInitInitilizeInstruction(Data: {
         nbItems: Data.swapIdentity.swapData.nbItems,
         preSeed: Data.swapIdentity.swapData.preSeed,
         status: Data.swapIdentity.swapData.status,
-        acceptedPayement: Data.acceptedPayement,
+        acceptedPayement: Data.swapIdentity.swapData.acceptedPayement,
     };
     const balanceSda = await Data.program.provider.connection.getBalance(
         Data.swapIdentity.swapDataAccount_publicKey

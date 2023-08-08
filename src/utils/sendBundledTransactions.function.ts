@@ -21,6 +21,8 @@ export async function sendBundledTransactions(Data: {
             txWithSigners.tx.feePayer = Data.signer.publicKey;
             return txWithSigners;
         });
+        // console.log('program',program);
+        
 
         console.log(
             "User ",
@@ -43,6 +45,8 @@ export async function sendBundledTransactions(Data: {
                 transactionHashs,
             });
             confirmArray.forEach((confirmTx) => {
+                console.log("validating ", confirmTx.transactionHash, " ...");
+
                 if (!confirmTx.isConfirmed)
                     throw {
                         blockchain: "solana",

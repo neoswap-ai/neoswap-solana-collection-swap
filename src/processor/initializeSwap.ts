@@ -1,11 +1,11 @@
 import { Cluster, Keypair } from "@solana/web3.js";
 import { createInitializeSwapInstructions } from "../programInstructions/initializeSwap.instructions";
 import { sendBundledTransactions } from "../utils/sendBundledTransactions.function";
-import { ErrorFeedback, InitializeData, SwapData, SwapIdentity } from "../utils/types";
+import { ErrorFeedback, InitializeData, SwapData, SwapIdentity, SwapInfo } from "../utils/types";
 import { isConfirmedTx } from "../utils/isConfirmedTx.function";
 
 export async function initializeSwap(Data: {
-    swapData: SwapData;
+    swapInfo: SwapInfo;
     signer: Keypair;
     clusterOrUrl: Cluster | string;
     simulation?: boolean;
@@ -17,7 +17,7 @@ export async function initializeSwap(Data: {
     // console.log("swapData", Data.swapData);
 
     let initializeData = await createInitializeSwapInstructions({
-        swapData: Data.swapData,
+        swapInfo: Data.swapInfo,
         signer: Data.signer.publicKey,
         clusterOrUrl: Data.clusterOrUrl,
     });
@@ -35,6 +35,8 @@ export async function initializeSwap(Data: {
             transactionHashs,
         };
     } catch (error) {
+        console.log("error", error);
+
         throw {
             ...(error as any),
             ...{
