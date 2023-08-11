@@ -23,7 +23,7 @@ export async function errorIfInsufficientBalance(Data: {
     // prepareInstructions?: boolean;
 }): Promise<boolean> {
     try {
-        if (!Data.mint.equals(NATIVE_MINT)) {
+        if (!NATIVE_MINT.toString().includes(Data.mint.toString())) {
             let values: { address: PublicKey; value: number }[] = [];
             let mintAtas = (
                 await Data.connection.getTokenAccountsByOwner(Data.owner, {
