@@ -4,17 +4,28 @@ import { SWAP_PROGRAM_ID } from "../../utils/const";
 import { Program } from "@project-serum/anchor";
 import { findOrCreateAta } from "../../utils/findOrCreateAta.function";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
+import { errorIfInsufficientBalance } from "../../utils/errorIfInsufficientBalance.function";
 
 export async function prepareDepositSolInstruction(Data: {
     program: Program;
     swapIdentity: SwapIdentity;
     signer: PublicKey;
+    amount: number;
     mint: PublicKey;
     ataList: PublicKey[];
 }): Promise<{
     instructions: ApiProcessorConfigType[];
     newAtas: PublicKey[];
 }> {
+
+    await errorIfInsufficientBalance({
+        amount: Data.amount,
+        connection: Data.program.provider.connection,
+        mint: Data.mint,
+        owner: Data.signer,
+    });
+
+    
     let instructions: ApiProcessorConfigType[] = [];
     let newAtas: PublicKey[] = [];
     let userAta = Data.signer;

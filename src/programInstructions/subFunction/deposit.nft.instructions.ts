@@ -21,14 +21,27 @@ import {
     SOLANA_SPL_ATA_PROGRAM_ID,
     TOKEN_METADATA_PROGRAM,
 } from "../../utils/const";
+import { errorIfInsufficientBalance } from "../../utils/errorIfInsufficientBalance.function";
 
 export async function getDepositNftInstruction(Data: {
     program: Program;
     signer: PublicKey;
     mint: PublicKey;
+    amount: number;
     swapIdentity: SwapIdentity;
     ataList: PublicKey[];
 }) {
+    // const currentItem = Data.swapIdentity.swapData.items.filter(
+    //     (item) =>
+    //         item.mint.equals(Data.mint) && item.owner.equals(Data.signer) && item.isNft === true && item.
+    // );
+    await errorIfInsufficientBalance({
+        amount: Data.amount,
+        connection: Data.program.provider.connection,
+        owner: Data.signer,
+        mint: Data.mint,
+    });
+
     let instructions = [];
     let newAtas = [];
     const modifyComputeUnits = ComputeBudgetProgram.setComputeUnitLimit({

@@ -16,17 +16,28 @@ import {
     SOLANA_SPL_ATA_PROGRAM_ID,
     TOKEN_METADATA_PROGRAM,
 } from "../../utils/const";
+import { errorIfInsufficientBalance } from "../../utils/errorIfInsufficientBalance.function";
 
 export async function prepareDepositNftInstruction(Data: {
     program: Program;
     signer: PublicKey;
     mint: PublicKey;
+    amount: number;
     swapIdentity: SwapIdentity;
     ataList: PublicKey[];
 }): Promise<{
     instructions: ApiProcessorConfigType[];
     newAtas: PublicKey[];
 }> {
+
+    await errorIfInsufficientBalance({
+        amount: Data.amount,
+        connection: Data.program.provider.connection,
+        owner: Data.signer,
+        mint: Data.mint,
+    });
+
+    
     let instructions: ApiProcessorConfigType[] = [];
     let newAtas: PublicKey[] = [];
 

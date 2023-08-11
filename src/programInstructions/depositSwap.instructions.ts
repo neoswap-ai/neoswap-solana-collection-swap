@@ -62,6 +62,7 @@ export async function createDepositSwapInstructions(Data: {
                     program: program,
                     signer: Data.user,
                     mint: swapDataItem.mint,
+                    amount: swapDataItem.amount.toNumber(),
                     swapIdentity,
                     ataList,
                 });
@@ -90,6 +91,7 @@ export async function createDepositSwapInstructions(Data: {
                 const depositSolInstruction = await getDepositSolInstruction({
                     program: program,
                     signer: Data.user,
+                    amount: swapDataItem.amount.toNumber(),
                     swapIdentity,
                     ataList,
                     mint: swapDataItem.mint,

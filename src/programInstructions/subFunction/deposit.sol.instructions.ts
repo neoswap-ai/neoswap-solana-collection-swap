@@ -3,17 +3,26 @@ import { PublicKey, SystemProgram, TransactionInstruction } from "@solana/web3.j
 import { SwapIdentity } from "../../utils/types";
 import { findOrCreateAta } from "../../utils/findOrCreateAta.function";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
+import { errorIfInsufficientBalance } from "../../utils/errorIfInsufficientBalance.function";
 
 export async function getDepositSolInstruction(Data: {
     program: Program;
     signer: PublicKey;
     mint: PublicKey;
+    amount: number;
     swapIdentity: SwapIdentity;
     ataList: PublicKey[];
 }): Promise<{
     instructions: TransactionInstruction[];
     newAtas: PublicKey[];
 }> {
+    await errorIfInsufficientBalance({
+        amount: Data.amount,
+        connection: Data.program.provider.connection,
+        mint: Data.mint,
+        owner: Data.signer,
+    });
+    
     let instructions: TransactionInstruction[] = [];
 
     let swapDataAccountAta = Data.swapIdentity.swapDataAccount_publicKey;
