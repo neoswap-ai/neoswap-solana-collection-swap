@@ -1,10 +1,13 @@
 import { PublicKey, SystemProgram } from "@solana/web3.js";
 import { utils } from "@project-serum/anchor";
-import { SWAP_PROGRAM_ID } from "./const";
+import { SWAP_PROGRAM_ID, SWAP_PROGRAM_ID_DEV } from "./const";
 import { ErrorFeedback, SwapData, SwapIdentity } from "./types";
 import { bs58 } from "@project-serum/anchor/dist/cjs/utils/bytes";
 
-export function getSwapIdentityFromData(Data: { swapData: SwapData }): SwapIdentity {
+export function getSwapIdentityFromData(Data: {
+    swapData: SwapData;
+    isDevnet?: boolean;
+}): SwapIdentity {
     // console.log("swapdata", Data.swapData);
     try {
         let seed = Data.swapData.preSeed;
@@ -28,7 +31,7 @@ export function getSwapIdentityFromData(Data: { swapData: SwapData }): SwapIdent
 
         const [swapDataAccount_publicKey, swapDataAccount_bump] = PublicKey.findProgramAddressSync(
             [swapDataAccount_seed],
-            SWAP_PROGRAM_ID
+            Data.isDevnet ? SWAP_PROGRAM_ID_DEV : SWAP_PROGRAM_ID
         );
         if (!Data.swapData.acceptedPayement)
             Data.swapData.items.map((item) => {

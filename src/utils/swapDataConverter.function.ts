@@ -6,7 +6,7 @@ import { getSwapIdentityFromData } from "./getSwapIdentityFromData.function";
 export async function swapDataConverter(Data: {
     swapInfo: SwapInfo;
     preSeed?: string;
-    // swapDataAccount_publicKey: PublicKey;
+    isDevnet?: boolean;
 }): Promise<SwapIdentity> {
     let swapDatas: { [user: string]: NftSwapItem } = {};
 
@@ -72,5 +72,6 @@ export async function swapDataConverter(Data: {
                 : SystemProgram.programId,
             nbItems: items.length,
         },
+        isDevnet: Data.isDevnet,
     });
 }

@@ -43,6 +43,7 @@ export const createValidateCanceledInstructions = async (Data: {
 
     const swapIdentity = getSwapIdentityFromData({
         swapData,
+        isDevnet: Data.clusterOrUrl.toLocaleLowerCase().includes("devnet"),
     });
 
     return [

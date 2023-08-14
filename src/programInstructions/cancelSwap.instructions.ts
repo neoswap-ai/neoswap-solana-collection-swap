@@ -44,6 +44,7 @@ export async function createCancelSwapInstructions(Data: {
 
     const swapIdentity = getSwapIdentityFromData({
         swapData,
+        isDevnet: Data.clusterOrUrl.toLocaleLowerCase().includes("devnet"),
     });
 
     let cancelTransactionInstruction: TxWithSigner[] = [];

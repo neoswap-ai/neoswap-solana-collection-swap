@@ -27,7 +27,10 @@ export async function createInitializeSwapInstructions(Data: {
     signer: PublicKey;
     clusterOrUrl: Cluster | string;
 }): Promise<InitializeData> {
-    let swapIdentity = await swapDataConverter({ swapInfo: Data.swapInfo });
+    let swapIdentity = await swapDataConverter({
+        swapInfo: Data.swapInfo,
+        isDevnet: Data.clusterOrUrl.toLocaleLowerCase().includes("devnet"),
+    });
     swapIdentity.swapData.initializer = Data.signer;
     console.log("swapData to initialize", swapIdentity);
     console.log("swapData ", swapIdentity.swapData.items);

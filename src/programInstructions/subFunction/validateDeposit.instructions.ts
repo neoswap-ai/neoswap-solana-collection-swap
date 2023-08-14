@@ -46,6 +46,7 @@ export const validateDeposit = async (Data: {
 
     const swapIdentity = getSwapIdentityFromData({
         swapData,
+        isDevnet: Data.clusterOrUrl.toLocaleLowerCase().includes("devnet"),
     });
 
     return [
