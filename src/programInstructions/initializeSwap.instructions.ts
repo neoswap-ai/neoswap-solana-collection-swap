@@ -206,7 +206,7 @@ async function getAddInitilizeInstructions(Data: {
                             " / ",
                             item.amount.toNumber()
                         );
-                        await delay(1000);
+                        // await delay(1000);
 
                         if (!balance.value.uiAmount && balance.value.uiAmount !== 0) {
                             returnData.push({
