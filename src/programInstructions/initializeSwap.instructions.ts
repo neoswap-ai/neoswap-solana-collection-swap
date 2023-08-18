@@ -174,40 +174,63 @@ async function getAddInitilizeInstructions(Data: {
             if (alreadyExistItems?.length === 0 || !alreadyExistItems) {
                 // console.log("alreadyExistItems", alreadyExistItems);
                 // console.log("item", item);
+                console.log("checkbal", item.mint, SystemProgram.programId);
 
-                if (
-                    Math.sign(item.amount.toNumber()) === 1 &&
-                    !item.mint.equals(SystemProgram.programId)
-                ) {
+                if (!!!item.amount.isNeg() && !!!item.mint.equals(SystemProgram.programId)) {
                     const tokenAccount = await findOrCreateAta({
                         mint: item.mint,
                         owner: item.owner,
                         program: Data.program,
                         signer: Data.signer,
                     });
-                    console.log("check balance");
-
-                    const balance = await Data.program.provider.connection.getTokenAccountBalance(
+                    console.log(
+                        "check balance",
+                        "mint:",
+                        item.mint,
+                        "owner:",
+                        item.owner,
+                        "program:",
+                        Data.program,
+                        "signer:",
+                        Data.signer,
                         tokenAccount.mintAta
                     );
-                    console.log("balance ", balance.value.uiAmount, " / ", item.amount.toNumber());
-                    await delay(1000);
+                    try {
+                        const balance =
+                            await Data.program.provider.connection.getTokenAccountBalance(
+                                tokenAccount.mintAta
+                            );
+                        console.log(
+                            "balance ",
+                            balance.value.uiAmount,
+                            " / ",
+                            item.amount.toNumber()
+                        );
+                        await delay(1000);
 
-                    if (!balance.value.uiAmount && balance.value.uiAmount !== 0) {
+                        if (!balance.value.uiAmount && balance.value.uiAmount !== 0) {
+                            returnData.push({
+                                blockchain: "solana",
+                                order: 0,
+                                status: "error",
+                                message: `\ncannot retrieve the balance of ${tokenAccount.mintAta.toBase58()} from user ${item.owner.toBase58()} with mint ${item.mint.toBase58()}}`,
+                            } as ErrorFeedback);
+                        } else if (balance.value.uiAmount < item.amount.toNumber()) {
+                            returnData.push({
+                                blockchain: "solana",
+                                order: 0,
+                                status: "error",
+                                message: `\nfound ${
+                                    balance.value.uiAmount
+                                } / ${item.amount.toNumber()}  in the associated token account ${tokenAccount.mintAta.toBase58()} linked to mint ${item.mint.toBase58()} from user ${item.owner.toBase58()} `,
+                            } as ErrorFeedback);
+                        }
+                    } catch (error) {
                         returnData.push({
                             blockchain: "solana",
                             order: 0,
                             status: "error",
-                            message: `\ncannot retrieve the balance of ${tokenAccount.mintAta.toBase58()} from user ${item.owner.toBase58()} with mint ${item.mint.toBase58()}}`,
-                        } as ErrorFeedback);
-                    } else if (balance.value.uiAmount < item.amount.toNumber()) {
-                        returnData.push({
-                            blockchain: "solana",
-                            order: 0,
-                            status: "error",
-                            message: `\nfound ${
-                                balance.value.uiAmount
-                            } / ${item.amount.toNumber()}  in the associated token account ${tokenAccount.mintAta.toBase58()} linked to mint ${item.mint.toBase58()} from user ${item.owner.toBase58()} `,
+                            message: `\nfound associated token account ${tokenAccount.mintAta.toBase58()} linked to mint ${item.mint.toBase58()} from user ${item.owner.toBase58()} has no account`,
                         } as ErrorFeedback);
                     }
                 }
