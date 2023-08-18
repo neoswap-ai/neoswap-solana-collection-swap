@@ -11,14 +11,17 @@ import { createDepositOrdinalIx } from "./subFunction/createDepositOrdinal.instr
 
 export const apiProcessorTranscript = async (Data: {
     // getProgram: (programId: PublicKey, idl: Idl) => Promise<Program>;
-    // clusterOrUrl: Cluster | string;
+    clusterOrUrl: Cluster | string;
     config: ApiProcessorConfigType[];
     programId?: PublicKey;
 }): Promise<TxWithSigner[]> => {
     let depositTransaction: Transaction[] = [];
     // console.log("Data.config", Data.config);
-    let program: Program;
+    let program: Program = getProgram({ clusterOrUrl: Data.clusterOrUrl });
+    console.log("program", program);
+
     let lastWasCreateAccount = false;
+
     for (const item of Data.config) {
         switch (item.type) {
             case "createAssociatedTokenAccountInstruction":
@@ -44,7 +47,6 @@ export const apiProcessorTranscript = async (Data: {
                 lastWasCreateAccount = true;
                 break;
             case "depositNft":
-                program = getProgram({ clusterOrUrl: "devnet" });
                 // console.log("depositNft"); //, item.data);
 
                 let depositNftIx = await program.methods
@@ -86,7 +88,6 @@ export const apiProcessorTranscript = async (Data: {
 
             case "depositSol":
                 // console.log("depositSol"); //, item.data);
-                program = getProgram({ clusterOrUrl: "devnet" });
                 let depositSolIx = await program.methods
                     .depositSol(Buffer.from(item.data.arguments.SDA_seed))
                     .accounts({

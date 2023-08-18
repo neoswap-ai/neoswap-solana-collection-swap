@@ -15,6 +15,7 @@ export async function apiProcessor(Data: {
 }): Promise<string[]> {
     let apiProcessorData = await apiProcessorTranscript({
         config: Data.apiProcessorData.config,
+        clusterOrUrl: Data.clusterOrUrl,
     });
 
     const transactionHashs = await sendBundledTransactions({

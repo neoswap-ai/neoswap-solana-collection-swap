@@ -15,14 +15,18 @@ export async function sendBundledTransactions(Data: {
     try {
         // console.log(txWithSigners);
 
-        let program = getProgram({ clusterOrUrl: Data.clusterOrUrl, signer: Data.signer });
+        let provider = getProgram({
+            clusterOrUrl: Data.clusterOrUrl,
+            signer: Data.signer,
+        }).provider;
+        console.log();
+
         const txsWithSigners = Data.txsWithoutSigners.map((txWithSigners) => {
             txWithSigners.signers = [Data.signer];
             txWithSigners.tx.feePayer = Data.signer.publicKey;
             return txWithSigners;
         });
         // console.log('program',program);
-        
 
         console.log(
             "User ",
@@ -31,10 +35,9 @@ export async function sendBundledTransactions(Data: {
             txsWithSigners.length,
             " transaction(s) to send \nBroadcasting to blockchain ..."
         );
-        if (!program.provider.sendAll)
-            throw { message: "your provider is not an AnchorProvider type" };
+        if (!provider.sendAll) throw { message: "your provider is not an AnchorProvider type" };
         if (!Data.simulation) Data.simulation = false;
-        const transactionHashs = await program.provider.sendAll(txsWithSigners, {
+        const transactionHashs = await provider.sendAll(txsWithSigners, {
             maxRetries: 5,
             skipPreflight: !Data.simulation,
         });

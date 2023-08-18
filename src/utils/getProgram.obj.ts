@@ -20,7 +20,7 @@ export function getProgram(Data: {
             "https://purple-alpha-orb.solana-devnet.quiknode.pro/da30b6f0da74d8a084df9aac72c5da241ab4f9a8/";
         programId_ = new PublicKey(SWAP_PROGRAM_ID_DEV);
     } else {
-        if (String(clusterUrl).toLowerCase().includes("devnet")) {
+        if (String(Data.clusterOrUrl).toLowerCase().includes("devnet")) {
             programId_ = new PublicKey(SWAP_PROGRAM_ID_DEV);
         }
         clusterUrl = Data.clusterOrUrl;
@@ -38,6 +38,7 @@ export function getProgram(Data: {
     if (Data.programId) programId_ = new PublicKey(Data.programId);
 
     const program = new Program(idl_, programId_, provider);
+    console.log("programId", program.programId.toBase58());
 
     return program;
 }
