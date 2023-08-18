@@ -213,24 +213,26 @@ async function getAddInitilizeInstructions(Data: {
                                 blockchain: "solana",
                                 order: 0,
                                 status: "error",
-                                message: `\ncannot retrieve the balance of ${tokenAccount.mintAta.toBase58()} from user ${item.owner.toBase58()} with mint ${item.mint.toBase58()}}`,
+                                message: `\n\nUser: ${item.owner.toBase58()} \nMint: ${item.mint.toBase58()}\nATA: ${tokenAccount.mintAta.toBase58()} \nError: cannot retrieve the balance`,
                             } as ErrorFeedback);
                         } else if (balance.value.uiAmount < item.amount.toNumber()) {
                             returnData.push({
                                 blockchain: "solana",
                                 order: 0,
                                 status: "error",
-                                message: `\nfound ${
+                                message: `\n\nUser: ${item.owner.toBase58()} \nMint: ${item.mint.toBase58()}\nATA: ${tokenAccount.mintAta.toBase58()} \nError: not enough funds; found ${
                                     balance.value.uiAmount
-                                } / ${item.amount.toNumber()}  in the associated token account ${tokenAccount.mintAta.toBase58()} linked to mint ${item.mint.toBase58()} from user ${item.owner.toBase58()} `,
+                                } / ${item.amount.toNumber()} NFT the user own`,
                             } as ErrorFeedback);
                         }
                     } catch (error) {
+                        console.log("error in get ataBalance :\n", error);
+
                         returnData.push({
                             blockchain: "solana",
                             order: 0,
                             status: "error",
-                            message: `\nfound associated token account ${tokenAccount.mintAta.toBase58()} linked to mint ${item.mint.toBase58()} from user ${item.owner.toBase58()} has no account`,
+                            message: `\n\nUser: ${item.owner.toBase58()} \nMint: ${item.mint.toBase58()}\nATA: ${tokenAccount.mintAta.toBase58()} \nError: Couldn't find the NFT owned by user`,
                         } as ErrorFeedback);
                     }
                 }
