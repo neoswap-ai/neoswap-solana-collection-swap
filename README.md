@@ -60,7 +60,10 @@ type SwapIdentity = {
 };
 ```
 
-SwapData represents the data of the swap
+swapInfo represents the data of the swap in a better readable way
+
+
+SwapData represents the data of the swap in the program
 
 ```ts
 type SwapData = {
@@ -72,7 +75,6 @@ type SwapData = {
     acceptedPayement: PublicKey;
 };
 ```
-
 NftSwapItem represents the data of one Item in SwapData
 
 ```ts
@@ -93,6 +95,7 @@ type InitializeData = {
     programId: string; // ProgramId of the solana program the swap is being deployed to
     swapIdentity: neoTypes.SwapIdentity; // Object containing most relevant information of the swap
     txWithoutSigner: neoTypes.TxWithSigner[]; // Array of transactions to broadcast with empty Signer
+    warning: string; // string containing information that the SwapData contains some NFT that user do not own
 };
 ```
 
@@ -115,9 +118,9 @@ type ErrorFeedback = {
 };
 ```
 
-## Status
+## Statuses
 
-### Swap
+### Program Swap status
 
 ```
 TradeStatus:
@@ -130,7 +133,7 @@ TradeStatus:
     101 => Canceled
 ```
 
-### Items
+### Program Items status
 
 ```
 ItemStatus :
@@ -151,6 +154,24 @@ ItemStatus :
     111 => SolcanceledRecovered
 ```
 
+### UserDataInSwap from UTILS.userSwapDetails
+
+```
+    userNftToDeposit: NftSwapItem[] | undefined;
+    userNftDeposited: NftSwapItem[] | undefined;
+
+    userNftToReceive: NftSwapItem[] | undefined;
+    userNftReceived: NftSwapItem[] | undefined;
+
+    userNftCancelled: NftSwapItem[] | undefined;
+    userSolCancelled: NftSwapItem[] | undefined;
+
+    userSolToDeposit: NftSwapItem[] | undefined;
+    userSolDeposited: NftSwapItem[] | undefined;
+    userSolToClaim: NftSwapItem[] | undefined;
+    userSolClaimed: NftSwapItem[] | undefined;
+```
+
 ## Create Swap
 
 ### With signer
@@ -165,7 +186,7 @@ const initializeData: {
     clusterOrUrl: string, // "mainnet-beta" or "devnet" or URL
     swapPublicId: string, // IdentityString of the Swap
     signer: Keypair, // Wallet that will Create the swap and be admin of the swap
-    swapData: neoTypes.swapData, // Data of the swap
+    swapInfo: neoTypes.swapInfo, // Data of the swap
     simulation: Option<boolean>, // default skip simulation and broadcast to blockchain (recommanded). If true: make simulation of the transactions before broadcasting them
     skipConfirmation: Option<boolean>, // default iterates through the transactions to confirm status (return error if one fails with array of transactionhashes). If true: skip confirmation
 });
@@ -233,9 +254,9 @@ for (let index = 0; index < transactionsWithoutSigners.length; index++) {
 
 ## Claim Swap
 
-- if signer is admin: function validates that all items are deposited (if needed), claims for all users (if needed) and closes the swap
+-   if signer is admin: function validates that all items are deposited (if needed), claims for all users (if needed) and closes the swap
 
-- if signer is user: function validates that all items are deposited (if needed) and claims for the user
+-   if signer is user: function validates that all items are deposited (if needed) and claims for the user
 
 ### With signer
 
