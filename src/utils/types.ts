@@ -17,16 +17,28 @@ export type SwapData = {
     items: Array<NftSwapItem>;
     acceptedPayement: PublicKey;
 };
-
-export type SwapItem = {
+export type GiveSwapItem = {
     address: string;
     amount: number;
-    status?: "pending" | "deposited" | "claimed" | "returned";
+    getters: {
+        address: string;
+        amount: number;
+        status?: "pending" | "deposited" | "claimed" | "returned";
+    }[];
 };
 
+export type GetSwapItem = {
+    address: string;
+    amount: number;
+    givers: {
+        amount: number;
+        address: string;
+        status?: "pending" | "deposited" | "claimed" | "returned";
+    }[];
+};
 export type SwapUserInfo = {
-    give: SwapItem[];
-    get: SwapItem[];
+    give: GiveSwapItem[];
+    get: GetSwapItem[];
     token: { amount: number; status?: string };
     status?:
         | "pending"
