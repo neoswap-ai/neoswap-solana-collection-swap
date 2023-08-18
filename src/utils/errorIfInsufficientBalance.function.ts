@@ -23,6 +23,8 @@ export async function errorIfInsufficientBalance(Data: {
     // prepareInstructions?: boolean;
 }): Promise<boolean> {
     try {
+        // console.log("NATIVE_MINT", NATIVE_MINT.toString(), " vs mint ", Data.mint.toString());
+
         if (!NATIVE_MINT.toString().includes(Data.mint.toString())) {
             let values: { address: PublicKey; value: number }[] = [];
             let mintAtas = (
@@ -34,12 +36,19 @@ export async function errorIfInsufficientBalance(Data: {
 
             if (mintAtas.length > 1) {
                 console.log("more than 1 ata", mintAtas);
-
                 for await (const ata of mintAtas) {
-                    let balance = await Data.connection.getTokenAccountBalance(ata.pubkey);
-                    await delay(1000);
-                    if (balance.value.uiAmount || balance.value.uiAmount === 0)
-                        values.push({ value: balance.value.uiAmount, address: ata.pubkey });
+                    try {
+                        let balance = await Data.connection.getTokenAccountBalance(ata.pubkey);
+                        await delay(500);
+                        if (balance.value.uiAmount || balance.value.uiAmount === 0)
+                            values.push({ value: balance.value.uiAmount, address: ata.pubkey });
+                    } catch (error) {
+                        if (String(error).includes("Invalid param: could not find mint")) {
+                            throw `User ${Data.owner.toBase58()} with NFT ${Data.mint.toBase58()} has found no existance of the associated token account ${ata.pubkey.toBase58()}`;
+                        } else {
+                            throw error;
+                        }
+                    }
                 }
 
                 values.sort((a, b) => b.value - a.value);
@@ -47,12 +56,20 @@ export async function errorIfInsufficientBalance(Data: {
                     throw `not enough balance ${values[0].value} < ${Data.amount}`;
                 mintAta = values[0].address;
             } else {
-                let balance = await Data.connection.getTokenAccountBalance(mintAta);
+                try {
+                    let balance = await Data.connection.getTokenAccountBalance(mintAta);
 
-                if (!!!balance.value.uiAmount || balance.value.uiAmount < Data.amount)
-                    throw `not enough balance for ${Data.mint.toBase58()} from user ${Data.owner.toBase58()} ===>  ${
-                        balance.value.uiAmount
-                    } < ${Data.amount}`;
+                    if (!!!balance.value.uiAmount || balance.value.uiAmount < Data.amount)
+                        throw `not enough balance for ${Data.mint.toBase58()} from user ${Data.owner.toBase58()} ===>  ${
+                            balance.value.uiAmount
+                        } < ${Data.amount}`;
+                } catch (error) {
+                    if (String(error).includes("Invalid param: could not find mint")) {
+                        throw `User ${Data.owner.toBase58()} with NFT ${Data.mint.toBase58()} has found no existance of the associated token account ${mintAta.toBase58()}`;
+                    } else {
+                        throw error;
+                    }
+                }
             }
             return true;
         } else {
