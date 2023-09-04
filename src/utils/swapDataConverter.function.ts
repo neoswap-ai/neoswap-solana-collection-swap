@@ -2,6 +2,7 @@ import { BN } from "@project-serum/anchor";
 import { PublicKey, SystemProgram } from "@solana/web3.js";
 import { ItemStatus, NftSwapItem, SwapIdentity, SwapInfo } from "./types";
 import { getSwapIdentityFromData } from "./getSwapIdentityFromData.function";
+import { neoTypes } from "..";
 
 export async function swapDataConverter(Data: {
     swapInfo: SwapInfo;
@@ -14,34 +15,38 @@ export async function swapDataConverter(Data: {
         if (user !== "preSeed" && user !== "currency") {
             if (Data.swapInfo[user].get.length > 0)
                 console.log(user, "get", Data.swapInfo[user].get);
-            Data.swapInfo[user].get.map((item) => {
-                swapDatas[item.address] = {
-                    ...swapDatas[item.address],
-                    isNft: true,
-                    amount: new BN(item.amount),
-                    destinary: new PublicKey(user),
-                    mint: new PublicKey(item.address),
-                    status: 10,
-                };
-            });
+
             if (Data.swapInfo[user].give.length > 0)
                 console.log(user, "give", Data.swapInfo[user].give);
             Data.swapInfo[user].give.map((item) => {
-                swapDatas[item.address] = {
-                    ...swapDatas[item.address],
-                    owner: new PublicKey(user),
-                };
+                item.getters.map((toDest) => {
+                    swapDatas[
+                        "mint" +
+                            item.address.toString() +
+                            "/user" +
+                            user.toString() +
+                            "/dest" +
+                            toDest.address.toString()
+                    ] = {
+                        isNft: true,
+                        mint: new PublicKey(item.address),
+                        owner: new PublicKey(user),
+                        destinary: new PublicKey(toDest.address),
+                        amount: new BN(toDest.amount),
+                        status: neoTypes.ItemStatus.NFTPending,
+                    };
+                });
             });
 
             if (Data.swapInfo[user].token.amount !== 0) {
                 console.log(user, "token", Data.swapInfo[user].token.amount);
-
+                let ccurency = new PublicKey(Data.swapInfo.currency);
                 swapDatas[user] = {
                     owner: new PublicKey(user),
                     isNft: false,
                     amount: new BN(Data.swapInfo[user].token.amount),
-                    destinary: new PublicKey(Data.swapInfo.currency),
-                    mint: new PublicKey(Data.swapInfo.currency),
+                    destinary: ccurency,
+                    mint: ccurency,
                     status:
                         Data.swapInfo[user].token.amount < 0
                             ? ItemStatus.SolPending
