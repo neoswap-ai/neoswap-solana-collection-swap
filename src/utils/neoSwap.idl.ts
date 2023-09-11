@@ -231,6 +231,112 @@ export const idlSwap: Idl = {
             ],
         },
         {
+            name: "depositCNft",
+            docs: [
+                "@notice Deposit NFT to escrow.",
+                "@dev Function that iterates through Swap's Data from PDA to find the relevant information linked with accounts shared and deposit the NFT into the escrow.",
+            ],
+            accounts: [
+                {
+                    name: "systemProgram",
+                    isMut: false,
+                    isSigner: false,
+                },
+                {
+                    name: "metadataProgram",
+                    isMut: false,
+                    isSigner: false,
+                },
+                {
+                    name: "sysvarInstructions",
+                    isMut: false,
+                    isSigner: false,
+                },
+                {
+                    name: "splTokenProgram",
+                    isMut: false,
+                    isSigner: false,
+                },
+                {
+                    name: "splAtaProgram",
+                    isMut: false,
+                    isSigner: false,
+                },
+                {
+                    name: "swapDataAccount",
+                    isMut: true,
+                    isSigner: false,
+                },
+                {
+                    name: "leafOwner",
+                    isMut: true,
+                    isSigner: true,
+                },
+                {
+                    name: "leafDelegate",
+                    isMut: true,
+                    isSigner: true,
+                },
+                {
+                    name: "treeAuthority",
+                    isMut: true,
+                    isSigner: false,
+                },
+                {
+                    name: "merkleTree",
+                    isMut: true,
+                    isSigner: false,
+                },
+                {
+                    name: "logWrapper",
+                    isMut: false,
+                    isSigner: false,
+                },
+                {
+                    name: "compressionProgram",
+                    isMut: false,
+                    isSigner: false,
+                },
+                {
+                    name: "bubblegumProgram",
+                    isMut: false,
+                    isSigner: false,
+                },
+            ],
+            args: [
+                {
+                    name: "seed",
+                    type: "bytes",
+                },
+                {
+                    name: "root",
+                    type: {
+                        array: ["u8", 32],
+                    },
+                },
+                {
+                    name: "dataHash",
+                    type: {
+                        array: ["u8", 32],
+                    },
+                },
+                {
+                    name: "creatorHash",
+                    type: {
+                        array: ["u8", 32],
+                    },
+                },
+                {
+                    name: "nonce",
+                    type: "u64",
+                },
+                {
+                    name: "index",
+                    type: "u32",
+                },
+            ],
+        },
+        {
             name: "depositSol",
             docs: [
                 "@notice Deposit lamports to escrow.",
@@ -498,6 +604,127 @@ export const idlSwap: Idl = {
             ],
         },
         {
+            name: "claimCNft",
+            accounts: [
+                {
+                    name: "systemProgram",
+                    isMut: false,
+                    isSigner: false,
+                },
+                {
+                    name: "metadataProgram",
+                    isMut: false,
+                    isSigner: false,
+                },
+                {
+                    name: "sysvarInstructions",
+                    isMut: false,
+                    isSigner: false,
+                },
+                {
+                    name: "splTokenProgram",
+                    isMut: false,
+                    isSigner: false,
+                },
+                {
+                    name: "splAtaProgram",
+                    isMut: false,
+                    isSigner: false,
+                },
+                {
+                    name: "swapDataAccount",
+                    isMut: true,
+                    isSigner: false,
+                },
+                {
+                    name: "user",
+                    isMut: true,
+                    isSigner: false,
+                },
+                {
+                    name: "signer",
+                    isMut: true,
+                    isSigner: true,
+                },
+                {
+                    name: "leafOwner",
+                    isMut: true,
+                    isSigner: true,
+                },
+                {
+                    name: "leafDelegate",
+                    isMut: true,
+                    isSigner: true,
+                },
+                {
+                    name: "treeAuthority",
+                    isMut: true,
+                    isSigner: false,
+                },
+                {
+                    name: "merkleTree",
+                    isMut: true,
+                    isSigner: false,
+                },
+                {
+                    name: "newLeafOwner",
+                    isMut: true,
+                    isSigner: false,
+                },
+                {
+                    name: "logWrapper",
+                    isMut: false,
+                    isSigner: false,
+                },
+                {
+                    name: "compressionProgram",
+                    isMut: false,
+                    isSigner: false,
+                },
+                {
+                    name: "bubblegumProgram",
+                    isMut: false,
+                    isSigner: false,
+                },
+            ],
+            args: [
+                {
+                    name: "seed",
+                    type: "bytes",
+                },
+                {
+                    name: "bump",
+                    type: "u8",
+                },
+                {
+                    name: "root",
+                    type: {
+                        array: ["u8", 32],
+                    },
+                },
+                {
+                    name: "dataHash",
+                    type: {
+                        array: ["u8", 32],
+                    },
+                },
+                {
+                    name: "creatorHash",
+                    type: {
+                        array: ["u8", 32],
+                    },
+                },
+                {
+                    name: "nonce",
+                    type: "u64",
+                },
+                {
+                    name: "index",
+                    type: "u32",
+                },
+            ],
+        },
+        {
             name: "validateClaimed",
             docs: [
                 "@notice Verify Swap's PDA items to proceed to closed state. /!\\ initializer function",
@@ -725,6 +952,127 @@ export const idlSwap: Idl = {
             ],
         },
         {
+            name: "cancelCNft",
+            accounts: [
+                {
+                    name: "systemProgram",
+                    isMut: false,
+                    isSigner: false,
+                },
+                {
+                    name: "metadataProgram",
+                    isMut: false,
+                    isSigner: false,
+                },
+                {
+                    name: "sysvarInstructions",
+                    isMut: false,
+                    isSigner: false,
+                },
+                {
+                    name: "splTokenProgram",
+                    isMut: false,
+                    isSigner: false,
+                },
+                {
+                    name: "splAtaProgram",
+                    isMut: false,
+                    isSigner: false,
+                },
+                {
+                    name: "swapDataAccount",
+                    isMut: true,
+                    isSigner: false,
+                },
+                {
+                    name: "user",
+                    isMut: true,
+                    isSigner: false,
+                },
+                {
+                    name: "signer",
+                    isMut: true,
+                    isSigner: true,
+                },
+                {
+                    name: "leafOwner",
+                    isMut: true,
+                    isSigner: true,
+                },
+                {
+                    name: "leafDelegate",
+                    isMut: true,
+                    isSigner: true,
+                },
+                {
+                    name: "treeAuthority",
+                    isMut: true,
+                    isSigner: false,
+                },
+                {
+                    name: "merkleTree",
+                    isMut: true,
+                    isSigner: false,
+                },
+                {
+                    name: "newLeafOwner",
+                    isMut: true,
+                    isSigner: false,
+                },
+                {
+                    name: "logWrapper",
+                    isMut: false,
+                    isSigner: false,
+                },
+                {
+                    name: "compressionProgram",
+                    isMut: false,
+                    isSigner: false,
+                },
+                {
+                    name: "bubblegumProgram",
+                    isMut: false,
+                    isSigner: false,
+                },
+            ],
+            args: [
+                {
+                    name: "seed",
+                    type: "bytes",
+                },
+                {
+                    name: "bump",
+                    type: "u8",
+                },
+                {
+                    name: "root",
+                    type: {
+                        array: ["u8", 32],
+                    },
+                },
+                {
+                    name: "dataHash",
+                    type: {
+                        array: ["u8", 32],
+                    },
+                },
+                {
+                    name: "creatorHash",
+                    type: {
+                        array: ["u8", 32],
+                    },
+                },
+                {
+                    name: "nonce",
+                    type: "u64",
+                },
+                {
+                    name: "index",
+                    type: "u32",
+                },
+            ],
+        },
+        {
             name: "validateCancel",
             docs: [
                 "@notice Verify Swap's PDA items to proceed to closed state. /!\\ initializer function",
@@ -813,6 +1161,10 @@ export const idlSwap: Idl = {
                 fields: [
                     {
                         name: "isNft",
+                        type: "bool",
+                    },
+                    {
+                        name: "isCompressed",
                         type: "bool",
                     },
                     {
