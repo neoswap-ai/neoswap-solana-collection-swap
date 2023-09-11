@@ -1,4 +1,3 @@
-import { findOrCreateAta } from "../../utils/findOrCreateAta.function";
 import {
     AccountMeta,
     ComputeBudgetProgram,
@@ -19,20 +18,13 @@ import {
     SOLANA_SPL_ATA_PROGRAM_ID,
     TOKEN_METADATA_PROGRAM,
 } from "../../utils/const";
-import { TokenStandard } from "@metaplex-foundation/mpl-token-metadata";
-import {
-    findNftDataAndMetadataAccount,
-    findNftMasterEdition,
-    findRuleSet,
-    findUserTokenRecord,
-} from "../../utils/findNftDataAndAccounts.function";
 import { BN, Program } from "@project-serum/anchor";
 import { SwapIdentity } from "../../utils/types";
 import { MPL_BUBBLEGUM_PROGRAM_ID } from "@metaplex-foundation/mpl-bubblegum";
 
 export async function getCancelNftInstructions(Data: {
     program: Program;
-    swapDataAccount: PublicKey;
+    swapIdentity: SwapIdentity;
     signer: PublicKey;
     user: PublicKey;
     tokenId: PublicKey;
@@ -139,7 +131,15 @@ export async function getCancelNftInstructions(Data: {
     // );
     instructions.push(
         await Data.program.methods
-            .cancelCNft(root, dataHash, creatorHash, nonce, index)
+            .cancelCNft(
+                Data.swapIdentity.swapDataAccount_seed,
+                Data.swapIdentity.swapDataAccount_bump,
+                root,
+                dataHash,
+                creatorHash,
+                nonce,
+                index
+            )
             .accounts({
                 leafDelegate: Data.signer,
                 treeAuthority,
@@ -154,7 +154,7 @@ export async function getCancelNftInstructions(Data: {
                 sysvarInstructions: SYSVAR_INSTRUCTIONS_PUBKEY,
                 splTokenProgram: TOKEN_PROGRAM_ID,
                 splAtaProgram: SOLANA_SPL_ATA_PROGRAM_ID,
-                swapDataAccount: Data.swapDataAccount,
+                swapDataAccount: Data.swapIdentity.swapDataAccount_publicKey,
                 user: Data.user,
                 signer: Data.signer,
 

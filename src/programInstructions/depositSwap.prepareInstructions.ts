@@ -5,6 +5,7 @@ import { getSwapIdentityFromData } from "../utils/getSwapIdentityFromData.functi
 import { prepareDepositNftInstruction } from "./subFunction/deposit.nft.prepareInstructions";
 import { prepareDepositSolInstruction } from "./subFunction/deposit.sol.prepareInstructions";
 import { ApiProcessorData, ErrorFeedback, ItemStatus, TradeStatus } from "../utils/types";
+import { getDepositCNftInstruction } from "./subFunction/deposit.cnft.instructions";
 
 export async function prepareDepositSwapInstructions(Data: {
     swapDataAccount: PublicKey;
@@ -50,36 +51,64 @@ export async function prepareDepositSwapInstructions(Data: {
     for (const swapDataItem of swapDataItems) {
         if (swapDataItem.isNft) {
             if (swapDataItem.status === ItemStatus.NFTPending) {
-                console.log(
-                    "XXX - Deposit NFT item with mint ",
-                    swapDataItem.mint.toBase58(),
-                    " from ",
-                    swapDataItem.owner.toBase58(),
-                    " - XXX"
-                );
+                if (swapDataItem.isCompressed) {
+                    console.log(
+                        "XXX - Deposit CNFT item with TokenId ",
+                        swapDataItem.mint.toBase58(),
+                        " from ",
+                        swapDataItem.owner.toBase58(),
+                        " - XXX"
+                    );
 
-                let depositing = await prepareDepositNftInstruction({
-                    program,
-                    signer: Data.user,
-                    mint: swapDataItem.mint,
-                    amount: swapDataItem.amount.toNumber(),
-                    swapIdentity,
-                    ataList,
-                });
-                const depositingApi = {
-                    blockchain: "solana",
-                    type: "deposit NFT",
-                    order: 0,
-                    description: `Escrow your NFT ${swapDataItem.mint} in swap ${Data.swapDataAccount}`,
-                    config: depositing.instructions,
-                } as ApiProcessorData;
+                    let depositing = await getDepositCNftInstruction({
+                        program,
+                        signer: Data.user,
+                        tokenId: swapDataItem.mint,
+                        swapIdentity,
+                        prepare: true,
+                    });
 
-                apiInstructions.push(depositingApi);
-                depositing.newAtas.forEach((element) => {
-                    if (!ataList.includes(element)) {
-                        ataList.push(element);
-                    }
-                });
+                    const depositingApi = {
+                        blockchain: "solana",
+                        type: "deposit NFT",
+                        order: 0,
+                        description: `Escrow your NFT ${swapDataItem.mint} in swap ${Data.swapDataAccount}`,
+                        config: depositing.prepareInstruction,
+                    } as ApiProcessorData;
+
+                    apiInstructions.push(depositingApi);
+                } else {
+                    console.log(
+                        "XXX - Deposit NFT item with mint ",
+                        swapDataItem.mint.toBase58(),
+                        " from ",
+                        swapDataItem.owner.toBase58(),
+                        " - XXX"
+                    );
+
+                    let depositing = await prepareDepositNftInstruction({
+                        program,
+                        signer: Data.user,
+                        mint: swapDataItem.mint,
+                        amount: swapDataItem.amount.toNumber(),
+                        swapIdentity,
+                        ataList,
+                    });
+                    const depositingApi = {
+                        blockchain: "solana",
+                        type: "deposit NFT",
+                        order: 0,
+                        description: `Escrow your NFT ${swapDataItem.mint} in swap ${Data.swapDataAccount}`,
+                        config: depositing.instructions,
+                    } as ApiProcessorData;
+
+                    apiInstructions.push(depositingApi);
+                    depositing.newAtas.forEach((element) => {
+                        if (!ataList.includes(element)) {
+                            ataList.push(element);
+                        }
+                    });
+                }
             } else if (swapDataItem.status === ItemStatus.NFTDeposited) {
                 isUserAlreadyDeposited = true;
             }

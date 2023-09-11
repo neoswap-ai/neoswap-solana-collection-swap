@@ -15,10 +15,11 @@ import { MPL_BUBBLEGUM_PROGRAM_ID } from "@metaplex-foundation/mpl-bubblegum";
 import { BN, Program } from "@project-serum/anchor";
 import { SOLANA_SPL_ATA_PROGRAM_ID, TOKEN_METADATA_PROGRAM } from "../../utils/const";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
+import { SwapIdentity } from "../../utils/types";
 
 export async function getClaimCNftInstruction(Data: {
     program: Program;
-    swapDataAccount: PublicKey;
+    swapIdentity: SwapIdentity;
     signer: PublicKey;
     user: PublicKey;
     tokenId: PublicKey;
@@ -123,7 +124,15 @@ export async function getClaimCNftInstruction(Data: {
     // );
     instructions.push(
         await Data.program.methods
-            .claimCNft(root, dataHash, creatorHash, nonce, index)
+            .claimCNft(
+                Data.swapIdentity.swapDataAccount_seed,
+                Data.swapIdentity.swapDataAccount_bump,
+                root,
+                dataHash,
+                creatorHash,
+                nonce,
+                index
+            )
             .accounts({
                 leafDelegate: Data.signer,
                 treeAuthority,
@@ -138,7 +147,7 @@ export async function getClaimCNftInstruction(Data: {
                 sysvarInstructions: SYSVAR_INSTRUCTIONS_PUBKEY,
                 splTokenProgram: TOKEN_PROGRAM_ID,
                 splAtaProgram: SOLANA_SPL_ATA_PROGRAM_ID,
-                swapDataAccount: Data.swapDataAccount,
+                swapDataAccount: Data.swapIdentity.swapDataAccount_publicKey,
                 user: Data.user,
                 signer: Data.signer,
 

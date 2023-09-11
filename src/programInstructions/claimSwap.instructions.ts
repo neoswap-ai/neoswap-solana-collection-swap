@@ -5,6 +5,7 @@ import { getSwapIdentityFromData } from "../utils/getSwapIdentityFromData.functi
 import { getClaimNftInstructions } from "./subFunction/claim.nft.instructions";
 import { getClaimSolInstructions } from "./subFunction/claim.sol.instructions";
 import { ErrorFeedback, ItemStatus, TradeStatus, TxWithSigner } from "../utils/types";
+import { getClaimCNftInstruction } from "./subFunction/claim.cnft.instructions";
 
 export async function createClaimSwapInstructions(Data: {
     swapDataAccount: PublicKey;
@@ -70,28 +71,51 @@ export async function createClaimSwapInstructions(Data: {
     for (const swapDataItem of swapDataItems) {
         if (init === true || swapDataItem.destinary.equals(Data.signer)) {
             if (swapDataItem.isNft) {
-                console.log(
-                    "XXX - Claim NFT swapDataItem with mint ",
-                    swapDataItem.mint.toBase58(),
-                    " to ",
-                    swapDataItem.destinary.toBase58(),
-                    " - XXX"
-                );
-                const claimNftData = await getClaimNftInstructions({
-                    program,
-                    destinary: swapDataItem.destinary,
-                    mint: swapDataItem.mint,
-                    signer: Data.signer,
-                    swapIdentity,
-                    ataList,
-                });
+                if (swapDataItem.status === ItemStatus.NFTDeposited){
+if (swapDataItem.isCompressed){
 
-                claimTransactionInstruction.push({
-                    tx: new Transaction().add(...claimNftData.instruction),
-                });
-                claimNftData.newAtas.forEach((ata) => {
-                    if (!ataList.includes(ata)) ataList.push(ata);
-                });
+    console.log(
+        "XXX - Claim CNFT swapDataItem with TokenId ",
+        swapDataItem.mint.toBase58(),
+        " to ",
+        swapDataItem.destinary.toBase58(),
+        " - XXX"
+    );
+
+    const claimNftData = await getClaimCNftInstruction({
+        program,
+        user: swapDataItem.destinary,
+        tokenId: swapDataItem.mint,
+        signer: Data.signer,
+        swapIdentity,
+        // ataList,
+    });
+}else {
+
+    console.log(
+        "XXX - Claim NFT swapDataItem with mint ",
+        swapDataItem.mint.toBase58(),
+        " to ",
+        swapDataItem.destinary.toBase58(),
+        " - XXX"
+    );
+    const claimNftData = await getClaimNftInstructions({
+        program,
+        destinary: swapDataItem.destinary,
+        mint: swapDataItem.mint,
+        signer: Data.signer,
+        swapIdentity,
+        ataList,
+    });
+
+    claimTransactionInstruction.push({
+        tx: new Transaction().add(...claimNftData.instruction),
+    });
+    claimNftData.newAtas.forEach((ata) => {
+        if (!ataList.includes(ata)) ataList.push(ata);
+    });
+}
+}
             } else {
                 console.log(
                     "XXX - Claim Sol item mint ",

@@ -3,6 +3,7 @@ import {
     PublicKey,
     SYSVAR_INSTRUCTIONS_PUBKEY,
     SystemProgram,
+    TransactionInstruction,
     clusterApiUrl,
 } from "@solana/web3.js";
 import {
@@ -15,13 +16,23 @@ import { MPL_BUBBLEGUM_PROGRAM_ID } from "@metaplex-foundation/mpl-bubblegum";
 import { BN, Program } from "@project-serum/anchor";
 import { SOLANA_SPL_ATA_PROGRAM_ID, TOKEN_METADATA_PROGRAM } from "../../utils/const";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
+import {
+    ApiProcessorConfigType,
+    ApiProcessorData,
+    DepositCNft,
+    SwapIdentity,
+} from "../../utils/types";
 
 export async function getDepositCNftInstruction(Data: {
     program: Program;
     signer: PublicKey;
-    swapDataAccount: PublicKey;
+    swapIdentity: SwapIdentity;
     tokenId: PublicKey;
-}) {
+    prepare?: boolean;
+}): Promise<{
+    instructions?: TransactionInstruction;
+    prepareInstruction?: ApiProcessorConfigType[];
+}> {
     let solanaUrl = clusterApiUrl("mainnet-beta");
     const treeDataReponse = await fetch(solanaUrl, {
         method: "POST",
@@ -120,25 +131,67 @@ export async function getDepositCNftInstruction(Data: {
     //     " \nanchorRemainingAccounts:",
     //     proofMeta
     // );
-    instructions.push(
-        await Data.program.methods
-            .depositCNft(root, dataHash, creatorHash, nonce, index)
-            .accounts({
-                metadata_program: TOKEN_METADATA_PROGRAM,
-                sysvar_instructions: SYSVAR_INSTRUCTIONS_PUBKEY,
-                spl_token_program: TOKEN_PROGRAM_ID,
-                spl_ata_program: SOLANA_SPL_ATA_PROGRAM_ID,
-                swap_data_account: Data.swapDataAccount,
-                user: Data.signer,
-                leaf_delegate: Data.signer,
-                tree_authority: treeAuthority,
-                merkle_tree: treeProof.tree_id,
-                log_wrapper: SPL_NOOP_PROGRAM_ID,
-                compression_program: SPL_ACCOUNT_COMPRESSION_PROGRAM_ID,
-                bubblegum_program: MPL_BUBBLEGUM_PROGRAM_ID,
-            })
-            .remainingAccounts(proofMeta)
-            .instruction()
-    );
-    return { instructions };
+    if (!Data.prepare) {
+        return {
+            instructions: await Data.program.methods
+                .depositCNft(
+                    Data.swapIdentity.swapDataAccount_seed,
+                    root,
+                    dataHash,
+                    creatorHash,
+                    nonce,
+                    index
+                )
+                .accounts({
+                    metadata_program: TOKEN_METADATA_PROGRAM,
+                    sysvar_instructions: SYSVAR_INSTRUCTIONS_PUBKEY,
+                    spl_token_program: TOKEN_PROGRAM_ID,
+                    spl_ata_program: SOLANA_SPL_ATA_PROGRAM_ID,
+                    swap_data_account: Data.swapIdentity.swapDataAccount_publicKey,
+                    user: Data.signer,
+                    leaf_delegate: Data.signer,
+                    tree_authority: treeAuthority,
+                    merkle_tree: treeProof.tree_id,
+                    log_wrapper: SPL_NOOP_PROGRAM_ID,
+                    compression_program: SPL_ACCOUNT_COMPRESSION_PROGRAM_ID,
+                    bubblegum_program: MPL_BUBBLEGUM_PROGRAM_ID,
+                })
+                .remainingAccounts(proofMeta)
+                .instruction(),
+        };
+    } else {
+        return {
+            prepareInstruction: [
+                {
+                    programId: Data.program.programId.toString(),
+                    type: "depositCNft",
+                    data: {
+                        arguments: {
+                            seed: Data.swapIdentity.swapDataAccount_seedString,
+                            root,
+                            dataHash,
+                            creatorHash,
+                            nonce,
+                            index,
+                        },
+                        accounts: {
+                            metadata_program: TOKEN_METADATA_PROGRAM.toBase58(),
+                            sysvar_instructions: SYSVAR_INSTRUCTIONS_PUBKEY.toBase58(),
+                            spl_token_program: TOKEN_PROGRAM_ID.toBase58(),
+                            spl_ata_program: SOLANA_SPL_ATA_PROGRAM_ID.toBase58(),
+                            swap_data_account:
+                                Data.swapIdentity.swapDataAccount_publicKey.toBase58(),
+                            user: Data.signer.toBase58(),
+                            leaf_delegate: Data.signer.toBase58(),
+                            tree_authority: treeAuthority.toBase58(),
+                            merkle_tree: treeProof.tree_id.toBase58(),
+                            log_wrapper: SPL_NOOP_PROGRAM_ID.toBase58(),
+                            compression_program: SPL_ACCOUNT_COMPRESSION_PROGRAM_ID.toBase58(),
+                            bubblegum_program: MPL_BUBBLEGUM_PROGRAM_ID.toString(),
+                        },
+                    },
+                },
+            ],
+        };
+    }
 }

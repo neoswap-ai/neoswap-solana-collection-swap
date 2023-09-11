@@ -2,6 +2,7 @@ import { BN } from "@project-serum/anchor";
 import { PublicKey, Signer, Transaction } from "@solana/web3.js";
 
 export type NftSwapItem = {
+    isCompressed: boolean;
     isNft: boolean;
     mint: PublicKey;
     amount: BN;
@@ -93,6 +94,7 @@ export interface ApiProcessorData {
 export type ApiProcessorConfigType =
     | CreateAssociatedTokenAccountInstructionData
     | DepositNft
+    | DepositCNft
     | DepositSol
     | CreateOrdinalSwap
     | UnwrapSol;
@@ -141,7 +143,34 @@ export interface DepositNft {
         };
     };
 }
-
+export interface DepositCNft {
+    programId: string;
+    type: "depositCNft";
+    data: {
+        arguments: {
+            seed: string;
+            root: Uint8Array;
+            dataHash: Uint8Array;
+            creatorHash: Uint8Array;
+            nonce: BN;
+            index: BN;
+        };
+        accounts: {
+            metadata_program: string;
+            sysvar_instructions: string;
+            spl_token_program: string;
+            spl_ata_program: string;
+            swap_data_account: string;
+            user: string;
+            leaf_delegate: string;
+            tree_authority: string;
+            merkle_tree: string;
+            log_wrapper: string;
+            compression_program: string;
+            bubblegum_program: string;
+        };
+    };
+}
 export interface CreateAssociatedTokenAccountInstructionData {
     programId: string;
     type: "createAssociatedTokenAccountInstruction";
