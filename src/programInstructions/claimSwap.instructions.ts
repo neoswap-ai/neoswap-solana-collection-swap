@@ -41,7 +41,7 @@ export async function createClaimSwapInstructions(Data: {
     if (swapData.initializer.equals(Data.signer)) {
         init = true;
         /// check no bad outcome possible
-    } 
+    }
     // else if (swapData.status !== TradeStatus.WaitingToClaim) {
     //     throw {
     //         blockchain: "solana",
@@ -65,57 +65,57 @@ export async function createClaimSwapInstructions(Data: {
             swapDataItem.status === ItemStatus.SolToClaim
     );
 
-    if (!init)
-        swapDataItems = swapDataItems.filter((item) => item.destinary.equals(Data.signer));
+    if (!init) swapDataItems = swapDataItems.filter((item) => item.destinary.equals(Data.signer));
 
     for (const swapDataItem of swapDataItems) {
         if (init === true || swapDataItem.destinary.equals(Data.signer)) {
             if (swapDataItem.isNft) {
-                if (swapDataItem.status === ItemStatus.NFTDeposited){
-if (swapDataItem.isCompressed){
+                if (swapDataItem.status === ItemStatus.NFTDeposited) {
+                    if (swapDataItem.isCompressed) {
+                        console.log(
+                            "XXX - Claim CNFT swapDataItem with TokenId ",
+                            swapDataItem.mint.toBase58(),
+                            " to ",
+                            swapDataItem.destinary.toBase58(),
+                            " - XXX"
+                        );
 
-    console.log(
-        "XXX - Claim CNFT swapDataItem with TokenId ",
-        swapDataItem.mint.toBase58(),
-        " to ",
-        swapDataItem.destinary.toBase58(),
-        " - XXX"
-    );
+                        const claimNftData = await getClaimCNftInstruction({
+                            program,
+                            user: swapDataItem.destinary,
+                            tokenId: swapDataItem.mint,
+                            signer: Data.signer,
+                            swapIdentity,
+                            // ataList,
+                        });
+                        claimTransactionInstruction.push({
+                            tx: new Transaction().add(claimNftData),
+                        });
+                    } else {
+                        console.log(
+                            "XXX - Claim NFT swapDataItem with mint ",
+                            swapDataItem.mint.toBase58(),
+                            " to ",
+                            swapDataItem.destinary.toBase58(),
+                            " - XXX"
+                        );
+                        const claimNftData = await getClaimNftInstructions({
+                            program,
+                            destinary: swapDataItem.destinary,
+                            mint: swapDataItem.mint,
+                            signer: Data.signer,
+                            swapIdentity,
+                            ataList,
+                        });
 
-    const claimNftData = await getClaimCNftInstruction({
-        program,
-        user: swapDataItem.destinary,
-        tokenId: swapDataItem.mint,
-        signer: Data.signer,
-        swapIdentity,
-        // ataList,
-    });
-}else {
-
-    console.log(
-        "XXX - Claim NFT swapDataItem with mint ",
-        swapDataItem.mint.toBase58(),
-        " to ",
-        swapDataItem.destinary.toBase58(),
-        " - XXX"
-    );
-    const claimNftData = await getClaimNftInstructions({
-        program,
-        destinary: swapDataItem.destinary,
-        mint: swapDataItem.mint,
-        signer: Data.signer,
-        swapIdentity,
-        ataList,
-    });
-
-    claimTransactionInstruction.push({
-        tx: new Transaction().add(...claimNftData.instruction),
-    });
-    claimNftData.newAtas.forEach((ata) => {
-        if (!ataList.includes(ata)) ataList.push(ata);
-    });
-}
-}
+                        claimTransactionInstruction.push({
+                            tx: new Transaction().add(...claimNftData.instruction),
+                        });
+                        claimNftData.newAtas.forEach((ata) => {
+                            if (!ataList.includes(ata)) ataList.push(ata);
+                        });
+                    }
+                }
             } else {
                 console.log(
                     "XXX - Claim Sol item mint ",

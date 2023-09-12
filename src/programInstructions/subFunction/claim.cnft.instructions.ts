@@ -82,6 +82,7 @@ export async function getClaimCNftInstruction(Data: {
             isWritable: false,
         }));
     console.log("proofMeta", proofMeta);
+
     // const proof = proofMeta.map((node: AccountMeta) => node.pubkey.toString());
     // console.log('proof', proof);
 
@@ -89,7 +90,6 @@ export async function getClaimCNftInstruction(Data: {
     // console.log('treeData.data_hash', treeProof);
     // console.log('treeData.creator_hash', treeData.compression);
 
-    let instructions = [];
     let root = new PublicKey(treeProof.root).toBytes();
     let dataHash = new PublicKey(treeData.compression.data_hash).toBytes();
     let creatorHash = new PublicKey(treeData.compression.creator_hash).toBytes();
@@ -122,39 +122,32 @@ export async function getClaimCNftInstruction(Data: {
     //     " \nanchorRemainingAccounts:",
     //     proofMeta
     // );
-    instructions.push(
-        await Data.program.methods
-            .claimCNft(
-                Data.swapIdentity.swapDataAccount_seed,
-                Data.swapIdentity.swapDataAccount_bump,
-                root,
-                dataHash,
-                creatorHash,
-                nonce,
-                index
-            )
-            .accounts({
-                leafDelegate: Data.signer,
-                treeAuthority,
-                merkleTree: treeProof.tree_id,
-                logWrapper: SPL_NOOP_PROGRAM_ID,
-                compressionProgram: SPL_ACCOUNT_COMPRESSION_PROGRAM_ID,
-                bubblegumProgram: MPL_BUBBLEGUM_PROGRAM_ID,
-
-                systemProgram: SystemProgram.programId.toBase58(),
-                // remainingAccounts: proof,
-                metadataProgram: TOKEN_METADATA_PROGRAM,
-                sysvarInstructions: SYSVAR_INSTRUCTIONS_PUBKEY,
-                splTokenProgram: TOKEN_PROGRAM_ID,
-                splAtaProgram: SOLANA_SPL_ATA_PROGRAM_ID,
-                swapDataAccount: Data.swapIdentity.swapDataAccount_publicKey,
-                user: Data.user,
-                signer: Data.signer,
-
-                newLeafOwner: Data.user,
-            })
-            .remainingAccounts(proofMeta)
-            .instruction()
-    );
-    return { instructions };
+    return await Data.program.methods
+        .claimCNft(
+            Data.swapIdentity.swapDataAccount_seed,
+            Data.swapIdentity.swapDataAccount_bump,
+            root,
+            dataHash,
+            creatorHash,
+            nonce,
+            index
+        )
+        .accounts({
+            systemProgram: SystemProgram.programId.toBase58(),
+            metadataProgram: TOKEN_METADATA_PROGRAM,
+            sysvarInstructions: SYSVAR_INSTRUCTIONS_PUBKEY,
+            splTokenProgram: TOKEN_PROGRAM_ID,
+            splAtaProgram: SOLANA_SPL_ATA_PROGRAM_ID,
+            swapDataAccount: Data.swapIdentity.swapDataAccount_publicKey,
+            user: Data.user,
+            signer: Data.signer,
+            leafDelegate: Data.swapIdentity.swapDataAccount_publicKey,
+            treeAuthority,
+            merkleTree: treeProof.tree_id,
+            logWrapper: SPL_NOOP_PROGRAM_ID,
+            compressionProgram: SPL_ACCOUNT_COMPRESSION_PROGRAM_ID,
+            bubblegumProgram: MPL_BUBBLEGUM_PROGRAM_ID,
+        })
+        .remainingAccounts(proofMeta)
+        .instruction();
 }

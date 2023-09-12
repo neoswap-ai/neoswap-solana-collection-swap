@@ -32,7 +32,12 @@ export async function swapDataConverter(Data: {
                     console.log("balance", balance);
 
                     if (balance === 0) {
-                        isCompressed = true;
+                        const signa = await connection.getSignaturesForAddress(
+                            new PublicKey(item.address)
+                        );
+                        if (signa.length === 0) {
+                            isCompressed = true;
+                        }
                     }
                 } catch (error) {
                     isCompressed = true;
