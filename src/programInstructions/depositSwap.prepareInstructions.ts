@@ -35,7 +35,7 @@ export async function prepareDepositSwapInstructions(Data: {
 
     const swapIdentity = getSwapIdentityFromData({
         swapData,
-        isDevnet: Data.clusterOrUrl.toLocaleLowerCase().includes("devnet"),
+        clusterOrUrl: Data.clusterOrUrl,
     });
     console.log("swapIdentity from PublicKey", swapIdentity);
 

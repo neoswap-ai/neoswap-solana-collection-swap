@@ -9,7 +9,7 @@ export const validateDeposit = async (Data: {
     signer: PublicKey;
     clusterOrUrl: Cluster | string;
 }): Promise<TxWithSigner[] | undefined> => {
-    const program = getProgram({clusterOrUrl:Data.clusterOrUrl});
+    const program = getProgram({ clusterOrUrl: Data.clusterOrUrl });
     const swapData = await getSwapDataAccountFromPublicKey({
         program,
         swapDataAccount_publicKey: Data.swapDataAccount,
@@ -46,7 +46,7 @@ export const validateDeposit = async (Data: {
 
     const swapIdentity = getSwapIdentityFromData({
         swapData,
-        isDevnet: Data.clusterOrUrl.toLocaleLowerCase().includes("devnet"),
+        clusterOrUrl: Data.clusterOrUrl,
     });
 
     return [

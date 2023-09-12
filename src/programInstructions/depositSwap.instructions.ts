@@ -35,7 +35,7 @@ export async function createDepositSwapInstructions(Data: {
 
     const swapIdentity = getSwapIdentityFromData({
         swapData,
-        isDevnet: Data.clusterOrUrl.toLocaleLowerCase().includes("devnet"),
+        clusterOrUrl: Data.clusterOrUrl,
     });
     // console.log("swapData", swapData);
     // console.log("Data.user", Data.user);

@@ -19,7 +19,6 @@ export async function sendBundledTransactions(Data: {
             clusterOrUrl: Data.clusterOrUrl,
             signer: Data.signer,
         }).provider;
-        console.log();
 
         const txsWithSigners = Data.txsWithoutSigners.map((txWithSigners) => {
             txWithSigners.signers = [Data.signer];
@@ -40,6 +39,7 @@ export async function sendBundledTransactions(Data: {
         const transactionHashs = await provider.sendAll(txsWithSigners, {
             maxRetries: 5,
             skipPreflight: !Data.simulation,
+            // skipPreflight: true,
         });
 
         if (!Data.skipConfirmation) {

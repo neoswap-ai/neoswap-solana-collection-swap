@@ -53,7 +53,7 @@ export async function createClaimSwapInstructions(Data: {
     // }
     const swapIdentity = getSwapIdentityFromData({
         swapData,
-        isDevnet: Data.clusterOrUrl.toLocaleLowerCase().includes("devnet"),
+        clusterOrUrl: Data.clusterOrUrl,
     });
 
     let claimTransactionInstruction: TxWithSigner[] = [];

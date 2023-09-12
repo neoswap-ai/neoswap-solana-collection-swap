@@ -6,7 +6,7 @@ import { bs58 } from "@project-serum/anchor/dist/cjs/utils/bytes";
 
 export function getSwapIdentityFromData(Data: {
     swapData: SwapData;
-    isDevnet?: boolean;
+    clusterOrUrl: string;
 }): SwapIdentity {
     // console.log("swapdata", Data.swapData);
     try {
@@ -31,7 +31,7 @@ export function getSwapIdentityFromData(Data: {
 
         const [swapDataAccount_publicKey, swapDataAccount_bump] = PublicKey.findProgramAddressSync(
             [swapDataAccount_seed],
-            Data.isDevnet ? SWAP_PROGRAM_ID_DEV : SWAP_PROGRAM_ID
+            Data.clusterOrUrl.includes("devnet") ? SWAP_PROGRAM_ID_DEV : SWAP_PROGRAM_ID
         );
         if (!Data.swapData.acceptedPayement)
             Data.swapData.items.map((item) => {

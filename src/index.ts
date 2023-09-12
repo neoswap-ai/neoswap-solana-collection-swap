@@ -21,6 +21,7 @@ import { getSwapDataAccountFromPublicKey } from "./utils/getSwapDataAccountFromP
 import { getSwapIdentityFromData } from "./utils/getSwapIdentityFromData.function";
 import { isConfirmedTx } from "./utils/isConfirmedTx.function";
 import { sendBundledTransactions } from "./utils/sendBundledTransactions.function";
+import { swapDataConverter } from "./utils/swapDataConverter.function";
 import { userSwapDetails } from "./utils/userSwapDetails.obj";
 export * as neoTypes from "./utils/types";
 export * as neoConst from "./utils/const";
@@ -41,6 +42,7 @@ const UTILS = {
     sendBundledTransactions,
     isConfirmedTx,
     findOrCreateAta,
+    swapDataConverter,
 };
 const CREATE_INSTRUCTIONS = {
     createInitializeSwapInstructions,

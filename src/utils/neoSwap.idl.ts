@@ -268,7 +268,7 @@ export const idlSwap: Idl = {
                     isSigner: false,
                 },
                 {
-                    name: "leafOwner",
+                    name: "user",
                     isMut: true,
                     isSigner: true,
                 },
@@ -647,11 +647,6 @@ export const idlSwap: Idl = {
                     isSigner: true,
                 },
                 {
-                    name: "leafOwner",
-                    isMut: true,
-                    isSigner: true,
-                },
-                {
                     name: "leafDelegate",
                     isMut: true,
                     isSigner: true,
@@ -663,11 +658,6 @@ export const idlSwap: Idl = {
                 },
                 {
                     name: "merkleTree",
-                    isMut: true,
-                    isSigner: false,
-                },
-                {
-                    name: "newLeafOwner",
                     isMut: true,
                     isSigner: false,
                 },
@@ -995,11 +985,6 @@ export const idlSwap: Idl = {
                     isSigner: true,
                 },
                 {
-                    name: "leafOwner",
-                    isMut: true,
-                    isSigner: true,
-                },
-                {
                     name: "leafDelegate",
                     isMut: true,
                     isSigner: true,
@@ -1011,11 +996,6 @@ export const idlSwap: Idl = {
                 },
                 {
                     name: "merkleTree",
-                    isMut: true,
-                    isSigner: false,
-                },
-                {
-                    name: "newLeafOwner",
                     isMut: true,
                     isSigner: false,
                 },
@@ -1169,6 +1149,10 @@ export const idlSwap: Idl = {
                     },
                     {
                         name: "mint",
+                        type: "publicKey",
+                    },
+                    {
+                        name: "merkleTree",
                         type: "publicKey",
                     },
                     {

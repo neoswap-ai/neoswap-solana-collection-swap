@@ -98,7 +98,7 @@ export async function getDepositCNftInstruction(Data: {
     // console.log('treeData.data_hash', treeProof);
     // console.log('treeData.creator_hash', treeData.compression);
 
-    let instructions = [];
+    // let instructions = [];
     let root = new PublicKey(treeProof.root).toBytes();
     let dataHash = new PublicKey(treeData.compression.data_hash).toBytes();
     let creatorHash = new PublicKey(treeData.compression.creator_hash).toBytes();
@@ -118,7 +118,7 @@ export async function getDepositCNftInstruction(Data: {
     //     " \nmerkleTree:",
     //     treeProof.tree_id,
     //     " \nnewLeafOwner:",
-    //     Data.destinary,
+    //     Data.signer,
     //     "\nlogWrapper:",
     //     SPL_NOOP_PROGRAM_ID,
     //     "\ncompressionProgram:",
@@ -143,18 +143,20 @@ export async function getDepositCNftInstruction(Data: {
                     index
                 )
                 .accounts({
-                    metadata_program: TOKEN_METADATA_PROGRAM,
-                    sysvar_instructions: SYSVAR_INSTRUCTIONS_PUBKEY,
-                    spl_token_program: TOKEN_PROGRAM_ID,
-                    spl_ata_program: SOLANA_SPL_ATA_PROGRAM_ID,
-                    swap_data_account: Data.swapIdentity.swapDataAccount_publicKey,
+                    systemProgram: SystemProgram.programId,
+                    metadataProgram: TOKEN_METADATA_PROGRAM,
+                    sysvarInstructions: SYSVAR_INSTRUCTIONS_PUBKEY,
+                    splTokenProgram: TOKEN_PROGRAM_ID,
+                    splAtaProgram: SOLANA_SPL_ATA_PROGRAM_ID,
+                    swapDataAccount: Data.swapIdentity.swapDataAccount_publicKey,
+                    // leafOwner: Data.signer,
                     user: Data.signer,
-                    leaf_delegate: Data.signer,
-                    tree_authority: treeAuthority,
-                    merkle_tree: treeProof.tree_id,
-                    log_wrapper: SPL_NOOP_PROGRAM_ID,
-                    compression_program: SPL_ACCOUNT_COMPRESSION_PROGRAM_ID,
-                    bubblegum_program: MPL_BUBBLEGUM_PROGRAM_ID,
+                    leafDelegate: Data.signer,
+                    treeAuthority: treeAuthority,
+                    merkleTree: treeProof.tree_id,
+                    logWrapper: SPL_NOOP_PROGRAM_ID,
+                    compressionProgram: SPL_ACCOUNT_COMPRESSION_PROGRAM_ID,
+                    bubblegumProgram: MPL_BUBBLEGUM_PROGRAM_ID,
                 })
                 .remainingAccounts(proofMeta)
                 .instruction(),

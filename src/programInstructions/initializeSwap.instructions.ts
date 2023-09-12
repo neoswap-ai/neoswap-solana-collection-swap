@@ -26,10 +26,11 @@ export async function createInitializeSwapInstructions(Data: {
     swapInfo: SwapInfo;
     signer: PublicKey;
     clusterOrUrl: Cluster | string;
+    // programId?: PublicKey;
 }): Promise<InitializeData> {
     let swapIdentity = await swapDataConverter({
         swapInfo: Data.swapInfo,
-        isDevnet: Data.clusterOrUrl.toLocaleLowerCase().includes("devnet"),
+        clusterOrUrl: Data.clusterOrUrl,
     });
     swapIdentity.swapData.initializer = Data.signer;
     console.log("swapData to initialize", swapIdentity);
@@ -174,7 +175,7 @@ async function getAddInitilizeInstructions(Data: {
             if (alreadyExistItems?.length === 0 || !alreadyExistItems) {
                 // console.log("alreadyExistItems", alreadyExistItems);
                 // console.log("item", item);
-                console.log("checkbal", item.mint, SystemProgram.programId);
+                console.log("checkbal", item.mint.toBase58());
 
                 if (!!!item.amount.isNeg() && !!!item.mint.equals(SystemProgram.programId)) {
                     const tokenAccount = await findOrCreateAta({

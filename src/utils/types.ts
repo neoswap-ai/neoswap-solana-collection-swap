@@ -5,6 +5,7 @@ export type NftSwapItem = {
     isCompressed: boolean;
     isNft: boolean;
     mint: PublicKey;
+    merkleTree: PublicKey;
     amount: BN;
     owner: PublicKey;
     destinary: PublicKey;
@@ -55,8 +56,7 @@ export type SwapInfo = {
     status?: "initializing" | "active" | "finalizing" | "finalized" | "canceling" | "canceled";
     preSeed?: string;
     currency: string;
-} & {
-    [userId: string]: SwapUserInfo;
+    users: { address: string; items: SwapUserInfo }[];
 };
 
 export type SwapIdentity = {

@@ -43,7 +43,7 @@ export const createValidateClaimedInstructions = async (Data: {
     // } as ErrorFeedback;
     const swapIdentity = getSwapIdentityFromData({
         swapData,
-        isDevnet: Data.clusterOrUrl.toLocaleLowerCase().includes("devnet"),
+        clusterOrUrl: Data.clusterOrUrl,
     });
 
     return [
