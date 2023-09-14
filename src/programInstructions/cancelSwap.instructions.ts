@@ -5,6 +5,7 @@ import { getSwapIdentityFromData } from "../utils/getSwapIdentityFromData.functi
 import { getCancelSolInstructions } from "./subFunction/cancel.sol.instructions";
 import { Cluster, PublicKey, Transaction, TransactionInstruction } from "@solana/web3.js";
 import { ErrorFeedback, ItemStatus, TradeStatus, TxWithSigner } from "../utils/types";
+import { getCancelCNftInstructions } from "./subFunction/cancel.cnft.instructions";
 
 export async function createCancelSwapInstructions(Data: {
     swapDataAccount: PublicKey;
@@ -57,25 +58,47 @@ export async function createCancelSwapInstructions(Data: {
 
     for (const swapDataItem of toBeCancelledItems) {
         if (swapDataItem.isNft) {
-            console.log(
-                "XXX - cancel NFT item with mint ",
-                swapDataItem.mint.toBase58(),
-                " from ",
-                swapDataItem.owner.toBase58(),
-                " - XXX"
-            );
-            const cancelNftData = await getCancelNftInstructions({
-                program,
-                owner: swapDataItem.owner,
-                mint: swapDataItem.mint,
-                signer: Data.signer,
-                swapIdentity,
-                ataList,
-            });
-            cancelTransactionInstruction.push({
-                tx: new Transaction().add(...cancelNftData.instructions),
-            });
-            ataList.push(...cancelNftData.newAtas);
+            if (swapDataItem.isCompressed) {
+                console.log(
+                    "XXX - cancel NFT item with mint ",
+                    swapDataItem.mint.toBase58(),
+                    " from ",
+                    swapDataItem.owner.toBase58(),
+                    " - XXX"
+                );
+                const cancelNftData = await getCancelCNftInstructions({
+                    program,
+                    tokenId: swapDataItem.mint,
+                    user: swapDataItem.owner,
+                    // mint: swapDataItem.mint,
+                    signer: Data.signer,
+                    swapIdentity,
+                    // ataList,
+                });
+                cancelTransactionInstruction.push({
+                    tx: new Transaction().add(cancelNftData),
+                });
+            } else {
+                console.log(
+                    "XXX - cancel NFT item with mint ",
+                    swapDataItem.mint.toBase58(),
+                    " from ",
+                    swapDataItem.owner.toBase58(),
+                    " - XXX"
+                );
+                const cancelNftData = await getCancelNftInstructions({
+                    program,
+                    owner: swapDataItem.owner,
+                    mint: swapDataItem.mint,
+                    signer: Data.signer,
+                    swapIdentity,
+                    ataList,
+                });
+                cancelTransactionInstruction.push({
+                    tx: new Transaction().add(...cancelNftData.instructions),
+                });
+                ataList.push(...cancelNftData.newAtas);
+            }
         } else {
             console.log(
                 "XXX - cancel Sol item mint ",

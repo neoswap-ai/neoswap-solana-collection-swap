@@ -21,16 +21,15 @@ import {
 import { BN, Program } from "@project-serum/anchor";
 import { SwapIdentity } from "../../utils/types";
 import { MPL_BUBBLEGUM_PROGRAM_ID } from "@metaplex-foundation/mpl-bubblegum";
+import { decode } from "bs58";
 
-export async function getCancelNftInstructions(Data: {
+export async function getCancelCNftInstructions(Data: {
     program: Program;
     swapIdentity: SwapIdentity;
     signer: PublicKey;
     user: PublicKey;
     tokenId: PublicKey;
-}): Promise<{
-    instructions: TransactionInstruction[];
-}> {
+}): Promise<TransactionInstruction> {
     let solanaUrl = clusterApiUrl("mainnet-beta");
     const treeDataReponse = await fetch(solanaUrl, {
         method: "POST",
@@ -96,12 +95,12 @@ export async function getCancelNftInstructions(Data: {
     // console.log('treeData.data_hash', treeProof);
     // console.log('treeData.creator_hash', treeData.compression);
 
-    let instructions = [];
-    let root = new PublicKey(treeProof.root).toBytes();
-    let dataHash = new PublicKey(treeData.compression.data_hash).toBytes();
-    let creatorHash = new PublicKey(treeData.compression.creator_hash).toBytes();
+    // let instructions = [];
+    let root = decode(treeProof.root);
+    let dataHash = decode(treeData.compression.data_hash); //new PublicKey().toBytes();
+    let creatorHash = decode(treeData.compression.creator_hash);
     let nonce = new BN(treeData.compression.leaf_id);
-    let index = new BN(treeData.compression.leaf_id);
+    let index = treeData.compression.leaf_id;
 
     // console.log('nonce', nonce);
     // console.log("args", root, dataHash, creatorHash, nonce, index);
@@ -129,40 +128,36 @@ export async function getCancelNftInstructions(Data: {
     //     " \nanchorRemainingAccounts:",
     //     proofMeta
     // );
-    instructions.push(
-        await Data.program.methods
-            .cancelCNft(
-                Data.swapIdentity.swapDataAccount_seed,
-                Data.swapIdentity.swapDataAccount_bump,
-                root,
-                dataHash,
-                creatorHash,
-                nonce,
-                index
-            )
-            .accounts({
-                leafDelegate: Data.signer,
-                treeAuthority,
-                merkleTree: treeProof.tree_id,
-                logWrapper: SPL_NOOP_PROGRAM_ID,
-                compressionProgram: SPL_ACCOUNT_COMPRESSION_PROGRAM_ID,
-                bubblegumProgram: MPL_BUBBLEGUM_PROGRAM_ID,
+    return await Data.program.methods
+        .cancelCNft(
+            Data.swapIdentity.swapDataAccount_seed,
+            Data.swapIdentity.swapDataAccount_bump,
+            root,
+            dataHash,
+            creatorHash,
+            nonce,
+            index
+        )
+        .accounts({
+            systemProgram: SystemProgram.programId,
+            metadataProgram: TOKEN_METADATA_PROGRAM,
+            sysvarInstructions: SYSVAR_INSTRUCTIONS_PUBKEY,
+            splTokenProgram: TOKEN_PROGRAM_ID,
+            splAtaProgram: SOLANA_SPL_ATA_PROGRAM_ID,
+            swapDataAccount: Data.swapIdentity.swapDataAccount_publicKey,
+            user: Data.user,
+            signer: Data.signer,
+            leafDelegate: Data.signer, // Data.swapIdentity.swapDataAccount_publicKey,
+            treeAuthority,
+            merkleTree: treeProof.tree_id,
+            logWrapper: SPL_NOOP_PROGRAM_ID,
+            compressionProgram: SPL_ACCOUNT_COMPRESSION_PROGRAM_ID,
+            bubblegumProgram: MPL_BUBBLEGUM_PROGRAM_ID,
+        })
+        .remainingAccounts(proofMeta)
+        .instruction();
+    // instructions.push(
+    // );
 
-                systemProgram: SystemProgram.programId.toBase58(),
-                // remainingAccounts: proof,
-                metadataProgram: TOKEN_METADATA_PROGRAM,
-                sysvarInstructions: SYSVAR_INSTRUCTIONS_PUBKEY,
-                splTokenProgram: TOKEN_PROGRAM_ID,
-                splAtaProgram: SOLANA_SPL_ATA_PROGRAM_ID,
-                swapDataAccount: Data.swapIdentity.swapDataAccount_publicKey,
-                user: Data.user,
-                signer: Data.signer,
-
-                newLeafOwner: Data.user,
-            })
-            .remainingAccounts(proofMeta)
-            .instruction()
-    );
-
-    return { instructions };
+    // return { instructions };
 }

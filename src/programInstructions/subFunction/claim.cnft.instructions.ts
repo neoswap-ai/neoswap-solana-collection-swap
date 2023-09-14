@@ -16,6 +16,7 @@ import { BN, Program } from "@project-serum/anchor";
 import { SOLANA_SPL_ATA_PROGRAM_ID, TOKEN_METADATA_PROGRAM } from "../../utils/const";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { SwapIdentity } from "../../utils/types";
+import { decode } from "bs58";
 
 export async function getClaimCNftInstruction(Data: {
     program: Program;
@@ -71,10 +72,11 @@ export async function getClaimCNftInstruction(Data: {
     const treeAuthority = treeAccount.getAuthority();
     const canopyDepth = treeAccount.getCanopyDepth();
 
-    // console.log("treeAuthority", treeAuthority);
-    // console.log("canopyDepth", canopyDepth);
-
+    console.log("treeAuthority", treeAuthority.toBase58());
+    console.log("canopyDepth", canopyDepth);
+    // treeAccount.tree.rightMostPath.proof;
     const proofMeta: AccountMeta[] = treeProof.proof
+        // const proofMeta: AccountMeta[] = treeAccount.tree.rightMostPath.proof
         .slice(0, treeProof.proof.length - (!!canopyDepth ? canopyDepth : 0))
         .map((node: string) => ({
             pubkey: new PublicKey(node),
@@ -90,11 +92,11 @@ export async function getClaimCNftInstruction(Data: {
     // console.log('treeData.data_hash', treeProof);
     // console.log('treeData.creator_hash', treeData.compression);
 
-    let root = new PublicKey(treeProof.root).toBytes();
-    let dataHash = new PublicKey(treeData.compression.data_hash).toBytes();
-    let creatorHash = new PublicKey(treeData.compression.creator_hash).toBytes();
+    let root = decode(treeProof.root);
+    let dataHash = decode(treeData.compression.data_hash); //new PublicKey().toBytes();
+    let creatorHash = decode(treeData.compression.creator_hash);
     let nonce = new BN(treeData.compression.leaf_id);
-    let index = new BN(treeData.compression.leaf_id);
+    let index = treeData.compression.leaf_id;
 
     // console.log('nonce', nonce);
     // console.log("args", root, dataHash, creatorHash, nonce, index);
@@ -141,7 +143,7 @@ export async function getClaimCNftInstruction(Data: {
             swapDataAccount: Data.swapIdentity.swapDataAccount_publicKey,
             user: Data.user,
             signer: Data.signer,
-            leafDelegate: Data.swapIdentity.swapDataAccount_publicKey,
+            leafDelegate: Data.signer, // Data.swapIdentity.swapDataAccount_publicKey,
             treeAuthority,
             merkleTree: treeProof.tree_id,
             logWrapper: SPL_NOOP_PROGRAM_ID,

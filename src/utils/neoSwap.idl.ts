@@ -638,7 +638,7 @@ export const idlSwap: Idl = {
                 },
                 {
                     name: "user",
-                    isMut: true,
+                    isMut: false,
                     isSigner: false,
                 },
                 {
@@ -648,12 +648,12 @@ export const idlSwap: Idl = {
                 },
                 {
                     name: "leafDelegate",
-                    isMut: true,
-                    isSigner: true,
+                    isMut: false,
+                    isSigner: false,
                 },
                 {
                     name: "treeAuthority",
-                    isMut: true,
+                    isMut: false,
                     isSigner: false,
                 },
                 {
@@ -976,7 +976,7 @@ export const idlSwap: Idl = {
                 },
                 {
                     name: "user",
-                    isMut: true,
+                    isMut: false,
                     isSigner: false,
                 },
                 {
@@ -986,12 +986,12 @@ export const idlSwap: Idl = {
                 },
                 {
                     name: "leafDelegate",
-                    isMut: true,
-                    isSigner: true,
+                    isMut: false,
+                    isSigner: false,
                 },
                 {
                     name: "treeAuthority",
-                    isMut: true,
+                    isMut: false,
                     isSigner: false,
                 },
                 {
