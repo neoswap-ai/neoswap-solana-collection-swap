@@ -149,26 +149,27 @@ export interface DepositCNft {
     data: {
         arguments: {
             seed: string;
-            root: Uint8Array;
-            dataHash: Uint8Array;
-            creatorHash: Uint8Array;
-            nonce: BN;
-            index: BN;
+            root: string;
+            dataHash: string;
+            creatorHash: string;
+            nonce: number;
+            index: number;
         };
         accounts: {
-            metadata_program: string;
-            sysvar_instructions: string;
-            spl_token_program: string;
-            spl_ata_program: string;
-            swap_data_account: string;
+            metadataProgram: string;
+            sysvarInstructions: string;
+            splTokenProgram: string;
+            splAtaProgram: string;
+            swapDataAccount: string;
             user: string;
-            leaf_delegate: string;
-            tree_authority: string;
-            merkle_tree: string;
-            log_wrapper: string;
-            compression_program: string;
-            bubblegum_program: string;
+            leafDelegate: string;
+            treeAuthority: string;
+            merkleTree: string;
+            logWrapper: string;
+            compressionProgram: string;
+            bubblegumProgram: string;
         };
+        remainingAccounts: string[];
     };
 }
 export interface CreateAssociatedTokenAccountInstructionData {
