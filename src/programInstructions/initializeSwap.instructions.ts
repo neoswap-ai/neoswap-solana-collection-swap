@@ -156,7 +156,7 @@ async function getAddInitilizeInstructions(Data: {
     }
 
     let transactionInstructionBundle = [];
-    let chunkSize = 6;
+    let chunkSize = 4;
     let returnData: ErrorFeedback[] = [];
     for (let index = 0; index < Data.swapIdentity.swapData.items.length; index += chunkSize) {
         const chunkIx: TransactionInstruction[] = [];
@@ -175,7 +175,7 @@ async function getAddInitilizeInstructions(Data: {
             if (alreadyExistItems?.length === 0 || !alreadyExistItems) {
                 // console.log("alreadyExistItems", alreadyExistItems);
                 // console.log("item", item);
-                console.log("checkbal", item.mint.toBase58());
+                // console.log("checkbal", item.mint.toBase58());
 
                 if (!!!item.amount.isNeg() && !!!item.mint.equals(SystemProgram.programId)) {
                     const tokenAccount = await findOrCreateAta({
@@ -185,16 +185,17 @@ async function getAddInitilizeInstructions(Data: {
                         signer: Data.signer,
                     });
                     console.log(
-                        "check balance",
-                        "mint:",
-                        item.mint,
-                        "owner:",
-                        item.owner,
-                        "program:",
-                        Data.program,
-                        "signer:",
-                        Data.signer,
-                        tokenAccount.mintAta
+                        "check NFT balance",
+                        "\nmint:",
+                        item.mint.toBase58(),
+                        "\nowner:",
+                        item.owner.toBase58(),
+                        // "program:",
+                        // Data.program,
+                        "\nsigner:",
+                        Data.signer.toBase58(),
+                        "\nATA:",
+                        tokenAccount.mintAta.toBase58()
                     );
                     try {
                         const balance =

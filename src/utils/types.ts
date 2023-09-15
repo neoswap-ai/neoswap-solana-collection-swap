@@ -6,6 +6,7 @@ export type NftSwapItem = {
     isNft: boolean;
     mint: PublicKey;
     merkleTree: PublicKey;
+    index: BN;
     amount: BN;
     owner: PublicKey;
     destinary: PublicKey;

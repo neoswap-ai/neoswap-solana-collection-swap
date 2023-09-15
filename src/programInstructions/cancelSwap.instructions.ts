@@ -60,7 +60,7 @@ export async function createCancelSwapInstructions(Data: {
         if (swapDataItem.isNft) {
             if (swapDataItem.isCompressed) {
                 console.log(
-                    "XXX - cancel NFT item with mint ",
+                    "XXX - cancel CNFT item with TokenId ",
                     swapDataItem.mint.toBase58(),
                     " from ",
                     swapDataItem.owner.toBase58(),

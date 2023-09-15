@@ -116,16 +116,9 @@ export const apiProcessorTranscript = async (Data: {
                     .remainingAccounts(getProofMeta(item.data.remainingAccounts))
                     .instruction();
 
-                console.log("deposit Nft");
+                console.log("deposit CNft");
 
-                if (lastWasCreateAccount === true) {
-                    console.log("added to previous Tx");
-                    depositTransaction[depositTransaction.length - 1].add(depositCNftIx);
-                    // depositTransaction.push(new Transaction());
-                    lastWasCreateAccount = false;
-                } else {
-                    depositTransaction.push(new Transaction().add(depositCNftIx));
-                }
+                depositTransaction.push(new Transaction().add(depositCNftIx));
 
                 break;
             case "depositSol":

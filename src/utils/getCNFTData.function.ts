@@ -53,7 +53,7 @@ export async function getCNFTData(Data: { tokenId: string; Cluster: Cluster }) {
     const canopyDepth = treeAccount.getCanopyDepth();
 
     // console.log("treeAuthority", treeAuthority);
-    // console.log("canopyDepth", canopyDepth);
+    console.log("canopyDepth", canopyDepth);
 
     const proofMeta: AccountMeta[] = treeProof.proof
         .slice(0, treeProof.proof.length - (!!canopyDepth ? canopyDepth : 0))
@@ -122,4 +122,33 @@ export function getProofMeta(proof: string[]) {
         isSigner: false,
         isWritable: false,
     }));
+}
+
+export async function getMerkleTreeAndIndex(Data: { tokenId: PublicKey }) {
+    let solanaUrl = clusterApiUrl("mainnet-beta");
+    const treeDataReponse = await fetch(solanaUrl, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            jsonrpc: "2.0",
+            id: "rpd-op-123",
+            method: "getAsset",
+            params: {
+                id: Data.tokenId.toString(),
+            },
+        }),
+    });
+    let treeData = (await treeDataReponse.json()).result;
+    // console.log("treeData Results", treeData);
+    console.log("treeData Results", Data.tokenId, {
+        merkleTree: treeData.compression.tree,
+        index: treeData.compression.leaf_id,
+    });
+
+    return {
+        merkleTree: new PublicKey(treeData.compression.tree),
+        index: new BN(treeData.compression.leaf_id),
+    };
 }

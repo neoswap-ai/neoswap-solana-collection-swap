@@ -1156,6 +1156,10 @@ export const idlSwap: Idl = {
                         type: "publicKey",
                     },
                     {
+                        name: "index",
+                        type: "u32",
+                    },
+                    {
                         name: "amount",
                         type: "i64",
                     },

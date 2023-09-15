@@ -37,6 +37,25 @@ export async function getDepositCNftInstruction(Data: {
 }> {
     const { creatorHash, dataHash, index, merkleTree, nonce, proofMeta, root, treeAuthority } =
         await getCNFTData({ tokenId: Data.tokenId.toBase58(), Cluster: "mainnet-beta" });
+    console.log(
+        "getDepositCNftInstruction",
+        Data.tokenId.toBase58(),
+        "\nmerkleTree.toBase58()",
+        merkleTree.toBase58(),
+        "\nindex",
+        index,
+        "\ncreatorHash.toString()",
+        creatorHash.toString(),
+        "\ndataHash.toString",
+        dataHash.toString(),
+        "\nnonce.toNumber()",
+        nonce.toNumber(),
+        "\nroot.toString()",
+        root.toString(),
+        "\ntreeAuthority",
+        treeAuthority.toString()
+    );
+
     if (!Data.prepare) {
         return {
             instructions: await Data.program.methods

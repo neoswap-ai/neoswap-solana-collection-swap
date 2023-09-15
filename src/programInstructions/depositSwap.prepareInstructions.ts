@@ -37,7 +37,7 @@ export async function prepareDepositSwapInstructions(Data: {
         swapData,
         clusterOrUrl: Data.clusterOrUrl,
     });
-    console.log("swapIdentity from PublicKey", swapIdentity);
+    // console.log("swapIdentity from PublicKey", swapIdentity);
 
     let apiInstructions: ApiProcessorData[] = [];
     let ataList: PublicKey[] = [];

@@ -1,10 +1,10 @@
 import { BN } from "@project-serum/anchor";
-import { Connection, PublicKey, SystemProgram } from "@solana/web3.js";
+import { PublicKey, SystemProgram } from "@solana/web3.js";
 import { ItemStatus, NftSwapItem, SwapIdentity, SwapInfo } from "./types";
 import { getSwapIdentityFromData } from "./getSwapIdentityFromData.function";
 import { neoTypes } from "..";
 import { getProgram } from "./getProgram.obj";
-import { getMerkleTree } from "./getMerkleTree.function";
+import { getMerkleTreeAndIndex } from "./getCNFTData.function";
 
 export async function swapDataConverter(Data: {
     swapInfo: SwapInfo;
@@ -27,6 +27,7 @@ export async function swapDataConverter(Data: {
 
                 let isCompressed = false;
                 let merkleTree = new PublicKey(item.address);
+                let index = new BN(0);
                 try {
                     const balance = await connection.getBalance(new PublicKey(item.address));
                     console.log("balance", balance);
@@ -44,7 +45,10 @@ export async function swapDataConverter(Data: {
                     console.log("error", error);
                 }
                 if (isCompressed) {
-                    merkleTree = await getMerkleTree({ tokenId: new PublicKey(item.address) });
+                    let { merkleTree: merkleTreefound, index: indexFound } =
+                        await getMerkleTreeAndIndex({ tokenId: new PublicKey(item.address) });
+                    merkleTree = merkleTreefound;
+                    index = indexFound;
                     console.log("XXXXXXXXXXXXXXXXXX - merkleTree", merkleTree.toBase58());
                 }
                 item.getters.map((toDest) => {
@@ -54,6 +58,7 @@ export async function swapDataConverter(Data: {
                         isCompressed,
                         mint: new PublicKey(item.address),
                         merkleTree,
+                        index,
                         owner: new PublicKey(Data.swapInfo.users[user].address),
                         destinary: new PublicKey(toDest.address),
                         amount: new BN(toDest.amount),
@@ -74,6 +79,7 @@ export async function swapDataConverter(Data: {
                 destinary: ccurency,
                 mint: ccurency,
                 merkleTree: ccurency,
+                index: new BN(0),
                 status:
                     Data.swapInfo.users[user].items.token.amount < 0
                         ? ItemStatus.SolPending
