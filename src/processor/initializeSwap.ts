@@ -2,7 +2,8 @@ import { Cluster, Keypair } from "@solana/web3.js";
 import { createInitializeSwapInstructions } from "../programInstructions/initializeSwap.instructions";
 import { sendBundledTransactions } from "../utils/sendBundledTransactions.function";
 import { ErrorFeedback, InitializeData, SwapData, SwapIdentity, SwapInfo } from "../utils/types";
-import { isConfirmedTx } from "../utils/isConfirmedTx.function";
+import { getProgram } from "../utils/getProgram.obj";
+import { AnchorProvider } from "@project-serum/anchor";
 
 export async function initializeSwap(Data: {
     swapInfo: SwapInfo;
@@ -15,14 +16,17 @@ export async function initializeSwap(Data: {
     transactionHashs: string[];
 }> {
     // console.log("swapData", Data.swapData);
+    const program = getProgram({ clusterOrUrl: Data.clusterOrUrl, signer: Data.signer });
 
     let initializeData = await createInitializeSwapInstructions({
         swapInfo: Data.swapInfo,
         signer: Data.signer.publicKey,
         clusterOrUrl: Data.clusterOrUrl,
+        program,
     });
     try {
         const transactionHashs = await sendBundledTransactions({
+            provider: program.provider as AnchorProvider,
             txsWithoutSigners: initializeData.txWithoutSigner,
             signer: Data.signer,
             clusterOrUrl: Data.clusterOrUrl,

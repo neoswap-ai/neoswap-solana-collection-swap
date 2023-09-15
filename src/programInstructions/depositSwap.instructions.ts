@@ -5,13 +5,16 @@ import { getSwapIdentityFromData } from "../utils/getSwapIdentityFromData.functi
 import { getDepositNftInstruction } from "./subFunction/deposit.nft.instructions";
 import { getDepositSolInstruction } from "./subFunction/deposit.sol.instructions";
 import { ErrorFeedback, ItemStatus, SwapData, TradeStatus, TxWithSigner } from "../utils/types";
+import { getDepositCNftInstruction } from "./subFunction/deposit.cnft.instructions";
+import { Program } from "@project-serum/anchor";
 
 export async function createDepositSwapInstructions(Data: {
     swapDataAccount: PublicKey;
     user: PublicKey;
     clusterOrUrl: Cluster | string;
+    program?: Program;
 }): Promise<TxWithSigner[]> {
-    const program = getProgram({ clusterOrUrl: Data.clusterOrUrl });
+    const program = Data.program ? Data.program : getProgram({ clusterOrUrl: Data.clusterOrUrl });
     let swapData = await getSwapDataAccountFromPublicKey({
         program,
         swapDataAccount_publicKey: Data.swapDataAccount,
@@ -33,7 +36,7 @@ export async function createDepositSwapInstructions(Data: {
 
     const swapIdentity = getSwapIdentityFromData({
         swapData,
-        isDevnet: Data.clusterOrUrl.toLocaleLowerCase().includes("devnet"),
+        clusterOrUrl: Data.clusterOrUrl,
     });
     // console.log("swapData", swapData);
     // console.log("Data.user", Data.user);
@@ -51,31 +54,51 @@ export async function createDepositSwapInstructions(Data: {
     for (const swapDataItem of swapDataItems) {
         if (swapDataItem.isNft) {
             if (swapDataItem.status === ItemStatus.NFTPending) {
-                console.log(
-                    "XXX - Deposit NFT item with mint ",
-                    swapDataItem.mint.toBase58(),
-                    " from ",
-                    swapDataItem.owner.toBase58(),
-                    " - XXX"
-                );
+                if (swapDataItem.isCompressed) {
+                    console.log(
+                        "XXX - Deposit CNFT item with TokenId ",
+                        swapDataItem.mint.toBase58(),
+                        " from ",
+                        swapDataItem.owner.toBase58(),
+                        " - XXX"
+                    );
+                    let ix = await getDepositCNftInstruction({
+                        program,
+                        signer: Data.user,
+                        swapIdentity,
+                        tokenId: swapDataItem.mint,
+                    });
+                    if (!ix.instructions) throw " error prepare Instruction";
+                    depositInstruction.push({
+                        tx: new Transaction().add(ix.instructions),
+                    });
+                } else {
+                    console.log(
+                        "XXX - Deposit NFT item with mint ",
+                        swapDataItem.mint.toBase58(),
+                        " from ",
+                        swapDataItem.owner.toBase58(),
+                        " - XXX"
+                    );
 
-                let depositing = await getDepositNftInstruction({
-                    program: program,
-                    signer: Data.user,
-                    mint: swapDataItem.mint,
-                    amount: swapDataItem.amount.toNumber(),
-                    swapIdentity,
-                    ataList,
-                });
+                    let depositing = await getDepositNftInstruction({
+                        program: program,
+                        signer: Data.user,
+                        mint: swapDataItem.mint,
+                        amount: swapDataItem.amount.toNumber(),
+                        swapIdentity,
+                        ataList,
+                    });
 
-                depositing.newAtas.forEach((element) => {
-                    if (!ataList.includes(element)) {
-                        ataList.push(element);
-                    }
-                });
-                depositInstruction.push({
-                    tx: new Transaction().add(...depositing.instructions),
-                });
+                    depositing.newAtas.forEach((element) => {
+                        if (!ataList.includes(element)) {
+                            ataList.push(element);
+                        }
+                    });
+                    depositInstruction.push({
+                        tx: new Transaction().add(...depositing.instructions),
+                    });
+                }
             } else if (swapDataItem.status === ItemStatus.NFTDeposited) {
                 isUserAlreadyDeposited = true;
             }

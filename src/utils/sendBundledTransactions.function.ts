@@ -2,6 +2,7 @@ import { Cluster, Keypair } from "@solana/web3.js";
 import { getProgram } from "./getProgram.obj";
 import { ErrorFeedback, TxWithSigner } from "./types";
 import { isConfirmedTx } from "./isConfirmedTx.function";
+import { AnchorProvider, Program, Provider } from "@project-serum/anchor";
 
 // const getProgram  from "./getProgram.obj");
 
@@ -11,15 +12,14 @@ export async function sendBundledTransactions(Data: {
     clusterOrUrl: Cluster | string;
     simulation?: boolean;
     skipConfirmation?: boolean;
+    provider?: AnchorProvider;
 }): Promise<string[]> {
     try {
         // console.log(txWithSigners);
 
-        let provider = getProgram({
-            clusterOrUrl: Data.clusterOrUrl,
-            signer: Data.signer,
-        }).provider;
-        console.log();
+        const provider = Data.provider
+            ? Data.provider
+            : getProgram({ clusterOrUrl: Data.clusterOrUrl, signer: Data.signer }).provider;
 
         const txsWithSigners = Data.txsWithoutSigners.map((txWithSigners) => {
             txWithSigners.signers = [Data.signer];
@@ -40,12 +40,14 @@ export async function sendBundledTransactions(Data: {
         const transactionHashs = await provider.sendAll(txsWithSigners, {
             maxRetries: 5,
             skipPreflight: !Data.simulation,
+            // skipPreflight: true,
         });
 
         if (!Data.skipConfirmation) {
             const confirmArray = await isConfirmedTx({
                 clusterOrUrl: Data.clusterOrUrl,
                 transactionHashs,
+                connection: provider.connection,
             });
             confirmArray.forEach((confirmTx) => {
                 console.log("validating ", confirmTx.transactionHash, " ...");

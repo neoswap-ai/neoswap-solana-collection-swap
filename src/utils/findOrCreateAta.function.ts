@@ -56,7 +56,7 @@ export async function findOrCreateAta(Data: {
             mintAta,
         };
     } catch (eee) {
-        console.log("no ata found, creating one", eee);
+        console.log("no ata found, creating one");
 
         const mintAta = PublicKey.findProgramAddressSync(
             [Data.owner.toBuffer(), TOKEN_PROGRAM_ID.toBuffer(), Data.mint.toBuffer()],

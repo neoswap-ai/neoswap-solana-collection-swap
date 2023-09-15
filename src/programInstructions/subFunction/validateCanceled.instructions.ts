@@ -4,13 +4,15 @@ import { getProgram } from "../../utils/getProgram.obj";
 import { getSwapIdentityFromData } from "../../utils/getSwapIdentityFromData.function";
 import { getSwapDataAccountFromPublicKey } from "../../utils/getSwapDataAccountFromPublicKey.function";
 import { SOLANA_SPL_ATA_PROGRAM_ID } from "../../utils/const";
+import { Program } from "@project-serum/anchor";
 
 export const createValidateCanceledInstructions = async (Data: {
     swapDataAccount: PublicKey;
     signer: PublicKey;
     clusterOrUrl: Cluster | string;
+    program?: Program;
 }): Promise<TxWithSigner[] | undefined> => {
-    const program = getProgram({ clusterOrUrl: Data.clusterOrUrl });
+    const program = Data.program ? Data.program : getProgram({ clusterOrUrl: Data.clusterOrUrl });
     const swapData = await getSwapDataAccountFromPublicKey({
         program,
         swapDataAccount_publicKey: Data.swapDataAccount,
@@ -43,7 +45,7 @@ export const createValidateCanceledInstructions = async (Data: {
 
     const swapIdentity = getSwapIdentityFromData({
         swapData,
-        isDevnet: Data.clusterOrUrl.toLocaleLowerCase().includes("devnet"),
+        clusterOrUrl: Data.clusterOrUrl,
     });
 
     return [

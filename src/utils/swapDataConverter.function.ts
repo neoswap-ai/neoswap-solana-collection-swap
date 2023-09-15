@@ -1,65 +1,119 @@
-import { BN } from "@project-serum/anchor";
-import { PublicKey, SystemProgram } from "@solana/web3.js";
+import { BN, Program } from "@project-serum/anchor";
+import { Connection, PublicKey, SystemProgram } from "@solana/web3.js";
 import { ItemStatus, NftSwapItem, SwapIdentity, SwapInfo } from "./types";
 import { getSwapIdentityFromData } from "./getSwapIdentityFromData.function";
+import { neoTypes } from "..";
+import { getProgram } from "./getProgram.obj";
+import { getMerkleTreeAndIndex } from "./getCNFTData.function";
 
 export async function swapDataConverter(Data: {
     swapInfo: SwapInfo;
-    preSeed?: string;
-    isDevnet?: boolean;
+    clusterOrUrl: string;
+    connection?: Connection;
+    // preSeed?: string;
 }): Promise<SwapIdentity> {
-    let swapDatas: { [user: string]: NftSwapItem } = {};
+    let swapDatas: NftSwapItem[] = [];
+    const connection = Data.connection
+        ? Data.connection
+        : getProgram({ clusterOrUrl: Data.clusterOrUrl }).provider.connection;
+    for (const user in Data.swapInfo.users) {
+        // console.log("user", user);
 
-    for (const user in Data.swapInfo) {
-        if (user !== "preSeed" && user !== "currency") {
-            if (Data.swapInfo[user].get.length > 0)
-                console.log(user, "get", Data.swapInfo[user].get);
-            Data.swapInfo[user].get.map((item) => {
-                swapDatas[item.address] = {
-                    ...swapDatas[item.address],
-                    isNft: true,
-                    amount: new BN(item.amount),
-                    destinary: new PublicKey(user),
-                    mint: new PublicKey(item.address),
-                    status: 10,
-                };
+        // if (Data.swapInfo.users[user].items.get.length > 0)
+        //     console.log(user, "get", Data.swapInfo.users[user].items.get);
+
+        // if (Data.swapInfo.users[user].items.give.length > 0)
+        //     console.log(user, "give", Data.swapInfo.users[user].items.give);
+        await Promise.all(
+            Data.swapInfo.users[user].items.give.map(async (item) => {
+                // console.log(user, "give", item);
+
+                let isCompressed = false;
+                let merkleTree = new PublicKey(item.address);
+                let index = new BN(0);
+                try {
+                    const balance = await connection.getBalance(new PublicKey(item.address));
+                    // console.log("balance", balance);
+
+                    if (balance === 0) {
+                        const signa = await connection.getSignaturesForAddress(
+                            new PublicKey(item.address)
+                        );
+                        if (signa.length === 0) {
+                            isCompressed = true;
+                        }
+                    }
+                } catch (error) {
+                    isCompressed = true;
+                    console.log("error", error);
+                }
+                if (isCompressed) {
+                    let { merkleTree: merkleTreefound, index: indexFound } =
+                        await getMerkleTreeAndIndex({
+                            tokenId: new PublicKey(item.address),
+                            Cluster: Data.clusterOrUrl.includes("mainnet")
+                                ? "mainnet-beta"
+                                : "devnet",
+                        });
+                    merkleTree = merkleTreefound;
+                    index = indexFound;
+                    // console.log("XXXXXXXXXXXXXXXXXX - merkleTree", merkleTree.toBase58());
+                }
+                item.getters.map((toDest) => {
+                    console.log(
+                        user,
+                        " give ",
+                        toDest.amount,
+                        " items ",
+                        item.address,
+                        "to destinary",
+                        toDest.address
+                    );
+                    swapDatas.push({
+                        isNft: true,
+                        isCompressed,
+                        mint: new PublicKey(item.address),
+                        merkleTree,
+                        index,
+                        owner: new PublicKey(Data.swapInfo.users[user].address),
+                        destinary: new PublicKey(toDest.address),
+                        amount: new BN(toDest.amount),
+                        status: neoTypes.ItemStatus.NFTPending,
+                    });
+                });
+            })
+        );
+
+        if (Data.swapInfo.users[user].items.token.amount !== 0) {
+            console.log(user, "token", Data.swapInfo.users[user].items.token.amount);
+            let ccurency = new PublicKey(Data.swapInfo.currency);
+            swapDatas.push({
+                owner: new PublicKey(Data.swapInfo.users[user].address),
+                isNft: false,
+                isCompressed: false,
+                amount: new BN(Data.swapInfo.users[user].items.token.amount),
+                destinary: ccurency,
+                mint: ccurency,
+                merkleTree: ccurency,
+                index: new BN(0),
+                status:
+                    Data.swapInfo.users[user].items.token.amount < 0
+                        ? ItemStatus.SolPending
+                        : ItemStatus.SolToClaim,
             });
-            if (Data.swapInfo[user].give.length > 0)
-                console.log(user, "give", Data.swapInfo[user].give);
-            Data.swapInfo[user].give.map((item) => {
-                swapDatas[item.address] = {
-                    ...swapDatas[item.address],
-                    owner: new PublicKey(user),
-                };
-            });
-
-            if (Data.swapInfo[user].token.amount !== 0) {
-                console.log(user, "token", Data.swapInfo[user].token.amount);
-
-                swapDatas[user] = {
-                    owner: new PublicKey(user),
-                    isNft: false,
-                    amount: new BN(Data.swapInfo[user].token.amount),
-                    destinary: new PublicKey(Data.swapInfo.currency),
-                    mint: new PublicKey(Data.swapInfo.currency),
-                    status:
-                        Data.swapInfo[user].token.amount < 0
-                            ? ItemStatus.SolPending
-                            : ItemStatus.SolToClaim,
-                };
-            }
         }
     }
-    console.log("swapDatas", swapDatas);
+    // console.log("swapDatas", swapDatas);
 
-    const unorderedItems = Object.values(swapDatas);
-    const itemsNfts = unorderedItems.filter((x) => {
+    const itemsNfts = swapDatas.filter((x) => {
         return x.isNft == true;
     });
-    const itemsSol = unorderedItems.filter((x) => {
+    const itemsSol = swapDatas.filter((x) => {
         return x.isNft == false;
     });
     const items = itemsNfts.concat(itemsSol);
+
+    // console.log("items", items);
 
     return getSwapIdentityFromData({
         swapData: {
@@ -72,6 +126,6 @@ export async function swapDataConverter(Data: {
                 : SystemProgram.programId,
             nbItems: items.length,
         },
-        isDevnet: Data.isDevnet,
+        clusterOrUrl: Data.clusterOrUrl,
     });
 }

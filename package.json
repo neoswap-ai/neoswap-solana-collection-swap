@@ -1,6 +1,6 @@
 {
     "name": "@neoswap/solana",
-    "version": "0.2.48",
+    "version": "0.3.0-beta82",
     "repository": {
         "type": "git",
         "url": "git+htt// Data after initializing the swapps://github.com/neoswap-ai/neo-swap-npm.git"
@@ -31,6 +31,7 @@
         "@types/node-fetch": "^2.6.4",
         "bs58": "^5.0.0",
         "parcel": "^2.5.0",
-        "typescript": "^4.6.3"
+        "typescript": "^4.6.3",
+        "@metaplex-foundation/mpl-bubblegum": "^1.0.1"
     }
 }

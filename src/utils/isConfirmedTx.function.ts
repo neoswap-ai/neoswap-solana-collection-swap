@@ -1,12 +1,16 @@
-import { Cluster } from "@solana/web3.js";
+import { Cluster, Connection } from "@solana/web3.js";
 import { getProgram } from "./getProgram.obj";
+import { Program } from "@project-serum/anchor";
 
 export async function isConfirmedTx(Data: {
     transactionHashs: string[];
     clusterOrUrl: Cluster | string;
+    connection?: Connection;
 }) {
-    let program = getProgram({ clusterOrUrl: Data.clusterOrUrl });
-    const blockHashData = await program.provider.connection.getLatestBlockhash();
+    const connection = Data.connection
+        ? Data.connection
+        : getProgram({ clusterOrUrl: Data.clusterOrUrl }).provider.connection;
+    const blockHashData = await connection.getLatestBlockhash();
     let confirmArray: {
         transactionHash: string;
         isConfirmed: boolean;
@@ -14,7 +18,7 @@ export async function isConfirmedTx(Data: {
     await Promise.all(
         Data.transactionHashs.map(async (transactionHash) => {
             try {
-                const isConfirmed = await program.provider.connection.confirmTransaction({
+                const isConfirmed = await connection.confirmTransaction({
                     signature: transactionHash,
                     ...blockHashData,
                 });

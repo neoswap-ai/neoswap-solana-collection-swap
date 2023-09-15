@@ -1,5 +1,4 @@
 import { getProgram } from "../utils/getProgram.obj";
-import { getSwapIdentityFromData } from "../utils/getSwapIdentityFromData.function";
 import { getSwapDataAccountFromPublicKey } from "../utils/getSwapDataAccountFromPublicKey.function";
 import {
     Cluster,
@@ -19,23 +18,26 @@ import {
 } from "../utils/types";
 import { Program } from "@project-serum/anchor";
 import { findOrCreateAta } from "../utils/findOrCreateAta.function";
-import { delay } from "../utils/delay";
 import { swapDataConverter } from "../utils/swapDataConverter.function";
+import { getCNFTOwner } from "../utils/getCNFTData.function";
 
 export async function createInitializeSwapInstructions(Data: {
     swapInfo: SwapInfo;
     signer: PublicKey;
     clusterOrUrl: Cluster | string;
+    program?: Program;
+    // programId?: PublicKey;
 }): Promise<InitializeData> {
+    const program = Data.program ? Data.program : getProgram({ clusterOrUrl: Data.clusterOrUrl });
+
     let swapIdentity = await swapDataConverter({
         swapInfo: Data.swapInfo,
-        isDevnet: Data.clusterOrUrl.toLocaleLowerCase().includes("devnet"),
+        clusterOrUrl: Data.clusterOrUrl,
+        connection: program.provider.connection,
     });
     swapIdentity.swapData.initializer = Data.signer;
     console.log("swapData to initialize", swapIdentity);
     console.log("swapData ", swapIdentity.swapData.items);
-
-    const program = getProgram({ clusterOrUrl: Data.clusterOrUrl });
 
     try {
         const initInstruction = await getInitInitilizeInstruction({
@@ -155,7 +157,7 @@ async function getAddInitilizeInstructions(Data: {
     }
 
     let transactionInstructionBundle = [];
-    let chunkSize = 6;
+    let chunkSize = 4;
     let returnData: ErrorFeedback[] = [];
     for (let index = 0; index < Data.swapIdentity.swapData.items.length; index += chunkSize) {
         const chunkIx: TransactionInstruction[] = [];
@@ -174,9 +176,13 @@ async function getAddInitilizeInstructions(Data: {
             if (alreadyExistItems?.length === 0 || !alreadyExistItems) {
                 // console.log("alreadyExistItems", alreadyExistItems);
                 // console.log("item", item);
-                console.log("checkbal", item.mint, SystemProgram.programId);
+                // console.log("checkbal", item.mint.toBase58());
 
-                if (!!!item.amount.isNeg() && !!!item.mint.equals(SystemProgram.programId)) {
+                if (
+                    !!!item.amount.isNeg() &&
+                    !!!item.mint.equals(SystemProgram.programId) &&
+                    !!!item.isCompressed
+                ) {
                     const tokenAccount = await findOrCreateAta({
                         mint: item.mint,
                         owner: item.owner,
@@ -184,16 +190,17 @@ async function getAddInitilizeInstructions(Data: {
                         signer: Data.signer,
                     });
                     console.log(
-                        "check balance",
-                        "mint:",
-                        item.mint,
-                        "owner:",
-                        item.owner,
-                        "program:",
-                        Data.program,
-                        "signer:",
-                        Data.signer,
-                        tokenAccount.mintAta
+                        "check NFT balance",
+                        "\nmint:",
+                        item.mint.toBase58(),
+                        "\nowner:",
+                        item.owner.toBase58(),
+                        // "program:",
+                        // Data.program,
+                        // "\nsigner:",
+                        // Data.signer.toBase58(),
+                        "\nATA:",
+                        tokenAccount.mintAta.toBase58()
                     );
                     try {
                         const balance =
@@ -235,17 +242,47 @@ async function getAddInitilizeInstructions(Data: {
                             message: `\n\nUser: ${item.owner.toBase58()} \nMint: ${item.mint.toBase58()}\nATA: ${tokenAccount.mintAta.toBase58()} \nError: Couldn't find the NFT owned by user`,
                         } as ErrorFeedback);
                     }
+                    console.log(
+                        "XXX - added NFT item with Mint ",
+                        item.mint.toBase58(),
+                        " from ",
+                        item.owner.toBase58(),
+                        " amount ",
+                        item.amount.toNumber(),
+                        " - XXX"
+                    );
+                } else if (item.isCompressed) {
+                    const owner = await getCNFTOwner({
+                        tokenId: item.mint.toBase58(),
+                        Cluster: "mainnet-beta",
+                    });
+                    console.log(
+                        "XXX - added CNFT item with TokenId ",
+                        item.mint.toBase58(),
+                        " from ",
+                        item.owner.toBase58(),
+                        " amount ",
+                        item.amount.toNumber(),
+                        " - XXX"
+                    );
+                    if (!item.owner.equals(owner)) {
+                        returnData.push({
+                            blockchain: "solana",
+                            order: 0,
+                            status: "error",
+                            message: `\n\nUser: ${item.owner.toBase58()} \TokenId: ${item.mint.toBase58()} \nError: Couldn't find the NFT owned by user, owner is ${owner}`,
+                        } as ErrorFeedback);
+                    }
+                } else {
+                    console.log(
+                        "XXX - added sol Item from ",
+                        item.owner.toBase58(),
+                        " amount ",
+                        item.amount.toNumber(),
+                        " - XXX"
+                    );
                 }
 
-                console.log(
-                    "XXX - added item ",
-                    item.mint.toBase58(),
-                    " from ",
-                    item.owner.toBase58(),
-                    " amount ",
-                    item.amount.toNumber(),
-                    " - XXX"
-                );
                 chunkIx.push(
                     await Data.program.methods
                         .initializeAdd(Data.swapIdentity.swapDataAccount_seed, item)

@@ -2,8 +2,11 @@ import { BN } from "@project-serum/anchor";
 import { PublicKey, Signer, Transaction } from "@solana/web3.js";
 
 export type NftSwapItem = {
+    isCompressed: boolean;
     isNft: boolean;
     mint: PublicKey;
+    merkleTree: PublicKey;
+    index: BN;
     amount: BN;
     owner: PublicKey;
     destinary: PublicKey;
@@ -17,6 +20,7 @@ export type SwapData = {
     items: Array<NftSwapItem>;
     acceptedPayement: PublicKey;
 };
+
 export type GiveSwapItem = {
     address: string;
     amount: number;
@@ -36,6 +40,7 @@ export type GetSwapItem = {
         status?: "pending" | "deposited" | "claimed" | "returned";
     }[];
 };
+
 export type SwapUserInfo = {
     give: GiveSwapItem[];
     get: GetSwapItem[];
@@ -54,8 +59,7 @@ export type SwapInfo = {
     status?: "initializing" | "active" | "finalizing" | "finalized" | "canceling" | "canceled";
     preSeed?: string;
     currency: string;
-} & {
-    [userId: string]: SwapUserInfo;
+    users: { address: string; items: SwapUserInfo }[];
 };
 
 export type SwapIdentity = {
@@ -93,6 +97,7 @@ export interface ApiProcessorData {
 export type ApiProcessorConfigType =
     | CreateAssociatedTokenAccountInstructionData
     | DepositNft
+    | DepositCNft
     | DepositSol
     | CreateOrdinalSwap
     | UnwrapSol;
@@ -141,7 +146,35 @@ export interface DepositNft {
         };
     };
 }
-
+export interface DepositCNft {
+    programId: string;
+    type: "depositCNft";
+    data: {
+        arguments: {
+            seed: string;
+            root: string;
+            dataHash: string;
+            creatorHash: string;
+            nonce: number;
+            index: number;
+        };
+        accounts: {
+            metadataProgram: string;
+            sysvarInstructions: string;
+            splTokenProgram: string;
+            splAtaProgram: string;
+            swapDataAccount: string;
+            user: string;
+            leafDelegate: string;
+            treeAuthority: string;
+            merkleTree: string;
+            logWrapper: string;
+            compressionProgram: string;
+            bubblegumProgram: string;
+        };
+        remainingAccounts: string[];
+    };
+}
 export interface CreateAssociatedTokenAccountInstructionData {
     programId: string;
     type: "createAssociatedTokenAccountInstruction";

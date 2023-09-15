@@ -8,6 +8,8 @@ import { ApiProcessorConfigType, OrdinalsOffer, TxWithSigner } from "../utils/ty
 import { getProgram } from "../utils/getProgram.obj";
 import { createNewOfferIx } from "./subFunction/createNewOffer.instructions";
 import { createDepositOrdinalIx } from "./subFunction/createDepositOrdinal.instruction";
+import { getProofMeta } from "../utils/getCNFTData.function";
+import { decode } from "bs58";
 
 export const apiProcessorTranscript = async (Data: {
     // getProgram: (programId: PublicKey, idl: Idl) => Promise<Program>;
@@ -18,7 +20,7 @@ export const apiProcessorTranscript = async (Data: {
     let depositTransaction: Transaction[] = [];
     // console.log("Data.config", Data.config);
     let program: Program = getProgram({ clusterOrUrl: Data.clusterOrUrl });
-    console.log("program", program);
+    // console.log("program", program);
 
     let lastWasCreateAccount = false;
 
@@ -85,7 +87,40 @@ export const apiProcessorTranscript = async (Data: {
                 }
 
                 break;
+            case "depositCNft":
+                // console.log("depositNft"); //, item.data);
 
+                let depositCNftIx = await program.methods
+                    .depositCNft(
+                        Buffer.from(item.data.arguments.seed),
+                        decode(item.data.arguments.root),
+                        decode(item.data.arguments.dataHash),
+                        decode(item.data.arguments.creatorHash),
+                        new BN(item.data.arguments.nonce),
+                        item.data.arguments.index
+                    )
+                    .accounts({
+                        metadataProgram: item.data.accounts.metadataProgram,
+                        sysvarInstructions: item.data.accounts.sysvarInstructions,
+                        splTokenProgram: item.data.accounts.splTokenProgram,
+                        splAtaProgram: item.data.accounts.splAtaProgram,
+                        swapDataAccount: item.data.accounts.swapDataAccount,
+                        user: item.data.accounts.user,
+                        leafDelegate: item.data.accounts.leafDelegate,
+                        treeAuthority: item.data.accounts.treeAuthority,
+                        merkleTree: item.data.accounts.merkleTree,
+                        logWrapper: item.data.accounts.logWrapper,
+                        compressionProgram: item.data.accounts.compressionProgram,
+                        bubblegumProgram: item.data.accounts.bubblegumProgram,
+                    })
+                    .remainingAccounts(getProofMeta(item.data.remainingAccounts))
+                    .instruction();
+
+                console.log("deposit CNft");
+
+                depositTransaction.push(new Transaction().add(depositCNftIx));
+
+                break;
             case "depositSol":
                 // console.log("depositSol"); //, item.data);
                 let depositSolIx = await program.methods

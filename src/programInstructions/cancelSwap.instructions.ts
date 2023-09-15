@@ -5,13 +5,17 @@ import { getSwapIdentityFromData } from "../utils/getSwapIdentityFromData.functi
 import { getCancelSolInstructions } from "./subFunction/cancel.sol.instructions";
 import { Cluster, PublicKey, Transaction, TransactionInstruction } from "@solana/web3.js";
 import { ErrorFeedback, ItemStatus, TradeStatus, TxWithSigner } from "../utils/types";
+import { getCancelCNftInstructions } from "./subFunction/cancel.cnft.instructions";
+import { Program } from "@project-serum/anchor";
 
 export async function createCancelSwapInstructions(Data: {
     swapDataAccount: PublicKey;
     signer: PublicKey;
     clusterOrUrl: Cluster | string;
+    skipFinalize?: boolean;
+    program?: Program;
 }): Promise<TxWithSigner[] | undefined> {
-    const program = getProgram({ clusterOrUrl: Data.clusterOrUrl });
+    const program = Data.program ? Data.program : getProgram({ clusterOrUrl: Data.clusterOrUrl });
 
     const swapData = await getSwapDataAccountFromPublicKey({
         program,
@@ -37,16 +41,16 @@ export async function createCancelSwapInstructions(Data: {
         } as ErrorFeedback;
     }
     let init = false;
-    if (swapData.initializer.equals(Data.signer)) {
+    let userPartOfTrade = swapData.initializer.equals(Data.signer) ? true : false;
+    if (swapData.initializer.equals(Data.signer) || !Data.skipFinalize) {
         init = true;
         console.log("initializer");
     }
 
     const swapIdentity = getSwapIdentityFromData({
         swapData,
-        isDevnet: Data.clusterOrUrl.toLocaleLowerCase().includes("devnet"),
+        clusterOrUrl: Data.clusterOrUrl,
     });
-
     let cancelTransactionInstruction: TxWithSigner[] = [];
     let ataList: PublicKey[] = [];
     let toBeCancelledItems = swapData.items.filter(
@@ -56,26 +60,49 @@ export async function createCancelSwapInstructions(Data: {
         toBeCancelledItems = toBeCancelledItems.filter((item) => item.owner.equals(Data.signer));
 
     for (const swapDataItem of toBeCancelledItems) {
+        if (!userPartOfTrade && swapDataItem.owner.equals(Data.signer)) userPartOfTrade = true;
         if (swapDataItem.isNft) {
-            console.log(
-                "XXX - cancel NFT item with mint ",
-                swapDataItem.mint.toBase58(),
-                " from ",
-                swapDataItem.owner.toBase58(),
-                " - XXX"
-            );
-            const cancelNftData = await getCancelNftInstructions({
-                program,
-                owner: swapDataItem.owner,
-                mint: swapDataItem.mint,
-                signer: Data.signer,
-                swapIdentity,
-                ataList,
-            });
-            cancelTransactionInstruction.push({
-                tx: new Transaction().add(...cancelNftData.instructions),
-            });
-            ataList.push(...cancelNftData.newAtas);
+            if (swapDataItem.isCompressed) {
+                console.log(
+                    "XXX - cancel CNFT item with TokenId ",
+                    swapDataItem.mint.toBase58(),
+                    " from ",
+                    swapDataItem.owner.toBase58(),
+                    " - XXX"
+                );
+                const cancelNftData = await getCancelCNftInstructions({
+                    program,
+                    tokenId: swapDataItem.mint,
+                    user: swapDataItem.owner,
+                    // mint: swapDataItem.mint,
+                    signer: Data.signer,
+                    swapIdentity,
+                    // ataList,
+                });
+                cancelTransactionInstruction.push({
+                    tx: new Transaction().add(cancelNftData),
+                });
+            } else {
+                console.log(
+                    "XXX - cancel NFT item with mint ",
+                    swapDataItem.mint.toBase58(),
+                    " from ",
+                    swapDataItem.owner.toBase58(),
+                    " - XXX"
+                );
+                const cancelNftData = await getCancelNftInstructions({
+                    program,
+                    owner: swapDataItem.owner,
+                    mint: swapDataItem.mint,
+                    signer: Data.signer,
+                    swapIdentity,
+                    ataList,
+                });
+                cancelTransactionInstruction.push({
+                    tx: new Transaction().add(...cancelNftData.instructions),
+                });
+                ataList.push(...cancelNftData.newAtas);
+            }
         } else {
             console.log(
                 "XXX - cancel Sol item mint ",
@@ -97,12 +124,18 @@ export async function createCancelSwapInstructions(Data: {
             });
             ataList.push(...cancelSolData.newAtas);
         }
+        if (swapData.status === TradeStatus.WaitingToDeposit && !userPartOfTrade) {
+            throw {
+                blockchain: "solana",
+                status: "error",
+                message:
+                    "Signer isn't authorized to cancel the trade because he is not part of it and status === WaitingToDeposit",
+            } as ErrorFeedback;
+        }
     }
 
     if (cancelTransactionInstruction.length === 0 && init) {
-        console.log(
-            "no items found to cancel but signer is initializer.\nproceeding to validate cancel"
-        );
+        console.log("no items found to cancel but signer is proceeding to validate cancel");
         return;
     } else if (cancelTransactionInstruction.length > 0) {
         console.log("found ", cancelTransactionInstruction.length, " items to cancel");
