@@ -12,6 +12,7 @@ export async function createClaimSwapInstructions(Data: {
     swapDataAccount: PublicKey;
     signer: PublicKey;
     clusterOrUrl: Cluster | string;
+    skipFinalize?: boolean;
     program?: Program;
 }): Promise<TxWithSigner[] | undefined> {
     const program = Data.program ? Data.program : getProgram({ clusterOrUrl: Data.clusterOrUrl });
@@ -40,9 +41,8 @@ export async function createClaimSwapInstructions(Data: {
         } as ErrorFeedback;
     }
     let init = false;
-    if (swapData.initializer.equals(Data.signer)) {
+    if (swapData.initializer.equals(Data.signer) || !Data.skipFinalize) {
         init = true;
-        /// check no bad outcome possible
     }
     // else if (swapData.status !== TradeStatus.WaitingToClaim) {
     //     throw {

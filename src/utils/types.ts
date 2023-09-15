@@ -20,6 +20,7 @@ export type SwapData = {
     items: Array<NftSwapItem>;
     acceptedPayement: PublicKey;
 };
+
 export type GiveSwapItem = {
     address: string;
     amount: number;
@@ -39,6 +40,7 @@ export type GetSwapItem = {
         status?: "pending" | "deposited" | "claimed" | "returned";
     }[];
 };
+
 export type SwapUserInfo = {
     give: GiveSwapItem[];
     get: GetSwapItem[];

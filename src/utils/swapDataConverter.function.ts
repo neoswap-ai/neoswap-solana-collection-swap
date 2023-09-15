@@ -49,7 +49,12 @@ export async function swapDataConverter(Data: {
                 }
                 if (isCompressed) {
                     let { merkleTree: merkleTreefound, index: indexFound } =
-                        await getMerkleTreeAndIndex({ tokenId: new PublicKey(item.address) });
+                        await getMerkleTreeAndIndex({
+                            tokenId: new PublicKey(item.address),
+                            Cluster: Data.clusterOrUrl.includes("mainnet")
+                                ? "mainnet-beta"
+                                : "devnet",
+                        });
                     merkleTree = merkleTreefound;
                     index = indexFound;
                     // console.log("XXXXXXXXXXXXXXXXXX - merkleTree", merkleTree.toBase58());

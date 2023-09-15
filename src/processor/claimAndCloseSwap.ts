@@ -11,6 +11,7 @@ export async function claimAndCloseSwap(Data: {
     swapDataAccount: PublicKey;
     signer: Keypair;
     clusterOrUrl: Cluster | string;
+    skipFinalize?: boolean;
     simulation?: boolean;
     skipConfirmation?: boolean;
 }): Promise<string[]> {
@@ -24,22 +25,28 @@ export async function claimAndCloseSwap(Data: {
         program,
     });
     if (validateDepositTxData) txToSend.push(...validateDepositTxData);
+
+    // if (!Data.skipFinalize) Data.skipFinalize = false;
     let claimTxData = await createClaimSwapInstructions({
         swapDataAccount: Data.swapDataAccount,
         signer: Data.signer.publicKey,
         clusterOrUrl: Data.clusterOrUrl,
+        skipFinalize: Data.skipFinalize ? true : false,
         program,
     });
 
     if (claimTxData) txToSend.push(...claimTxData);
 
-    let validateClaimTxData = await createValidateClaimedInstructions({
-        swapDataAccount: Data.swapDataAccount,
-        signer: Data.signer.publicKey,
-        clusterOrUrl: Data.clusterOrUrl,
-        program,
-    });
-    if (validateClaimTxData) txToSend.push(...validateClaimTxData);
+    if (!Data.skipFinalize) {
+        let validateClaimTxData = await createValidateClaimedInstructions({
+            swapDataAccount: Data.swapDataAccount,
+            signer: Data.signer.publicKey,
+            clusterOrUrl: Data.clusterOrUrl,
+            program,
+            // SkipFinalize: Data.skipFinalize,
+        });
+        if (validateClaimTxData) txToSend.push(...validateClaimTxData);
+    }
 
     const transactionHashs = await sendBundledTransactions({
         provider: program.provider as AnchorProvider,

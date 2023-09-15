@@ -12,7 +12,7 @@ export async function cancelAndCloseSwap(Data: {
     clusterOrUrl: Cluster | string;
     simulation?: boolean;
     skipConfirmation?: boolean;
-    // preSeed: string;
+    skipFinalize?: boolean;
 }): Promise<string[]> {
     let txToSend: TxWithSigner[] = [];
     const program = getProgram({ clusterOrUrl: Data.clusterOrUrl, signer: Data.signer });
@@ -21,6 +21,7 @@ export async function cancelAndCloseSwap(Data: {
         swapDataAccount: Data.swapDataAccount,
         signer: Data.signer.publicKey,
         clusterOrUrl: Data.clusterOrUrl,
+        skipFinalize: Data.skipFinalize,
         program,
     });
     // console.log("cancelTxData", cancelTxData);

@@ -12,6 +12,7 @@ export async function createCancelSwapInstructions(Data: {
     swapDataAccount: PublicKey;
     signer: PublicKey;
     clusterOrUrl: Cluster | string;
+    skipFinalize?: boolean;
     program?: Program;
 }): Promise<TxWithSigner[] | undefined> {
     const program = Data.program ? Data.program : getProgram({ clusterOrUrl: Data.clusterOrUrl });
@@ -40,7 +41,8 @@ export async function createCancelSwapInstructions(Data: {
         } as ErrorFeedback;
     }
     let init = false;
-    if (swapData.initializer.equals(Data.signer)) {
+    let userPartOfTrade = swapData.initializer.equals(Data.signer) ? true : false;
+    if (swapData.initializer.equals(Data.signer) || !Data.skipFinalize) {
         init = true;
         console.log("initializer");
     }
@@ -49,7 +51,6 @@ export async function createCancelSwapInstructions(Data: {
         swapData,
         clusterOrUrl: Data.clusterOrUrl,
     });
-
     let cancelTransactionInstruction: TxWithSigner[] = [];
     let ataList: PublicKey[] = [];
     let toBeCancelledItems = swapData.items.filter(
@@ -59,6 +60,7 @@ export async function createCancelSwapInstructions(Data: {
         toBeCancelledItems = toBeCancelledItems.filter((item) => item.owner.equals(Data.signer));
 
     for (const swapDataItem of toBeCancelledItems) {
+        if (!userPartOfTrade && swapDataItem.owner.equals(Data.signer)) userPartOfTrade = true;
         if (swapDataItem.isNft) {
             if (swapDataItem.isCompressed) {
                 console.log(
@@ -122,12 +124,18 @@ export async function createCancelSwapInstructions(Data: {
             });
             ataList.push(...cancelSolData.newAtas);
         }
+        if (swapData.status === TradeStatus.WaitingToDeposit && !userPartOfTrade) {
+            throw {
+                blockchain: "solana",
+                status: "error",
+                message:
+                    "Signer isn't authorized to cancel the trade because he is not part of it and status === WaitingToDeposit",
+            } as ErrorFeedback;
+        }
     }
 
     if (cancelTransactionInstruction.length === 0 && init) {
-        console.log(
-            "no items found to cancel but signer is initializer.\nproceeding to validate cancel"
-        );
+        console.log("no items found to cancel but signer is proceeding to validate cancel");
         return;
     } else if (cancelTransactionInstruction.length > 0) {
         console.log("found ", cancelTransactionInstruction.length, " items to cancel");

@@ -125,8 +125,8 @@ export function getProofMeta(proof: string[]) {
     }));
 }
 
-export async function getMerkleTreeAndIndex(Data: { tokenId: PublicKey }) {
-    let solanaUrl = clusterApiUrl("mainnet-beta");
+export async function getMerkleTreeAndIndex(Data: { tokenId: PublicKey, Cluster: Cluster}) {
+    let solanaUrl = clusterApiUrl(Data.Cluster);
     const treeDataReponse = await fetch(solanaUrl, {
         method: "POST",
         headers: {

@@ -37,7 +37,10 @@ export const createValidateClaimedInstructions = async (Data: {
             message: "Swap is't in the adequate status for Validating Claiming.",
             swapStatus: swapData.status,
         } as ErrorFeedback;
-    } else if (!swapData.initializer.equals(Data.signer)) return undefined;
+        // } else if (Data.signer.equals(swapData.initializer)) {
+    } //else if (!Data.signer.equals(swapData.initializer) && Data.skipFinalize) return undefined;
+    // } else if ( Data.finalize) {
+    // return undefined;
     // throw {
     //     blockchain: "solana",
     //     status: "error",
