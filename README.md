@@ -306,7 +306,6 @@ let swapInfo: neoTypes.SwapInfo = {
             },
         },
     ],
-    // `${'user1Publickey'}`: { give: [], get: [], token: { amount: 0 } },
 };
 ```
 
@@ -439,13 +438,13 @@ for (let index = 0; index < transactionsWithoutSigners.length; index++) {
 
 ## Cancel Swap (requires to be admin to finish closing accounts)
 
-Cancelling a swap can only be initialized while the swap is in the state TradeStatus.WaitingToDeposit (1)
+- Cancelling a swap can only be initialized while the swap is in the state TradeStatus.WaitingToDeposit (1)
 
-If the signer is the Initializer, it will cancel all remaining items and close the PDA
+- If the signer is the Initializer, it will cancel all remaining items and close the PDA
 
-If signer is User, if skipFinalize is set to true , it will cancel his item(s) and change the swap state to TradeStatus.Canceling (100), otherwise, it will cancel all remaining items and close the PDA
+- If signer is User, if skipFinalize is set to true , it will cancel his item(s) and change the swap state to TradeStatus.Canceling (100), otherwise, it will cancel all remaining items and close the PDA
 
-If outsider wallet tries to cancel a swap, it can only cancel if the swap is in the state TradeStatus.Canceling (100)
+- If outsider wallet tries to cancel a swap, it can only cancel if the swap is in the state TradeStatus.Canceling (100)
 
 ### With signer Keypair
 
