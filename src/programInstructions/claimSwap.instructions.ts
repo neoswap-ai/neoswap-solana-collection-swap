@@ -6,13 +6,15 @@ import { getClaimNftInstructions } from "./subFunction/claim.nft.instructions";
 import { getClaimSolInstructions } from "./subFunction/claim.sol.instructions";
 import { ErrorFeedback, ItemStatus, TradeStatus, TxWithSigner } from "../utils/types";
 import { getClaimCNftInstruction } from "./subFunction/claim.cnft.instructions";
+import { Program } from "@project-serum/anchor";
 
 export async function createClaimSwapInstructions(Data: {
     swapDataAccount: PublicKey;
     signer: PublicKey;
     clusterOrUrl: Cluster | string;
+    program?: Program;
 }): Promise<TxWithSigner[] | undefined> {
-    const program = getProgram({ clusterOrUrl: Data.clusterOrUrl });
+    const program = Data.program ? Data.program : getProgram({ clusterOrUrl: Data.clusterOrUrl });
 
     const swapData = await getSwapDataAccountFromPublicKey({
         program,

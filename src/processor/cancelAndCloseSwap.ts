@@ -3,7 +3,7 @@ import { sendBundledTransactions } from "../utils/sendBundledTransactions.functi
 import { ErrorFeedback, TxWithSigner } from "../utils/types";
 import { createCancelSwapInstructions } from "../programInstructions/cancelSwap.instructions";
 import { createValidateCanceledInstructions } from "../programInstructions/subFunction/validateCanceled.instructions";
-import { isConfirmedTx } from "../utils/isConfirmedTx.function";
+import { getProgram } from "../utils/getProgram.obj";
 
 export async function cancelAndCloseSwap(Data: {
     swapDataAccount: PublicKey;
@@ -14,11 +14,12 @@ export async function cancelAndCloseSwap(Data: {
     // preSeed: string;
 }): Promise<string[]> {
     let txToSend: TxWithSigner[] = [];
-
+    let program = getProgram({ clusterOrUrl: Data.clusterOrUrl });
     let cancelTxData = await createCancelSwapInstructions({
         swapDataAccount: Data.swapDataAccount,
         signer: Data.signer.publicKey,
         clusterOrUrl: Data.clusterOrUrl,
+        program,
     });
     // console.log("cancelTxData", cancelTxData);
 
@@ -28,11 +29,13 @@ export async function cancelAndCloseSwap(Data: {
         swapDataAccount: Data.swapDataAccount,
         signer: Data.signer.publicKey,
         clusterOrUrl: Data.clusterOrUrl,
+        program,
     });
 
     if (validateCancelTxData) txToSend.push(...validateCancelTxData);
 
     const transactionHashs = await sendBundledTransactions({
+        program,
         txsWithoutSigners: txToSend,
         signer: Data.signer,
         clusterOrUrl: Data.clusterOrUrl,

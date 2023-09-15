@@ -36,7 +36,11 @@ export async function getDepositCNftInstruction(Data: {
     prepareInstruction?: ApiProcessorConfigType[];
 }> {
     const { creatorHash, dataHash, index, merkleTree, nonce, proofMeta, root, treeAuthority } =
-        await getCNFTData({ tokenId: Data.tokenId.toBase58(), Cluster: "mainnet-beta" });
+        await getCNFTData({
+            program: Data.program,
+            tokenId: Data.tokenId.toBase58(),
+            Cluster: "mainnet-beta",
+        });
     // console.log(
     //     "getDepositCNftInstruction",
     //     Data.tokenId.toBase58(),

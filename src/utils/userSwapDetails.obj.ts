@@ -2,13 +2,15 @@ import { Cluster, PublicKey } from "@solana/web3.js";
 import { ItemStatus, NftSwapItem, SwapData, UserDataInSwap } from "./types";
 import { getSwapDataAccountFromPublicKey } from "./getSwapDataAccountFromPublicKey.function";
 import { getProgram } from "./getProgram.obj";
+import { Program } from "@project-serum/anchor";
 
 export async function userSwapDetails(Data: {
     clusterOrUrl: Cluster | string;
     user: PublicKey;
     swapDataAccount_publicKey: PublicKey;
+    program?: Program;
 }): Promise<UserDataInSwap> {
-    const program = getProgram({ clusterOrUrl: Data.clusterOrUrl });
+    const program = Data.program ? Data.program : getProgram({ clusterOrUrl: Data.clusterOrUrl });
     const swapData = await getSwapDataAccountFromPublicKey({
         program,
         swapDataAccount_publicKey: Data.swapDataAccount_publicKey,

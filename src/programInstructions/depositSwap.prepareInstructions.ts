@@ -6,13 +6,15 @@ import { prepareDepositNftInstruction } from "./subFunction/deposit.nft.prepareI
 import { prepareDepositSolInstruction } from "./subFunction/deposit.sol.prepareInstructions";
 import { ApiProcessorData, ErrorFeedback, ItemStatus, TradeStatus } from "../utils/types";
 import { getDepositCNftInstruction } from "./subFunction/deposit.cnft.instructions";
+import { Program } from "@project-serum/anchor";
 
 export async function prepareDepositSwapInstructions(Data: {
     swapDataAccount: PublicKey;
     user: PublicKey;
     clusterOrUrl: Cluster | string;
+    program?: Program;
 }): Promise<ApiProcessorData[]> {
-    const program = getProgram({ clusterOrUrl: Data.clusterOrUrl });
+    const program = Data.program ? Data.program : getProgram({ clusterOrUrl: Data.clusterOrUrl });
 
     const swapData = await getSwapDataAccountFromPublicKey({
         program,

@@ -2,7 +2,6 @@ import { Cluster, Keypair, PublicKey } from "@solana/web3.js";
 import { sendBundledTransactions } from "../utils/sendBundledTransactions.function";
 import { ApiProcessorConfigType, ApiProcessorData, ErrorFeedback } from "../utils/types";
 // import { createDepositSwapInstructions } from "../programInstructions/depositSwap.instructions";
-import { isConfirmedTx } from "../utils/isConfirmedTx.function";
 import { apiProcessorTranscript } from "../programInstructions/apiProcessor.transcript";
 
 export async function apiProcessor(Data: {

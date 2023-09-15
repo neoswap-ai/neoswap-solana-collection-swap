@@ -27,7 +27,11 @@ export async function getClaimCNftInstruction(Data: {
     tokenId: PublicKey;
 }) {
     const { creatorHash, dataHash, index, merkleTree, nonce, proofMeta, root, treeAuthority } =
-        await getCNFTData({ tokenId: Data.tokenId.toBase58(), Cluster: "mainnet-beta" });
+        await getCNFTData({
+            program: Data.program,
+            tokenId: Data.tokenId.toBase58(),
+            Cluster: "mainnet-beta",
+        });
     return await Data.program.methods
         .claimCNft(
             Data.swapIdentity.swapDataAccount_seed,

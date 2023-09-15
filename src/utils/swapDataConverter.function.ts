@@ -1,5 +1,5 @@
-import { BN } from "@project-serum/anchor";
-import { PublicKey, SystemProgram } from "@solana/web3.js";
+import { BN, Program } from "@project-serum/anchor";
+import { Connection, PublicKey, SystemProgram } from "@solana/web3.js";
 import { ItemStatus, NftSwapItem, SwapIdentity, SwapInfo } from "./types";
 import { getSwapIdentityFromData } from "./getSwapIdentityFromData.function";
 import { neoTypes } from "..";
@@ -9,10 +9,13 @@ import { getMerkleTreeAndIndex } from "./getCNFTData.function";
 export async function swapDataConverter(Data: {
     swapInfo: SwapInfo;
     clusterOrUrl: string;
+    connection?: Connection;
     // preSeed?: string;
 }): Promise<SwapIdentity> {
     let swapDatas: NftSwapItem[] = [];
-    const connection = getProgram({ clusterOrUrl: Data.clusterOrUrl }).provider.connection;
+    const connection = Data.connection
+        ? Data.connection
+        : getProgram({ clusterOrUrl: Data.clusterOrUrl }).provider.connection;
     for (const user in Data.swapInfo.users) {
         // console.log("user", user);
 

@@ -6,13 +6,15 @@ import { getCancelSolInstructions } from "./subFunction/cancel.sol.instructions"
 import { Cluster, PublicKey, Transaction, TransactionInstruction } from "@solana/web3.js";
 import { ErrorFeedback, ItemStatus, TradeStatus, TxWithSigner } from "../utils/types";
 import { getCancelCNftInstructions } from "./subFunction/cancel.cnft.instructions";
+import { Program } from "@project-serum/anchor";
 
 export async function createCancelSwapInstructions(Data: {
     swapDataAccount: PublicKey;
     signer: PublicKey;
     clusterOrUrl: Cluster | string;
+    program?: Program;
 }): Promise<TxWithSigner[] | undefined> {
-    const program = getProgram({ clusterOrUrl: Data.clusterOrUrl });
+    const program = Data.program ? Data.program : getProgram({ clusterOrUrl: Data.clusterOrUrl });
 
     const swapData = await getSwapDataAccountFromPublicKey({
         program,

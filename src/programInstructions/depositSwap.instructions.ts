@@ -5,15 +5,16 @@ import { getSwapIdentityFromData } from "../utils/getSwapIdentityFromData.functi
 import { getDepositNftInstruction } from "./subFunction/deposit.nft.instructions";
 import { getDepositSolInstruction } from "./subFunction/deposit.sol.instructions";
 import { ErrorFeedback, ItemStatus, SwapData, TradeStatus, TxWithSigner } from "../utils/types";
-import { neoSwap } from "..";
 import { getDepositCNftInstruction } from "./subFunction/deposit.cnft.instructions";
+import { Program } from "@project-serum/anchor";
 
 export async function createDepositSwapInstructions(Data: {
     swapDataAccount: PublicKey;
     user: PublicKey;
     clusterOrUrl: Cluster | string;
+    program?: Program;
 }): Promise<TxWithSigner[]> {
-    const program = getProgram({ clusterOrUrl: Data.clusterOrUrl });
+    const program = Data.program ? Data.program : getProgram({ clusterOrUrl: Data.clusterOrUrl });
     let swapData = await getSwapDataAccountFromPublicKey({
         program,
         swapDataAccount_publicKey: Data.swapDataAccount,
