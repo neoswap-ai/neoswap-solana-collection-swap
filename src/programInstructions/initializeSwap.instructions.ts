@@ -1,5 +1,4 @@
 import { getProgram } from "../utils/getProgram.obj";
-import { getSwapIdentityFromData } from "../utils/getSwapIdentityFromData.function";
 import { getSwapDataAccountFromPublicKey } from "../utils/getSwapDataAccountFromPublicKey.function";
 import {
     Cluster,
@@ -19,8 +18,8 @@ import {
 } from "../utils/types";
 import { Program } from "@project-serum/anchor";
 import { findOrCreateAta } from "../utils/findOrCreateAta.function";
-import { delay } from "../utils/delay";
 import { swapDataConverter } from "../utils/swapDataConverter.function";
+import { getCNFTOwner } from "../utils/getCNFTData.function";
 
 export async function createInitializeSwapInstructions(Data: {
     swapInfo: SwapInfo;
@@ -177,7 +176,11 @@ async function getAddInitilizeInstructions(Data: {
                 // console.log("item", item);
                 // console.log("checkbal", item.mint.toBase58());
 
-                if (!!!item.amount.isNeg() && !!!item.mint.equals(SystemProgram.programId)) {
+                if (
+                    !!!item.amount.isNeg() &&
+                    !!!item.mint.equals(SystemProgram.programId) &&
+                    !!!item.isCompressed
+                ) {
                     const tokenAccount = await findOrCreateAta({
                         mint: item.mint,
                         owner: item.owner,
@@ -192,8 +195,8 @@ async function getAddInitilizeInstructions(Data: {
                         item.owner.toBase58(),
                         // "program:",
                         // Data.program,
-                        "\nsigner:",
-                        Data.signer.toBase58(),
+                        // "\nsigner:",
+                        // Data.signer.toBase58(),
                         "\nATA:",
                         tokenAccount.mintAta.toBase58()
                     );
@@ -235,6 +238,20 @@ async function getAddInitilizeInstructions(Data: {
                             order: 0,
                             status: "error",
                             message: `\n\nUser: ${item.owner.toBase58()} \nMint: ${item.mint.toBase58()}\nATA: ${tokenAccount.mintAta.toBase58()} \nError: Couldn't find the NFT owned by user`,
+                        } as ErrorFeedback);
+                    }
+                } else if (item.isCompressed) {
+                    const owner = await getCNFTOwner({
+                        tokenId: item.mint.toBase58(),
+                        Cluster: "mainnet-beta",
+                    });
+
+                    if (!item.owner.equals(owner)) {
+                        returnData.push({
+                            blockchain: "solana",
+                            order: 0,
+                            status: "error",
+                            message: `\n\nUser: ${item.owner.toBase58()} \TokenId: ${item.mint.toBase58()} \nError: Couldn't find the NFT owned by user, owner is ${owner}`,
                         } as ErrorFeedback);
                     }
                 }

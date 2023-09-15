@@ -22,7 +22,7 @@ export async function getCNFTData(Data: { tokenId: string; Cluster: Cluster }) {
     });
     let treeData = (await treeDataReponse.json()).result;
     // console.log("treeData Results", treeData);
-
+    // const owner = new PublicKey(treeData.ownership.owner);
     const treeProofResponse = await fetch(solanaUrl, {
         method: "POST",
         headers: {
@@ -151,4 +151,25 @@ export async function getMerkleTreeAndIndex(Data: { tokenId: PublicKey }) {
         merkleTree: new PublicKey(treeData.compression.tree),
         index: new BN(treeData.compression.leaf_id),
     };
+}
+
+export async function getCNFTOwner(Data: { Cluster: Cluster; tokenId: string }) {
+    let solanaUrl = clusterApiUrl(Data.Cluster);
+    const treeDataReponse = await fetch(solanaUrl, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            jsonrpc: "2.0",
+            id: "rpd-op-123",
+            method: "getAsset",
+            params: {
+                id: Data.tokenId.toString(),
+            },
+        }),
+    });
+    let treeData = (await treeDataReponse.json()).result;
+    // console.log("treeData Results", treeData);
+    return new PublicKey(treeData.ownership.owner);
 }
