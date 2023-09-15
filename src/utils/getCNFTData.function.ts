@@ -53,7 +53,7 @@ export async function getCNFTData(Data: { tokenId: string; Cluster: Cluster }) {
     const canopyDepth = treeAccount.getCanopyDepth();
 
     // console.log("treeAuthority", treeAuthority);
-    console.log("canopyDepth", canopyDepth);
+    // console.log("canopyDepth", canopyDepth);
 
     const proofMeta: AccountMeta[] = treeProof.proof
         .slice(0, treeProof.proof.length - (!!canopyDepth ? canopyDepth : 0))
@@ -142,10 +142,10 @@ export async function getMerkleTreeAndIndex(Data: { tokenId: PublicKey }) {
     });
     let treeData = (await treeDataReponse.json()).result;
     // console.log("treeData Results", treeData);
-    console.log("treeData Results", Data.tokenId, {
-        merkleTree: treeData.compression.tree,
-        index: treeData.compression.leaf_id,
-    });
+    // console.log("treeData Results", Data.tokenId, {
+    //     merkleTree: treeData.compression.tree,
+    //     index: treeData.compression.leaf_id,
+    // });
 
     return {
         merkleTree: new PublicKey(treeData.compression.tree),

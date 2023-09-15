@@ -16,21 +16,21 @@ export async function swapDataConverter(Data: {
     for (const user in Data.swapInfo.users) {
         // console.log("user", user);
 
-        if (Data.swapInfo.users[user].items.get.length > 0)
-            console.log(user, "get", Data.swapInfo.users[user].items.get);
+        // if (Data.swapInfo.users[user].items.get.length > 0)
+        //     console.log(user, "get", Data.swapInfo.users[user].items.get);
 
-        if (Data.swapInfo.users[user].items.give.length > 0)
-            console.log(user, "give", Data.swapInfo.users[user].items.give);
+        // if (Data.swapInfo.users[user].items.give.length > 0)
+        //     console.log(user, "give", Data.swapInfo.users[user].items.give);
         await Promise.all(
             Data.swapInfo.users[user].items.give.map(async (item) => {
-                console.log(user, "give", item);
+                // console.log(user, "give", item);
 
                 let isCompressed = false;
                 let merkleTree = new PublicKey(item.address);
                 let index = new BN(0);
                 try {
                     const balance = await connection.getBalance(new PublicKey(item.address));
-                    console.log("balance", balance);
+                    // console.log("balance", balance);
 
                     if (balance === 0) {
                         const signa = await connection.getSignaturesForAddress(
@@ -49,10 +49,18 @@ export async function swapDataConverter(Data: {
                         await getMerkleTreeAndIndex({ tokenId: new PublicKey(item.address) });
                     merkleTree = merkleTreefound;
                     index = indexFound;
-                    console.log("XXXXXXXXXXXXXXXXXX - merkleTree", merkleTree.toBase58());
+                    // console.log("XXXXXXXXXXXXXXXXXX - merkleTree", merkleTree.toBase58());
                 }
                 item.getters.map((toDest) => {
-                    console.log(user, "give", item, toDest);
+                    console.log(
+                        user,
+                        " give ",
+                        toDest.amount,
+                        " items ",
+                        item.address,
+                        "to destinary",
+                        toDest.address
+                    );
                     swapDatas.push({
                         isNft: true,
                         isCompressed,
@@ -97,7 +105,7 @@ export async function swapDataConverter(Data: {
     });
     const items = itemsNfts.concat(itemsSol);
 
-    console.log("items", items);
+    // console.log("items", items);
 
     return getSwapIdentityFromData({
         swapData: {
