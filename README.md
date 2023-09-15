@@ -89,6 +89,8 @@ for (let index = 0; index < initializeSwapData.transactions.length; index++) {
 }
 ```
 
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
 ## Deposit Swap
 
 ### With signer Keypair
@@ -127,6 +129,8 @@ for (let index = 0; index < depositTransactionsWithoutSigners.length; index++) {
     const hash = await provider.sendAndConfirm(transaction);
 }
 ```
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 ## Claim Swap
 
@@ -172,6 +176,8 @@ for (let index = 0; index < transactionsWithoutSigners.length; index++) {
     const hash = await provider.sendAndConfirm(transaction);
 }
 ```
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 ## Cancel Swap (requires to be admin to finish closing accounts)
 
@@ -222,6 +228,8 @@ for (let index = 0; index < transactionsWithoutSigners.length; index++) {
 }
 ```
 
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
 ## Broadcasting Transaction to blockchain using NeoSwap package and signer
 
 ```ts
@@ -236,6 +244,8 @@ const hashArray: string[] = await neoSwap.UTILS.sendBundledTransactions({
     txsWithoutSigners: neoTypes.TxWithSigner[], // Array of transactions with empty Signer
     simulation: Option<boolean>,                // OPTIONAL default skip simulation and broadcast to blockchain (recommanded). If true: make simulation of the transactions before broadcasting them
     skipConfirmation: Option<boolean>,          // OPTIONAL default iterates through the transactions to confirm status (return error if one fails with array of transactionhashes). If true: skip confirmation
+    provider: Option<AnchorProvider>            // OPTIONAL default: undefined. If you want to use your own provider, import it and pass it here
+
 });
 ```
 
