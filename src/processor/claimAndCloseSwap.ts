@@ -5,6 +5,7 @@ import { createClaimSwapInstructions } from "../programInstructions/claimSwap.in
 import { validateDeposit } from "../programInstructions/subFunction/validateDeposit.instructions";
 import { createValidateClaimedInstructions } from "../programInstructions/subFunction/validateClaimed.instructions";
 import { getProgram } from "../utils/getProgram.obj";
+import { AnchorProvider } from "@project-serum/anchor";
 
 export async function claimAndCloseSwap(Data: {
     swapDataAccount: PublicKey;
@@ -14,7 +15,7 @@ export async function claimAndCloseSwap(Data: {
     skipConfirmation?: boolean;
 }): Promise<string[]> {
     let txToSend: TxWithSigner[] = [];
-    let program = getProgram({ clusterOrUrl: Data.clusterOrUrl });
+    const program = getProgram({ clusterOrUrl: Data.clusterOrUrl, signer: Data.signer });
 
     let validateDepositTxData = await validateDeposit({
         swapDataAccount: Data.swapDataAccount,
@@ -36,12 +37,12 @@ export async function claimAndCloseSwap(Data: {
         swapDataAccount: Data.swapDataAccount,
         signer: Data.signer.publicKey,
         clusterOrUrl: Data.clusterOrUrl,
-        program
+        program,
     });
     if (validateClaimTxData) txToSend.push(...validateClaimTxData);
 
     const transactionHashs = await sendBundledTransactions({
-        program,
+        provider: program.provider as AnchorProvider,
         txsWithoutSigners: txToSend,
         signer: Data.signer,
         clusterOrUrl: Data.clusterOrUrl,

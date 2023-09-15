@@ -28,21 +28,22 @@ export async function createInitializeSwapInstructions(Data: {
     program?: Program;
     // programId?: PublicKey;
 }): Promise<InitializeData> {
+    const program = Data.program ? Data.program : getProgram({ clusterOrUrl: Data.clusterOrUrl });
+
     let swapIdentity = await swapDataConverter({
         swapInfo: Data.swapInfo,
         clusterOrUrl: Data.clusterOrUrl,
+        connection: program.provider.connection,
     });
     swapIdentity.swapData.initializer = Data.signer;
     console.log("swapData to initialize", swapIdentity);
     console.log("swapData ", swapIdentity.swapData.items);
 
-    const program = Data.program ? Data.program : getProgram({ clusterOrUrl: Data.clusterOrUrl });
-
     try {
         const initInstruction = await getInitInitilizeInstruction({
             program,
             swapIdentity,
-            signer: Data.signer,            
+            signer: Data.signer,
             // acceptedPayement: swapIdentity.swapData.acceptedPayement,
         });
 

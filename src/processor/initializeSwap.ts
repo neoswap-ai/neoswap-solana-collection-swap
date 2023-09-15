@@ -3,6 +3,7 @@ import { createInitializeSwapInstructions } from "../programInstructions/initial
 import { sendBundledTransactions } from "../utils/sendBundledTransactions.function";
 import { ErrorFeedback, InitializeData, SwapData, SwapIdentity, SwapInfo } from "../utils/types";
 import { getProgram } from "../utils/getProgram.obj";
+import { AnchorProvider } from "@project-serum/anchor";
 
 export async function initializeSwap(Data: {
     swapInfo: SwapInfo;
@@ -15,7 +16,7 @@ export async function initializeSwap(Data: {
     transactionHashs: string[];
 }> {
     // console.log("swapData", Data.swapData);
-    const program = getProgram({ clusterOrUrl: Data.clusterOrUrl });
+    const program = getProgram({ clusterOrUrl: Data.clusterOrUrl, signer: Data.signer });
 
     let initializeData = await createInitializeSwapInstructions({
         swapInfo: Data.swapInfo,
@@ -25,7 +26,7 @@ export async function initializeSwap(Data: {
     });
     try {
         const transactionHashs = await sendBundledTransactions({
-            program,
+            provider: program.provider as AnchorProvider,
             txsWithoutSigners: initializeData.txWithoutSigner,
             signer: Data.signer,
             clusterOrUrl: Data.clusterOrUrl,

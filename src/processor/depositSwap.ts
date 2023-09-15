@@ -3,6 +3,7 @@ import { sendBundledTransactions } from "../utils/sendBundledTransactions.functi
 import { ErrorFeedback } from "../utils/types";
 import { createDepositSwapInstructions } from "../programInstructions/depositSwap.instructions";
 import { getProgram } from "../utils/getProgram.obj";
+import { AnchorProvider } from "@project-serum/anchor";
 
 export async function depositSwap(Data: {
     swapDataAccount: PublicKey;
@@ -11,7 +12,7 @@ export async function depositSwap(Data: {
     simulation?: boolean;
     skipConfirmation?: boolean;
 }): Promise<string[]> {
-    let program = getProgram({ clusterOrUrl: Data.clusterOrUrl });
+    const program = getProgram({ clusterOrUrl: Data.clusterOrUrl, signer: Data.signer });
     let depositSwapData = await createDepositSwapInstructions({
         swapDataAccount: Data.swapDataAccount,
         user: Data.signer.publicKey,
@@ -20,7 +21,7 @@ export async function depositSwap(Data: {
     });
 
     const transactionHashs = await sendBundledTransactions({
-        program,
+        provider: program.provider as AnchorProvider,
         txsWithoutSigners: depositSwapData,
         signer: Data.signer,
         clusterOrUrl: Data.clusterOrUrl,

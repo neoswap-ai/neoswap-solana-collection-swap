@@ -4,6 +4,7 @@ import { ErrorFeedback, TxWithSigner } from "../utils/types";
 import { createCancelSwapInstructions } from "../programInstructions/cancelSwap.instructions";
 import { createValidateCanceledInstructions } from "../programInstructions/subFunction/validateCanceled.instructions";
 import { getProgram } from "../utils/getProgram.obj";
+import { AnchorProvider } from "@project-serum/anchor";
 
 export async function cancelAndCloseSwap(Data: {
     swapDataAccount: PublicKey;
@@ -14,7 +15,8 @@ export async function cancelAndCloseSwap(Data: {
     // preSeed: string;
 }): Promise<string[]> {
     let txToSend: TxWithSigner[] = [];
-    let program = getProgram({ clusterOrUrl: Data.clusterOrUrl });
+    const program = getProgram({ clusterOrUrl: Data.clusterOrUrl, signer: Data.signer });
+
     let cancelTxData = await createCancelSwapInstructions({
         swapDataAccount: Data.swapDataAccount,
         signer: Data.signer.publicKey,
@@ -35,7 +37,7 @@ export async function cancelAndCloseSwap(Data: {
     if (validateCancelTxData) txToSend.push(...validateCancelTxData);
 
     const transactionHashs = await sendBundledTransactions({
-        program,
+        provider: program.provider as AnchorProvider,
         txsWithoutSigners: txToSend,
         signer: Data.signer,
         clusterOrUrl: Data.clusterOrUrl,
