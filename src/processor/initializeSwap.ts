@@ -11,6 +11,7 @@ export async function initializeSwap(Data: {
     clusterOrUrl: Cluster | string;
     simulation?: boolean;
     skipConfirmation?: boolean;
+    warningIsError?: boolean;
 }): Promise<{
     initializeData: InitializeData;
     transactionHashs: string[];
@@ -24,6 +25,10 @@ export async function initializeSwap(Data: {
         clusterOrUrl: Data.clusterOrUrl,
         program,
     });
+    if (initializeData.warning !== "" && Data.warningIsError) {
+        console.log("WarningIsError is true and creating initializing data creates warning");
+        throw initializeData;
+    }
     try {
         const transactionHashs = await sendBundledTransactions({
             provider: program.provider as AnchorProvider,
