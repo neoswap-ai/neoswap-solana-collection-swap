@@ -190,7 +190,7 @@ async function getAddInitilizeInstructions(Data: {
                         signer: Data.signer,
                     });
                     console.log(
-                        "check NFT balance",
+                        "check NFT/Token balance",
                         "\nmint:",
                         item.mint.toBase58(),
                         "\nowner:",
@@ -270,10 +270,21 @@ async function getAddInitilizeInstructions(Data: {
                             blockchain: "solana",
                             order: 0,
                             status: "error",
-                            message: `\n\nUser: ${item.owner.toBase58()} \TokenId: ${item.mint.toBase58()} \nError: Couldn't find the NFT owned by user, owner is ${owner}`,
+                            message: `\n\nUser: ${item.owner.toBase58()} \nTokenId: ${item.mint.toBase58()} \nError: Couldn't find the NFT owned by user, owner is ${owner}`,
                         } as ErrorFeedback);
                     }
                 } else {
+                    // const solBalance = await Data.program.provider.connection.getBalance(
+                    //     item.owner
+                    // );
+                    // if (item.amount.toNumber() > solBalance) {
+                    //     returnData.push({
+                    //         blockchain: "solana",
+                    //         order: 0,
+                    //         status: "error",
+                    //         message: `\n\nUser: ${item.owner.toBase58()} \nError: not enough SOL ${item.amount.toNumber()} / ${solBalance}`,
+                    //     } as ErrorFeedback);
+                    // }
                     console.log(
                         "XXX - added sol Item from ",
                         item.owner.toBase58(),
@@ -307,7 +318,7 @@ async function getAddInitilizeInstructions(Data: {
         for (let index = 0; index < returnData.length; index++) {
             const element = returnData[index];
             if (element) {
-                warning = String(warning).concat(`  /\/\  ` + String(element.message));
+                warning = String(warning).concat(`\n\n  /\/\  ` + String(element.message));
             }
         }
 
