@@ -47,7 +47,7 @@ npm install @neoswap/solana
 
 # Usage
 
-examples can be found in the examples folder
+Examples can be found in the examples folder [https://github.com/neoswap-ai/neo-swap-npm/tree/cNFT/examples](Examples)
 
 ## Create Swap
 
