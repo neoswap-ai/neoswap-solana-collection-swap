@@ -14,19 +14,26 @@ export async function isConfirmedTx(Data: {
     let confirmArray: {
         transactionHash: string;
         isConfirmed: boolean;
+        err?: any;
     }[] = [];
     await Promise.all(
         Data.transactionHashs.map(async (transactionHash) => {
             try {
-                const isConfirmed = await connection.confirmTransaction({
-                    signature: transactionHash,
-                    ...blockHashData,
-                });
+                const isConfirmed = await connection.confirmTransaction(
+                    {
+                        signature: transactionHash,
+                        ...blockHashData,
+                    },
+                    "finalized"
+                );
                 if (isConfirmed.value.err) {
                     // return true;
+                    console.log("isConfirmed.value.err", isConfirmed.value.err);
+
                     confirmArray.push({
                         transactionHash,
                         isConfirmed: false,
+                        err: isConfirmed.value.err,
                     });
                 } else {
                     confirmArray.push({

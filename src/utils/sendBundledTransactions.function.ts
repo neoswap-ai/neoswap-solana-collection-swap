@@ -40,6 +40,8 @@ export async function sendBundledTransactions(Data: {
         const transactionHashs = await provider.sendAll(txsWithSigners, {
             maxRetries: 5,
             skipPreflight: !Data.simulation,
+            commitment:"single"
+            // preflightCommitment:"singleGossip"
             // skipPreflight: true,
         });
 
