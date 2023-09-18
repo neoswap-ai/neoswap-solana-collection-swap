@@ -15,6 +15,7 @@
   <ol>
     <li>
       <a href="#about-the-project">About The Project</a>
+      <a href="#Install-NPM-package">Install NPM package</a>
 
     </li>
     <li>
@@ -45,6 +46,8 @@ npm install @neoswap/solana
 <!-- USAGE EXAMPLES -->
 
 # Usage
+
+Examples can be found in the examples folder [https://github.com/neoswap-ai/neo-swap-npm/tree/cNFT/examples](Examples)
 
 ## Create Swap
 

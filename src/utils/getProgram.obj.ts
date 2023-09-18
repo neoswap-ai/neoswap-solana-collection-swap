@@ -15,10 +15,6 @@ export function getProgram(Data: {
 
     if (Data.clusterOrUrl === "mainnet-beta" || Data.clusterOrUrl === "testnet") {
         clusterUrl = clusterApiUrl(Data.clusterOrUrl);
-    } else if (Data.clusterOrUrl === "devnet") {
-        clusterUrl =
-            "https://purple-alpha-orb.solana-devnet.quiknode.pro/da30b6f0da74d8a084df9aac72c5da241ab4f9a8/";
-        programId_ = new PublicKey(SWAP_PROGRAM_ID_DEV);
     } else {
         if (String(Data.clusterOrUrl).toLowerCase().includes("devnet")) {
             programId_ = new PublicKey(SWAP_PROGRAM_ID_DEV);
