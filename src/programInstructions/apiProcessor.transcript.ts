@@ -3,18 +3,20 @@ import { createAssociatedTokenAccountInstruction } from "@solana/spl-token";
 import { Cluster, PublicKey, Transaction } from "@solana/web3.js";
 import { ApiProcessorConfigType, TxWithSigner } from "../utils/types";
 import { getProgram } from "../utils/getProgram.obj";
-import { getProofMeta } from "../utils/getCNFTData.function";
 import { decode } from "bs58";
+import { getProofMeta } from "../utils/getCNFTData.function";
 
 export const apiProcessorTranscript = async (Data: {
-    // getProgram: (programId: PublicKey, idl: Idl) => Promise<Program>;
     clusterOrUrl: Cluster | string;
     config: ApiProcessorConfigType[];
     programId?: PublicKey;
 }): Promise<TxWithSigner[]> => {
     let depositTransaction: Transaction[] = [];
     // console.log("Data.config", Data.config);
-    let program: Program = getProgram({ clusterOrUrl: Data.clusterOrUrl });
+    let program: Program = getProgram({
+        clusterOrUrl: Data.clusterOrUrl,
+        programId: Data.programId,
+    });
     // console.log("program", program);
 
     let lastWasCreateAccount = false;
