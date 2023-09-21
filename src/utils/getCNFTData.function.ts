@@ -2,8 +2,7 @@ import { AccountMeta, Cluster, PublicKey, clusterApiUrl } from "@solana/web3.js"
 import { getProgram } from "./getProgram.obj";
 import { ConcurrentMerkleTreeAccount } from "@solana/spl-account-compression";
 import { decode } from "bs58";
-import BN from "bn.js";
-import { Program } from "@project-serum/anchor";
+import { BN, Program } from "@project-serum/anchor";
 
 export async function getCNFTData(Data: { tokenId: string; Cluster: Cluster; program?: Program }) {
     let solanaUrl = clusterApiUrl(Data.Cluster);

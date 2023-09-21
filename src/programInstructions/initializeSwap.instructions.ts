@@ -10,7 +10,6 @@ import {
 import {
     ErrorFeedback,
     InitializeData,
-    ItemStatus,
     SwapData,
     SwapIdentity,
     SwapInfo,

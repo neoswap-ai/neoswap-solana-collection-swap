@@ -1,6 +1,14 @@
-import { BN, Program } from "@project-serum/anchor";
+import { BN } from "@project-serum/anchor";
 import { Connection, PublicKey, SystemProgram } from "@solana/web3.js";
-import { ItemStatus, NftSwapItem, SwapIdentity, SwapInfo } from "./types";
+import {
+    ItemStatus,
+    ItemStatusInfo,
+    NftSwapItem,
+    SwapData,
+    SwapIdentity,
+    SwapInfo,
+    TradeStatusInfo,
+} from "./types";
 import { getSwapIdentityFromData } from "./getSwapIdentityFromData.function";
 import { neoTypes } from "..";
 import { getProgram } from "./getProgram.obj";
@@ -128,4 +136,106 @@ export async function swapDataConverter(Data: {
         },
         clusterOrUrl: Data.clusterOrUrl,
     });
+}
+
+export async function invertedSwapDataConverter(Data: {
+    swapData: SwapData;
+    clusterOrUrl: string;
+    connection?: Connection;
+    // preSeed?: string;
+}): Promise<string> {
+    const swapStatusMap: { [key: number]: TradeStatusInfo } = {
+        0: "initializing",
+        1: "active",
+        2: "finalizing",
+        3: "finalized",
+        4: "canceling",
+        5: "canceled",
+    };
+
+    const itemStatusMap: { [key: number]: ItemStatusInfo } = {
+        10: "pending",
+        11: "pending",
+        20: "deposited",
+        21: "deposited",
+        22: "deposited",
+        30: "claimed",
+        31: "claimed",
+        110: "returned",
+        111: "returned",
+    };
+
+    const status = swapStatusMap[Data.swapData.status] || undefined;
+
+    let swapInfo: SwapInfo = {
+        currency: Data.swapData.acceptedPayement.toBase58(),
+        preSeed: Data.swapData.preSeed,
+        status,
+        users: [],
+    };
+
+    let users: {
+        address: string;
+        items: neoTypes.SwapUserInfo;
+    }[] = [];
+    let uusers: { [userId: string]: neoTypes.SwapUserInfo } = {};
+
+    // const connection = Data.connection
+    //     ? Data.connection
+    //     : getProgram({ clusterOrUrl: Data.clusterOrUrl }).provider.connection;
+
+    for (const itemNb in Data.swapData.items) {
+        const item = Data.swapData.items[itemNb];
+        let giversMint = uusers[item.owner.toBase58()].give.filter((x) => {
+            return x.address == item.mint.toBase58();
+        });
+        let getterMint = uusers[item.destinary.toBase58()].get.filter((x) => {
+            return x.address == item.mint.toBase58();
+        });
+        if (giversMint.length == 0) {
+            uusers[item.owner.toBase58()].give.push({
+                address: item.mint.toBase58(),
+                amount: item.amount.toNumber(),
+                getters: [{ address: item.destinary.toBase58(), amount: item.amount.toNumber() }],
+            });
+        } else {
+            giversMint[0].amount += item.amount.toNumber();
+            giversMint[0].getters.push({
+                address: item.destinary.toBase58(),
+                amount: item.amount.toNumber(),
+            });
+        }
+        if (getterMint.length == 0) {
+            uusers[item.destinary.toBase58()].get.push({
+                address: item.mint.toBase58(),
+                amount: item.amount.toNumber(),
+                givers: [{ address: item.owner.toBase58(), amount: item.amount.toNumber() }],
+            });
+        }
+    }
+    // console.log("swapDatas", swapDatas);
+    return "not implemented yet";
+    // const itemsNfts = swapDatas.filter((x) => {
+    //     return x.isNft == true;
+    // });
+    // const itemsSol = swapDatas.filter((x) => {
+    //     return x.isNft == false;
+    // });
+    // const items = itemsNfts.concat(itemsSol);
+
+    // // console.log("items", items);
+
+    // return getSwapIdentityFromData({
+    //     swapData: {
+    //         status: 0,
+    //         initializer: SystemProgram.programId,
+    //         items,
+    //         preSeed: Data.swapInfo.preSeed ? Data.swapInfo.preSeed : "0000",
+    //         acceptedPayement: Data.swapInfo.currency
+    //             ? new PublicKey(Data.swapInfo.currency)
+    //             : SystemProgram.programId,
+    //         nbItems: items.length,
+    //     },
+    //     clusterOrUrl: Data.clusterOrUrl,
+    // });
 }

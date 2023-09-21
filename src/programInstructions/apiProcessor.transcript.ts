@@ -1,13 +1,8 @@
-import { BN, Idl, Program } from "@project-serum/anchor";
-import {
-    createAssociatedTokenAccountInstruction,
-    createCloseAccountInstruction,
-} from "@solana/spl-token";
+import { BN, Program } from "@project-serum/anchor";
+import { createAssociatedTokenAccountInstruction } from "@solana/spl-token";
 import { Cluster, PublicKey, Transaction } from "@solana/web3.js";
-import { ApiProcessorConfigType, OrdinalsOffer, TxWithSigner } from "../utils/types";
+import { ApiProcessorConfigType, TxWithSigner } from "../utils/types";
 import { getProgram } from "../utils/getProgram.obj";
-import { createNewOfferIx } from "./subFunction/createNewOffer.instructions";
-import { createDepositOrdinalIx } from "./subFunction/createDepositOrdinal.instruction";
 import { getProofMeta } from "../utils/getCNFTData.function";
 import { decode } from "bs58";
 

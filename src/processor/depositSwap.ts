@@ -1,6 +1,5 @@
 import { Cluster, Keypair, PublicKey } from "@solana/web3.js";
 import { sendBundledTransactions } from "../utils/sendBundledTransactions.function";
-import { ErrorFeedback } from "../utils/types";
 import { createDepositSwapInstructions } from "../programInstructions/depositSwap.instructions";
 import { getProgram } from "../utils/getProgram.obj";
 import { AnchorProvider } from "@project-serum/anchor";

@@ -12,7 +12,7 @@ import {
 import { SOLANA_SPL_ATA_PROGRAM_ID, TOKEN_METADATA_PROGRAM } from "../../utils/const";
 import { Program } from "@project-serum/anchor";
 import { SwapIdentity } from "../../utils/types";
-import { MPL_BUBBLEGUM_PROGRAM_ID } from "@metaplex-foundation/mpl-bubblegum";
+import { PROGRAM_ID as MPL_BUBBLEGUM_PROGRAM_ID } from "@metaplex-foundation/mpl-bubblegum";
 import { getCNFTData } from "../../utils/getCNFTData.function";
 
 export async function getCancelCNftInstructions(Data: {

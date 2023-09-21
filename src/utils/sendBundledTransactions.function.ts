@@ -2,7 +2,7 @@ import { Cluster, Keypair } from "@solana/web3.js";
 import { getProgram } from "./getProgram.obj";
 import { ErrorFeedback, TxWithSigner } from "./types";
 import { isConfirmedTx } from "./isConfirmedTx.function";
-import { AnchorProvider, Program, Provider } from "@project-serum/anchor";
+import { AnchorProvider } from "@project-serum/anchor";
 
 // const getProgram  from "./getProgram.obj");
 
@@ -40,7 +40,7 @@ export async function sendBundledTransactions(Data: {
         const transactionHashs = await provider.sendAll(txsWithSigners, {
             maxRetries: 5,
             skipPreflight: !Data.simulation,
-            commitment:"single"
+            commitment: "single",
             // preflightCommitment:"singleGossip"
             // skipPreflight: true,
         });

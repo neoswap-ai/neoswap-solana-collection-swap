@@ -1,13 +1,8 @@
-import {
-    createSyncNativeInstruction,
-    createAssociatedTokenAccountInstruction,
-    TOKEN_PROGRAM_ID,
-    NATIVE_MINT,
-} from "@solana/spl-token";
-import { PublicKey, Transaction, TransactionInstruction } from "@solana/web3.js";
+import { createAssociatedTokenAccountInstruction, TOKEN_PROGRAM_ID } from "@solana/spl-token";
+import { PublicKey, TransactionInstruction } from "@solana/web3.js";
 import { SOLANA_SPL_ATA_PROGRAM_ID } from "../utils/const";
 import { Program } from "@project-serum/anchor";
-import { ApiProcessorConfigType, CreateAssociatedTokenAccountInstructionData } from "./types";
+import { CreateAssociatedTokenAccountInstructionData } from "./types";
 import { delay } from "./delay";
 
 export async function findOrCreateAta(Data: {

@@ -1,27 +1,19 @@
 import {
-    AccountMeta,
     PublicKey,
     SYSVAR_INSTRUCTIONS_PUBKEY,
     SystemProgram,
     TransactionInstruction,
-    clusterApiUrl,
 } from "@solana/web3.js";
 import {
-    ConcurrentMerkleTreeAccount,
     SPL_ACCOUNT_COMPRESSION_PROGRAM_ID,
     SPL_NOOP_PROGRAM_ID,
 } from "@solana/spl-account-compression";
-import { MPL_BUBBLEGUM_PROGRAM_ID } from "@metaplex-foundation/mpl-bubblegum";
+import { PROGRAM_ID as MPL_BUBBLEGUM_PROGRAM_ID } from "@metaplex-foundation/mpl-bubblegum";
 
-import { BN, Program } from "@project-serum/anchor";
+import { Program } from "@project-serum/anchor";
 import { SOLANA_SPL_ATA_PROGRAM_ID, TOKEN_METADATA_PROGRAM } from "../../utils/const";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
-import {
-    ApiProcessorConfigType,
-    ApiProcessorData,
-    DepositCNft,
-    SwapIdentity,
-} from "../../utils/types";
+import { ApiProcessorConfigType, SwapIdentity } from "../../utils/types";
 import { getCNFTData } from "../../utils/getCNFTData.function";
 import { encode } from "bs58";
 

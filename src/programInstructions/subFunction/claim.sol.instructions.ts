@@ -1,7 +1,6 @@
-import { Program, web3 } from "@project-serum/anchor";
+import { Program } from "@project-serum/anchor";
 import { PublicKey, SystemProgram, TransactionInstruction } from "@solana/web3.js";
 import { SwapIdentity } from "../../utils/types";
-import { SOLANA_SPL_ATA_PROGRAM_ID } from "../../utils/const";
 import { findOrCreateAta } from "../../utils/findOrCreateAta.function";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 

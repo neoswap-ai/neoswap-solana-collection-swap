@@ -1,6 +1,14 @@
 import { BN } from "@project-serum/anchor";
 import { PublicKey, Signer, Transaction } from "@solana/web3.js";
 
+export type ItemStatusInfo = "pending" | "deposited" | "claimed" | "returned";
+export type TradeStatusInfo =
+    | "initializing"
+    | "active"
+    | "finalizing"
+    | "finalized"
+    | "canceling"
+    | "canceled";
 export type NftSwapItem = {
     isCompressed: boolean;
     isNft: boolean;
@@ -27,7 +35,7 @@ export type GiveSwapItem = {
     getters: {
         address: string;
         amount: number;
-        status?: "pending" | "deposited" | "claimed" | "returned";
+        status?: ItemStatusInfo;
     }[];
 };
 
@@ -37,7 +45,7 @@ export type GetSwapItem = {
     givers: {
         amount: number;
         address: string;
-        status?: "pending" | "deposited" | "claimed" | "returned";
+        status?: ItemStatusInfo;
     }[];
 };
 
@@ -45,18 +53,11 @@ export type SwapUserInfo = {
     give: GiveSwapItem[];
     get: GetSwapItem[];
     token: { amount: number; status?: string };
-    status?:
-        | "pending"
-        | "partiallyDeposited"
-        | "deposited"
-        | "partiallyClaimed"
-        | "claimed"
-        | "partiallyCanceled"
-        | "canceled";
+    status?: TradeStatusInfo;
 };
 
 export type SwapInfo = {
-    status?: "initializing" | "active" | "finalizing" | "finalized" | "canceling" | "canceled";
+    status?: TradeStatusInfo;
     preSeed?: string;
     currency: string;
     users: { address: string; items: SwapUserInfo }[];

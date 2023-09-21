@@ -1,6 +1,5 @@
 import { Cluster, Connection } from "@solana/web3.js";
 import { getProgram } from "./getProgram.obj";
-import { Program } from "@project-serum/anchor";
 
 export async function isConfirmedTx(Data: {
     transactionHashs: string[];

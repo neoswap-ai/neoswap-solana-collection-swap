@@ -1,17 +1,6 @@
-import {
-    createSyncNativeInstruction,
-    createAssociatedTokenAccountInstruction,
-    TOKEN_PROGRAM_ID,
-    NATIVE_MINT,
-} from "@solana/spl-token";
-import { Connection, PublicKey, Transaction, TransactionInstruction } from "@solana/web3.js";
-import { SOLANA_SPL_ATA_PROGRAM_ID } from "./const";
-import { Program } from "@project-serum/anchor";
-import {
-    ApiProcessorConfigType,
-    CreateAssociatedTokenAccountInstructionData,
-    ErrorFeedback,
-} from "./types";
+import { NATIVE_MINT } from "@solana/spl-token";
+import { Connection, PublicKey } from "@solana/web3.js";
+import { ErrorFeedback } from "./types";
 import { delay } from "./delay";
 
 export async function errorIfInsufficientBalance(Data: {
