@@ -1,5 +1,3 @@
-import { TransactionInstruction } from "@solana/web3.js";
-import { ApiProcessorData, ErrorFeedback, SwapIdentity, TxWithSigner } from "./types";
 
 // export const isErrorTxSigner = (obj: TxWithSigner | ErrorFeedback): obj is ErrorFeedback =>
 //     Object.keys(obj[0]).includes("type");

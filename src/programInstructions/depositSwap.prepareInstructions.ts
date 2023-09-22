@@ -68,6 +68,7 @@ export async function prepareDepositSwapInstructions(Data: {
                         tokenId: swapDataItem.mint,
                         swapIdentity,
                         prepare: true,
+                        clusterOrUrl: Data.clusterOrUrl,
                     });
 
                     const depositingApi = {

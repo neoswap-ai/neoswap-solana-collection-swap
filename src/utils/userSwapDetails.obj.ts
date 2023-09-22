@@ -1,5 +1,5 @@
 import { Cluster, PublicKey } from "@solana/web3.js";
-import { ItemStatus, NftSwapItem, SwapData, UserDataInSwap } from "./types";
+import { ItemStatus, UserDataInSwap } from "./types";
 import { getSwapDataAccountFromPublicKey } from "./getSwapDataAccountFromPublicKey.function";
 import { getProgram } from "./getProgram.obj";
 import { Program } from "@project-serum/anchor";

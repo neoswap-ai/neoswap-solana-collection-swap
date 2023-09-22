@@ -1,6 +1,5 @@
 import { PublicKey, SystemProgram } from "@solana/web3.js";
 import { ApiProcessorConfigType, SwapIdentity } from "../../utils/types";
-import { SWAP_PROGRAM_ID } from "../../utils/const";
 import { Program } from "@project-serum/anchor";
 import { findOrCreateAta } from "../../utils/findOrCreateAta.function";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";

@@ -24,3 +24,28 @@ export async function getSwapDataAccountFromPublicKey(Data: {
         } as ErrorFeedback;
     }
 }
+
+export async function getDataFromSwapdataAccountPublickey(Data: {
+    program: Program;
+    swapDataAccount_publicKey: PublicKey;
+}): Promise<SwapData | undefined> {
+    try {
+        const swapData = (await Data.program.account.swapData.fetch(
+            Data.swapDataAccount_publicKey
+        )) as SwapData;
+
+        if (!swapData) {
+            throw `No SwapData found ${Data.swapDataAccount_publicKey.toBase58()}`;
+        } else {
+
+            
+            return swapData;
+        }
+    } catch (error) {
+        throw {
+            blockchain: "solana",
+            status: "error",
+            message: error,
+        } as ErrorFeedback;
+    }
+}

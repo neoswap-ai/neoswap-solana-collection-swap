@@ -1,5 +1,5 @@
 import { Cluster, PublicKey, Transaction } from "@solana/web3.js";
-import { ErrorFeedback, TxWithSigner, TradeStatus } from "../../utils/types";
+import { TxWithSigner, TradeStatus } from "../../utils/types";
 import { getProgram } from "../../utils/getProgram.obj";
 import { getSwapIdentityFromData } from "../../utils/getSwapIdentityFromData.function";
 import { getSwapDataAccountFromPublicKey } from "../../utils/getSwapDataAccountFromPublicKey.function";

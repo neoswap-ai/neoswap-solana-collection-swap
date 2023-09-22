@@ -2,8 +2,7 @@ import { AccountMeta, Cluster, PublicKey, clusterApiUrl } from "@solana/web3.js"
 import { getProgram } from "./getProgram.obj";
 import { ConcurrentMerkleTreeAccount } from "@solana/spl-account-compression";
 import { decode } from "bs58";
-import BN from "bn.js";
-import { Program } from "@project-serum/anchor";
+import { BN, Program } from "@project-serum/anchor";
 
 export async function getCNFTData(Data: { tokenId: string; Cluster: Cluster; program?: Program }) {
     let solanaUrl = clusterApiUrl(Data.Cluster);
@@ -125,7 +124,7 @@ export function getProofMeta(proof: string[]) {
     }));
 }
 
-export async function getMerkleTreeAndIndex(Data: { tokenId: PublicKey, Cluster: Cluster}) {
+export async function getMerkleTreeAndIndex(Data: { tokenId: PublicKey; Cluster: Cluster }) {
     let solanaUrl = clusterApiUrl(Data.Cluster);
     const treeDataReponse = await fetch(solanaUrl, {
         method: "POST",
@@ -147,7 +146,7 @@ export async function getMerkleTreeAndIndex(Data: { tokenId: PublicKey, Cluster:
     //     merkleTree: treeData.compression.tree,
     //     index: treeData.compression.leaf_id,
     // });
-
+    if (!!!treeData) throw "No treeData found, verify the tokenId : " + Data.tokenId.toBase58();
     return {
         merkleTree: new PublicKey(treeData.compression.tree),
         index: new BN(treeData.compression.leaf_id),

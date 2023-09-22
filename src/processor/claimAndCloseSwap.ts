@@ -1,6 +1,6 @@
 import { Cluster, Keypair, PublicKey } from "@solana/web3.js";
 import { sendBundledTransactions } from "../utils/sendBundledTransactions.function";
-import { ErrorFeedback, TxWithSigner } from "../utils/types";
+import { TxWithSigner } from "../utils/types";
 import { createClaimSwapInstructions } from "../programInstructions/claimSwap.instructions";
 import { validateDeposit } from "../programInstructions/subFunction/validateDeposit.instructions";
 import { createValidateClaimedInstructions } from "../programInstructions/subFunction/validateClaimed.instructions";

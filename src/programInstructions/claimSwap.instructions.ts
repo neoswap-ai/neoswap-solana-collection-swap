@@ -1,4 +1,4 @@
-import { Cluster, PublicKey, Transaction, TransactionInstruction } from "@solana/web3.js";
+import { Cluster, PublicKey, Transaction } from "@solana/web3.js";
 import { getProgram } from "../utils/getProgram.obj";
 import { getSwapDataAccountFromPublicKey } from "../utils/getSwapDataAccountFromPublicKey.function";
 import { getSwapIdentityFromData } from "../utils/getSwapIdentityFromData.function";
@@ -88,6 +88,7 @@ export async function createClaimSwapInstructions(Data: {
                             tokenId: swapDataItem.mint,
                             signer: Data.signer,
                             swapIdentity,
+                            clusterOrUrl: Data.clusterOrUrl,
                             // ataList,
                         });
                         claimTransactionInstruction.push({

@@ -1,4 +1,4 @@
-import { Cluster, Connection, Keypair, PublicKey, Signer, clusterApiUrl } from "@solana/web3.js";
+import { Cluster, Connection, Keypair, PublicKey, clusterApiUrl } from "@solana/web3.js";
 
 import { idlSwap } from "./neoSwap.idl";
 import { Program, AnchorProvider } from "@project-serum/anchor";

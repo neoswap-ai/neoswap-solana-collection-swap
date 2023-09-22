@@ -1,22 +1,14 @@
+import { PublicKey, SYSVAR_INSTRUCTIONS_PUBKEY, SystemProgram } from "@solana/web3.js";
 import {
-    AccountMeta,
-    PublicKey,
-    SYSVAR_INSTRUCTIONS_PUBKEY,
-    SystemProgram,
-    clusterApiUrl,
-} from "@solana/web3.js";
-import {
-    ConcurrentMerkleTreeAccount,
     SPL_ACCOUNT_COMPRESSION_PROGRAM_ID,
     SPL_NOOP_PROGRAM_ID,
 } from "@solana/spl-account-compression";
-import { MPL_BUBBLEGUM_PROGRAM_ID } from "@metaplex-foundation/mpl-bubblegum";
+import { PROGRAM_ID as MPL_BUBBLEGUM_PROGRAM_ID } from "@metaplex-foundation/mpl-bubblegum";
 
-import { BN, Program } from "@project-serum/anchor";
+import { Program } from "@project-serum/anchor";
 import { SOLANA_SPL_ATA_PROGRAM_ID, TOKEN_METADATA_PROGRAM } from "../../utils/const";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { SwapIdentity } from "../../utils/types";
-import { decode } from "bs58";
 import { getCNFTData } from "../../utils/getCNFTData.function";
 
 export async function getClaimCNftInstruction(Data: {
@@ -25,12 +17,15 @@ export async function getClaimCNftInstruction(Data: {
     signer: PublicKey;
     user: PublicKey;
     tokenId: PublicKey;
+    clusterOrUrl: string;
 }) {
     const { creatorHash, dataHash, index, merkleTree, nonce, proofMeta, root, treeAuthority } =
         await getCNFTData({
             program: Data.program,
             tokenId: Data.tokenId.toBase58(),
-            Cluster: "mainnet-beta",
+            Cluster: Data.clusterOrUrl.includes("mainnet")
+            ? "mainnet-beta"
+            : "devnet",
         });
     return await Data.program.methods
         .claimCNft(
