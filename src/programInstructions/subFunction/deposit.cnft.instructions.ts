@@ -22,6 +22,7 @@ export async function getDepositCNftInstruction(Data: {
     signer: PublicKey;
     swapIdentity: SwapIdentity;
     tokenId: PublicKey;
+    clusterOrUrl: string;
     prepare?: boolean;
 }): Promise<{
     instructions?: TransactionInstruction;
@@ -31,7 +32,9 @@ export async function getDepositCNftInstruction(Data: {
         await getCNFTData({
             program: Data.program,
             tokenId: Data.tokenId.toBase58(),
-            Cluster: "mainnet-beta",
+            Cluster: Data.clusterOrUrl.includes("mainnet")
+            ? "mainnet-beta"
+            : "devnet",
         });
     // console.log(
     //     "getDepositCNftInstruction",

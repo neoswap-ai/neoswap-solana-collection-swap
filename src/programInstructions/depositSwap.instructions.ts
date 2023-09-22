@@ -67,6 +67,7 @@ export async function createDepositSwapInstructions(Data: {
                         signer: Data.user,
                         swapIdentity,
                         tokenId: swapDataItem.mint,
+                        clusterOrUrl: Data.clusterOrUrl,
                     });
                     if (!ix.instructions) throw " error prepare Instruction";
                     depositInstruction.push({

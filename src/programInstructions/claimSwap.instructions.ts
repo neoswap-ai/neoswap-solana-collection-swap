@@ -88,6 +88,7 @@ export async function createClaimSwapInstructions(Data: {
                             tokenId: swapDataItem.mint,
                             signer: Data.signer,
                             swapIdentity,
+                            clusterOrUrl: Data.clusterOrUrl,
                             // ataList,
                         });
                         claimTransactionInstruction.push({

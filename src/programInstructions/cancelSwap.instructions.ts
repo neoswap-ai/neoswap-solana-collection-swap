@@ -77,6 +77,7 @@ export async function createCancelSwapInstructions(Data: {
                     // mint: swapDataItem.mint,
                     signer: Data.signer,
                     swapIdentity,
+                    clusterOrUrl: Data.clusterOrUrl,
                     // ataList,
                 });
                 cancelTransactionInstruction.push({

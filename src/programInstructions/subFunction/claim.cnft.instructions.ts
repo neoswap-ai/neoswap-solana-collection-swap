@@ -17,12 +17,15 @@ export async function getClaimCNftInstruction(Data: {
     signer: PublicKey;
     user: PublicKey;
     tokenId: PublicKey;
+    clusterOrUrl: string;
 }) {
     const { creatorHash, dataHash, index, merkleTree, nonce, proofMeta, root, treeAuthority } =
         await getCNFTData({
             program: Data.program,
             tokenId: Data.tokenId.toBase58(),
-            Cluster: "mainnet-beta",
+            Cluster: Data.clusterOrUrl.includes("mainnet")
+            ? "mainnet-beta"
+            : "devnet",
         });
     return await Data.program.methods
         .claimCNft(
