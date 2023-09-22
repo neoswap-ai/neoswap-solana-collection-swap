@@ -27,7 +27,7 @@ export async function initializeSwap(Data: {
     });
     if (initializeData.warning !== "" && Data.warningIsError) {
         console.log("WarningIsError is true and creating initializing data creates warning");
-        throw initializeData;
+        throw initializeData.warning;
     }
     try {
         const transactionHashs = await sendBundledTransactions({
