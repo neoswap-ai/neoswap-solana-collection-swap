@@ -25,8 +25,10 @@ export async function createInitializeSwapInstructions(Data: {
     signer: PublicKey;
     clusterOrUrl: Cluster | string;
     program?: Program;
-    // programId?: PublicKey;
-}): Promise<InitializeData> {
+    warningIsError?: string[];
+}): Promise<// { initializeData:
+InitializeData> {
+    // shouldError?: boolean }
     const program = Data.program ? Data.program : getProgram({ clusterOrUrl: Data.clusterOrUrl });
 
     let swapIdentity = await swapDataConverter({
@@ -51,6 +53,7 @@ export async function createInitializeSwapInstructions(Data: {
             swapIdentity,
             signer: Data.signer,
             clusterOrUrl: Data.clusterOrUrl,
+            warningIsError: Data.warningIsError,
         });
 
         const validateInstruction = await getValidateInitilizeInstruction({
@@ -86,10 +89,13 @@ export async function createInitializeSwapInstructions(Data: {
         });
 
         return {
+            // initializeData: {
             swapIdentity,
             programId: program.programId,
             txWithoutSigner,
             warning: addInstructions.warning,
+            // },
+            // shouldError: addInstructions.shouldError,
         };
     } catch (error) {
         console.log("error init", error);
@@ -142,9 +148,11 @@ async function getAddInitilizeInstructions(Data: {
     swapIdentity: SwapIdentity;
     signer: PublicKey;
     clusterOrUrl: string;
+    warningIsError?: string[];
 }): Promise<{
     ix: TransactionInstruction[][] | undefined;
     warning: string;
+    // shouldError: boolean;
 }> {
     let bcData: SwapData | undefined = undefined;
     try {
@@ -159,7 +167,7 @@ async function getAddInitilizeInstructions(Data: {
 
     let transactionInstructionBundle = [];
     let chunkSize = 4;
-    let returnData: ErrorFeedback[] = [];
+    let returnData: { e: ErrorFeedback; mint: PublicKey }[] = [];
     for (let index = 0; index < Data.swapIdentity.swapData.items.length; index += chunkSize) {
         const chunkIx: TransactionInstruction[] = [];
 
@@ -218,31 +226,40 @@ async function getAddInitilizeInstructions(Data: {
 
                         if (!balance.value.uiAmount && balance.value.uiAmount !== 0) {
                             returnData.push({
-                                blockchain: "solana",
-                                order: 0,
-                                status: "error",
-                                message: `User: ${item.owner.toBase58()} \nMint: ${item.mint.toBase58()}\nATA: ${tokenAccount.mintAta.toBase58()} \nError: cannot retrieve the balance\n\n`,
-                            } as ErrorFeedback);
+                                e: {
+                                    blockchain: "solana",
+                                    order: 0,
+                                    status: "error",
+                                    message: `User: ${item.owner.toBase58()} \nMint: ${item.mint.toBase58()}\nATA: ${tokenAccount.mintAta.toBase58()} \nError: cannot retrieve the balance\n\n`,
+                                } as ErrorFeedback,
+                                mint: item.mint,
+                            });
                         } else if (balance.value.uiAmount < item.amount.toNumber()) {
                             returnData.push({
-                                blockchain: "solana",
-                                order: 0,
-                                status: "error",
-                                message: `User: ${item.owner.toBase58()} \nMint: ${item.mint.toBase58()}\nATA: ${tokenAccount.mintAta.toBase58()} \nError: not enough funds; found ${
-                                    balance.value.uiAmount
-                                } / ${item.amount.toNumber()} NFT the user own\n\n
+                                e: {
+                                    blockchain: "solana",
+                                    order: 0,
+                                    status: "error",
+                                    message: `User: ${item.owner.toBase58()} \nMint: ${item.mint.toBase58()}\nATA: ${tokenAccount.mintAta.toBase58()} \nError: not enough funds; found ${
+                                        balance.value.uiAmount
+                                    } / ${item.amount.toNumber()} NFT the user own\n\n
                                `,
-                            } as ErrorFeedback);
+                                } as ErrorFeedback,
+                                mint: item.mint,
+                            });
                         }
                     } catch (error) {
                         console.log("error in get ataBalance :\n", error);
 
                         returnData.push({
-                            blockchain: "solana",
-                            order: 0,
-                            status: "error",
-                            message: `User: ${item.owner.toBase58()} \nMint: ${item.mint.toBase58()}\nATA: ${tokenAccount.mintAta.toBase58()} \nError: Couldn't find the NFT owned by user \n\n`,
-                        } as ErrorFeedback);
+                            e: {
+                                blockchain: "solana",
+                                order: 0,
+                                status: "error",
+                                message: `User: ${item.owner.toBase58()} \nMint: ${item.mint.toBase58()}\nATA: ${tokenAccount.mintAta.toBase58()} \nError: Couldn't find the NFT owned by user \n\n`,
+                            } as ErrorFeedback,
+                            mint: item.mint,
+                        });
                     }
                     console.log(
                         "XXX - added NFT item with Mint ",
@@ -269,11 +286,14 @@ async function getAddInitilizeInstructions(Data: {
                     );
                     if (!item.owner.equals(owner)) {
                         returnData.push({
-                            blockchain: "solana",
-                            order: 0,
-                            status: "error",
-                            message: `User: ${item.owner.toBase58()} \nTokenId: ${item.mint.toBase58()} \nError: Couldn't find the NFT owned by user, owner is ${owner}`,
-                        } as ErrorFeedback);
+                            e: {
+                                blockchain: "solana",
+                                order: 0,
+                                status: "error",
+                                message: `User: ${item.owner.toBase58()} \nTokenId: ${item.mint.toBase58()} \nError: Couldn't find the NFT owned by user, owner is ${owner}`,
+                            } as ErrorFeedback,
+                            mint: item.mint,
+                        });
                     }
                 } else {
                     // const solBalance = await Data.program.provider.connection.getBalance(
@@ -314,29 +334,49 @@ async function getAddInitilizeInstructions(Data: {
         if (chunkIx.length > 0) transactionInstructionBundle.push(chunkIx);
     }
     // console.log("returnData", returnData);
+    // let pKstring: string[] = [];
+    // let warningIsError = false;
+    // if (Data.warningIsError?.length === 0) {
+    //     warningIsError = true;
+    // }
+    // console.log("warningIsError", Data.warningIsError);
+    // console.log("pKstring", pKstring);
 
     let warning = "";
     if (returnData.length > 0) {
         for (let index = 0; index < returnData.length; index++) {
             const element = returnData[index];
             if (element) {
-                warning = String(warning).concat(`\n\n  /\/\  ` + String(element.message));
+                // console.log("bools");
+                console.log(Data.warningIsError);
+                console.log(element.mint.toString());
+                console.log(!Data.warningIsError?.includes(element.mint.toString()));
+
+                if (!!Data.warningIsError && !Data.warningIsError.includes(element.mint.toString()))
+                    throw element.e;
+                warning = String(warning).concat(`\n\n  /\/\  ` + String(element.e.message));
             }
         }
-
-        // if (errorFeedback.message !== "") {
-        //     throw errorFeedback;
-        // }
     }
+    // if (Data.warningIsError) warningIsError = false;
+
     let nbItems = 0;
     transactionInstructionBundle.forEach((transactionInstructionArray) => {
         nbItems += transactionInstructionArray.length;
     });
     console.log("there is ", nbItems, " items to initialize");
     if (nbItems > 0) {
-        return { ix: transactionInstructionBundle, warning };
+        return {
+            ix: transactionInstructionBundle,
+            warning,
+            // shouldError: Data.warningIsError?.length === 0,
+        };
     } else {
-        return { ix: undefined, warning };
+        return {
+            ix: undefined,
+            warning,
+            // shouldError: false
+        };
     }
 }
 

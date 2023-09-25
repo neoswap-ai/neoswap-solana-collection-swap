@@ -224,7 +224,7 @@ export type UnwrapSol = {
 export type ErrorFeedback = {
     blockchain: "solana";
     status: "error";
-    message: string | unknown;
+    message: string | any;
     swapStatus?: number;
 };
 
