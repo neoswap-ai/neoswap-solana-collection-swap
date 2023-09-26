@@ -1,4 +1,4 @@
-import { Cluster, Keypair } from "@solana/web3.js";
+import { Cluster, Keypair, PublicKey } from "@solana/web3.js";
 import { createInitializeSwapInstructions } from "../programInstructions/initializeSwap.instructions";
 import { sendBundledTransactions } from "../utils/sendBundledTransactions.function";
 import { InitializeData, SwapInfo } from "../utils/types";
@@ -11,7 +11,7 @@ export async function initializeSwap(Data: {
     clusterOrUrl: Cluster | string;
     simulation?: boolean;
     skipConfirmation?: boolean;
-    warningIsError?: boolean;
+    warningIsError?: string[];
 }): Promise<{
     initializeData: InitializeData;
     transactionHashs: string[];
@@ -24,11 +24,12 @@ export async function initializeSwap(Data: {
         signer: Data.signer.publicKey,
         clusterOrUrl: Data.clusterOrUrl,
         program,
+        warningIsError: Data.warningIsError,
     });
-    if (initializeData.warning !== "" && Data.warningIsError) {
-        console.log("WarningIsError is true and creating initializing data creates warning");
-        throw initializeData.warning;
-    }
+    // if (initializeData.warning !== "" && Data.warningIsError) {
+    //     console.log("WarningIsError is true and creating initializing data creates warning");
+    //     throw initializeData.warning;
+    // }
     try {
         const transactionHashs = await sendBundledTransactions({
             provider: program.provider as AnchorProvider,
