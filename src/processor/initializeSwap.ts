@@ -11,7 +11,8 @@ export async function initializeSwap(Data: {
     clusterOrUrl: Cluster | string;
     simulation?: boolean;
     skipConfirmation?: boolean;
-    warningIsError?: string[];
+    validateOwnership?: "warning" | "error";
+    validateOwnershipIgnore?: string[];
 }): Promise<{
     initializeData: InitializeData;
     transactionHashs: string[];
@@ -24,7 +25,8 @@ export async function initializeSwap(Data: {
         signer: Data.signer.publicKey,
         clusterOrUrl: Data.clusterOrUrl,
         program,
-        warningIsError: Data.warningIsError,
+        validateOwnership: Data.validateOwnership,
+        validateOwnershipIgnore: Data.validateOwnershipIgnore,
     });
     // if (initializeData.warning !== "" && Data.warningIsError) {
     //     console.log("WarningIsError is true and creating initializing data creates warning");
