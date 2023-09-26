@@ -25,7 +25,8 @@ export async function createInitializeSwapInstructions(Data: {
     signer: PublicKey;
     clusterOrUrl: Cluster | string;
     program?: Program;
-    warningIsError?: string[];
+    validateOwnership?: "warning" | "error";
+    validateOwnershipIgnore?: string[];
 }): Promise<// { initializeData:
 InitializeData> {
     // shouldError?: boolean }
@@ -53,7 +54,8 @@ InitializeData> {
             swapIdentity,
             signer: Data.signer,
             clusterOrUrl: Data.clusterOrUrl,
-            warningIsError: Data.warningIsError,
+            validateOwnership: Data.validateOwnership,
+            validateOwnershipIgnore: Data.validateOwnershipIgnore,
         });
 
         const validateInstruction = await getValidateInitilizeInstruction({
@@ -148,7 +150,8 @@ async function getAddInitilizeInstructions(Data: {
     swapIdentity: SwapIdentity;
     signer: PublicKey;
     clusterOrUrl: string;
-    warningIsError?: string[];
+    validateOwnership?: "warning" | "error";
+    validateOwnershipIgnore?: string[];
 }): Promise<{
     ix: TransactionInstruction[][] | undefined;
     warning: string;
@@ -198,68 +201,72 @@ async function getAddInitilizeInstructions(Data: {
                         program: Data.program,
                         signer: Data.signer,
                     });
-                    console.log(
-                        "check NFT/Token balance",
-                        "\nmint:",
-                        item.mint.toBase58(),
-                        "\nowner:",
-                        item.owner.toBase58(),
-                        // "program:",
-                        // Data.program,
-                        // "\nsigner:",
-                        // Data.signer.toBase58(),
-                        "\nATA:",
-                        tokenAccount.mintAta.toBase58()
-                    );
-                    try {
-                        const balance =
-                            await Data.program.provider.connection.getTokenAccountBalance(
-                                tokenAccount.mintAta
-                            );
-                        console.log(
-                            "balance ",
-                            balance.value.uiAmount,
-                            " / ",
-                            item.amount.toNumber()
-                        );
-                        // await delay(1000);
 
-                        if (!balance.value.uiAmount && balance.value.uiAmount !== 0) {
-                            returnData.push({
-                                e: {
-                                    blockchain: "solana",
-                                    order: 0,
-                                    status: "error",
-                                    message: `User: ${item.owner.toBase58()} \nMint: ${item.mint.toBase58()}\nATA: ${tokenAccount.mintAta.toBase58()} \nError: cannot retrieve the balance\n\n`,
-                                } as ErrorFeedback,
-                                mint: item.mint,
-                            });
-                        } else if (balance.value.uiAmount < item.amount.toNumber()) {
-                            returnData.push({
-                                e: {
-                                    blockchain: "solana",
-                                    order: 0,
-                                    status: "error",
-                                    message: `User: ${item.owner.toBase58()} \nMint: ${item.mint.toBase58()}\nATA: ${tokenAccount.mintAta.toBase58()} \nError: not enough funds; found ${
-                                        balance.value.uiAmount
-                                    } / ${item.amount.toNumber()} NFT the user own\n\n
+                    if (!!Data.validateOwnership) {
+                        console.log(
+                            "check NFT/Token balance",
+                            "\nmint:",
+                            item.mint.toBase58(),
+                            "\nowner:",
+                            item.owner.toBase58(),
+                            // "program:",
+                            // Data.program,
+                            // "\nsigner:",
+                            // Data.signer.toBase58(),
+                            "\nATA:",
+                            tokenAccount.mintAta.toBase58()
+                        );
+
+                        try {
+                            const balance =
+                                await Data.program.provider.connection.getTokenAccountBalance(
+                                    tokenAccount.mintAta
+                                );
+                            console.log(
+                                "balance ",
+                                balance.value.uiAmount,
+                                " / ",
+                                item.amount.toNumber()
+                            );
+                            // await delay(1000);
+
+                            if (!balance.value.uiAmount && balance.value.uiAmount !== 0) {
+                                returnData.push({
+                                    e: {
+                                        blockchain: "solana",
+                                        order: 0,
+                                        status: "error",
+                                        message: `User: ${item.owner.toBase58()} \nMint: ${item.mint.toBase58()}\nATA: ${tokenAccount.mintAta.toBase58()} \nError: cannot retrieve the balance\n\n`,
+                                    } as ErrorFeedback,
+                                    mint: item.mint,
+                                });
+                            } else if (balance.value.uiAmount < item.amount.toNumber()) {
+                                returnData.push({
+                                    e: {
+                                        blockchain: "solana",
+                                        order: 0,
+                                        status: "error",
+                                        message: `User: ${item.owner.toBase58()} \nMint: ${item.mint.toBase58()}\nATA: ${tokenAccount.mintAta.toBase58()} \nError: not enough funds; found ${
+                                            balance.value.uiAmount
+                                        } / ${item.amount.toNumber()} NFT the user own\n\n
                                `,
+                                    } as ErrorFeedback,
+                                    mint: item.mint,
+                                });
+                            }
+                        } catch (error) {
+                            console.log("error in get ataBalance :\n", error);
+
+                            returnData.push({
+                                e: {
+                                    blockchain: "solana",
+                                    order: 0,
+                                    status: "error",
+                                    message: `User: ${item.owner.toBase58()} \nMint: ${item.mint.toBase58()}\nATA: ${tokenAccount.mintAta.toBase58()} \nError: Couldn't find the NFT owned by user \n\n`,
                                 } as ErrorFeedback,
                                 mint: item.mint,
                             });
                         }
-                    } catch (error) {
-                        console.log("error in get ataBalance :\n", error);
-
-                        returnData.push({
-                            e: {
-                                blockchain: "solana",
-                                order: 0,
-                                status: "error",
-                                message: `User: ${item.owner.toBase58()} \nMint: ${item.mint.toBase58()}\nATA: ${tokenAccount.mintAta.toBase58()} \nError: Couldn't find the NFT owned by user \n\n`,
-                            } as ErrorFeedback,
-                            mint: item.mint,
-                        });
                     }
                     console.log(
                         "XXX - added NFT item with Mint ",
@@ -271,29 +278,33 @@ async function getAddInitilizeInstructions(Data: {
                         " - XXX"
                     );
                 } else if (item.isCompressed) {
-                    const owner = await getCNFTOwner({
-                        tokenId: item.mint.toBase58(),
-                        Cluster: Data.clusterOrUrl.includes("mainnet") ? "mainnet-beta" : "devnet",
-                    });
-                    console.log(
-                        "XXX - added CNFT item with TokenId ",
-                        item.mint.toBase58(),
-                        " from ",
-                        item.owner.toBase58(),
-                        " amount ",
-                        item.amount.toNumber(),
-                        " - XXX"
-                    );
-                    if (!item.owner.equals(owner)) {
-                        returnData.push({
-                            e: {
-                                blockchain: "solana",
-                                order: 0,
-                                status: "error",
-                                message: `User: ${item.owner.toBase58()} \nTokenId: ${item.mint.toBase58()} \nError: Couldn't find the NFT owned by user, owner is ${owner}`,
-                            } as ErrorFeedback,
-                            mint: item.mint,
+                    if (!!Data.validateOwnership) {
+                        const owner = await getCNFTOwner({
+                            tokenId: item.mint.toBase58(),
+                            Cluster: Data.clusterOrUrl.includes("mainnet")
+                                ? "mainnet-beta"
+                                : "devnet",
                         });
+                        console.log(
+                            "XXX - added CNFT item with TokenId ",
+                            item.mint.toBase58(),
+                            " from ",
+                            item.owner.toBase58(),
+                            " amount ",
+                            item.amount.toNumber(),
+                            " - XXX"
+                        );
+                        if (!item.owner.equals(owner)) {
+                            returnData.push({
+                                e: {
+                                    blockchain: "solana",
+                                    order: 0,
+                                    status: "error",
+                                    message: `User: ${item.owner.toBase58()} \nTokenId: ${item.mint.toBase58()} \nError: Couldn't find the NFT owned by user, owner is ${owner}`,
+                                } as ErrorFeedback,
+                                mint: item.mint,
+                            });
+                        }
                     }
                 } else {
                     // const solBalance = await Data.program.provider.connection.getBalance(
@@ -343,21 +354,26 @@ async function getAddInitilizeInstructions(Data: {
     // console.log("pKstring", pKstring);
 
     let warning = "";
-    if (returnData.length > 0) {
-        for (let index = 0; index < returnData.length; index++) {
-            const element = returnData[index];
-            if (element) {
+    if (!!Data.validateOwnership)
+        if (returnData.length > 0) {
+            for (let index = 0; index < returnData.length; index++) {
+                const element = returnData[index];
+                // if (element) {
                 // console.log("bools");
-                console.log(Data.warningIsError);
-                console.log(element.mint.toString());
-                console.log(!Data.warningIsError?.includes(element.mint.toString()));
+                // console.log(Data.warningIsError);
+                // console.log(element.mint.toString());
+                // console.log(!Data.warningIsError?.includes(element.mint.toString()));
 
-                if (!!Data.warningIsError && !Data.warningIsError.includes(element.mint.toString()))
+                if (
+                    Data.validateOwnership === "error" &&
+                    (!Data.validateOwnershipIgnore || //!!Data.validateOwnershipIgnore &&
+                        !Data.validateOwnershipIgnore.includes(element.mint.toString()))
+                )
                     throw element.e;
                 warning = String(warning).concat(`\n\n  /\/\  ` + String(element.e.message));
+                // }
             }
         }
-    }
     // if (Data.warningIsError) warningIsError = false;
 
     let nbItems = 0;
