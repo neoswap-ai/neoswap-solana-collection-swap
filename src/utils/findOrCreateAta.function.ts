@@ -1,12 +1,14 @@
 import { createAssociatedTokenAccountInstruction, TOKEN_PROGRAM_ID } from "@solana/spl-token";
-import { PublicKey, TransactionInstruction } from "@solana/web3.js";
+import { Cluster, PublicKey, TransactionInstruction } from "@solana/web3.js";
 import { SOLANA_SPL_ATA_PROGRAM_ID } from "../utils/const";
 import { Program } from "@project-serum/anchor";
 import { CreateAssociatedTokenAccountInstructionData } from "./types";
 import { delay } from "./delay";
+import { getProgram } from "./getProgram.obj";
 
 export async function findOrCreateAta(Data: {
-    program: Program;
+    clusterOrUrl?: Cluster | string;
+    program?: Program;
     owner: PublicKey;
     mint: PublicKey;
     signer: PublicKey;
@@ -16,6 +18,13 @@ export async function findOrCreateAta(Data: {
     instruction?: TransactionInstruction;
     prepareInstruction?: CreateAssociatedTokenAccountInstructionData;
 }> {
+    if (!!Data.clusterOrUrl && !!Data.program) {
+    } else if (!!Data.clusterOrUrl) {
+        Data.program = getProgram({ clusterOrUrl: Data.clusterOrUrl });
+    } else if (!!Data.program) {
+        Data.clusterOrUrl = Data.program.provider.connection.rpcEndpoint;
+    } else throw "there should be a Program or a Cluster";
+
     try {
         let values: { address: PublicKey; value: number }[] = [];
         let mintAtas = (

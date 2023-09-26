@@ -5,11 +5,18 @@ import { getProgram } from "./getProgram.obj";
 import { Program } from "@project-serum/anchor";
 
 export async function userSwapDetails(Data: {
-    clusterOrUrl: Cluster | string;
+    clusterOrUrl?: Cluster | string;
+    program?: Program;
     user: PublicKey;
     swapDataAccount_publicKey: PublicKey;
-    program?: Program;
 }): Promise<UserDataInSwap> {
+    if (!!Data.clusterOrUrl && !!Data.program) {
+    } else if (!!Data.clusterOrUrl) {
+        Data.program = getProgram({ clusterOrUrl: Data.clusterOrUrl });
+    } else if (!!Data.program) {
+        Data.clusterOrUrl = Data.program.provider.connection.rpcEndpoint;
+    } else throw "there should be a Program or a Cluster";
+
     const program = Data.program ? Data.program : getProgram({ clusterOrUrl: Data.clusterOrUrl });
     const swapData = await getSwapDataAccountFromPublicKey({
         program,
