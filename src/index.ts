@@ -18,7 +18,10 @@ import {
 import { findOrCreateAta } from "./utils/findOrCreateAta.function";
 import { getCNFTData } from "./utils/getCNFTData.function";
 import { getProgram } from "./utils/getProgram.obj";
-import { getSwapDataAccountFromPublicKey } from "./utils/getSwapDataAccountFromPublicKey.function";
+import {
+    getSwapDataAccountFromPublicKey,
+    getDataFromSwapdataAccountPublickey,
+} from "./utils/getSwapDataAccountFromPublicKey.function";
 import { getSwapIdentityFromData } from "./utils/getSwapIdentityFromData.function";
 import { isConfirmedTx } from "./utils/isConfirmedTx.function";
 import { sendBundledTransactions } from "./utils/sendBundledTransactions.function";
@@ -39,6 +42,7 @@ const UTILS = {
     NFT_ACCOUNTS,
     getProgram,
     getSwapDataAccountFromPublicKey,
+    getDataFromSwapdataAccountPublickey,
     getSwapIdentityFromData,
     userSwapDetails,
     sendBundledTransactions,
