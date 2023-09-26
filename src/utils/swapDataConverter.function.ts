@@ -144,8 +144,10 @@ export async function invertedSwapDataConverter(Data: {
     clusterOrUrl: string;
     connection?: Connection;
     // preSeed?: string;
-}): Promise<string> {
-    return "not implemented yet";
+}): Promise<SwapInfo> {
+    // return "not implemented yet";
+    console.log("FFFFFFFFFFFFFFFF");
+
     const swapStatusMap: { [key: number]: TradeStatusInfo } = {
         0: "initializing",
         1: "active",
@@ -188,33 +190,74 @@ export async function invertedSwapDataConverter(Data: {
 
     for (const itemNb in Data.swapData.items) {
         const item = Data.swapData.items[itemNb];
-        let giversMint = uusers[item.owner.toBase58()].give.filter((x) => {
-            return x.address == item.mint.toBase58();
-        });
-        let getterMint = uusers[item.destinary.toBase58()].get.filter((x) => {
-            return x.address == item.mint.toBase58();
-        });
-        if (giversMint.length == 0) {
-            uusers[item.owner.toBase58()].give.push({
-                address: item.mint.toBase58(),
-                amount: item.amount.toNumber(),
-                getters: [{ address: item.destinary.toBase58(), amount: item.amount.toNumber() }],
+        // console.log("uusers[item.owner.toBase58()]", uusers[item.owner.toBase58()]);
+        if (!!!uusers[item.owner.toBase58()])
+            uusers[item.owner.toBase58()] = { give: [], get: [], token: { amount: 0 } };
+        if (!!!uusers[item.destinary.toBase58()])
+            uusers[item.destinary.toBase58()] = { give: [], get: [], token: { amount: 0 } };
+        // console.log("uusers[item.destinary.toBase58()]", uusers[item.destinary.toBase58()]);
+        if (item.isNft) {
+            let giversMint = uusers[item.owner.toBase58()].give.filter((x) => {
+                return x.address == item.mint.toBase58();
             });
+            let getterMint = uusers[item.destinary.toBase58()].get.filter((x) => {
+                return x.address == item.mint.toBase58();
+            });
+            if (giversMint.length == 0) {
+                uusers[item.owner.toBase58()].give.push({
+                    address: item.mint.toBase58(),
+                    amount: item.amount.toNumber(),
+                    getters: [
+                        {
+                            address: item.destinary.toBase58(),
+                            amount: item.amount.toNumber(),
+                            status: itemStatusMap[item.status],
+                        },
+                    ],
+                });
+            } else {
+                giversMint[0].amount += item.amount.toNumber();
+                giversMint[0].getters.push({
+                    address: item.destinary.toBase58(),
+                    amount: item.amount.toNumber(),
+                    status: itemStatusMap[item.status],
+                });
+            }
+            if (getterMint.length == 0) {
+                uusers[item.destinary.toBase58()].get.push({
+                    address: item.mint.toBase58(),
+                    amount: item.amount.toNumber(),
+                    givers: [
+                        {
+                            address: item.owner.toBase58(),
+                            amount: item.amount.toNumber(),
+                            status: itemStatusMap[item.status],
+                        },
+                    ],
+                });
+            }
         } else {
-            giversMint[0].amount += item.amount.toNumber();
-            giversMint[0].getters.push({
-                address: item.destinary.toBase58(),
-                amount: item.amount.toNumber(),
-            });
-        }
-        if (getterMint.length == 0) {
-            uusers[item.destinary.toBase58()].get.push({
-                address: item.mint.toBase58(),
-                amount: item.amount.toNumber(),
-                givers: [{ address: item.owner.toBase58(), amount: item.amount.toNumber() }],
-            });
+            if (uusers[item.owner.toBase58()].token.amount !== 0) throw "already tokens to send";
+            uusers[item.owner.toBase58()].token.amount = item.amount.toNumber();
         }
     }
+    for (const itemNb in uusers) {
+        console.log(
+            itemNb,
+            uusers[itemNb].status,
+            "tokens",
+            uusers[itemNb].token,
+            "uusers \n give",
+            uusers[itemNb].give[0],
+            "\n get",
+            uusers[itemNb].get[0]
+        );
+    }
+    swapInfo.users = Object.keys(uusers).map((user) => {
+        return { address: user, items: uusers[user] };
+    });
+
+    return swapInfo;
     // console.log("swapDatas", swapDatas);
     // const itemsNfts = swapDatas.filter((x) => {
     //     return x.isNft == true;
