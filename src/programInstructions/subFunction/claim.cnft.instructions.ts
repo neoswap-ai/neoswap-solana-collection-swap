@@ -1,4 +1,4 @@
-import { PublicKey, SYSVAR_INSTRUCTIONS_PUBKEY, SystemProgram } from "@solana/web3.js";
+import { Cluster, PublicKey, SYSVAR_INSTRUCTIONS_PUBKEY, SystemProgram } from "@solana/web3.js";
 import {
     SPL_ACCOUNT_COMPRESSION_PROGRAM_ID,
     SPL_NOOP_PROGRAM_ID,
@@ -17,15 +17,13 @@ export async function getClaimCNftInstruction(Data: {
     signer: PublicKey;
     user: PublicKey;
     tokenId: PublicKey;
-    clusterOrUrl: string;
+    clusterOrUrl: Cluster | string;
 }) {
     const { creatorHash, dataHash, index, merkleTree, nonce, proofMeta, root, treeAuthority } =
         await getCNFTData({
             program: Data.program,
             tokenId: Data.tokenId.toBase58(),
-            Cluster: Data.clusterOrUrl.includes("mainnet")
-            ? "mainnet-beta"
-            : "devnet",
+            Cluster: Data.clusterOrUrl.includes("mainnet") ? "mainnet-beta" : "devnet",
         });
     return await Data.program.methods
         .claimCNft(

@@ -1,4 +1,5 @@
 import {
+    Cluster,
     PublicKey,
     SYSVAR_INSTRUCTIONS_PUBKEY,
     SystemProgram,
@@ -21,15 +22,13 @@ export async function getCancelCNftInstructions(Data: {
     signer: PublicKey;
     user: PublicKey;
     tokenId: PublicKey;
-    clusterOrUrl: string;
+    clusterOrUrl: Cluster | string;
 }): Promise<TransactionInstruction> {
     const { creatorHash, dataHash, index, merkleTree, nonce, proofMeta, root, treeAuthority } =
         await getCNFTData({
             program: Data.program,
             tokenId: Data.tokenId.toBase58(),
-            Cluster: Data.clusterOrUrl.includes("mainnet")
-            ? "mainnet-beta"
-            : "devnet",
+            Cluster: Data.clusterOrUrl.includes("mainnet") ? "mainnet-beta" : "devnet",
         });
 
     return await Data.program.methods
