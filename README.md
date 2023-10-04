@@ -252,7 +252,19 @@ const hashArray: string[] = await neoSwap.UTILS.sendBundledTransactions({
 });
 ```
 
-## Types
+## Types section
+
+### Types converter
+
+```ts
+
+let swapInfo = neoSwap.UTILS.invertedSwapDataConverter({ swapData: SwapData }) 
+
+let swapData = await neoSwap.UTILS.swapDataConverter({ swapInfo: SwapInfo })
+
+```
+
+### Types
 
 swapInfo represents the Data of a swap in a human readable way
 

@@ -149,7 +149,7 @@ async function getAddInitilizeInstructions(Data: {
     program: Program;
     swapIdentity: SwapIdentity;
     signer: PublicKey;
-    clusterOrUrl: string;
+    clusterOrUrl: Cluster | string;
     validateOwnership?: "warning" | "error";
     validateOwnershipIgnore?: string[];
 }): Promise<{
