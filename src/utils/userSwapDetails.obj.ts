@@ -2,7 +2,7 @@ import { Cluster, PublicKey } from "@solana/web3.js";
 import { ItemStatus, UserDataInSwap } from "./types";
 import { getSwapDataAccountFromPublicKey } from "./getSwapDataAccountFromPublicKey.function";
 import { getProgram } from "./getProgram.obj";
-import { Program } from "@project-serum/anchor";
+import { Program } from "@coral-xyz/anchor";
 
 export async function userSwapDetails(Data: {
     clusterOrUrl?: Cluster | string;

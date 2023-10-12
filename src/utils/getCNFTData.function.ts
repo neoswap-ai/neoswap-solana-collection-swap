@@ -2,7 +2,7 @@ import { AccountMeta, Cluster, PublicKey, clusterApiUrl } from "@solana/web3.js"
 import { getProgram } from "./getProgram.obj";
 import { ConcurrentMerkleTreeAccount } from "@solana/spl-account-compression";
 import { decode } from "bs58";
-import { BN, Program } from "@project-serum/anchor";
+import { BN, Program } from "@coral-xyz/anchor";
 
 export async function getCNFTData(Data: { tokenId: string; Cluster: Cluster; program?: Program }) {
     let solanaUrl = clusterApiUrl(Data.Cluster);
@@ -113,6 +113,7 @@ export async function getCNFTData(Data: { tokenId: string; Cluster: Cluster; pro
         treeAuthority,
         merkleTree: new PublicKey(treeProof.tree_id),
         proofMeta,
+        canopyDepth
     };
 }
 

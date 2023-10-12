@@ -1,4 +1,4 @@
-import { Idl } from "@project-serum/anchor";
+import { Idl } from "@coral-xyz/anchor";
 export const idlSwap: Idl = {
     version: "0.1.0",
     name: "neo_swap",

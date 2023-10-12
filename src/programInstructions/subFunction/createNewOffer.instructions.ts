@@ -1,5 +1,5 @@
-import { hash as hashFunction } from "@project-serum/anchor/dist/cjs/utils/sha256";
-import { Program, web3 } from "@project-serum/anchor";
+import { hash as hashFunction } from "@coral-xyz/anchor/dist/cjs/utils/sha256";
+import { Program, web3 } from "@coral-xyz/anchor";
 import { PublicKey } from "@solana/web3.js";
 import { OrdinalsOffer } from "../../utils/types";
 

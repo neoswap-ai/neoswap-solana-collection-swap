@@ -15,7 +15,7 @@ import {
     SwapInfo,
     TxWithSigner,
 } from "../utils/types";
-import { Program } from "@project-serum/anchor";
+import { Program } from "@coral-xyz/anchor";
 import { findOrCreateAta } from "../utils/findOrCreateAta.function";
 import { swapDataConverter } from "../utils/swapDataConverter.function";
 import { getCNFTOwner } from "../utils/getCNFTData.function";
@@ -198,7 +198,8 @@ async function getAddInitilizeInstructions(Data: {
                     const tokenAccount = await findOrCreateAta({
                         mint: item.mint,
                         owner: item.owner,
-                        program: Data.program,
+                        // connection: Data.program.provider.connection,
+                        clusterOrUrl: Data.clusterOrUrl,
                         signer: Data.signer,
                     });
 

@@ -1,4 +1,4 @@
-import { BN, Program } from "@project-serum/anchor";
+import { BN, Program } from "@coral-xyz/anchor";
 import { createAssociatedTokenAccountInstruction } from "@solana/spl-token";
 import { Cluster, PublicKey, Transaction } from "@solana/web3.js";
 import { ApiProcessorConfigType, TxWithSigner } from "../utils/types";

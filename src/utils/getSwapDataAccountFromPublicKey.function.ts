@@ -1,4 +1,4 @@
-import { Program } from "@project-serum/anchor";
+import { Program } from "@coral-xyz/anchor";
 import { Cluster, PublicKey } from "@solana/web3.js";
 import { ErrorFeedback, SwapData, SwapInfo } from "./types";
 import { invertedSwapDataConverter } from "./swapDataConverter.function";

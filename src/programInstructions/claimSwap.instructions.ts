@@ -6,7 +6,7 @@ import { getClaimNftInstructions } from "./subFunction/claim.nft.instructions";
 import { getClaimSolInstructions } from "./subFunction/claim.sol.instructions";
 import { ErrorFeedback, ItemStatus, TradeStatus, TxWithSigner } from "../utils/types";
 import { getClaimCNftInstruction } from "./subFunction/claim.cnft.instructions";
-import { Program } from "@project-serum/anchor";
+import { Program } from "@coral-xyz/anchor";
 
 export async function createClaimSwapInstructions(Data: {
     swapDataAccount: PublicKey;

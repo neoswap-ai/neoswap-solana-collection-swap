@@ -9,7 +9,7 @@ import {
     findUserTokenRecord,
 } from "../../utils/findNftDataAndAccounts.function";
 
-import { Program } from "@project-serum/anchor";
+import { Program } from "@coral-xyz/anchor";
 import { ApiProcessorConfigType, DepositNft, SwapIdentity } from "../../utils/types";
 import {
     METAPLEX_AUTH_RULES_PROGRAM,
@@ -42,7 +42,7 @@ export async function prepareDepositNftInstruction(Data: {
     let newAtas: PublicKey[] = [];
 
     const { mintAta: userAta, prepareInstruction: userAtaIx } = await findOrCreateAta({
-        program: Data.program,
+        connection: Data.program.provider.connection,
         owner: Data.signer,
         mint: Data.mint,
         signer: Data.signer,
@@ -55,7 +55,7 @@ export async function prepareDepositNftInstruction(Data: {
     }
 
     const { mintAta: pdaAta, prepareInstruction: pdaAtaIx } = await findOrCreateAta({
-        program: Data.program,
+        connection: Data.program.provider.connection,
         owner: Data.swapIdentity.swapDataAccount_publicKey,
         mint: Data.mint,
         signer: Data.signer,

@@ -1,4 +1,4 @@
-import { Program } from "@project-serum/anchor";
+import { Program } from "@coral-xyz/anchor";
 import { PublicKey, SystemProgram, TransactionInstruction } from "@solana/web3.js";
 import { SwapIdentity } from "../../utils/types";
 import { findOrCreateAta } from "../../utils/findOrCreateAta.function";
@@ -23,7 +23,7 @@ export async function getCancelSolInstructions(Data: {
 
     if (!Data.mint.equals(SystemProgram.programId)) {
         const { mintAta: foundUserAta, instruction: userAtaIx } = await findOrCreateAta({
-            program: Data.program,
+            connection: Data.program.provider.connection,
             owner: Data.user,
             mint: Data.mint,
             signer: Data.signer,
@@ -37,7 +37,7 @@ export async function getCancelSolInstructions(Data: {
         }
 
         const { mintAta: pdaAta, instruction: pdaAtaIx } = await findOrCreateAta({
-            program: Data.program,
+            connection: Data.program.provider.connection,
             owner: Data.swapIdentity.swapDataAccount_publicKey,
             mint: Data.mint,
             signer: Data.signer,

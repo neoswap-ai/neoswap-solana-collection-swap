@@ -6,7 +6,7 @@ import { getCancelSolInstructions } from "./subFunction/cancel.sol.instructions"
 import { Cluster, PublicKey, Transaction } from "@solana/web3.js";
 import { ErrorFeedback, ItemStatus, TradeStatus, TxWithSigner } from "../utils/types";
 import { getCancelCNftInstructions } from "./subFunction/cancel.cnft.instructions";
-import { Program } from "@project-serum/anchor";
+import { Program } from "@coral-xyz/anchor";
 
 export async function createCancelSwapInstructions(Data: {
     swapDataAccount: PublicKey;

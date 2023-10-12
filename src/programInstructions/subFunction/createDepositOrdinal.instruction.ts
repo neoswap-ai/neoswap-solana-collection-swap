@@ -1,6 +1,6 @@
 /* eslint-disable no-throw-literal */
-import { hash as hashFunction } from "@project-serum/anchor/dist/cjs/utils/sha256";
-import { Program, web3 } from "@project-serum/anchor";
+import { hash as hashFunction } from "@coral-xyz/anchor/dist/cjs/utils/sha256";
+import { Program, web3 } from "@coral-xyz/anchor";
 import { PublicKey, SystemProgram, TransactionInstruction } from "@solana/web3.js";
 import { OrdinalsOffer } from "../../utils/types";
 import { findOrCreateAta } from "../../utils/findOrCreateAta.function";
@@ -43,14 +43,14 @@ export const createDepositOrdinalIx = async (params: {
     let Ixs: TransactionInstruction[] = [];
 
     const { mintAta: tokenBuyerAccount, instruction: ownerAtaInstruction } = await findOrCreateAta({
-        program: params.program,
+        connection: params.program.provider.connection,
         owner: params.program.provider.publicKey,
         signer: params.program.provider.publicKey,
         mint: params.offer.tokenAccepted,
     });
     if (ownerAtaInstruction) Ixs.push(ownerAtaInstruction);
     const { mintAta: tokenEscrowAccount, instruction: pdaAtaInstruction } = await findOrCreateAta({
-        program: params.program,
+        connection: params.program.provider.connection,
         owner: offerPda,
         signer: params.program.provider.publicKey,
         mint: params.offer.tokenAccepted,
