@@ -19,6 +19,7 @@ export async function createDepositSwapInstructions(Data: {
         program,
         swapDataAccount_publicKey: Data.swapDataAccount,
     });
+// console.log("swapData", swapData);
 
     if (!swapData) {
         throw {
@@ -38,9 +39,9 @@ export async function createDepositSwapInstructions(Data: {
         swapData,
         clusterOrUrl: Data.clusterOrUrl,
     });
-    // console.log("swapData", swapData);
+    console.log("swapIdentity", swapIdentity);
     // console.log("Data.user", Data.user);
-
+// swapIdentity.swapDataAccount_publicKey=new PublicKey('GnzPof4D1hwbifZaCtEbLbmmWvsyLfqd8gbYhvR1iXY6')
     let depositInstruction: TxWithSigner[] = [];
     let ataList: PublicKey[] = [];
     let isUserPartOfTrade = false;

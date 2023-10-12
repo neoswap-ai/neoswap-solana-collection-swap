@@ -1,6 +1,6 @@
 {
     "name": "@neoswap/solana",
-    "version": "0.3.6-Beta0",
+    "version": "0.3.6-Beta17",
     "repository": {
         "type": "git",
         "url": "git+htt// Data after initializing the swapps://github.com/neoswap-ai/neo-swap-npm.git"
@@ -20,7 +20,7 @@
         "compile": "rm -rf dist/lib && tsc && tsc --build tsconfig.es5.json"
     },
     "dependencies": {
-        "@coral-xyz/anchor": "^0.28.1-beta.2",
+        "@coral-xyz/anchor": "^0.28.0",
         "@metaplex-foundation/beet": "^0.7.1",
         "@metaplex-foundation/js": "^0.19.5",
         "@metaplex-foundation/mpl-bubblegum": "^0.8.0",

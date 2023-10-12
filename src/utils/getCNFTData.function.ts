@@ -113,7 +113,7 @@ export async function getCNFTData(Data: { tokenId: string; Cluster: Cluster; pro
         treeAuthority,
         merkleTree: new PublicKey(treeProof.tree_id),
         proofMeta,
-        canopyDepth
+        canopyDepth,
     };
 }
 
@@ -170,7 +170,11 @@ export async function getCNFTOwner(Data: { Cluster: Cluster; tokenId: string }) 
             },
         }),
     });
-    let treeData = (await treeDataReponse.json()).result;
-    // console.log("treeData Results", treeData);
+    let resp = await treeDataReponse.json();
+    console.log("resp", resp);
+
+    let treeData = resp.result;
+    console.log("treeData Results", treeData);
+     if (!treeData.compression.compressed) throw 'not cNFT'
     return new PublicKey(treeData.ownership.owner);
 }

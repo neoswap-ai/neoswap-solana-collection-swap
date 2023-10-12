@@ -1,8 +1,8 @@
 import { Cluster, PublicKey, SystemProgram } from "@solana/web3.js";
-import { utils } from "@coral-xyz/anchor";
 import { SWAP_PROGRAM_ID, SWAP_PROGRAM_ID_DEV } from "./const";
 import { ErrorFeedback, SwapData, SwapIdentity } from "./types";
 import { bs58 } from "@coral-xyz/anchor/dist/cjs/utils/bytes";
+import { hash } from "@coral-xyz/anchor/dist/cjs/utils/sha256";
 
 export function getSwapIdentityFromData(Data: {
     swapData: SwapData;
@@ -27,12 +27,19 @@ export function getSwapIdentityFromData(Data: {
                 seed += item.destinary;
             });
 
-        let swapDataAccount_seed = Buffer.from(utils.sha256.hash(seed)).subarray(0, 32);
+        let swapDataAccount_seed = Buffer.from(hash(seed)).subarray(0, 32);
 
         const [swapDataAccount_publicKey, swapDataAccount_bump] = PublicKey.findProgramAddressSync(
             [swapDataAccount_seed],
             Data.clusterOrUrl.includes("devnet") ? SWAP_PROGRAM_ID_DEV : SWAP_PROGRAM_ID
         );
+        console.log("swapDataAccount_publicKey", swapDataAccount_publicKey.toBase58());
+        // console.log("swapDataAccount_publicKey", Data.swapData);
+        console.log(
+            'Data.clusterOrUrl.includes("devnet") ? SWAP_PROGRAM_ID_DEV : SWAP_PROGRAM_ID',
+            Data.clusterOrUrl.includes("devnet") ? SWAP_PROGRAM_ID_DEV : SWAP_PROGRAM_ID
+        );
+
         if (!Data.swapData.acceptedPayement)
             Data.swapData.items.map((item) => {
                 if (!item.mint.equals(SystemProgram.programId) && !item.isNft)
