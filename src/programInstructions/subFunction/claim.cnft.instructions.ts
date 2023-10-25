@@ -5,7 +5,7 @@ import {
 } from "@solana/spl-account-compression";
 import { PROGRAM_ID as MPL_BUBBLEGUM_PROGRAM_ID } from "@metaplex-foundation/mpl-bubblegum";
 
-import { Program } from "@project-serum/anchor";
+import { Program } from "@coral-xyz/anchor";
 import { SOLANA_SPL_ATA_PROGRAM_ID, TOKEN_METADATA_PROGRAM } from "../../utils/const";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { SwapIdentity } from "../../utils/types";
@@ -21,7 +21,7 @@ export async function getClaimCNftInstruction(Data: {
 }) {
     const { creatorHash, dataHash, index, merkleTree, nonce, proofMeta, root, treeAuthority } =
         await getCNFTData({
-            program: Data.program,
+            connection: Data.program.provider.connection,
             tokenId: Data.tokenId.toBase58(),
             Cluster: Data.clusterOrUrl.includes("mainnet") ? "mainnet-beta" : "devnet",
         });

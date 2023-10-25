@@ -11,7 +11,7 @@ import {
     SPL_NOOP_PROGRAM_ID,
 } from "@solana/spl-account-compression";
 import { SOLANA_SPL_ATA_PROGRAM_ID, TOKEN_METADATA_PROGRAM } from "../../utils/const";
-import { Program } from "@project-serum/anchor";
+import { Program } from "@coral-xyz/anchor";
 import { SwapIdentity } from "../../utils/types";
 import { PROGRAM_ID as MPL_BUBBLEGUM_PROGRAM_ID } from "@metaplex-foundation/mpl-bubblegum";
 import { getCNFTData } from "../../utils/getCNFTData.function";
@@ -26,7 +26,7 @@ export async function getCancelCNftInstructions(Data: {
 }): Promise<TransactionInstruction> {
     const { creatorHash, dataHash, index, merkleTree, nonce, proofMeta, root, treeAuthority } =
         await getCNFTData({
-            program: Data.program,
+            connection: Data.program.provider.connection,
             tokenId: Data.tokenId.toBase58(),
             Cluster: Data.clusterOrUrl.includes("mainnet") ? "mainnet-beta" : "devnet",
         });

@@ -19,7 +19,7 @@ import {
     findRuleSet,
     findUserTokenRecord,
 } from "../../utils/findNftDataAndAccounts.function";
-import { Program } from "@project-serum/anchor";
+import { Program } from "@coral-xyz/anchor";
 import { SwapIdentity } from "../../utils/types";
 
 export async function getCancelNftInstructions(Data: {
@@ -45,7 +45,7 @@ export async function getCancelNftInstructions(Data: {
     instructions.push(modifyComputeUnits);
     instructions.push(addPriorityFee);
     const { mintAta: destinaryAta, instruction: destinaryAtaIx } = await findOrCreateAta({
-        program: Data.program,
+        connection: Data.program.provider.connection,
         owner: Data.owner,
         mint: Data.mint,
         signer: Data.signer,
@@ -57,7 +57,7 @@ export async function getCancelNftInstructions(Data: {
     }
 
     const { mintAta: pdaAta, instruction: pdaAtaIx } = await findOrCreateAta({
-        program: Data.program,
+        connection: Data.program.provider.connection,
         owner: Data.swapIdentity.swapDataAccount_publicKey,
         mint: Data.mint,
         signer: Data.signer,

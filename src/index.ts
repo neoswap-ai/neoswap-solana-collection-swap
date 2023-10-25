@@ -16,7 +16,7 @@ import {
     findUserTokenRecord,
 } from "./utils/findNftDataAndAccounts.function";
 import { findOrCreateAta } from "./utils/findOrCreateAta.function";
-import { getCNFTData } from "./utils/getCNFTData.function";
+import { getCNFTData, getCNFTOwner } from "./utils/getCNFTData.function";
 import { getProgram } from "./utils/getProgram.obj";
 import {
     getSwapDataAccountFromPublicKey,
@@ -36,6 +36,7 @@ const NFT_ACCOUNTS = {
     findRuleSet,
     findUserTokenRecord,
     getCNFTData,
+    getCNFTOwner
 };
 
 const UTILS = {

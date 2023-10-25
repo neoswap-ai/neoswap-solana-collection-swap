@@ -15,7 +15,7 @@ import {
     findUserTokenRecord,
 } from "../../utils/findNftDataAndAccounts.function";
 
-import { Program } from "@project-serum/anchor";
+import { Program } from "@coral-xyz/anchor";
 import { SwapIdentity } from "../../utils/types";
 import {
     METAPLEX_AUTH_RULES_PROGRAM,
@@ -46,7 +46,7 @@ export async function getClaimNftInstructions(Data: {
     instruction.push(modifyComputeUnits);
     instruction.push(addPriorityFee);
     const { mintAta: destinaryMintAta, instruction: destinaryMintAtaTx } = await findOrCreateAta({
-        program: Data.program,
+        connection: Data.program.provider.connection,
         owner: Data.destinary,
         mint: Data.mint,
         signer: Data.signer,
@@ -59,7 +59,7 @@ export async function getClaimNftInstructions(Data: {
     }
 
     const { mintAta: pdaMintAta, instruction: pdaMintAtaTx } = await findOrCreateAta({
-        program: Data.program,
+        connection: Data.program.provider.connection,
         owner: Data.swapIdentity.swapDataAccount_publicKey,
         mint: Data.mint,
         signer: Data.signer,

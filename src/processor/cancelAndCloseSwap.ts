@@ -4,7 +4,7 @@ import { TxWithSigner } from "../utils/types";
 import { createCancelSwapInstructions } from "../programInstructions/cancelSwap.instructions";
 import { createValidateCanceledInstructions } from "../programInstructions/subFunction/validateCanceled.instructions";
 import { getProgram } from "../utils/getProgram.obj";
-import { AnchorProvider } from "@project-serum/anchor";
+import { AnchorProvider } from "@coral-xyz/anchor";
 
 export async function cancelAndCloseSwap(Data: {
     swapDataAccount: PublicKey;

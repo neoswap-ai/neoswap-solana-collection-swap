@@ -1,4 +1,4 @@
-import { BN } from "@project-serum/anchor";
+import { BN } from "@coral-xyz/anchor";
 import { PublicKey, Signer, Transaction } from "@solana/web3.js";
 
 export type ItemStatusInfo = "pending" | "deposited" | "claimed" | "returned";

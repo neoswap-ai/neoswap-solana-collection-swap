@@ -11,7 +11,7 @@ import {
 } from "@solana/spl-account-compression";
 import { PROGRAM_ID as MPL_BUBBLEGUM_PROGRAM_ID } from "@metaplex-foundation/mpl-bubblegum";
 
-import { Program } from "@project-serum/anchor";
+import { Program } from "@coral-xyz/anchor";
 import { SOLANA_SPL_ATA_PROGRAM_ID, TOKEN_METADATA_PROGRAM } from "../../utils/const";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { ApiProcessorConfigType, SwapIdentity } from "../../utils/types";
@@ -31,28 +31,42 @@ export async function getDepositCNftInstruction(Data: {
 }> {
     const { creatorHash, dataHash, index, merkleTree, nonce, proofMeta, root, treeAuthority } =
         await getCNFTData({
-            program: Data.program,
+            connection: Data.program.provider.connection,
             tokenId: Data.tokenId.toBase58(),
             Cluster: Data.clusterOrUrl.includes("mainnet") ? "mainnet-beta" : "devnet",
         });
-    // console.log(
-    //     "getDepositCNftInstruction",
-    //     Data.tokenId.toBase58(),
-    //     "\nmerkleTree.toBase58()",
-    //     merkleTree.toBase58(),
-    //     "\nindex",
-    //     index,
-    //     "\ncreatorHash.toString()",
-    //     creatorHash.toString(),
-    //     "\ndataHash.toString",
-    //     dataHash.toString(),
-    //     "\nnonce.toNumber()",
-    //     nonce.toNumber(),
-    //     "\nroot.toString()",
-    //     root.toString(),
-    //     "\ntreeAuthority",
-    //     treeAuthority.toString()
-    // );
+    console.log(
+        "getDepositCNftInstruction",
+        Data.tokenId.toBase58(),
+        "\nmerkleTree.toBase58()",
+        merkleTree.toBase58(),
+        "\nindex",
+        index,
+        "\ncreatorHash.toString()",
+        creatorHash.toString(),
+        "\ndataHash.toString",
+        dataHash.toString(),
+        "\nnonce.toNumber()",
+        nonce.toNumber(),
+        "\nroot.toString()",
+        root.toString(),
+        "\ntreeAuthority",
+        treeAuthority.toString(),
+        '\nsystemProgram:', SystemProgram.programId.toBase58(),
+        '\nmetadataProgram:', TOKEN_METADATA_PROGRAM.toBase58(),
+        '\nsysvarInstructions:', SYSVAR_INSTRUCTIONS_PUBKEY.toBase58(),
+        '\nsplTokenProgram:', TOKEN_PROGRAM_ID.toBase58(),
+        '\nsplAtaProgram:', SOLANA_SPL_ATA_PROGRAM_ID.toBase58(),
+        '\nswapDataAccount:', Data.swapIdentity.swapDataAccount_publicKey.toBase58(),
+        // 'leafOwner:', Data.signer.toBase58(),
+        '\nuser:', Data.signer.toBase58(),
+        '\nleafDelegate:', Data.signer.toBase58(),
+        '\ntreeAuthority',treeAuthority.toBase58(),
+        '\nmerkleTree',merkleTree.toBase58(),
+        '\nlogWrapper:', SPL_NOOP_PROGRAM_ID.toBase58(),
+        '\ncompressionProgram:', SPL_ACCOUNT_COMPRESSION_PROGRAM_ID.toBase58(),
+        '\nbubblegumProgram:', MPL_BUBBLEGUM_PROGRAM_ID.toBase58(),
+    );
 
     if (!Data.prepare) {
         return {
@@ -92,7 +106,7 @@ export async function getDepositCNftInstruction(Data: {
                     type: "depositCNft",
                     data: {
                         arguments: {
-                            seed: Data.swapIdentity.swapDataAccount_seed.toString(),
+                            seed: (Data.swapIdentity.swapDataAccount_seed).toString(),
                             root: encode(root),
                             dataHash: encode(dataHash),
                             creatorHash: encode(creatorHash),

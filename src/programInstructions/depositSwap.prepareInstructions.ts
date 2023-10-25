@@ -6,7 +6,7 @@ import { prepareDepositNftInstruction } from "./subFunction/deposit.nft.prepareI
 import { prepareDepositSolInstruction } from "./subFunction/deposit.sol.prepareInstructions";
 import { ApiProcessorData, ErrorFeedback, ItemStatus, TradeStatus } from "../utils/types";
 import { getDepositCNftInstruction } from "./subFunction/deposit.cnft.instructions";
-import { Program } from "@project-serum/anchor";
+import { Program } from "@coral-xyz/anchor";
 
 export async function prepareDepositSwapInstructions(Data: {
     swapDataAccount: PublicKey;

@@ -1,6 +1,6 @@
 import { PublicKey, SystemProgram } from "@solana/web3.js";
 import { ApiProcessorConfigType, SwapIdentity } from "../../utils/types";
-import { Program } from "@project-serum/anchor";
+import { Program } from "@coral-xyz/anchor";
 import { findOrCreateAta } from "../../utils/findOrCreateAta.function";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { errorIfInsufficientBalance } from "../../utils/errorIfInsufficientBalance.function";
@@ -16,7 +16,6 @@ export async function prepareDepositSolInstruction(Data: {
     instructions: ApiProcessorConfigType[];
     newAtas: PublicKey[];
 }> {
-
     await errorIfInsufficientBalance({
         amount: Data.amount,
         connection: Data.program.provider.connection,
@@ -24,7 +23,6 @@ export async function prepareDepositSolInstruction(Data: {
         owner: Data.signer,
     });
 
-    
     let instructions: ApiProcessorConfigType[] = [];
     let newAtas: PublicKey[] = [];
     let userAta = Data.signer;
@@ -32,7 +30,7 @@ export async function prepareDepositSolInstruction(Data: {
 
     if (!Data.mint.equals(SystemProgram.programId)) {
         const { mintAta: foundUserAta, prepareInstruction: userAtaIx } = await findOrCreateAta({
-            program: Data.program,
+            connection: Data.program.provider.connection,
             owner: Data.signer,
             mint: Data.mint,
             signer: Data.signer,
@@ -47,7 +45,7 @@ export async function prepareDepositSolInstruction(Data: {
         }
 
         const { mintAta: pdaAta, prepareInstruction: pdaAtaIx } = await findOrCreateAta({
-            program: Data.program,
+            connection: Data.program.provider.connection,
             owner: Data.swapIdentity.swapDataAccount_publicKey,
             mint: Data.mint,
             signer: Data.signer,

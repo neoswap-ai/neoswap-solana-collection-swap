@@ -1,10 +1,15 @@
-import { AccountMeta, Cluster, PublicKey, clusterApiUrl } from "@solana/web3.js";
+import { AccountMeta, Cluster, Connection, PublicKey, clusterApiUrl } from "@solana/web3.js";
 import { getProgram } from "./getProgram.obj";
 import { ConcurrentMerkleTreeAccount } from "@solana/spl-account-compression";
-import { decode } from "bs58";
-import { BN, Program } from "@project-serum/anchor";
+import { decode, encode } from "bs58";
+import { BN, Program } from "@coral-xyz/anchor";
+import fetch from "node-fetch";
 
-export async function getCNFTData(Data: { tokenId: string; Cluster: Cluster; program?: Program }) {
+export async function getCNFTData(Data: {
+    tokenId: string;
+    Cluster: Cluster;
+    connection?: Connection;
+}) {
     let solanaUrl = clusterApiUrl(Data.Cluster);
     const treeDataReponse = await fetch(solanaUrl, {
         method: "POST",
@@ -39,11 +44,13 @@ export async function getCNFTData(Data: { tokenId: string; Cluster: Cluster; pro
     });
     let treeProof = (await treeProofResponse.json()).result;
 
-    // console.log("treeProof Results", treeProof);
-    const program = Data.program ? Data.program : getProgram({ clusterOrUrl: Data.Cluster });
+    console.log("treeProof Results", treeProof);
+    const connection = Data.connection
+        ? Data.connection
+        : getProgram({ clusterOrUrl: Data.Cluster }).provider.connection;
     // retrieve the merkle tree's account from the blockchain
     const treeAccount = await ConcurrentMerkleTreeAccount.fromAccountAddress(
-        program.provider.connection,
+        connection,
         new PublicKey(treeProof.tree_id)
     );
     // console.log("treeAccount", treeAccount);
@@ -67,7 +74,7 @@ export async function getCNFTData(Data: { tokenId: string; Cluster: Cluster; pro
     // console.log('proof', proof);
 
     // console.log('treeProof.root', treeProof.root);
-    // console.log('treeData.data_hash', treeProof);
+    console.log("treeData", treeData);
     // console.log('treeData.creator_hash', treeData.compression);
 
     // let instructions = [];
@@ -79,30 +86,28 @@ export async function getCNFTData(Data: { tokenId: string; Cluster: Cluster; pro
 
     // console.log('nonce', nonce);
     // console.log("args", root, dataHash, creatorHash, nonce, index);
-    // console.log(
-    //     "accounts",
-    //     "\nleafOwner:",
-    //     Data.signer,
-    //     "\nleafDelegate: ",
-    //     Data.signer,
-    //     "\ntreeAuthority",
-    //     treeAuthority,
-    //     " \nmerkleTree:",
-    //     treeProof.tree_id,
-    //     " \nnewLeafOwner:",
-    //     Data.destinary,
-    //     "\nlogWrapper:",
-    //     SPL_NOOP_PROGRAM_ID,
-    //     "\ncompressionProgram:",
-    //     SPL_ACCOUNT_COMPRESSION_PROGRAM_ID,
-    //     "\nbubblegumProgram:",
-    //     MPL_BUBBLEGUM_PROGRAM_ID,
+    console.log(
+        "accounts",
 
-    //     "\nsystemProgram:",
-    //     SystemProgram.programId.toBase58(),
-    //     " \nanchorRemainingAccounts:",
-    //     proofMeta
-    // );
+        "\nroot",
+        encode(root),
+        "\ndataHash",
+        encode(dataHash),
+        "\ncreatorHash",
+        encode(creatorHash),
+        "\nnonce",
+        nonce,
+        "\nindex",
+        index,
+        "\ntreeAuthority",
+        treeAuthority.toBase58(),
+        "\nmerkleTree:",
+        new PublicKey(treeProof.tree_id).toString(),
+        "\nproofMeta",
+        proofMeta,
+        "\ncanopyDepth",
+        canopyDepth
+    );
 
     return {
         root,
@@ -113,6 +118,7 @@ export async function getCNFTData(Data: { tokenId: string; Cluster: Cluster; pro
         treeAuthority,
         merkleTree: new PublicKey(treeProof.tree_id),
         proofMeta,
+        canopyDepth,
     };
 }
 
@@ -169,7 +175,11 @@ export async function getCNFTOwner(Data: { Cluster: Cluster; tokenId: string }) 
             },
         }),
     });
-    let treeData = (await treeDataReponse.json()).result;
-    // console.log("treeData Results", treeData);
+    let resp = await treeDataReponse.json();
+    console.log("resp", resp);
+
+    let treeData = resp.result;
+    console.log("treeData Results", treeData);
+    if (!treeData.compression.compressed) throw "not cNFT";
     return new PublicKey(treeData.ownership.owner);
 }

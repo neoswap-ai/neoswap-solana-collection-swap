@@ -6,7 +6,7 @@ import { getCancelSolInstructions } from "./subFunction/cancel.sol.instructions"
 import { Cluster, PublicKey, Transaction } from "@solana/web3.js";
 import { ErrorFeedback, ItemStatus, TradeStatus, TxWithSigner } from "../utils/types";
 import { getCancelCNftInstructions } from "./subFunction/cancel.cnft.instructions";
-import { Program } from "@project-serum/anchor";
+import { Program } from "@coral-xyz/anchor";
 
 export async function createCancelSwapInstructions(Data: {
     swapDataAccount: PublicKey;
@@ -51,6 +51,7 @@ export async function createCancelSwapInstructions(Data: {
         swapData,
         clusterOrUrl: Data.clusterOrUrl,
     });
+    // swapIdentity.swapDataAccount_publicKey=new PublicKey('GnzPof4D1hwbifZaCtEbLbmmWvsyLfqd8gbYhvR1iXY6')
     let cancelTransactionInstruction: TxWithSigner[] = [];
     let ataList: PublicKey[] = [];
     let toBeCancelledItems = swapData.items.filter(

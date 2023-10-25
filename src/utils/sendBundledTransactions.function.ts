@@ -2,7 +2,7 @@ import { Cluster, Keypair } from "@solana/web3.js";
 import { getProgram } from "./getProgram.obj";
 import { ErrorFeedback, TxWithSigner } from "./types";
 import { isConfirmedTx } from "./isConfirmedTx.function";
-import { AnchorProvider } from "@project-serum/anchor";
+import { AnchorProvider } from "@coral-xyz/anchor";
 
 // const getProgram  from "./getProgram.obj");
 

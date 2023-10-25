@@ -4,7 +4,7 @@ import { getProgram } from "../../utils/getProgram.obj";
 import { getSwapIdentityFromData } from "../../utils/getSwapIdentityFromData.function";
 import { getSwapDataAccountFromPublicKey } from "../../utils/getSwapDataAccountFromPublicKey.function";
 import { SOLANA_SPL_ATA_PROGRAM_ID } from "../../utils/const";
-import { Program } from "@project-serum/anchor";
+import { Program } from "@coral-xyz/anchor";
 
 export const createValidateCanceledInstructions = async (Data: {
     swapDataAccount: PublicKey;

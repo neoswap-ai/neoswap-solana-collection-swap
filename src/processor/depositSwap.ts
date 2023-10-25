@@ -2,7 +2,7 @@ import { Cluster, Keypair, PublicKey } from "@solana/web3.js";
 import { sendBundledTransactions } from "../utils/sendBundledTransactions.function";
 import { createDepositSwapInstructions } from "../programInstructions/depositSwap.instructions";
 import { getProgram } from "../utils/getProgram.obj";
-import { AnchorProvider } from "@project-serum/anchor";
+import { AnchorProvider } from "@coral-xyz/anchor";
 
 export async function depositSwap(Data: {
     swapDataAccount: PublicKey;

@@ -5,7 +5,7 @@ import { createClaimSwapInstructions } from "../programInstructions/claimSwap.in
 import { validateDeposit } from "../programInstructions/subFunction/validateDeposit.instructions";
 import { createValidateClaimedInstructions } from "../programInstructions/subFunction/validateClaimed.instructions";
 import { getProgram } from "../utils/getProgram.obj";
-import { AnchorProvider } from "@project-serum/anchor";
+import { AnchorProvider } from "@coral-xyz/anchor";
 
 export async function claimAndCloseSwap(Data: {
     swapDataAccount: PublicKey;

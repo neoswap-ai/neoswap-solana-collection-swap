@@ -6,7 +6,7 @@ import { getDepositNftInstruction } from "./subFunction/deposit.nft.instructions
 import { getDepositSolInstruction } from "./subFunction/deposit.sol.instructions";
 import { ErrorFeedback, ItemStatus, TradeStatus, TxWithSigner } from "../utils/types";
 import { getDepositCNftInstruction } from "./subFunction/deposit.cnft.instructions";
-import { Program } from "@project-serum/anchor";
+import { Program } from "@coral-xyz/anchor";
 
 export async function createDepositSwapInstructions(Data: {
     swapDataAccount: PublicKey;
@@ -19,6 +19,7 @@ export async function createDepositSwapInstructions(Data: {
         program,
         swapDataAccount_publicKey: Data.swapDataAccount,
     });
+// console.log("swapData", swapData);
 
     if (!swapData) {
         throw {
@@ -38,9 +39,9 @@ export async function createDepositSwapInstructions(Data: {
         swapData,
         clusterOrUrl: Data.clusterOrUrl,
     });
-    // console.log("swapData", swapData);
+    console.log("swapIdentity", swapIdentity);
     // console.log("Data.user", Data.user);
-
+// swapIdentity.swapDataAccount_publicKey=new PublicKey('GnzPof4D1hwbifZaCtEbLbmmWvsyLfqd8gbYhvR1iXY6')
     let depositInstruction: TxWithSigner[] = [];
     let ataList: PublicKey[] = [];
     let isUserPartOfTrade = false;

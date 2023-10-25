@@ -3,7 +3,7 @@ import { createInitializeSwapInstructions } from "../programInstructions/initial
 import { sendBundledTransactions } from "../utils/sendBundledTransactions.function";
 import { InitializeData, SwapInfo } from "../utils/types";
 import { getProgram } from "../utils/getProgram.obj";
-import { AnchorProvider } from "@project-serum/anchor";
+import { AnchorProvider } from "@coral-xyz/anchor";
 
 export async function initializeSwap(Data: {
     swapInfo: SwapInfo;

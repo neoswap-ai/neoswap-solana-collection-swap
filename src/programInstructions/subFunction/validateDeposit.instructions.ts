@@ -3,7 +3,7 @@ import { TxWithSigner, TradeStatus } from "../../utils/types";
 import { getProgram } from "../../utils/getProgram.obj";
 import { getSwapIdentityFromData } from "../../utils/getSwapIdentityFromData.function";
 import { getSwapDataAccountFromPublicKey } from "../../utils/getSwapDataAccountFromPublicKey.function";
-import { Program } from "@project-serum/anchor";
+import { Program } from "@coral-xyz/anchor";
 
 export const validateDeposit = async (Data: {
     swapDataAccount: PublicKey;
