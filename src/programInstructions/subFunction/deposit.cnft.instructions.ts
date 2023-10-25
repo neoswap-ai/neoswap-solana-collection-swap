@@ -31,7 +31,7 @@ export async function getDepositCNftInstruction(Data: {
 }> {
     const { creatorHash, dataHash, index, merkleTree, nonce, proofMeta, root, treeAuthority } =
         await getCNFTData({
-            program: Data.program,
+            connection: Data.program.provider.connection,
             tokenId: Data.tokenId.toBase58(),
             Cluster: Data.clusterOrUrl.includes("mainnet") ? "mainnet-beta" : "devnet",
         });
@@ -106,7 +106,7 @@ export async function getDepositCNftInstruction(Data: {
                     type: "depositCNft",
                     data: {
                         arguments: {
-                            seed: Data.swapIdentity.swapDataAccount_seed.toString(),
+                            seed: (Data.swapIdentity.swapDataAccount_seed).toString(),
                             root: encode(root),
                             dataHash: encode(dataHash),
                             creatorHash: encode(creatorHash),

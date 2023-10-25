@@ -192,8 +192,9 @@ async function getAddInitilizeInstructions(Data: {
 
                 if (
                     !!!item.amount.isNeg() &&
-                    !!!item.mint.equals(SystemProgram.programId) &&
-                    !!!item.isCompressed
+                    // !!!item.mint.equals(SystemProgram.programId) &&
+                    !!!item.isCompressed &&
+                    !!item.isNft
                 ) {
                     const tokenAccount = await findOrCreateAta({
                         mint: item.mint,
@@ -262,7 +263,7 @@ async function getAddInitilizeInstructions(Data: {
                         item.amount.toNumber(),
                         " - XXX"
                     );
-                } else if (item.isCompressed) {
+                } else if (!!item.isCompressed) {
                     if (!!Data.validateOwnership) {
                         const owner = await getCNFTOwner({
                             tokenId: item.mint.toBase58(),
@@ -288,7 +289,8 @@ async function getAddInitilizeInstructions(Data: {
                     }
                 } else {
                     console.log(
-                        "XXX - added sol Item from ",
+                        "XXX - added payment Item from ",
+                        !!item.mint.equals(SystemProgram.programId) ? "" : item.mint.toBase58(),
                         item.owner.toBase58(),
                         " amount ",
                         item.amount.toNumber(),

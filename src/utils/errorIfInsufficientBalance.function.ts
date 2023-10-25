@@ -48,9 +48,9 @@ export async function errorIfInsufficientBalance(Data: {
                 try {
                     let balance = await Data.connection.getTokenAccountBalance(mintAta);
 
-                    if (!!!balance.value.uiAmount || balance.value.uiAmount < Data.amount)
+                    if (!!!balance.value.amount || Number(balance.value.amount) < Data.amount)
                         throw `not enough balance for ${Data.mint.toBase58()} from user ${Data.owner.toBase58()} ===>  ${
-                            balance.value.uiAmount
+                            (balance.value.amount)
                         } < ${Data.amount}`;
                 } catch (error) {
                     if (String(error).includes("Invalid param: could not find mint")) {

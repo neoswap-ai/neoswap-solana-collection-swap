@@ -1,8 +1,8 @@
 import { Cluster, PublicKey, SystemProgram } from "@solana/web3.js";
 import { SWAP_PROGRAM_ID, SWAP_PROGRAM_ID_DEV } from "./const";
 import { ErrorFeedback, SwapData, SwapIdentity } from "./types";
-import { bs58 } from "@coral-xyz/anchor/dist/cjs/utils/bytes";
-import { hash } from "@coral-xyz/anchor/dist/cjs/utils/sha256";
+import bs58 from "bs58";
+import { hash } from "@project-serum/anchor/dist/cjs/utils/sha256";
 
 export function getSwapIdentityFromData(Data: {
     swapData: SwapData;

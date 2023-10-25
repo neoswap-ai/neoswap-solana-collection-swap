@@ -26,7 +26,7 @@ export async function getCancelCNftInstructions(Data: {
 }): Promise<TransactionInstruction> {
     const { creatorHash, dataHash, index, merkleTree, nonce, proofMeta, root, treeAuthority } =
         await getCNFTData({
-            program: Data.program,
+            connection: Data.program.provider.connection,
             tokenId: Data.tokenId.toBase58(),
             Cluster: Data.clusterOrUrl.includes("mainnet") ? "mainnet-beta" : "devnet",
         });
