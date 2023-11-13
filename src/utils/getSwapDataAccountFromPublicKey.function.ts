@@ -22,7 +22,13 @@ export async function getSwapDataAccountFromPublicKey(Data: {
         const swapData = (await Data.program.account.swapData.fetch(
             Data.swapDataAccount_publicKey
         )) as SwapData;
-        console.log("swapData", Data.swapDataAccount_publicKey.toBase58());
+        console.log(
+            Data.swapDataAccount_publicKey.toBase58(),
+            "swapData length",
+            swapData.items.length,
+            "status",
+            swapData.status
+        );
 
         if (!swapData) {
             throw `No SwapData found ${Data.swapDataAccount_publicKey.toBase58()}`;

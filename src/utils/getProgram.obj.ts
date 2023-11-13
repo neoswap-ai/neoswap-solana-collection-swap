@@ -38,7 +38,6 @@ export function getProgram(Data: {
     if (Data.programId) programId_ = new PublicKey(Data.programId);
 
     const program = new Program(idl_, programId_, provider);
-    console.log("programId", program.programId.toBase58());
 
     return program;
 }
