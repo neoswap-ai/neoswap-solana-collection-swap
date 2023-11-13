@@ -11,10 +11,10 @@ export async function getDepositSolInstruction(Data: {
     mint: PublicKey;
     amount: number;
     swapIdentity: SwapIdentity;
-    ataList: PublicKey[];
+    ataList: string[];
 }): Promise<{
     instructions: TransactionInstruction[];
-    newAtas: PublicKey[];
+    ataList: string[];
 }> {
     await errorIfInsufficientBalance({
         amount: Data.amount,
@@ -22,12 +22,12 @@ export async function getDepositSolInstruction(Data: {
         mint: Data.mint,
         owner: Data.signer,
     });
-    
+
     let instructions: TransactionInstruction[] = [];
 
     let swapDataAccountAta = Data.swapIdentity.swapDataAccount_publicKey;
     let signerAta = Data.signer;
-    let newAtas = Data.ataList;
+    let ataList = Data.ataList;
 
     if (!Data.mint.equals(SystemProgram.programId)) {
         const { mintAta: userAta, instruction: userAtaIx } = await findOrCreateAta({
@@ -37,9 +37,9 @@ export async function getDepositSolInstruction(Data: {
             signer: Data.signer,
         });
         signerAta = userAta;
-        if (userAtaIx && !Data.ataList.includes(userAta)) {
+        if (userAtaIx && !ataList.includes(userAta.toBase58())) {
             instructions.push(userAtaIx);
-            newAtas.push(userAta);
+            ataList.push(userAta.toBase58());
             console.log("createUserAta DepositSol Tx Added", userAta.toBase58());
         }
 
@@ -50,9 +50,9 @@ export async function getDepositSolInstruction(Data: {
             signer: Data.signer,
         });
         swapDataAccountAta = pdaAta;
-        if (pdaAtaIx && !Data.ataList.includes(pdaAta)) {
+        if (pdaAtaIx && !Data.ataList.includes(pdaAta.toBase58())) {
             instructions.push(pdaAtaIx);
-            newAtas.push(pdaAta);
+            ataList.push(pdaAta.toBase58());
             console.log("createPdaAta DepositSol Tx Added", pdaAta.toBase58());
         }
     }
@@ -70,5 +70,5 @@ export async function getDepositSolInstruction(Data: {
             })
             .instruction()
     );
-    return { instructions, newAtas };
+    return { instructions, ataList };
 }

@@ -15,6 +15,7 @@ export async function depositSwap(Data: {
     let depositSwapData = await createDepositSwapInstructions({
         swapDataAccount: Data.swapDataAccount,
         user: Data.signer.publicKey,
+        signer: Data.signer.publicKey,
         clusterOrUrl: Data.clusterOrUrl,
         program,
     });

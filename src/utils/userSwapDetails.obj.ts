@@ -38,10 +38,10 @@ export async function userSwapDetails(Data: {
         userNftToReceive: receiveItems.filter((item) => item.status === ItemStatus.NFTDeposited),
         userNftReceived: receiveItems.filter((item) => item.status === ItemStatus.NFTClaimed),
         userNftCancelled: userItems.filter(
-            (item) => item.status === ItemStatus.NFTcanceledRecovered
+            (item) => item.status === ItemStatus.NFTCanceledRecovered
         ),
         userSolCancelled: userItems.filter(
-            (item) => item.status === ItemStatus.SolcanceledRecovered
+            (item) => item.status === ItemStatus.SolCanceledRecovered
         ),
 
         userSolToDeposit: userItems.filter((item) => item.status === ItemStatus.SolPending),

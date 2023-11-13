@@ -155,4 +155,3 @@ export const apiProcessorTranscript = async (Data: {
     return txWithoutSigner;
 };
 
-// export default apiProcessorTranscript;

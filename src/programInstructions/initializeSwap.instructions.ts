@@ -3,12 +3,12 @@ import { getSwapDataAccountFromPublicKey } from "../utils/getSwapDataAccountFrom
 import {
     Cluster,
     PublicKey,
+    Signer,
     SystemProgram,
     Transaction,
     TransactionInstruction,
 } from "@solana/web3.js";
 import {
-    ErrorFeedback,
     InitializeData,
     SwapData,
     SwapIdentity,
@@ -27,9 +27,7 @@ export async function createInitializeSwapInstructions(Data: {
     program?: Program;
     validateOwnership?: "warning" | "error";
     validateOwnershipIgnore?: string[];
-}): Promise<// { initializeData:
-InitializeData> {
-    // shouldError?: boolean }
+}): Promise<InitializeData> {
     const program = Data.program ? Data.program : getProgram({ clusterOrUrl: Data.clusterOrUrl });
 
     let swapIdentity = await swapDataConverter({
@@ -64,6 +62,28 @@ InitializeData> {
             signer: Data.signer,
         });
 
+        let users: PublicKey[] = [];
+        swapIdentity.swapData.items.forEach((item) => {
+            if (!String(users).includes(item.owner.toString()) && item.isPresigning === true) {
+                // console.log('item.owner', item.owner.toBase58());
+
+                users.push(item.owner);
+            }
+        });
+
+        let usersValidateItemsInstructions = await validateUserPdaItems({
+            program,
+            swapIdentity,
+            signer: Data.signer,
+            users,
+        });
+
+        const validatePresigningSwapInstruction = await validatePresigningSwap({
+            program: program,
+            signer: Data.signer,
+            swapIdentity,
+        });
+
         let txWithoutSigner: TxWithSigner[] = [];
 
         if (initInstruction) {
@@ -86,10 +106,20 @@ InitializeData> {
             console.log("Add-Instrutions was skipped");
         }
 
-        txWithoutSigner.push({
-            tx: new Transaction().add(validateInstruction),
-        });
+        if (!!validateInstruction)
+            txWithoutSigner.push({
+                tx: new Transaction().add(validateInstruction),
+            });
 
+        if (!!usersValidateItemsInstructions && usersValidateItemsInstructions.length > 0)
+            txWithoutSigner.push({
+                tx: new Transaction().add(...usersValidateItemsInstructions),
+            });
+
+        if (validatePresigningSwapInstruction)
+            txWithoutSigner.push({
+                tx: new Transaction().add(validatePresigningSwapInstruction),
+            });
         return {
             // initializeData: {
             swapIdentity,
@@ -328,20 +358,13 @@ async function getAddInitilizeInstructions(Data: {
     if (!!Data.validateOwnership)
         if (returnData.length > 0) {
             for (let index = 0; index < returnData.length; index++) {
-                const element = returnData[index];
-                // if (element) {
-                // console.log("bools");
-                // console.log(Data.warningIsError);
-                // console.log(element.mint.toString());
-                // console.log(!Data.warningIsError?.includes(element.mint.toString()));
-
                 if (
                     Data.validateOwnership === "error" &&
                     (!Data.validateOwnershipIgnore || //!!Data.validateOwnershipIgnore &&
-                        !Data.validateOwnershipIgnore.includes(element.mint.toString()))
+                        !Data.validateOwnershipIgnore.includes(returnData[index].mint.toString()))
                 )
-                    throw element.e;
-                warning = String(warning).concat(`\n\n  /\/\  ` + String(element.e));
+                    throw returnData[index].e;
+                warning = String(warning).concat(`\n\n  /\/\  ` + String(returnData[index].e));
                 // }
             }
         }
@@ -372,11 +395,101 @@ async function getValidateInitilizeInstruction(Data: {
     swapIdentity: SwapIdentity;
     signer: PublicKey;
 }) {
-    return Data.program.methods
-        .validateInitialize(Data.swapIdentity.swapDataAccount_seed)
+    let status = 0;
+    try {
+        const swapData = await getSwapDataAccountFromPublicKey({
+            program: Data.program,
+            swapDataAccount_publicKey: Data.swapIdentity.swapDataAccount_publicKey,
+        });
+
+        swapData?.status ? (status = swapData.status) : 0;
+    } catch (_) {}
+
+    if (status === 0)
+        return Data.program.methods
+            .validateInitialize(Data.swapIdentity.swapDataAccount_seed)
+            .accounts({
+                swapDataAccount: Data.swapIdentity.swapDataAccount_publicKey.toBase58(),
+                signer: Data.signer.toBase58(),
+            })
+            .instruction();
+}
+
+/**
+ * @notice creates instruction for adding all item (excluding element 0) to the swap's PDA data.
+ * @param {SwapData} swapData Given Swap Data sorted
+ * @param {PublicKey} signer /!\ signer should be initializer
+ * @param {string} CONST_PROGRAM 4 character string to initialize the seed
+ * @param {Program} program program linked to NeoSwap
+ * @return {Array<{tx: Transaction; signers?: Signer[] | undefined;}>}addInitSendAllArray => object with all transactions ready to be added recentblockhash and sent using provider.sendAll
+ */
+export const validateUserPdaItems = async (Data: {
+    signer: PublicKey;
+    program: Program;
+    users: PublicKey[];
+    swapIdentity: SwapIdentity;
+}): Promise<TransactionInstruction[]> => {
+    let usersValidateItemsTransactions: {
+        tx: Transaction;
+        signers?: Array<Signer> | undefined;
+    }[] = [];
+    let instructions: TransactionInstruction[] = [];
+    // const { swapDataAccount_seed, swapDataAccount_bump } = await getSwapDataFromPDA({
+    //     swapDataAccount: Data.swapDataAccount,
+    //     CONST_PROGRAM: Data.CONST_PROGRAM,
+    //     provider: Data.program.provider as AnchorProvider,
+    // });
+    // const { swapDataAccount_bump, swapDataAccount_seed, swapDataAccount } = await getSeedFromData({
+    //     swapDataGiven: Data.swapData,
+    //     CONST_PROGRAM: Data.CONST_PROGRAM,
+    // });
+    await Promise.all(
+        Data.users.map(async (user) => {
+            // if (item.isNft) {
+            const [userPda, userBump] = PublicKey.findProgramAddressSync(
+                [user.toBytes()],
+                Data.program.programId
+            );
+            console.log("\n\nowner", user.toBase58(), "\nuserPda", userPda.toBase58());
+
+            // const userPdaData = await Data.program.account.userPdaData.fetch(userPda);
+            // console.log('userPdaData', userPdaData);
+
+            // let delegatedItem = await getAssociatedTokenAddress(item.mint, item.owner);
+            // console.log('delegatedItem', delegatedItem.toBase58());
+
+            const validateUserPdaItemsIx = await Data.program.methods
+                .validateUserPdaItems(Data.swapIdentity.swapDataAccount_seed)
+                .accounts({
+                    swapDataAccount: Data.swapIdentity.swapDataAccount_publicKey,
+                    userPda,
+                    user,
+                    signer: Data.signer,
+                    // splTokenProgram: splAssociatedTokenAccountProgramId,
+                    // systemProgram: web3.SystemProgram.programId,
+                })
+                .instruction();
+
+            instructions.push(validateUserPdaItemsIx);
+        })
+    );
+
+    // usersValidateItemsTransactions = await convertAllTransaction(
+    //     appendTransactionToArray({ mainArray: [new Transaction()], itemToAdd: instructions })
+    // );
+    return instructions;
+};
+
+export const validatePresigningSwap = async (Data: {
+    signer: PublicKey;
+    program: Program;
+    swapIdentity: SwapIdentity;
+}): Promise<TransactionInstruction> => {
+    return await Data.program.methods
+        .validatePresigningSwap(Data.swapIdentity.swapDataAccount_seed)
         .accounts({
-            swapDataAccount: Data.swapIdentity.swapDataAccount_publicKey.toBase58(),
-            signer: Data.signer.toBase58(),
+            swapDataAccount: Data.swapIdentity.swapDataAccount_publicKey,
+            signer: Data.signer,
         })
         .instruction();
-}
+};

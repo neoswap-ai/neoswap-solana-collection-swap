@@ -7,10 +7,13 @@ import { getDepositSolInstruction } from "./subFunction/deposit.sol.instructions
 import { ErrorFeedback, ItemStatus, TradeStatus, TxWithSigner } from "../utils/types";
 import { getDepositCNftInstruction } from "./subFunction/deposit.cnft.instructions";
 import { Program } from "@coral-xyz/anchor";
+import { getDepositNftPresignedInstruction } from "./subFunction/depositPresigned.nft.instrictions";
+import { getDepositSolPresignedInstruction } from "./subFunction/depositPresigned.sol.instructions";
 
 export async function createDepositSwapInstructions(Data: {
     swapDataAccount: PublicKey;
     user: PublicKey;
+    signer: PublicKey;
     clusterOrUrl: Cluster | string;
     program?: Program;
 }): Promise<TxWithSigner[]> {
@@ -19,7 +22,7 @@ export async function createDepositSwapInstructions(Data: {
         program,
         swapDataAccount_publicKey: Data.swapDataAccount,
     });
-// console.log("swapData", swapData);
+    // console.log("swapData", swapData);
 
     if (!swapData) {
         throw {
@@ -41,9 +44,9 @@ export async function createDepositSwapInstructions(Data: {
     });
     console.log("swapIdentity", swapIdentity);
     // console.log("Data.user", Data.user);
-// swapIdentity.swapDataAccount_publicKey=new PublicKey('GnzPof4D1hwbifZaCtEbLbmmWvsyLfqd8gbYhvR1iXY6')
+    // swapIdentity.swapDataAccount_publicKey=new PublicKey('GnzPof4D1hwbifZaCtEbLbmmWvsyLfqd8gbYhvR1iXY6')
     let depositInstruction: TxWithSigner[] = [];
-    let ataList: PublicKey[] = [];
+    let ataList: string[] = [];
     let isUserPartOfTrade = false;
     let isUserAlreadyDeposited = false;
 
@@ -53,81 +56,156 @@ export async function createDepositSwapInstructions(Data: {
     if (swapDataItems.length > 0) isUserPartOfTrade = true;
 
     for (const swapDataItem of swapDataItems) {
-        if (swapDataItem.isNft) {
-            if (swapDataItem.status === ItemStatus.NFTPending) {
-                if (swapDataItem.isCompressed) {
+        if (!swapDataItem.isPresigning) {
+            if (swapDataItem.isNft) {
+                if (swapDataItem.status === ItemStatus.NFTPending) {
+                    if (swapDataItem.isCompressed) {
+                        console.log(
+                            "XXX - Deposit CNFT item with TokenId ",
+                            swapDataItem.mint.toBase58(),
+                            " from ",
+                            swapDataItem.owner.toBase58(),
+                            " - XXX"
+                        );
+                        let ix = await getDepositCNftInstruction({
+                            program,
+                            signer: Data.user,
+                            swapIdentity,
+                            tokenId: swapDataItem.mint,
+                            clusterOrUrl: Data.clusterOrUrl,
+                        });
+                        if (!ix.instructions) throw " error prepare Instruction";
+                        depositInstruction.push({
+                            tx: new Transaction().add(ix.instructions),
+                        });
+                    } else {
+                        console.log(
+                            "XXX - Deposit NFT item with mint ",
+                            swapDataItem.mint.toBase58(),
+                            " from ",
+                            swapDataItem.owner.toBase58(),
+                            " - XXX"
+                        );
+
+                        let depositing = await getDepositNftInstruction({
+                            program: program,
+                            signer: Data.user,
+                            mint: swapDataItem.mint,
+                            amount: swapDataItem.amount.toNumber(),
+                            swapIdentity,
+                            ataList,
+                        });
+
+                        ataList = depositing.ataList;
+                        depositInstruction.push({
+                            tx: new Transaction().add(...depositing.instructions),
+                        });
+                    }
+                } else if (swapDataItem.status === ItemStatus.NFTDeposited) {
+                    isUserAlreadyDeposited = true;
+                }
+            } else {
+                if (swapDataItem.status === ItemStatus.SolPending) {
                     console.log(
-                        "XXX - Deposit CNFT item with TokenId ",
-                        swapDataItem.mint.toBase58(),
-                        " from ",
-                        swapDataItem.owner.toBase58(),
-                        " - XXX"
-                    );
-                    let ix = await getDepositCNftInstruction({
-                        program,
-                        signer: Data.user,
-                        swapIdentity,
-                        tokenId: swapDataItem.mint,
-                        clusterOrUrl: Data.clusterOrUrl,
-                    });
-                    if (!ix.instructions) throw " error prepare Instruction";
-                    depositInstruction.push({
-                        tx: new Transaction().add(ix.instructions),
-                    });
-                } else {
-                    console.log(
-                        "XXX - Deposit NFT item with mint ",
+                        "XXX - Deposit SOL item with mint ",
                         swapDataItem.mint.toBase58(),
                         " from ",
                         swapDataItem.owner.toBase58(),
                         " - XXX"
                     );
 
-                    let depositing = await getDepositNftInstruction({
+                    const depositSolInstruction = await getDepositSolInstruction({
                         program: program,
                         signer: Data.user,
-                        mint: swapDataItem.mint,
                         amount: swapDataItem.amount.toNumber(),
                         swapIdentity,
                         ataList,
+                        mint: swapDataItem.mint,
                     });
+                    ataList = depositSolInstruction.ataList;
 
-                    depositing.newAtas.forEach((element) => {
-                        if (!ataList.includes(element)) {
-                            ataList.push(element);
-                        }
-                    });
                     depositInstruction.push({
-                        tx: new Transaction().add(...depositing.instructions),
+                        tx: new Transaction().add(...depositSolInstruction.instructions),
                     });
+                } else if (swapDataItem.status === ItemStatus.SolDeposited) {
+                    isUserAlreadyDeposited = true;
                 }
-            } else if (swapDataItem.status === ItemStatus.NFTDeposited) {
-                isUserAlreadyDeposited = true;
             }
         } else {
-            if (swapDataItem.status === ItemStatus.SolPending) {
-                console.log(
-                    "XXX - Deposit SOL item with mint ",
-                    swapDataItem.mint.toBase58(),
-                    " from ",
-                    swapDataItem.owner.toBase58(),
-                    " - XXX"
-                );
+            if (swapDataItem.isNft) {
+                if (swapDataItem.status === ItemStatus.NFTPendingPresign) {
+                    if (swapDataItem.isCompressed) {
+                        console.log(
+                            "XXX - Deposit Presigned CNFT item with TokenId ",
+                            swapDataItem.mint.toBase58(),
+                            " from ",
+                            swapDataItem.owner.toBase58(),
+                            " - XXX"
+                        );
+                        throw "not implemented";
+                        // let ix = await getDepositCNftPresignedInstruction({
+                        //     program,
+                        //     signer: Data.user,
+                        //     swapIdentity,
+                        //     tokenId: swapDataItem.mint,
+                        //     clusterOrUrl: Data.clusterOrUrl,
+                        // });
+                        // if (!ix.instructions) throw " error prepare Instruction";
+                        // depositInstruction.push({
+                        //     tx: new Transaction().add(ix.instructions),
+                        // });
+                    } else {
+                        console.log(
+                            "XXX - Deposit Presigned NFT item with mint ",
+                            swapDataItem.mint.toBase58(),
+                            " from ",
+                            swapDataItem.owner.toBase58(),
+                            " - XXX"
+                        );
 
-                const depositSolInstruction = await getDepositSolInstruction({
-                    program: program,
-                    signer: Data.user,
-                    amount: swapDataItem.amount.toNumber(),
-                    swapIdentity,
-                    ataList,
-                    mint: swapDataItem.mint,
-                });
+                        let depositing = await getDepositNftPresignedInstruction({
+                            program,
+                            signer: Data.signer,
+                            mint: swapDataItem.mint,
+                            user: swapDataItem.owner,
+                            swapIdentity,
+                            ataList,
+                        });
 
-                depositInstruction.push({
-                    tx: new Transaction().add(...depositSolInstruction.instructions),
-                });
-            } else if (swapDataItem.status === ItemStatus.SolDeposited) {
-                isUserAlreadyDeposited = true;
+                        ataList = depositing.ataList;
+                        depositInstruction.push({
+                            tx: new Transaction().add(...depositing.instruction),
+                        });
+                    }
+                } else if (swapDataItem.status === ItemStatus.NFTDeposited) {
+                    isUserAlreadyDeposited = true;
+                }
+            } else {
+                if (swapDataItem.status === ItemStatus.SolPendingPresign) {
+                    console.log(
+                        "XXX - Deposit SOL Presigned item with mint ",
+                        swapDataItem.mint.toBase58(),
+                        " from ",
+                        swapDataItem.owner.toBase58(),
+                        " - XXX"
+                    );
+
+                    const depositSolInstruction = await getDepositSolPresignedInstruction({
+                        program: program,
+                        signer: Data.signer,
+                        user: Data.user,
+                        swapIdentity,
+                        ataList,
+                        mint: swapDataItem.mint,
+                    });
+                    ataList = depositSolInstruction.ataList;
+
+                    depositInstruction.push({
+                        tx: new Transaction().add(...depositSolInstruction.instruction),
+                    });
+                } else if (swapDataItem.status === ItemStatus.SolDeposited) {
+                    isUserAlreadyDeposited = true;
+                }
             }
         }
     }

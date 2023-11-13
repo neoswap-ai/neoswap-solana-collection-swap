@@ -13,10 +13,14 @@ export function getProgram(Data: {
     let clusterUrl;
     let programId_ = new PublicKey(SWAP_PROGRAM_ID);
 
-    if (Data.clusterOrUrl === "mainnet-beta" || Data.clusterOrUrl === "testnet") {
+    if (
+        Data.clusterOrUrl === "mainnet-beta" ||
+        Data.clusterOrUrl === "testnet" ||
+        Data.clusterOrUrl === "devnet"
+    ) {
         clusterUrl = clusterApiUrl(Data.clusterOrUrl);
     } else {
-        if (String(Data.clusterOrUrl).toLowerCase().includes("devnet")) {
+        if (String(Data.clusterOrUrl).toLowerCase().includes("devnet") && !!!Data.programId) {
             programId_ = new PublicKey(SWAP_PROGRAM_ID_DEV);
         }
         clusterUrl = Data.clusterOrUrl;

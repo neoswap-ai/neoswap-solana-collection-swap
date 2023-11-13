@@ -1,11 +1,13 @@
 import { apiProcessor } from "./processor/apiProcessor";
 import { cancelAndCloseSwap } from "./processor/cancelAndCloseSwap";
 import { claimAndCloseSwap } from "./processor/claimAndCloseSwap";
+import { createOrModifyUserPda } from "./processor/createOrModifyUserPda";
 import { depositSwap } from "./processor/depositSwap";
 import { initializeSwap } from "./processor/initializeSwap";
 import { apiProcessorTranscript } from "./programInstructions/apiProcessor.transcript";
 import { createCancelSwapInstructions } from "./programInstructions/cancelSwap.instructions";
 import { createClaimSwapInstructions } from "./programInstructions/claimSwap.instructions";
+import { createOrModifyUserPdaInstructions } from "./programInstructions/createOrModifyUserPda.instructions";
 import { createDepositSwapInstructions } from "./programInstructions/depositSwap.instructions";
 import { prepareDepositSwapInstructions } from "./programInstructions/depositSwap.prepareInstructions";
 import { createInitializeSwapInstructions } from "./programInstructions/initializeSwap.instructions";
@@ -36,8 +38,10 @@ const NFT_ACCOUNTS = {
     findRuleSet,
     findUserTokenRecord,
     getCNFTData,
-    getCNFTOwner
+    getCNFTOwner,
 };
+
+const USER_PDA = {};
 
 const UTILS = {
     NFT_ACCOUNTS,
@@ -59,6 +63,7 @@ const CREATE_INSTRUCTIONS = {
     createCancelSwapInstructions,
     prepareDepositSwapInstructions,
     apiProcessorTranscript,
+    createOrModifyUserPdaInstructions,
 };
 
 export const neoSwap = {
@@ -67,8 +72,7 @@ export const neoSwap = {
     claimAndCloseSwap,
     cancelAndCloseSwap,
     apiProcessor,
+    createOrModifyUserPda,
     UTILS,
     CREATE_INSTRUCTIONS,
 };
-
-// export default neoSwapNpm;

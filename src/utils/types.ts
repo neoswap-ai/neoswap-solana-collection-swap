@@ -12,6 +12,7 @@ export type TradeStatusInfo =
 export type NftSwapItem = {
     isCompressed: boolean;
     isNft: boolean;
+    isPresigning: boolean;
     mint: PublicKey;
     merkleTree: PublicKey;
     index: BN;
@@ -32,6 +33,7 @@ export type SwapData = {
 export type GiveSwapItem = {
     address: string;
     amount: number;
+    presigning?: boolean;
     getters: {
         address: string;
         amount: number;
@@ -52,7 +54,7 @@ export type GetSwapItem = {
 export type SwapUserInfo = {
     give: GiveSwapItem[];
     get: GetSwapItem[];
-    token: { amount: number; status?: string };
+    token: { amount: number; status?: string; presigning?: boolean };
     status?: TradeStatusInfo;
 };
 
@@ -241,8 +243,13 @@ export enum TradeStatus {
 }
 
 export enum ItemStatus {
+    NFTPresigningWaitingForApproval = 0,
+    SolPresigningWaitingForApproval = 1,
+
     NFTPending = 10,
     SolPending = 11,
+    NFTPendingPresign = 12,
+    SolPendingPresign = 13,
 
     NFTDeposited = 20,
     SolDeposited = 21,
@@ -251,11 +258,11 @@ export enum ItemStatus {
     NFTClaimed = 30,
     SolClaimed = 31,
 
-    NFTcanceled = 100,
-    Solcanceled = 101,
+    NFTCanceled = 100,
+    SolCanceled = 101,
 
-    NFTcanceledRecovered = 110,
-    SolcanceledRecovered = 111,
+    NFTCanceledRecovered = 110,
+    SolCanceledRecovered = 111,
 }
 
 export type InitializeData = {
@@ -263,4 +270,14 @@ export type InitializeData = {
     programId: PublicKey;
     txWithoutSigner: TxWithSigner[];
     warning: string;
+};
+
+export type ItemToSell = {
+    mint: PublicKey;
+    amountMini: BN;
+};
+
+export type ItemToBuy = {
+    mint: PublicKey;
+    amountMaxi: BN;
 };

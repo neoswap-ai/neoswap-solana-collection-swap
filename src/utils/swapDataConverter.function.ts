@@ -86,6 +86,7 @@ export async function swapDataConverter(Data: {
                         swapDatas.push({
                             isNft: true,
                             isCompressed,
+                            isPresigning: item.presigning ? item.presigning : false,
                             mint: new PublicKey(item.address),
                             merkleTree,
                             index,
@@ -102,10 +103,12 @@ export async function swapDataConverter(Data: {
         if (Data.swapInfo.users[user].items.token.amount !== 0) {
             console.log(user, "token", Data.swapInfo.users[user].items.token.amount);
             let ccurency = new PublicKey(Data.swapInfo.currency);
+            const userItemPresign = Data.swapInfo.users[user].items.token.presigning;
             swapDatas.push({
                 owner: new PublicKey(Data.swapInfo.users[user].address),
                 isNft: false,
                 isCompressed: false,
+                isPresigning: !!userItemPresign ? userItemPresign : false,
                 amount: new BN(Data.swapInfo.users[user].items.token.amount),
                 destinary: ccurency,
                 mint: ccurency,

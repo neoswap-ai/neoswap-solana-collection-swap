@@ -29,12 +29,8 @@ export async function getDepositNftInstruction(Data: {
     mint: PublicKey;
     amount: number;
     swapIdentity: SwapIdentity;
-    ataList: PublicKey[];
+    ataList: string[];
 }) {
-    // const currentItem = Data.swapIdentity.swapData.items.filter(
-    //     (item) =>
-    //         item.mint.equals(Data.mint) && item.owner.equals(Data.signer) && item.isNft === true && item.
-    // );
     await errorIfInsufficientBalance({
         amount: Data.amount,
         connection: Data.program.provider.connection,
@@ -43,7 +39,7 @@ export async function getDepositNftInstruction(Data: {
     });
 
     let instructions = [];
-    let newAtas = [];
+    let ataList = Data.ataList;
     const modifyComputeUnits = ComputeBudgetProgram.setComputeUnitLimit({
         units: 600000,
     });
@@ -59,9 +55,9 @@ export async function getDepositNftInstruction(Data: {
         mint: Data.mint,
         signer: Data.signer,
     });
-    if (userAtaIx && !Data.ataList.includes(userAta)) {
+    if (userAtaIx && !Data.ataList.includes(userAta.toBase58())) {
         instructions.push(userAtaIx);
-        newAtas.push(userAta);
+        ataList.push(userAta.toBase58());
         console.log("createUserAta DepositNft Tx Added", userAta.toBase58());
     }
 
@@ -71,16 +67,16 @@ export async function getDepositNftInstruction(Data: {
         mint: Data.mint,
         signer: Data.signer,
     });
-    if (pdaAtaIx && !Data.ataList.includes(pdaAta)) {
+    if (pdaAtaIx && !Data.ataList.includes(pdaAta.toBase58())) {
         instructions.push(pdaAtaIx);
-        newAtas.push(pdaAta);
+        ataList.push(pdaAta.toBase58());
         console.log("createPdaAta DepositNft Tx Added", pdaAta.toBase58());
     }
 
     const {
         tokenStandard,
         metadataAddress: nftMetadata,
-        metadataBump: nftMetadata_bump,
+        // metadataBump: nftMetadata_bump,
     } = await findNftDataAndMetadataAccount({
         connection: Data.program.provider.connection,
         mint: Data.mint,
@@ -154,5 +150,5 @@ export async function getDepositNftInstruction(Data: {
                 .instruction()
         );
     }
-    return { instructions, newAtas };
+    return { instructions, ataList };
 }
