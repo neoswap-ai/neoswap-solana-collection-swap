@@ -16,13 +16,19 @@ export async function getSwapDataAccountFromPublicKey(Data: {
         Data.clusterOrUrl = Data.program.provider.connection.rpcEndpoint;
     } else throw "there should be a Program or a Cluster";
 
-    console.log('Data.program',Data.program);
-    
+    // console.log('Data.program',Data.program);
+
     try {
         const swapData = (await Data.program.account.swapData.fetch(
             Data.swapDataAccount_publicKey
         )) as SwapData;
-console.log("swapData",Data.swapDataAccount_publicKey, swapData);
+        console.log(
+            Data.swapDataAccount_publicKey.toBase58(),
+            "swapData length",
+            swapData.items.length,
+            "status",
+            swapData.status
+        );
 
         if (!swapData) {
             throw `No SwapData found ${Data.swapDataAccount_publicKey.toBase58()}`;
