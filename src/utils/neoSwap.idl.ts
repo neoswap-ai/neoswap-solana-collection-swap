@@ -121,6 +121,63 @@ export const idlSwap: Idl = {
             ],
         },
         {
+            name: "usersConfirm",
+            accounts: [
+                {
+                    name: "swapDataAccount",
+                    isMut: true,
+                    isSigner: false,
+                },
+                {
+                    name: "userPda",
+                    isMut: true,
+                    isSigner: false,
+                },
+                {
+                    name: "userPdaAta",
+                    isMut: true,
+                    isSigner: false,
+                },
+                {
+                    name: "user",
+                    isMut: true,
+                    isSigner: false,
+                },
+                {
+                    name: "signer",
+                    isMut: true,
+                    isSigner: true,
+                },
+            ],
+            args: [
+                {
+                    name: "seed",
+                    type: "bytes",
+                },
+            ],
+        },
+        {
+            name: "initializeUsersConfirm",
+            accounts: [
+                {
+                    name: "swapDataAccount",
+                    isMut: true,
+                    isSigner: false,
+                },
+                {
+                    name: "signer",
+                    isMut: true,
+                    isSigner: true,
+                },
+            ],
+            args: [
+                {
+                    name: "seed",
+                    type: "bytes",
+                },
+            ],
+        },
+        {
             name: "depositPNft",
             docs: [
                 "@notice Deposit NFT to escrow.",
@@ -247,7 +304,17 @@ export const idlSwap: Idl = {
                     isSigner: false,
                 },
                 {
+                    name: "userPda",
+                    isMut: true,
+                    isSigner: false,
+                },
+                {
                     name: "user",
+                    isMut: false,
+                    isSigner: false,
+                },
+                {
+                    name: "signer",
                     isMut: true,
                     isSigner: true,
                 },
@@ -449,16 +516,6 @@ export const idlSwap: Idl = {
             ],
             accounts: [
                 {
-                    name: "systemProgram",
-                    isMut: false,
-                    isSigner: false,
-                },
-                {
-                    name: "tokenProgram",
-                    isMut: false,
-                    isSigner: false,
-                },
-                {
                     name: "swapDataAccount",
                     isMut: true,
                     isSigner: false,
@@ -482,6 +539,16 @@ export const idlSwap: Idl = {
                     name: "signer",
                     isMut: true,
                     isSigner: true,
+                },
+                {
+                    name: "systemProgram",
+                    isMut: false,
+                    isSigner: false,
+                },
+                {
+                    name: "tokenProgram",
+                    isMut: false,
+                    isSigner: false,
                 },
             ],
             args: [
@@ -786,16 +853,6 @@ export const idlSwap: Idl = {
             ],
             accounts: [
                 {
-                    name: "systemProgram",
-                    isMut: false,
-                    isSigner: false,
-                },
-                {
-                    name: "tokenProgram",
-                    isMut: false,
-                    isSigner: false,
-                },
-                {
                     name: "swapDataAccount",
                     isMut: true,
                     isSigner: false,
@@ -819,6 +876,16 @@ export const idlSwap: Idl = {
                     name: "signer",
                     isMut: true,
                     isSigner: true,
+                },
+                {
+                    name: "systemProgram",
+                    isMut: false,
+                    isSigner: false,
+                },
+                {
+                    name: "tokenProgram",
+                    isMut: false,
+                    isSigner: false,
                 },
             ],
             args: [
@@ -1183,7 +1250,7 @@ export const idlSwap: Idl = {
                 {
                     name: "itemToModify",
                     type: {
-                        defined: "ItemToBuy",
+                        defined: "OptionToBuy",
                     },
                 },
                 {
@@ -1290,7 +1357,7 @@ export const idlSwap: Idl = {
                 {
                     name: "itemToModify",
                     type: {
-                        defined: "ItemToSell",
+                        defined: "OptionToSell",
                     },
                 },
                 {
@@ -1380,7 +1447,7 @@ export const idlSwap: Idl = {
                 {
                     name: "itemToModify",
                     type: {
-                        defined: "ItemToSell",
+                        defined: "OptionToSell",
                     },
                 },
                 {
@@ -1432,6 +1499,11 @@ export const idlSwap: Idl = {
                     isSigner: false,
                 },
                 {
+                    name: "userPdaAta",
+                    isMut: true,
+                    isSigner: false,
+                },
+                {
                     name: "signerAta",
                     isMut: true,
                     isSigner: false,
@@ -1443,6 +1515,11 @@ export const idlSwap: Idl = {
                 },
                 {
                     name: "tokenProgram",
+                    isMut: false,
+                    isSigner: false,
+                },
+                {
+                    name: "systemProgram",
                     isMut: false,
                     isSigner: false,
                 },
@@ -1466,16 +1543,6 @@ export const idlSwap: Idl = {
             name: "userPdaClose",
             accounts: [
                 {
-                    name: "systemProgram",
-                    isMut: false,
-                    isSigner: false,
-                },
-                {
-                    name: "splTokenProgram",
-                    isMut: false,
-                    isSigner: false,
-                },
-                {
                     name: "userPda",
                     isMut: true,
                     isSigner: false,
@@ -1484,6 +1551,16 @@ export const idlSwap: Idl = {
                     name: "signer",
                     isMut: true,
                     isSigner: true,
+                },
+                {
+                    name: "systemProgram",
+                    isMut: false,
+                    isSigner: false,
+                },
+                {
+                    name: "splTokenProgram",
+                    isMut: false,
+                    isSigner: false,
                 },
             ],
             args: [],
@@ -1539,7 +1616,7 @@ export const idlSwap: Idl = {
                         name: "itemsToSell",
                         type: {
                             vec: {
-                                defined: "ItemToSell",
+                                defined: "OptionToSell",
                             },
                         },
                     },
@@ -1547,7 +1624,7 @@ export const idlSwap: Idl = {
                         name: "itemsToBuy",
                         type: {
                             vec: {
-                                defined: "ItemToBuy",
+                                defined: "OptionToBuy",
                             },
                         },
                     },
@@ -1601,7 +1678,7 @@ export const idlSwap: Idl = {
             },
         },
         {
-            name: "ItemToSell",
+            name: "OptionToSell",
             type: {
                 kind: "struct",
                 fields: [
@@ -1610,18 +1687,22 @@ export const idlSwap: Idl = {
                         type: "publicKey",
                     },
                     {
-                        name: "amount",
+                        name: "priceMin",
                         type: "u64",
                     },
                     {
-                        name: "priceMini",
+                        name: "token",
+                        type: "publicKey",
+                    },
+                    {
+                        name: "amount",
                         type: "u64",
                     },
                 ],
             },
         },
         {
-            name: "ItemToBuy",
+            name: "OptionToBuy",
             type: {
                 kind: "struct",
                 fields: [
@@ -1630,11 +1711,15 @@ export const idlSwap: Idl = {
                         type: "publicKey",
                     },
                     {
-                        name: "amount",
+                        name: "priceMax",
                         type: "u64",
                     },
                     {
-                        name: "priceMaxi",
+                        name: "token",
+                        type: "publicKey",
+                    },
+                    {
+                        name: "amount",
                         type: "u64",
                     },
                 ],
@@ -1645,6 +1730,9 @@ export const idlSwap: Idl = {
             type: {
                 kind: "enum",
                 variants: [
+                    {
+                        name: "WaitingToValidatePresigning",
+                    },
                     {
                         name: "Initializing",
                     },
@@ -1671,6 +1759,12 @@ export const idlSwap: Idl = {
             type: {
                 kind: "enum",
                 variants: [
+                    {
+                        name: "NFTPresigningWaitingForApproval",
+                    },
+                    {
+                        name: "SolPresigningWaitingForApproval",
+                    },
                     {
                         name: "NFTPending",
                     },

@@ -11,10 +11,11 @@ import { ItemToBuy } from "../../utils/types";
  * @param {Program} program program linked to NeoSwap
  * @return {Array<{tx: Transaction; signers?: Signer[] | undefined;}>}addInitSendAllArray => object with all transactions ready to be added recentblockhash and sent using provider.sendAll
  */
-export const getUserPdaAddBuyItemIx = async (Data: {
+export const getUserPdaBuyItemIx = async (Data: {
     signer: PublicKey;
     program: Program;
     itemsToBuy: ItemToBuy[];
+    is_removeItem: boolean;
 }): Promise<TransactionInstruction[]> => {
     const [userPda] = PublicKey.findProgramAddressSync(
         [Data.signer.toBytes()],
@@ -24,44 +25,9 @@ export const getUserPdaAddBuyItemIx = async (Data: {
     return await Promise.all(
         Data.itemsToBuy.map(async (itemToBuy) => {
             return await Data.program.methods
-                .userAddItemToBuy(itemToBuy)
+                .userModifyNftBuy(itemToBuy, Data.is_removeItem)
                 .accounts({
                     userPda,
-                    signer: Data.signer,
-                    tokenProgram: TOKEN_PROGRAM_ID,
-                })
-                .instruction();
-        })
-    );
-};
-
-export const getUserPdaRmBuyItemIx = async (Data: {
-    user?: PublicKey;
-    signer: PublicKey;
-    program: Program;
-    REMOVEitemsToBuy: ItemToBuy[];
-}): Promise<TransactionInstruction[]> => {
-    if (!!!Data.user) Data.user = Data.signer;
-    const [userPda] = PublicKey.findProgramAddressSync(
-        [Data.user.toBytes()],
-        Data.program.programId
-    );
-
-    return await Promise.all(
-        Data.REMOVEitemsToBuy.map(async (REMOVEitemToBuy) => {
-            if (!!!Data.user) Data.user = Data.signer;
-            let itemToDelegate = await getAssociatedTokenAddress(
-                REMOVEitemToBuy.mint,
-                Data.user,
-                true,
-                Data.program.programId
-            );
-
-            return await Data.program.methods
-                .userRemoveItemToBuy(REMOVEitemToBuy)
-                .accounts({
-                    userPda,
-                    itemToDelegate,
                     signer: Data.signer,
                     tokenProgram: TOKEN_PROGRAM_ID,
                 })

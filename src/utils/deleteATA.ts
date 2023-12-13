@@ -4,7 +4,7 @@
 
 // import { idlSwap } from "./neoSwap.idl";
 // import { Program, AnchorProvider } from "@coral-xyz/anchor";
-// import { SWAP_PROGRAM_ID, SWAP_PROGRAM_ID_DEV } from "./const";
+// import { NEOSWAP_PROGRAM_ID, NEOSWAP_PROGRAM_ID_DEV } from "./const";
 // import NodeWallet from "@coral-xyz/anchor/dist/cjs/nodewallet";
 // import { createCloseAccountInstruction } from "@solana/spl-token";
 // import { sendBundledTransactions } from "./sendBundledTransactions.function";
@@ -15,7 +15,7 @@
 //     signer?: Keypair;
 // }) {
 //     let clusterUrl;
-//     let programId_ = new PublicKey(SWAP_PROGRAM_ID);
+//     let programId_ = new PublicKey(NEOSWAP_PROGRAM_ID);
 
 //     if (
 //         Data.clusterOrUrl === "mainnet-beta" ||
@@ -25,7 +25,7 @@
 //         clusterUrl = clusterApiUrl(Data.clusterOrUrl);
 //     } else {
 //         if (String(Data.clusterOrUrl).toLowerCase().includes("devnet") && !!!Data.programId) {
-//             programId_ = new PublicKey(SWAP_PROGRAM_ID_DEV);
+//             programId_ = new PublicKey(NEOSWAP_PROGRAM_ID_DEV);
 //         }
 //         clusterUrl = Data.clusterOrUrl;
 //     }

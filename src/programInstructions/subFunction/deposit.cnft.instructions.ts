@@ -80,17 +80,17 @@ export async function getDepositCNftInstruction(Data: {
                     index
                 )
                 .accounts({
-                    systemProgram: SystemProgram.programId,
-                    metadataProgram: TOKEN_METADATA_PROGRAM,
-                    sysvarInstructions: SYSVAR_INSTRUCTIONS_PUBKEY,
-                    splTokenProgram: TOKEN_PROGRAM_ID,
-                    splAtaProgram: SOLANA_SPL_ATA_PROGRAM_ID,
                     swapDataAccount: Data.swapIdentity.swapDataAccount_publicKey,
                     // leafOwner: Data.signer,
                     user: Data.signer,
                     leafDelegate: Data.signer,
                     treeAuthority,
                     merkleTree,
+                    systemProgram: SystemProgram.programId,
+                    metadataProgram: TOKEN_METADATA_PROGRAM,
+                    sysvarInstructions: SYSVAR_INSTRUCTIONS_PUBKEY,
+                    splTokenProgram: TOKEN_PROGRAM_ID,
+                    splAtaProgram: SOLANA_SPL_ATA_PROGRAM_ID,
                     logWrapper: SPL_NOOP_PROGRAM_ID,
                     compressionProgram: SPL_ACCOUNT_COMPRESSION_PROGRAM_ID,
                     bubblegumProgram: MPL_BUBBLEGUM_PROGRAM_ID,

@@ -1,5 +1,5 @@
 import { Cluster, PublicKey, SystemProgram } from "@solana/web3.js";
-import { SWAP_PROGRAM_ID, SWAP_PROGRAM_ID_DEV } from "./const";
+import { NEOSWAP_PROGRAM_ID, NEOSWAP_PROGRAM_ID_DEV } from "./const";
 import { ErrorFeedback, SwapData, SwapIdentity } from "./types";
 import bs58 from "bs58";
 import { hash } from "@project-serum/anchor/dist/cjs/utils/sha256";
@@ -31,13 +31,13 @@ export function getSwapIdentityFromData(Data: {
 
         const [swapDataAccount_publicKey, swapDataAccount_bump] = PublicKey.findProgramAddressSync(
             [swapDataAccount_seed],
-            Data.clusterOrUrl.includes("devnet") ? SWAP_PROGRAM_ID_DEV : SWAP_PROGRAM_ID
+            Data.clusterOrUrl.includes("devnet") ? NEOSWAP_PROGRAM_ID_DEV : NEOSWAP_PROGRAM_ID
         );
         console.log("swapDataAccount_publicKey", swapDataAccount_publicKey.toBase58());
         // console.log("swapDataAccount_publicKey", Data.swapData);
         console.log(
-            'Data.clusterOrUrl.includes("devnet") ? SWAP_PROGRAM_ID_DEV : SWAP_PROGRAM_ID',
-            Data.clusterOrUrl.includes("devnet") ? SWAP_PROGRAM_ID_DEV : SWAP_PROGRAM_ID
+            'Data.clusterOrUrl.includes("devnet") ? NEOSWAP_PROGRAM_ID_DEV : NEOSWAP_PROGRAM_ID',
+            Data.clusterOrUrl.includes("devnet") ? NEOSWAP_PROGRAM_ID_DEV : NEOSWAP_PROGRAM_ID
         );
 
         if (!Data.swapData.acceptedPayement)

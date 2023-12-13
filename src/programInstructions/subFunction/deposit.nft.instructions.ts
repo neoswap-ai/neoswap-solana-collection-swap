@@ -106,11 +106,6 @@ export async function getDepositNftInstruction(Data: {
             await Data.program.methods
                 .depositNft(Data.swapIdentity.swapDataAccount_seed)
                 .accounts({
-                    systemProgram: SystemProgram.programId.toBase58(),
-                    metadataProgram: TOKEN_METADATA_PROGRAM,
-                    sysvarInstructions: SYSVAR_INSTRUCTIONS_PUBKEY.toBase58(),
-                    splTokenProgram: TOKEN_PROGRAM_ID.toBase58(),
-                    splAtaProgram: SOLANA_SPL_ATA_PROGRAM_ID,
                     swapDataAccount: Data.swapIdentity.swapDataAccount_publicKey.toBase58(),
                     signer: Data.signer.toBase58(),
                     itemFromDeposit: userAta.toBase58(),
@@ -120,6 +115,11 @@ export async function getDepositNftInstruction(Data: {
                     nftMasterEdition: nftMasterEdition.toBase58(),
                     ownerTokenRecord: ownerTokenRecord.toBase58(),
                     destinationTokenRecord: destinationTokenRecord.toBase58(),
+                    systemProgram: SystemProgram.programId.toBase58(),
+                    metadataProgram: TOKEN_METADATA_PROGRAM,
+                    sysvarInstructions: SYSVAR_INSTRUCTIONS_PUBKEY.toBase58(),
+                    splTokenProgram: TOKEN_PROGRAM_ID.toBase58(),
+                    splAtaProgram: SOLANA_SPL_ATA_PROGRAM_ID,
                     authRulesProgram: METAPLEX_AUTH_RULES_PROGRAM,
                     authRules,
                 })

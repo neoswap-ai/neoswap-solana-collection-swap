@@ -1,6 +1,6 @@
 import { createAssociatedTokenAccountInstruction, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { Cluster, Connection, PublicKey, TransactionInstruction } from "@solana/web3.js";
-import { SOLANA_SPL_ATA_PROGRAM_ID, SWAP_PROGRAM_ID, SWAP_PROGRAM_ID_DEV } from "../utils/const";
+import { SOLANA_SPL_ATA_PROGRAM_ID, NEOSWAP_PROGRAM_ID, NEOSWAP_PROGRAM_ID_DEV } from "../utils/const";
 import { Program } from "@coral-xyz/anchor";
 import { CreateAssociatedTokenAccountInstructionData } from "./types";
 import { delay } from "./delay";
@@ -71,8 +71,8 @@ export async function findOrCreateAta(Data: {
                 prepareInstruction: {
                     type: "createAssociatedTokenAccountInstruction",
                     programId: (Data.clusterOrUrl.includes("mainnet")
-                        ? SWAP_PROGRAM_ID_DEV
-                        : SWAP_PROGRAM_ID
+                        ? NEOSWAP_PROGRAM_ID_DEV
+                        : NEOSWAP_PROGRAM_ID
                     ).toBase58(),
                     data: {
                         payer: Data.signer.toString(),

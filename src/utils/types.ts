@@ -272,12 +272,30 @@ export type InitializeData = {
     warning: string;
 };
 
+export type UserPdaData = {
+    owner: PublicKey;
+    items_to_sell: ItemToSell[];
+    items_to_buy: ItemToBuy[];
+};
+
 export type ItemToSell = {
     mint: PublicKey;
-    amountMini: BN;
+    options: ItemSellOption[];
+    amount: number;
 };
 
 export type ItemToBuy = {
     mint: PublicKey;
-    amountMaxi: BN;
+    options: ItemBuyOption[];
+    amount: number;
+};
+
+export type ItemBuyOption = {
+    price_max: number;
+    token: PublicKey;
+};
+
+export type ItemSellOption = {
+    price_min: number;
+    token: PublicKey;
 };

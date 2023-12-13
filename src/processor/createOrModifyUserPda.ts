@@ -9,7 +9,7 @@ import { ItemToBuy, ItemToSell } from "../utils/types";
 export async function createOrModifyUserPda(Data: {
     signer: Keypair;
     user?: PublicKey;
-    amountToTopUp?: number;
+    amountToTopUp?: { amount: number; mint: PublicKey };
     itemsToSell?: ItemToSell[];
     itemsToBuy?: ItemToBuy[];
     REMOVEitemsToSell?: ItemToSell[];
@@ -21,7 +21,7 @@ export async function createOrModifyUserPda(Data: {
     const program = getProgram({ clusterOrUrl: Data.clusterOrUrl, signer: Data.signer });
     let depositSwapData = await createOrModifyUserPdaInstructions({
         signer: Data.signer.publicKey,
-        user: Data.user?Data.user:undefined,
+        user: Data.user ? Data.user : undefined,
         amountToTopUp: Data.amountToTopUp,
         itemsToBuy: Data.itemsToBuy,
         itemsToSell: Data.itemsToSell,
@@ -30,7 +30,7 @@ export async function createOrModifyUserPda(Data: {
         clusterOrUrl: Data.clusterOrUrl,
         program,
     });
-    if (!depositSwapData.instructions) throw "nothing to change";
+    if (!!!depositSwapData.instructions) throw "nothing to change";
 
     let txsWithoutSigners = depositSwapData.instructions.map((ixs) => {
         return {
