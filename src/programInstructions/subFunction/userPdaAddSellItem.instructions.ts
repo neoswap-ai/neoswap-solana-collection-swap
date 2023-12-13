@@ -7,7 +7,6 @@ import {
     SYSVAR_INSTRUCTIONS_PUBKEY,
     TransactionInstruction,
 } from "@solana/web3.js";
-import { ItemToSell } from "../../utils/types";
 import { getCNFTData } from "../../utils/getCNFTData.function";
 import {
     METAPLEX_AUTH_RULES_PROGRAM,
@@ -27,6 +26,7 @@ import {
     findUserTokenRecord,
 } from "../../utils/findNftDataAndAccounts.function";
 import { findOrCreateAta } from "../../utils/findOrCreateAta.function";
+import { OptionToSell } from "../../utils/types";
 
 /**
  * @notice creates instruction for adding all item (excluding element 0) to the swap's PDA data.
@@ -39,11 +39,14 @@ import { findOrCreateAta } from "../../utils/findOrCreateAta.function";
 export const getUserPdaSellItemIx = async (Data: {
     signer: PublicKey;
     program: Program;
-    itemsToSell: ItemToSell[];
+    itemsToSell: OptionToSell[];
     is_removeItem: boolean;
 }): Promise<TransactionInstruction[][]> => {
-    const userSeeds = [Data.signer.toBytes()];
-    const [userPda, userBump] = PublicKey.findProgramAddressSync(userSeeds, Data.program.programId);
+    const userSeeds = Data.signer.toBytes();
+    const [userPda, userBump] = PublicKey.findProgramAddressSync(
+        [userSeeds],
+        Data.program.programId
+    );
     let instructions: TransactionInstruction[][] = [];
     await Promise.all(
         Data.itemsToSell.map(async (itemToSell) => {
@@ -168,9 +171,15 @@ export const getUserPdaSellItemIx = async (Data: {
                         mint: itemToSell.mint,
                     });
                 }
+
                 subInstructions.push(
                     await Data.program.methods
-                        .userModifyPNftSell(itemToSell, Data.is_removeItem, userSeeds, userBump)
+                        .userModifyPNftSell(
+                            itemToSell,
+                            Data.is_removeItem,
+                            userSeeds.buffer,
+                            userBump
+                        )
                         .accounts({
                             userPda,
                             user: Data.signer,
@@ -179,18 +188,18 @@ export const getUserPdaSellItemIx = async (Data: {
                             userPdaAta,
                             mint: itemToSell.mint,
 
-                            nftMetadata,
+                            nftMetadata:nftMetadata.toBase58(),
                             nftMasterEdition,
                             ownerTokenRecord,
                             destinationTokenRecord,
                             authRulesProgram: METAPLEX_AUTH_RULES_PROGRAM,
                             authRules,
 
-                            systemProgram: SystemProgram.programId.toBase58(),
                             metadataProgram: TOKEN_METADATA_PROGRAM,
                             sysvarInstructions: SYSVAR_INSTRUCTIONS_PUBKEY.toBase58(),
-                            splTokenProgram: TOKEN_PROGRAM_ID.toBase58(),
                             splAtaProgram: SOLANA_SPL_ATA_PROGRAM_ID,
+                            splTokenProgram: TOKEN_PROGRAM_ID.toBase58(),
+                            systemProgram: SystemProgram.programId.toBase58(),
                             tokenProgram: TOKEN_PROGRAM_ID,
                         })
                         .instruction()

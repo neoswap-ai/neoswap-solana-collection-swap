@@ -274,28 +274,19 @@ export type InitializeData = {
 
 export type UserPdaData = {
     owner: PublicKey;
-    items_to_sell: ItemToSell[];
-    items_to_buy: ItemToBuy[];
+    items_to_sell: OptionToSell[];
+    items_to_buy: OptionToBuy[];
 };
 
-export type ItemToSell = {
-    mint: PublicKey;
-    options: ItemSellOption[];
-    amount: number;
-};
-
-export type ItemToBuy = {
-    mint: PublicKey;
-    options: ItemBuyOption[];
-    amount: number;
-};
-
-export type ItemBuyOption = {
-    price_max: number;
-    token: PublicKey;
-};
-
-export type ItemSellOption = {
-    price_min: number;
-    token: PublicKey;
-};
+export type OptionToSell= {
+    mint: PublicKey,
+    price_min: number,
+    token: PublicKey,
+    amount: number,
+}
+export type OptionToBuy= {
+    mint: PublicKey,
+    price_max: number,
+    token: PublicKey,
+    amount: number,
+}

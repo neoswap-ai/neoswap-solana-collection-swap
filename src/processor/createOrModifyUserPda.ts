@@ -4,16 +4,17 @@ import { createDepositSwapInstructions } from "../programInstructions/depositSwa
 import { getProgram } from "../utils/getProgram.obj";
 import { AnchorProvider } from "@coral-xyz/anchor";
 import { createOrModifyUserPdaInstructions } from "../programInstructions/createOrModifyUserPda.instructions";
-import { ItemToBuy, ItemToSell } from "../utils/types";
+import { OptionToBuy, OptionToSell } from "../utils/types";
+
 
 export async function createOrModifyUserPda(Data: {
     signer: Keypair;
     user?: PublicKey;
     amountToTopUp?: { amount: number; mint: PublicKey };
-    itemsToSell?: ItemToSell[];
-    itemsToBuy?: ItemToBuy[];
-    REMOVEitemsToSell?: ItemToSell[];
-    REMOVEitemsToBuy?: ItemToBuy[];
+    itemsToSell?: OptionToSell[];
+    itemsToBuy?: OptionToBuy[];
+    REMOVEitemsToSell?: OptionToSell[];
+    REMOVEitemsToBuy?: OptionToBuy[];
     clusterOrUrl: Cluster | string;
     simulation?: boolean;
     skipConfirmation?: boolean;

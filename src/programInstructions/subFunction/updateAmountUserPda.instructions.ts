@@ -36,12 +36,22 @@ export const getUserPdaUpdateAmountIx = async (Data: {
     // mint: PublicKey;
     amountToTopUp: { amount: number; mint: PublicKey };
 }): Promise<TransactionInstruction[]> => {
-    let userSeed = [Data.signer.toBytes()];
-    const [userPda, userBump] = PublicKey.findProgramAddressSync(userSeed, Data.program.programId);
+    let userSeed = Data.signer.toBuffer();
+    // console.log("userSeed", userSeed);
+    // console.log("amountToTopUp", Data.amountToTopUp);
+
+    const [userPda, userBump] = PublicKey.findProgramAddressSync(
+        [userSeed],
+        Data.program.programId
+    );
+    console.log("userPda", userPda.toBase58());
+    // console.log("userBump", userBump);
 
     let instructions: TransactionInstruction[] = [];
 
     if (Data.amountToTopUp.mint.equals(SystemProgram.programId)) {
+        // console.log("test", Data.program.methods.userModifyTopUp);
+
         instructions.push(
             await Data.program.methods
                 .userModifyTopUp(
@@ -54,9 +64,17 @@ export const getUserPdaUpdateAmountIx = async (Data: {
                     userPdaAta: userPda,
                     signerAta: Data.signer,
                     signer: Data.signer,
+                    systemProgram: SystemProgram.programId,
                     tokenProgram: TOKEN_PROGRAM_ID,
                 })
                 .instruction()
+        );
+        console.log(
+            "transfering ",
+            Data.amountToTopUp.amount,
+            " to user account",
+            userPda.toBase58(),
+            // " and toping up"
         );
     } else if (Data.amountToTopUp.mint.equals(NATIVE_MINT)) {
         const { mintAta: userWsolAta, instruction: userWsolCreateIx } =
@@ -98,6 +116,7 @@ export const getUserPdaUpdateAmountIx = async (Data: {
                     signerAta: userWsolAta,
                     signer: Data.signer,
                     tokenProgram: TOKEN_PROGRAM_ID,
+                    systemProgram: SystemProgram.programId,
                 })
                 .instruction()
         );
@@ -141,16 +160,17 @@ export const getUserPdaUpdateAmountIx = async (Data: {
                     userPdaAta,
                     signerAta: userAta,
                     signer: Data.signer,
+                    systemProgram: SystemProgram.programId,
                     tokenProgram: TOKEN_PROGRAM_ID,
                 })
                 .instruction()
         );
     }
 
-    console.log(
-        "Data.amountToTopup * LAMPORTS_PER_SOL",
-        Data.amountToTopUp.amount * LAMPORTS_PER_SOL
-    );
+    // console.log(
+    //     "Data.amountToTopup * LAMPORTS_PER_SOL",
+    //     Data.amountToTopUp.amount * LAMPORTS_PER_SOL
+    // );
     if (instructions.length > 0) {
         return instructions;
     } else throw "couldn't find an action to perform";

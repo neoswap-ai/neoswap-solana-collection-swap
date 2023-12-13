@@ -1,27 +1,28 @@
 import { getProgram } from "../utils/getProgram.obj";
 import { Cluster, PublicKey, TransactionInstruction } from "@solana/web3.js";
-import { ItemToBuy, ItemToSell } from "../utils/types";
 import { Program } from "@coral-xyz/anchor";
 import { getUserPdaCreateIx } from "./subFunction/createUserPda.instruction";
 import { getUserPdaUpdateAmountIx } from "./subFunction/updateAmountUserPda.instructions";
 import { getUserPdaSellItemIx } from "./subFunction/userPdaAddSellItem.instructions";
 import { getUserPdaBuyItemIx } from "./subFunction/userPdaAddBuyItem.instructions";
+import { OptionToBuy, OptionToSell } from "../utils/types";
 
 export async function createOrModifyUserPdaInstructions(Data: {
     signer: PublicKey;
     user?: PublicKey;
     clusterOrUrl: Cluster | string;
     amountToTopUp?: { amount: number; mint: PublicKey };
-    itemsToBuy?: ItemToBuy[];
-    itemsToSell?: ItemToSell[];
-    REMOVEitemsToBuy?: ItemToBuy[];
-    REMOVEitemsToSell?: ItemToSell[];
+    itemsToBuy?: OptionToBuy[];
+    itemsToSell?: OptionToSell[];
+    REMOVEitemsToBuy?: OptionToBuy[];
+    REMOVEitemsToSell?: OptionToSell[];
     program?: Program;
 }): Promise<{ instructions?: TransactionInstruction[][]; userPda: PublicKey }> {
     const program = Data.program ? Data.program : getProgram({ clusterOrUrl: Data.clusterOrUrl });
     let instructions: TransactionInstruction[][] = [];
     try {
         console.log("createOrModifyUserPdaInstructions", Data);
+        // console.log("XXXXXXXXXXXXXXXXXXXXX");
 
         const createUserPdaData = await getUserPdaCreateIx({
             program,

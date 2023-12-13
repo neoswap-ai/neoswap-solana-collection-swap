@@ -44,7 +44,7 @@ export async function getCNFTData(Data: {
     });
     let treeProof = (await treeProofResponse.json()).result;
 
-    console.log("treeProof Results", treeProof);
+    // console.log("treeProof Results", treeProof);
     const connection = Data.connection
         ? Data.connection
         : getProgram({ clusterOrUrl: Data.Cluster }).provider.connection;
@@ -74,7 +74,7 @@ export async function getCNFTData(Data: {
     // console.log('proof', proof);
 
     // console.log('treeProof.root', treeProof.root);
-    console.log("treeData", treeData);
+    // console.log("treeData", treeData);
     // console.log('treeData.creator_hash', treeData.compression);
 
     // let instructions = [];
@@ -86,28 +86,28 @@ export async function getCNFTData(Data: {
 
     // console.log('nonce', nonce);
     // console.log("args", root, dataHash, creatorHash, nonce, index);
-    console.log(
-        "accounts",
+    // console.log(
+    //     "accounts",
 
-        "\nroot",
-        encode(root),
-        "\ndataHash",
-        encode(dataHash),
-        "\ncreatorHash",
-        encode(creatorHash),
-        "\nnonce",
-        nonce,
-        "\nindex",
-        index,
-        "\ntreeAuthority",
-        treeAuthority.toBase58(),
-        "\nmerkleTree:",
-        new PublicKey(treeProof.tree_id).toString(),
-        "\nproofMeta",
-        proofMeta,
-        "\ncanopyDepth",
-        canopyDepth
-    );
+    //     "\nroot",
+    //     encode(root),
+    //     "\ndataHash",
+    //     encode(dataHash),
+    //     "\ncreatorHash",
+    //     encode(creatorHash),
+    //     "\nnonce",
+    //     nonce,
+    //     "\nindex",
+    //     index,
+    //     "\ntreeAuthority",
+    //     treeAuthority.toBase58(),
+    //     "\nmerkleTree:",
+    //     new PublicKey(treeProof.tree_id).toString(),
+    //     "\nproofMeta",
+    //     proofMeta,
+    //     "\ncanopyDepth",
+    //     canopyDepth
+    // );
 
     return {
         root,

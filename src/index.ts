@@ -28,6 +28,7 @@ import { getSwapIdentityFromData } from "./utils/getSwapIdentityFromData.functio
 import { isConfirmedTx } from "./utils/isConfirmedTx.function";
 import { sendBundledTransactions } from "./utils/sendBundledTransactions.function";
 import { invertedSwapDataConverter, swapDataConverter } from "./utils/swapDataConverter.function";
+import { closeUserPda } from "./utils/userPdaClose";
 import { userSwapDetails } from "./utils/userSwapDetails.obj";
 export * as neoTypes from "./utils/types";
 export * as neoConst from "./utils/const";
@@ -55,6 +56,7 @@ const UTILS = {
     findOrCreateAta,
     swapDataConverter,
     invertedSwapDataConverter,
+    closeUserPda,
 };
 const CREATE_INSTRUCTIONS = {
     createInitializeSwapInstructions,

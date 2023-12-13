@@ -1,7 +1,7 @@
 import { Program } from "@coral-xyz/anchor";
 import { PublicKey, SystemProgram, TransactionInstruction } from "@solana/web3.js";
 import { NATIVE_MINT, TOKEN_PROGRAM_ID } from "@solana/spl-token";
-import { ItemToSell, SwapIdentity } from "../../utils/types";
+import {  OptionToSell, SwapIdentity } from "../../utils/types";
 import { findOrCreateAta } from "../../utils/findOrCreateAta.function";
 
 /**
@@ -18,7 +18,7 @@ import { findOrCreateAta } from "../../utils/findOrCreateAta.function";
  */
 export async function getRemoveSellFromUserPdaInstruction(Data: {
     program: Program;
-    itemToRemove: ItemToSell;
+    itemToRemove: OptionToSell;
     signer: PublicKey;
     // mint: PublicKey;
     // swapIdentity: SwapIdentity;

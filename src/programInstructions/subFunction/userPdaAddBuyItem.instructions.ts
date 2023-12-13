@@ -1,7 +1,7 @@
 import { Program } from "@coral-xyz/anchor";
 import { getAssociatedTokenAddress, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { PublicKey, TransactionInstruction } from "@solana/web3.js";
-import { ItemToBuy } from "../../utils/types";
+import { OptionToBuy } from "../../utils/types";
 
 /**
  * @notice creates instruction for adding all item (excluding element 0) to the swap's PDA data.
@@ -14,7 +14,7 @@ import { ItemToBuy } from "../../utils/types";
 export const getUserPdaBuyItemIx = async (Data: {
     signer: PublicKey;
     program: Program;
-    itemsToBuy: ItemToBuy[];
+    itemsToBuy: OptionToBuy[];
     is_removeItem: boolean;
 }): Promise<TransactionInstruction[]> => {
     const [userPda] = PublicKey.findProgramAddressSync(
