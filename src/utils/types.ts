@@ -11,8 +11,6 @@ export type TradeStatusInfo =
     | "canceled";
 export type NftSwapItem = {
     isCompressed: boolean;
-    isNft: boolean;
-    isPresigning: boolean;
     mint: PublicKey;
     merkleTree: PublicKey;
     index: BN;
@@ -20,20 +18,32 @@ export type NftSwapItem = {
     owner: PublicKey;
     destinary: PublicKey;
     status: number;
+    collection: PublicKey;
+};
+export type TokenSwapItem = {
+    amount: BN;
+    owner: PublicKey;
+    status: number;
 };
 export type SwapData = {
     initializer: PublicKey;
     status: number;
-    nbItems: number;
+    nbItems: NbItems;
     preSeed: string;
-    items: Array<NftSwapItem>;
+    nftItems: Array<NftSwapItem>;
+    tokenItems: Array<TokenSwapItem>;
     acceptedPayement: PublicKey;
+};
+
+export type NbItems = {
+    nft: number;
+    tokens: number;
 };
 
 export type GiveSwapItem = {
     address: string;
+    collection: string;
     amount: number;
-    presigning?: boolean;
     getters: {
         address: string;
         amount: number;
@@ -43,6 +53,7 @@ export type GiveSwapItem = {
 
 export type GetSwapItem = {
     address: string;
+    collection: string;
     amount: number;
     givers: {
         amount: number;
@@ -54,7 +65,7 @@ export type GetSwapItem = {
 export type SwapUserInfo = {
     give: GiveSwapItem[];
     get: GetSwapItem[];
-    token: { amount: number; status?: string; presigning?: boolean };
+    token: { amount: number; status?: string };
     status?: TradeStatusInfo;
 };
 
@@ -243,9 +254,6 @@ export enum TradeStatus {
 }
 
 export enum ItemStatus {
-    NFTPresigningWaitingForApproval = 0,
-    SolPresigningWaitingForApproval = 1,
-
     NFTPending = 10,
     SolPending = 11,
     NFTPendingPresign = 12,
@@ -271,22 +279,3 @@ export type InitializeData = {
     txWithoutSigner: TxWithSigner[];
     warning: string;
 };
-
-export type UserPdaData = {
-    owner: PublicKey;
-    items_to_sell: OptionToSell[];
-    items_to_buy: OptionToBuy[];
-};
-
-export type OptionToSell= {
-    mint: PublicKey,
-    price_min: number,
-    token: PublicKey,
-    amount: number,
-}
-export type OptionToBuy= {
-    mint: PublicKey,
-    price_max: number,
-    token: PublicKey,
-    amount: number,
-}

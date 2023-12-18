@@ -22,7 +22,7 @@ import { findOrCreateAta } from "../utils/findOrCreateAta.function";
 import { swapDataConverter } from "../utils/swapDataConverter.function";
 import { getCNFTOwner } from "../utils/getCNFTData.function";
 
-export async function createInitializeSwapInstructions(Data: {
+export async function createModifySwapInstructions(Data: {
     swapInfo: SwapInfo;
     signer: PublicKey;
     clusterOrUrl: Cluster | string;

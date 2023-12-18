@@ -25,7 +25,7 @@ export async function getSwapDataAccountFromPublicKey(Data: {
         console.log(
             Data.swapDataAccount_publicKey.toBase58(),
             "swapData length",
-            swapData.items.length,
+            swapData.nbItems,
             "status",
             swapData.status
         );

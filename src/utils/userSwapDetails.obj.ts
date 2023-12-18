@@ -27,9 +27,10 @@ export async function userSwapDetails(Data: {
         throw {
             message: `no swap found at the given publicKey: ${Data.swapDataAccount_publicKey.toString()}`,
         };
-
-    let userItems = swapData.items.filter((item) => item.owner.equals(Data.user));
-    let receiveItems = swapData.items.filter((item) => item.destinary.equals(Data.user));
+        
+    let allitems = [...swapData.nftItems, ...swapData.tokenItems];
+    let userItems = allitems.filter((item) => item.owner.equals(Data.user));
+    let receiveItems = swapData.nftItems.filter((item) => item.destinary.equals(Data.user));
 
     return {
         userNftToDeposit: userItems.filter((item) => item.status === ItemStatus.NFTPending),

@@ -4,7 +4,14 @@ import { getSwapDataAccountFromPublicKey } from "../utils/getSwapDataAccountFrom
 import { getSwapIdentityFromData } from "../utils/getSwapIdentityFromData.function";
 import { getClaimNftInstructions } from "./subFunction/claim.nft.instructions";
 import { getClaimSolInstructions } from "./subFunction/claim.sol.instructions";
-import { ErrorFeedback, ItemStatus, TradeStatus, TxWithSigner } from "../utils/types";
+import {
+    ErrorFeedback,
+    ItemStatus,
+    NftSwapItem,
+    TokenSwapItem,
+    TradeStatus,
+    TxWithSigner,
+} from "../utils/types";
 import { getClaimCNftInstruction } from "./subFunction/claim.cnft.instructions";
 import { Program } from "@coral-xyz/anchor";
 
@@ -60,18 +67,29 @@ export async function createClaimSwapInstructions(Data: {
 
     let claimTransactionInstruction: TxWithSigner[] = [];
     let ataList: PublicKey[] = [];
-
-    let swapDataItems = swapData.items.filter(
+    let allData: (NftSwapItem | TokenSwapItem)[] = [...swapData.nftItems, ...swapData.tokenItems];
+    let swapDataItems = allData.filter(
         (swapDataItem) =>
             swapDataItem.status === ItemStatus.NFTDeposited ||
             swapDataItem.status === ItemStatus.SolToClaim
     );
 
-    if (!init) swapDataItems = swapDataItems.filter((item) => item.destinary.equals(Data.signer));
+    if (!init)
+        swapDataItems = swapDataItems.filter((item) => {
+            if ("mint" in item) {
+                return item.destinary.equals(Data.signer);
+            } else {
+                return item.owner.equals(Data.signer);
+            }
+        });
 
     for (const swapDataItem of swapDataItems) {
-        if (init === true || swapDataItem.destinary.equals(Data.signer)) {
-            if (swapDataItem.isNft) {
+        if (
+            init === true ||
+            ("mint" in swapDataItem && swapDataItem.destinary.equals(Data.signer)) ||
+            (!("mint" in swapDataItem) && swapDataItem.owner.equals(Data.signer))
+        ) {
+            if ("mint" in swapDataItem) {
                 if (swapDataItem.status === ItemStatus.NFTDeposited) {
                     if (swapDataItem.isCompressed) {
                         console.log(
@@ -122,7 +140,7 @@ export async function createClaimSwapInstructions(Data: {
             } else {
                 console.log(
                     "XXX - Claim Sol item mint ",
-                    swapDataItem.mint.toBase58(),
+                    swapData.acceptedPayement.toBase58(),
                     "to ",
                     swapDataItem.owner.toBase58(),
                     " - XXX"
@@ -133,7 +151,7 @@ export async function createClaimSwapInstructions(Data: {
                     signer: Data.signer,
                     swapIdentity,
                     ataList,
-                    mint: swapDataItem.mint,
+                    mint: swapData.acceptedPayement,
                 });
 
                 claimTransactionInstruction.push({

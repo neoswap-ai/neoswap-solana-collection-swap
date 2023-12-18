@@ -12,7 +12,7 @@ export function getSwapIdentityFromData(Data: {
     try {
         let seed = Data.swapData.preSeed;
 
-        Data.swapData.items
+        Data.swapData.nftItems
             .sort((x, y) => {
                 return (
                     x.mint.toString() +
@@ -22,9 +22,12 @@ export function getSwapIdentityFromData(Data: {
             })
 
             .forEach((item) => {
-                seed += item.mint;
-                seed += item.owner;
-                seed += item.destinary;
+                if (item.mint.equals(Data.swapData.acceptedPayement)) {
+                    seed += item.collection;
+                } else {
+                    seed += item.mint;
+                    seed += item.owner;
+                }
             });
 
         let swapDataAccount_seed = Buffer.from(hash(seed)).subarray(0, 32);
@@ -40,12 +43,16 @@ export function getSwapIdentityFromData(Data: {
             Data.clusterOrUrl.includes("devnet") ? NEOSWAP_PROGRAM_ID_DEV : NEOSWAP_PROGRAM_ID
         );
 
-        if (!Data.swapData.acceptedPayement)
-            Data.swapData.items.map((item) => {
-                if (!item.mint.equals(SystemProgram.programId) && !item.isNft)
-                    Data.swapData.acceptedPayement = item.mint;
-            });
-        Data.swapData.nbItems = Data.swapData.items.length;
+        // if (!Data.swapData.acceptedPayement)
+        //     Data.swapData.items.map((item) => {
+        //         if (!item.mint.equals(SystemProgram.programId) && !item.isNft)
+        //             Data.swapData.acceptedPayement = item.mint;
+        //     });
+
+        Data.swapData.nbItems = {
+            nft: Data.swapData.nftItems.length,
+            tokens: Data.swapData.tokenItems.length,
+        };
         Data.swapData.status = 0;
         return {
             swapDataAccount_publicKey,

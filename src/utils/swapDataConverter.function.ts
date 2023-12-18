@@ -8,9 +8,11 @@ import {
     SwapIdentity,
     SwapInfo,
     TradeStatusInfo,
+    TokenSwapItem,
+    SwapUserInfo,
 } from "./types";
 import { getSwapIdentityFromData } from "./getSwapIdentityFromData.function";
-import { neoTypes } from "..";
+// import { neoTypes } from "..";
 import { getProgram } from "./getProgram.obj";
 import { getMerkleTreeAndIndex } from "./getCNFTData.function";
 
@@ -20,7 +22,7 @@ export async function swapDataConverter(Data: {
     connection?: Connection;
     // preSeed?: string;
 }): Promise<SwapIdentity> {
-    let swapDatas: NftSwapItem[] = [];
+    let swapDatas: (NftSwapItem | TokenSwapItem)[] = [];
     if (!!Data.clusterOrUrl && !!Data.connection) {
     } else if (!!Data.clusterOrUrl) {
         Data.connection = getProgram({ clusterOrUrl: Data.clusterOrUrl }).provider.connection;
@@ -84,16 +86,17 @@ export async function swapDataConverter(Data: {
                             toDest.address
                         );
                         swapDatas.push({
-                            isNft: true,
+                            // isNft: true,
                             isCompressed,
-                            isPresigning: item.presigning ? item.presigning : false,
+                            // isPresigning: item.presigning ? item.presigning : false,
                             mint: new PublicKey(item.address),
                             merkleTree,
                             index,
                             owner: new PublicKey(Data.swapInfo.users[user].address),
                             destinary: new PublicKey(toDest.address),
                             amount: new BN(toDest.amount),
-                            status: neoTypes.ItemStatus.NFTPending,
+                            status: ItemStatus.NFTPending,
+                            collection: new PublicKey(item.collection),
                         });
                     });
                 })
@@ -103,12 +106,9 @@ export async function swapDataConverter(Data: {
         if (Data.swapInfo.users[user].items.token.amount !== 0) {
             console.log(user, "token", Data.swapInfo.users[user].items.token.amount);
             let ccurency = new PublicKey(Data.swapInfo.currency);
-            const userItemPresign = Data.swapInfo.users[user].items.token.presigning;
             swapDatas.push({
                 owner: new PublicKey(Data.swapInfo.users[user].address),
-                isNft: false,
                 isCompressed: false,
-                isPresigning: !!userItemPresign ? userItemPresign : false,
                 amount: new BN(Data.swapInfo.users[user].items.token.amount),
                 destinary: ccurency,
                 mint: ccurency,
@@ -118,18 +118,22 @@ export async function swapDataConverter(Data: {
                     Data.swapInfo.users[user].items.token.amount < 0
                         ? ItemStatus.SolPending
                         : ItemStatus.SolToClaim,
+                // collection:new PublicKey(Data.swapInfo.users[user].items.)
             });
         }
     }
     // console.log("swapDatas", swapDatas);
+    const nftItems: NftSwapItem[] = [];
+    swapDatas.map((x) => {
+        if (Object.prototype.hasOwnProperty.call(x, "mint")) nftItems.push(x as NftSwapItem);
+    });
+    const tokenItems: TokenSwapItem[] = swapDatas.filter((x) => {
+        return !Object.prototype.hasOwnProperty.call(x, "mint"); //.includes("mint");
+    });
 
-    const itemsNfts = swapDatas.filter((x) => {
-        return x.isNft == true;
-    });
-    const itemsSol = swapDatas.filter((x) => {
-        return x.isNft == false;
-    });
-    const items = itemsNfts.concat(itemsSol);
+    console.log("nftItems", nftItems, "tokenItems", tokenItems);
+
+    // const items = itemsNfts.concat(itemsSol);
 
     // console.log("items", items);
 
@@ -137,12 +141,13 @@ export async function swapDataConverter(Data: {
         swapData: {
             status: 0,
             initializer: SystemProgram.programId,
-            items,
+            nftItems,
+            tokenItems,
             preSeed: Data.swapInfo.preSeed ? Data.swapInfo.preSeed : "0000",
             acceptedPayement: Data.swapInfo.currency
                 ? new PublicKey(Data.swapInfo.currency)
                 : SystemProgram.programId,
-            nbItems: items.length,
+            nbItems: { nft: nftItems.length, tokens: tokenItems.length },
         },
         clusterOrUrl: Data.clusterOrUrl,
     });
@@ -179,60 +184,62 @@ export function invertedSwapDataConverter(Data: { swapData: SwapData }): SwapInf
         users: [],
     };
 
-    let uusers: { [userId: string]: neoTypes.SwapUserInfo } = {};
+    let uusers: { [userId: string]: SwapUserInfo } = {};
 
-    for (const itemNb in Data.swapData.items) {
-        const item = Data.swapData.items[itemNb];
+    for (const itemNb in Data.swapData.nftItems) {
+        const item = Data.swapData.nftItems[itemNb];
         if (!!!uusers[item.owner.toBase58()])
             uusers[item.owner.toBase58()] = { give: [], get: [], token: { amount: 0 } };
         if (!!!uusers[item.destinary.toBase58()])
             uusers[item.destinary.toBase58()] = { give: [], get: [], token: { amount: 0 } };
-        if (item.isNft) {
-            let giversMint = uusers[item.owner.toBase58()].give.filter((x) => {
-                return x.address == item.mint.toBase58();
-            });
-            let getterMint = uusers[item.destinary.toBase58()].get.filter((x) => {
-                return x.address == item.mint.toBase58();
-            });
+        let giversMint = uusers[item.owner.toBase58()].give.filter((x) => {
+            return x.address == item.mint.toBase58();
+        });
+        let getterMint = uusers[item.destinary.toBase58()].get.filter((x) => {
+            return x.address == item.mint.toBase58();
+        });
 
-            if (giversMint.length == 0) {
-                uusers[item.owner.toBase58()].give.push({
-                    address: item.mint.toBase58(),
-                    amount: item.amount.toNumber(),
-                    getters: [
-                        {
-                            address: item.destinary.toBase58(),
-                            amount: item.amount.toNumber(),
-                            status: itemStatusMap[item.status],
-                        },
-                    ],
-                });
-            } else {
-                giversMint[0].amount += item.amount.toNumber();
-                giversMint[0].getters.push({
-                    address: item.destinary.toBase58(),
-                    amount: item.amount.toNumber(),
-                    status: itemStatusMap[item.status],
-                });
-            }
-            if (getterMint.length == 0) {
-                uusers[item.destinary.toBase58()].get.push({
-                    address: item.mint.toBase58(),
-                    amount: item.amount.toNumber(),
-                    givers: [
-                        {
-                            address: item.owner.toBase58(),
-                            amount: item.amount.toNumber(),
-                            status: itemStatusMap[item.status],
-                        },
-                    ],
-                });
-            }
+        if (giversMint.length == 0) {
+            uusers[item.owner.toBase58()].give.push({
+                address: item.mint.toBase58(),
+                collection: "",
+                amount: item.amount.toNumber(),
+                getters: [
+                    {
+                        address: item.destinary.toBase58(),
+                        amount: item.amount.toNumber(),
+                        status: itemStatusMap[item.status],
+                    },
+                ],
+            });
         } else {
-            if (uusers[item.owner.toBase58()].token.amount !== 0) throw "already tokens to send";
-            uusers[item.owner.toBase58()].token.amount = item.amount.toNumber();
+            giversMint[0].amount += item.amount.toNumber();
+            giversMint[0].getters.push({
+                address: item.destinary.toBase58(),
+                amount: item.amount.toNumber(),
+                status: itemStatusMap[item.status],
+            });
+        }
+        if (getterMint.length == 0) {
+            uusers[item.destinary.toBase58()].get.push({
+                address: item.mint.toBase58(),
+                collection: "",
+                amount: item.amount.toNumber(),
+                givers: [
+                    {
+                        address: item.owner.toBase58(),
+                        amount: item.amount.toNumber(),
+                        status: itemStatusMap[item.status],
+                    },
+                ],
+            });
         }
     }
+    Data.swapData.tokenItems.map((item) => {
+        if (uusers[item.owner.toBase58()].token.amount !== 0) throw "already tokens to send";
+        uusers[item.owner.toBase58()].token.amount = item.amount.toNumber();
+    });
+
     // for (const itemNb in uusers) {
     //     console.log(
     //         itemNb,

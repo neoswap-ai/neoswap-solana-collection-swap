@@ -54,7 +54,7 @@ export const idlSwap: Idl = {
             ],
         },
         {
-            name: "initializeAdd",
+            name: "initializeAddToken",
             docs: [
                 "@notice add item to Swap's PDA. /!\\ initializer function",
                 "@dev Function to add an item to the PDA. /!\\ status of item is rewritten to according value in program.  /!\\ this function can only be triggered by initializer",
@@ -65,6 +65,33 @@ export const idlSwap: Idl = {
                 "@accounts signer: Pubkey => initializer",
                 "@return Void",
             ],
+            accounts: [
+                {
+                    name: "swapDataAccount",
+                    isMut: true,
+                    isSigner: false,
+                },
+                {
+                    name: "signer",
+                    isMut: true,
+                    isSigner: true,
+                },
+            ],
+            args: [
+                {
+                    name: "seed",
+                    type: "bytes",
+                },
+                {
+                    name: "tradeToAdd",
+                    type: {
+                        defined: "TokenSwapItem",
+                    },
+                },
+            ],
+        },
+        {
+            name: "initializeAddNft",
             accounts: [
                 {
                     name: "swapDataAccount",
@@ -121,25 +148,10 @@ export const idlSwap: Idl = {
             ],
         },
         {
-            name: "usersConfirm",
+            name: "initializeModifyToken",
             accounts: [
                 {
                     name: "swapDataAccount",
-                    isMut: true,
-                    isSigner: false,
-                },
-                {
-                    name: "userPda",
-                    isMut: true,
-                    isSigner: false,
-                },
-                {
-                    name: "userPdaAta",
-                    isMut: true,
-                    isSigner: false,
-                },
-                {
-                    name: "user",
                     isMut: true,
                     isSigner: false,
                 },
@@ -153,11 +165,17 @@ export const idlSwap: Idl = {
                 {
                     name: "seed",
                     type: "bytes",
+                },
+                {
+                    name: "tradeToModify",
+                    type: {
+                        defined: "TokenSwapItem",
+                    },
                 },
             ],
         },
         {
-            name: "initializeUsersConfirm",
+            name: "initializeModifyNft",
             accounts: [
                 {
                     name: "swapDataAccount",
@@ -174,6 +192,12 @@ export const idlSwap: Idl = {
                 {
                     name: "seed",
                     type: "bytes",
+                },
+                {
+                    name: "tradeToModify",
+                    type: {
+                        defined: "NftSwapItem",
+                    },
                 },
             ],
         },
@@ -194,29 +218,19 @@ export const idlSwap: Idl = {
                     isSigner: false,
                 },
                 {
-                    name: "swapDataAccountAta",
-                    isMut: true,
-                    isSigner: false,
-                },
-                {
-                    name: "user",
-                    isMut: false,
-                    isSigner: false,
-                },
-                {
-                    name: "userPda",
-                    isMut: true,
-                    isSigner: false,
-                },
-                {
-                    name: "userPdaAta",
-                    isMut: true,
-                    isSigner: false,
-                },
-                {
                     name: "signer",
                     isMut: true,
                     isSigner: true,
+                },
+                {
+                    name: "userAta",
+                    isMut: true,
+                    isSigner: false,
+                },
+                {
+                    name: "swapDataAccountAta",
+                    isMut: true,
+                    isSigner: false,
                 },
                 {
                     name: "mint",
@@ -254,21 +268,6 @@ export const idlSwap: Idl = {
                     isSigner: false,
                 },
                 {
-                    name: "systemProgram",
-                    isMut: false,
-                    isSigner: false,
-                },
-                {
-                    name: "tokenProgram",
-                    isMut: false,
-                    isSigner: false,
-                },
-                {
-                    name: "splTokenProgram",
-                    isMut: false,
-                    isSigner: false,
-                },
-                {
                     name: "metadataProgram",
                     isMut: false,
                     isSigner: false,
@@ -283,15 +282,21 @@ export const idlSwap: Idl = {
                     isMut: false,
                     isSigner: false,
                 },
+                {
+                    name: "splTokenProgram",
+                    isMut: false,
+                    isSigner: false,
+                },
+                {
+                    name: "systemProgram",
+                    isMut: false,
+                    isSigner: false,
+                },
             ],
             args: [
                 {
                     name: "seed",
                     type: "bytes",
-                },
-                {
-                    name: "bump",
-                    type: "u8",
                 },
             ],
         },
@@ -301,16 +306,6 @@ export const idlSwap: Idl = {
                 {
                     name: "swapDataAccount",
                     isMut: true,
-                    isSigner: false,
-                },
-                {
-                    name: "userPda",
-                    isMut: true,
-                    isSigner: false,
-                },
-                {
-                    name: "user",
-                    isMut: false,
                     isSigner: false,
                 },
                 {
@@ -460,10 +455,6 @@ export const idlSwap: Idl = {
                 {
                     name: "seed",
                     type: "bytes",
-                },
-                {
-                    name: "bump",
-                    type: "u8",
                 },
             ],
         },
@@ -1175,396 +1166,6 @@ export const idlSwap: Idl = {
                 },
             ],
         },
-        {
-            name: "userPdaCreate",
-            docs: [
-                "@notice Initialize User's PDA. /!\\ Signer will be User",
-                "@dev Function to trigger to initialize User's PDA with according space. /!\\ Signer will be User",
-                "@param seed: u8[] => Seed buffer corresponding to User's Publickey",
-                '@param bump: u8 => "Bump corresponding to User\'s Publickey"',
-                "@accounts user_pda: Pubkey => User's PDA corresponding to seeds",
-                "@accounts signer: Pubkey => User",
-                "@accounts system_program: Pubkey = system_program_id",
-                "@accounts spl_token_program: Pubkey = spl_associated_token_program_id",
-                "@return Void",
-            ],
-            accounts: [
-                {
-                    name: "userPda",
-                    isMut: true,
-                    isSigner: false,
-                },
-                {
-                    name: "user",
-                    isMut: false,
-                    isSigner: false,
-                },
-                {
-                    name: "signer",
-                    isMut: true,
-                    isSigner: true,
-                },
-                {
-                    name: "systemProgram",
-                    isMut: false,
-                    isSigner: false,
-                },
-                {
-                    name: "splTokenProgram",
-                    isMut: false,
-                    isSigner: false,
-                },
-            ],
-            args: [],
-        },
-        {
-            name: "userModifyNftBuy",
-            docs: [
-                "@notice add item to User's PDA. /!\\ User function",
-                "@dev Function to add an item to the User's PDA.  /!\\ this function can only be triggered by User",
-                "@param seed: u8[] => Seed buffer corresponding to User's Publickey",
-                '@param bump: u8 => "Bump corresponding to User\'s PDA"',
-                '@param trade_to_add: NftSwapItem: {is_nft: bool => "return true if the item is en NFT (true)/(false)", mint: Pubkey => "(Mint address)/(Owner address)", amount: i64 => (nbr of NFT engaged in this trade)/(number of lamports the user will exchange with the smart contract if_positive(user will give lamports), if_negative(user will receive lamports)), owner: Pubkey => owner of the NFT or lamports , destinary: Pubkey => (user who should receive the NFT)/(Owner address), status : u8 => /!\\ will be rewritten by program, }',
-                "@accounts user_pda: Pubkey => User's PDA corresponding to seeds",
-                "@accounts signer: Pubkey => initializer",
-                "@return Void",
-            ],
-            accounts: [
-                {
-                    name: "userPda",
-                    isMut: true,
-                    isSigner: false,
-                },
-                {
-                    name: "signer",
-                    isMut: true,
-                    isSigner: true,
-                },
-                {
-                    name: "tokenProgram",
-                    isMut: false,
-                    isSigner: false,
-                },
-            ],
-            args: [
-                {
-                    name: "itemToModify",
-                    type: {
-                        defined: "OptionToBuy",
-                    },
-                },
-                {
-                    name: "isRemoveItem",
-                    type: "bool",
-                },
-            ],
-        },
-        {
-            name: "userModifyPNftSell",
-            accounts: [
-                {
-                    name: "userPda",
-                    isMut: true,
-                    isSigner: false,
-                },
-                {
-                    name: "user",
-                    isMut: true,
-                    isSigner: false,
-                },
-                {
-                    name: "signer",
-                    isMut: true,
-                    isSigner: true,
-                },
-                {
-                    name: "userAta",
-                    isMut: true,
-                    isSigner: false,
-                },
-                {
-                    name: "userPdaAta",
-                    isMut: true,
-                    isSigner: false,
-                },
-                {
-                    name: "mint",
-                    isMut: false,
-                    isSigner: false,
-                },
-                {
-                    name: "nftMetadata",
-                    isMut: true,
-                    isSigner: false,
-                },
-                {
-                    name: "nftMasterEdition",
-                    isMut: false,
-                    isSigner: false,
-                },
-                {
-                    name: "ownerTokenRecord",
-                    isMut: true,
-                    isSigner: false,
-                },
-                {
-                    name: "destinationTokenRecord",
-                    isMut: true,
-                    isSigner: false,
-                },
-                {
-                    name: "authRulesProgram",
-                    isMut: false,
-                    isSigner: false,
-                },
-                {
-                    name: "authRules",
-                    isMut: false,
-                    isSigner: false,
-                },
-                {
-                    name: "metadataProgram",
-                    isMut: false,
-                    isSigner: false,
-                },
-                {
-                    name: "sysvarInstructions",
-                    isMut: false,
-                    isSigner: false,
-                },
-                {
-                    name: "splAtaProgram",
-                    isMut: false,
-                    isSigner: false,
-                },
-                {
-                    name: "splTokenProgram",
-                    isMut: false,
-                    isSigner: false,
-                },
-                {
-                    name: "systemProgram",
-                    isMut: false,
-                    isSigner: false,
-                },
-                {
-                    name: "tokenProgram",
-                    isMut: false,
-                    isSigner: false,
-                },
-            ],
-            args: [
-                {
-                    name: "itemToModify",
-                    type: {
-                        defined: "OptionToSell",
-                    },
-                },
-                {
-                    name: "isRemoveItem",
-                    type: "bool",
-                },
-                {
-                    name: "seed",
-                    type: "bytes",
-                },
-                {
-                    name: "bump",
-                    type: "u8",
-                },
-            ],
-        },
-        {
-            name: "userModifyCNftSell",
-            accounts: [
-                {
-                    name: "userPda",
-                    isMut: true,
-                    isSigner: false,
-                },
-                {
-                    name: "user",
-                    isMut: true,
-                    isSigner: true,
-                },
-                {
-                    name: "leafDelegate",
-                    isMut: true,
-                    isSigner: true,
-                },
-                {
-                    name: "treeAuthority",
-                    isMut: true,
-                    isSigner: false,
-                },
-                {
-                    name: "merkleTree",
-                    isMut: true,
-                    isSigner: false,
-                },
-                {
-                    name: "systemProgram",
-                    isMut: false,
-                    isSigner: false,
-                },
-                {
-                    name: "logWrapper",
-                    isMut: false,
-                    isSigner: false,
-                },
-                {
-                    name: "compressionProgram",
-                    isMut: false,
-                    isSigner: false,
-                },
-                {
-                    name: "bubblegumProgram",
-                    isMut: false,
-                    isSigner: false,
-                },
-                {
-                    name: "metadataProgram",
-                    isMut: false,
-                    isSigner: false,
-                },
-                {
-                    name: "sysvarInstructions",
-                    isMut: false,
-                    isSigner: false,
-                },
-                {
-                    name: "splTokenProgram",
-                    isMut: false,
-                    isSigner: false,
-                },
-                {
-                    name: "splAtaProgram",
-                    isMut: false,
-                    isSigner: false,
-                },
-            ],
-            args: [
-                {
-                    name: "itemToModify",
-                    type: {
-                        defined: "OptionToSell",
-                    },
-                },
-                {
-                    name: "isRemoveItem",
-                    type: "bool",
-                },
-                {
-                    name: "root",
-                    type: {
-                        array: ["u8", 32],
-                    },
-                },
-                {
-                    name: "dataHash",
-                    type: {
-                        array: ["u8", 32],
-                    },
-                },
-                {
-                    name: "creatorHash",
-                    type: {
-                        array: ["u8", 32],
-                    },
-                },
-                {
-                    name: "nonce",
-                    type: "u64",
-                },
-                {
-                    name: "index",
-                    type: "u32",
-                },
-                {
-                    name: "seed",
-                    type: "bytes",
-                },
-                {
-                    name: "bump",
-                    type: "u8",
-                },
-            ],
-        },
-        {
-            name: "userModifyTopUp",
-            accounts: [
-                {
-                    name: "userPda",
-                    isMut: true,
-                    isSigner: false,
-                },
-                {
-                    name: "userPdaAta",
-                    isMut: true,
-                    isSigner: false,
-                },
-                {
-                    name: "signerAta",
-                    isMut: true,
-                    isSigner: false,
-                },
-                {
-                    name: "signer",
-                    isMut: true,
-                    isSigner: true,
-                },
-                {
-                    name: "tokenProgram",
-                    isMut: false,
-                    isSigner: false,
-                },
-                {
-                    name: "systemProgram",
-                    isMut: false,
-                    isSigner: false,
-                },
-            ],
-            args: [
-                {
-                    name: "amountToTopup",
-                    type: "i64",
-                },
-                {
-                    name: "seed",
-                    type: "bytes",
-                },
-                {
-                    name: "bump",
-                    type: "u8",
-                },
-            ],
-        },
-        {
-            name: "userPdaClose",
-            accounts: [
-                {
-                    name: "userPda",
-                    isMut: true,
-                    isSigner: false,
-                },
-                {
-                    name: "signer",
-                    isMut: true,
-                    isSigner: true,
-                },
-                {
-                    name: "systemProgram",
-                    isMut: false,
-                    isSigner: false,
-                },
-                {
-                    name: "splTokenProgram",
-                    isMut: false,
-                    isSigner: false,
-                },
-            ],
-            args: [],
-        },
     ],
     accounts: [
         {
@@ -1582,17 +1183,31 @@ export const idlSwap: Idl = {
                     },
                     {
                         name: "nbItems",
-                        type: "u32",
+                        type: {
+                            defined: "NbItems",
+                        },
                     },
                     {
                         name: "preSeed",
                         type: "string",
                     },
                     {
-                        name: "items",
+                        name: "seedString",
+                        type: "string",
+                    },
+                    {
+                        name: "nftItems",
                         type: {
                             vec: {
                                 defined: "NftSwapItem",
+                            },
+                        },
+                    },
+                    {
+                        name: "tokenItems",
+                        type: {
+                            vec: {
+                                defined: "TokenSwapItem",
                             },
                         },
                     },
@@ -1603,45 +1218,29 @@ export const idlSwap: Idl = {
                 ],
             },
         },
+    ],
+    types: [
         {
-            name: "UserPdaData",
+            name: "NbItems",
             type: {
                 kind: "struct",
                 fields: [
                     {
-                        name: "owner",
-                        type: "publicKey",
+                        name: "nft",
+                        type: "u32",
                     },
                     {
-                        name: "itemsToSell",
-                        type: {
-                            vec: {
-                                defined: "OptionToSell",
-                            },
-                        },
-                    },
-                    {
-                        name: "itemsToBuy",
-                        type: {
-                            vec: {
-                                defined: "OptionToBuy",
-                            },
-                        },
+                        name: "tokens",
+                        type: "u32",
                     },
                 ],
             },
         },
-    ],
-    types: [
         {
             name: "NftSwapItem",
             type: {
                 kind: "struct",
                 fields: [
-                    {
-                        name: "isNft",
-                        type: "bool",
-                    },
                     {
                         name: "isCompressed",
                         type: "bool",
@@ -1674,53 +1273,29 @@ export const idlSwap: Idl = {
                         name: "status",
                         type: "u8",
                     },
-                ],
-            },
-        },
-        {
-            name: "OptionToSell",
-            type: {
-                kind: "struct",
-                fields: [
                     {
-                        name: "mint",
+                        name: "collection",
                         type: "publicKey",
-                    },
-                    {
-                        name: "priceMin",
-                        type: "u64",
-                    },
-                    {
-                        name: "token",
-                        type: "publicKey",
-                    },
-                    {
-                        name: "amount",
-                        type: "u64",
                     },
                 ],
             },
         },
         {
-            name: "OptionToBuy",
+            name: "TokenSwapItem",
             type: {
                 kind: "struct",
                 fields: [
                     {
-                        name: "mint",
-                        type: "publicKey",
-                    },
-                    {
-                        name: "priceMax",
-                        type: "u64",
-                    },
-                    {
-                        name: "token",
-                        type: "publicKey",
-                    },
-                    {
                         name: "amount",
-                        type: "u64",
+                        type: "i64",
+                    },
+                    {
+                        name: "owner",
+                        type: "publicKey",
+                    },
+                    {
+                        name: "status",
+                        type: "u8",
                     },
                 ],
             },
@@ -1730,9 +1305,6 @@ export const idlSwap: Idl = {
             type: {
                 kind: "enum",
                 variants: [
-                    {
-                        name: "WaitingToValidatePresigning",
-                    },
                     {
                         name: "Initializing",
                     },
@@ -1759,12 +1331,6 @@ export const idlSwap: Idl = {
             type: {
                 kind: "enum",
                 variants: [
-                    {
-                        name: "NFTPresigningWaitingForApproval",
-                    },
-                    {
-                        name: "SolPresigningWaitingForApproval",
-                    },
                     {
                         name: "NFTPending",
                     },
@@ -2009,8 +1575,23 @@ export const idlSwap: Idl = {
         },
         {
             code: 6042,
+            name: "SeedStringTooLong",
+            msg: "SeedString has too many character (max: 32)",
+        },
+        {
+            code: 6043,
             name: "NoAcceptedPaymentGiven",
             msg: "The list of token accepted for payment is empty",
+        },
+        {
+            code: 6044,
+            name: "NoModify",
+            msg: "Nothing fund to modify",
+        },
+        {
+            code: 6045,
+            name: "AlreadyModified",
+            msg: "Already found something to modify",
         },
     ],
 };
