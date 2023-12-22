@@ -15,7 +15,7 @@ export const idlSwap: Idl = {
                 "@accounts swap_data_account: Pubkey => Swap's PDA corresponding to seeds",
                 "@accounts signer: Pubkey => initializer",
                 "@accounts system_program: Pubkey = system_program_id",
-                "@accounts spl_token_program: Pubkey = spl_associated_token_program_id",
+                "@accounts token_program: Pubkey = spl_associated_token_program_id",
                 "@return Void",
             ],
             accounts: [
@@ -35,7 +35,7 @@ export const idlSwap: Idl = {
                     isSigner: false,
                 },
                 {
-                    name: "splTokenProgram",
+                    name: "tokenProgram",
                     isMut: false,
                     isSigner: false,
                 },
@@ -283,7 +283,7 @@ export const idlSwap: Idl = {
                     isSigner: false,
                 },
                 {
-                    name: "splTokenProgram",
+                    name: "tokenProgram",
                     isMut: false,
                     isSigner: false,
                 },
@@ -359,7 +359,7 @@ export const idlSwap: Idl = {
                     isSigner: false,
                 },
                 {
-                    name: "splTokenProgram",
+                    name: "tokenProgram",
                     isMut: false,
                     isSigner: false,
                 },
@@ -436,11 +436,6 @@ export const idlSwap: Idl = {
                     isSigner: false,
                 },
                 {
-                    name: "user",
-                    isMut: true,
-                    isSigner: false,
-                },
-                {
                     name: "userAta",
                     isMut: true,
                     isSigner: false,
@@ -485,10 +480,6 @@ export const idlSwap: Idl = {
                 {
                     name: "seed",
                     type: "bytes",
-                },
-                {
-                    name: "bump",
-                    type: "u8",
                 },
             ],
         },
@@ -651,11 +642,6 @@ export const idlSwap: Idl = {
                     isSigner: false,
                 },
                 {
-                    name: "splTokenProgram",
-                    isMut: false,
-                    isSigner: false,
-                },
-                {
                     name: "splAtaProgram",
                     isMut: false,
                     isSigner: false,
@@ -736,7 +722,7 @@ export const idlSwap: Idl = {
                     isSigner: false,
                 },
                 {
-                    name: "splTokenProgram",
+                    name: "tokenProgram",
                     isMut: false,
                     isSigner: false,
                 },
@@ -793,7 +779,7 @@ export const idlSwap: Idl = {
                 "@accounts swap_data_account: Pubkey => Swap's PDA corresponding to seeds, signer: Pubkey => initializer",
                 "@accounts signer: Pubkey => initializer",
                 "@accounts system_program: Pubkey = system_program_id",
-                "@accounts spl_token_program: Pubkey = spl_associated_token_program_id",
+                "@accounts token_program: Pubkey = spl_associated_token_program_id",
                 "@return Void",
             ],
             accounts: [
@@ -803,7 +789,7 @@ export const idlSwap: Idl = {
                     isSigner: false,
                 },
                 {
-                    name: "splTokenProgram",
+                    name: "tokenProgram",
                     isMut: false,
                     isSigner: false,
                 },
@@ -822,10 +808,6 @@ export const idlSwap: Idl = {
                 {
                     name: "seed",
                     type: "bytes",
-                },
-                {
-                    name: "bump",
-                    type: "u8",
                 },
             ],
         },
@@ -988,11 +970,6 @@ export const idlSwap: Idl = {
                     isSigner: false,
                 },
                 {
-                    name: "splTokenProgram",
-                    isMut: false,
-                    isSigner: false,
-                },
-                {
                     name: "splAtaProgram",
                     isMut: false,
                     isSigner: false,
@@ -1073,7 +1050,7 @@ export const idlSwap: Idl = {
                     isSigner: false,
                 },
                 {
-                    name: "splTokenProgram",
+                    name: "tokenProgram",
                     isMut: false,
                     isSigner: false,
                 },
@@ -1130,7 +1107,7 @@ export const idlSwap: Idl = {
                 "@accounts swap_data_account: Pubkey => Swap's PDA corresponding to seeds",
                 "@accounts signer: Pubkey => initializer",
                 "@accounts system_program: Pubkey = system_program_id",
-                "@accounts spl_token_program: Pubkey = spl_associated_token_program_id",
+                "@accounts token_program: Pubkey = spl_associated_token_program_id",
                 "@return Void",
             ],
             accounts: [
@@ -1140,7 +1117,7 @@ export const idlSwap: Idl = {
                     isSigner: false,
                 },
                 {
-                    name: "splTokenProgram",
+                    name: "tokenProgram",
                     isMut: false,
                     isSigner: false,
                 },
@@ -1159,10 +1136,6 @@ export const idlSwap: Idl = {
                 {
                     name: "seed",
                     type: "bytes",
-                },
-                {
-                    name: "bump",
-                    type: "u8",
                 },
             ],
         },
