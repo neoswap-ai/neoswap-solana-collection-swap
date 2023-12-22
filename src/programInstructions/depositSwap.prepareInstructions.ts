@@ -1,4 +1,4 @@
-import { Cluster, PublicKey } from "@solana/web3.js";
+import { Cluster, PublicKey, SystemProgram } from "@solana/web3.js";
 import { getProgram } from "../utils/getProgram.obj";
 import { getSwapDataAccountFromPublicKey } from "../utils/getSwapDataAccountFromPublicKey.function";
 import { getSwapIdentityFromData } from "../utils/getSwapIdentityFromData.function";
@@ -117,8 +117,22 @@ export async function prepareDepositSwapInstructions(Data: {
             }
         } else {
             if (swapDataItem.status === ItemStatus.SolPending) {
+                let tokenName = "SOL";
+
+                switch (swapData.acceptedPayement.toString()) {
+                    case "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v":
+                        tokenName = "USCD";
+                        break;
+                    case "ATLASXmbPQxBUYbxPsV97usA3fPQYEqzQBUHgiFCUsXx":
+                        tokenName = "ATLAS";
+                        break;
+                    case SystemProgram.programId.toBase58():
+                        tokenName = "SOL";
+                        break;
+                }
+
                 console.log(
-                    "XXX - Deposit SOL item with mint ",
+                    `XXX - Deposit ${tokenName} item with mint `,
                     swapDataItem.mint.toBase58(),
                     " from ",
                     swapDataItem.owner.toBase58(),
@@ -137,11 +151,12 @@ export async function prepareDepositSwapInstructions(Data: {
                         ataList.push(element);
                     }
                 });
+
                 apiInstructions.push({
                     blockchain: "solana",
-                    type: "deposit SOL",
+                    type: `deposit ${tokenName}`,
                     order: 0,
-                    description: `Escrow your SOL in swap ${Data.swapDataAccount}`,
+                    description: `Escrow your ${tokenName} in swap ${Data.swapDataAccount}`,
                     config: depositSolInstruction.instructions,
                 });
             } else if (swapDataItem.status === ItemStatus.SolDeposited) {
