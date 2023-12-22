@@ -126,6 +126,12 @@ export async function prepareDepositSwapInstructions(Data: {
                     case "ATLASXmbPQxBUYbxPsV97usA3fPQYEqzQBUHgiFCUsXx":
                         tokenName = "ATLAS";
                         break;
+                    case "6dhTynDkYsVM7cbF7TKfC9DWB636TcEM935fq7JzL2ES":
+                        tokenName = "BONK";
+                        break;
+                    case "GENEtH5amGSi8kHAtQoezp1XEXwZJ8vcuePYnXdKrMYz":
+                        tokenName = "GENOPETS";
+                        break;
                     case SystemProgram.programId.toBase58():
                         tokenName = "SOL";
                         break;
