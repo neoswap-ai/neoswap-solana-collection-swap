@@ -43,7 +43,7 @@ export const createNewOfferIx = async (params: { program: Program; offer: Ordina
             adminPda,
             signer: params.program.provider.publicKey,
             systemProgram: web3.SystemProgram.programId,
-            splTokenProgram: process.env.REACT_APP_SOLANA_SPL_ATA,
+            tokenProgram: process.env.REACT_APP_SOLANA_SPL_ATA,
         })
         .instruction();
 };

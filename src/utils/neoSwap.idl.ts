@@ -199,6 +199,10 @@ export const idlSwap: Idl = {
                         defined: "NftSwapItem",
                     },
                 },
+                {
+                    name: "isMaker",
+                    type: "bool",
+                },
             ],
         },
         {

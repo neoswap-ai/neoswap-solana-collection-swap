@@ -3,12 +3,14 @@ import { cancelAndCloseSwap } from "./processor/cancelAndCloseSwap";
 import { claimAndCloseSwap } from "./processor/claimAndCloseSwap";
 import { depositSwap } from "./processor/depositSwap";
 import { initializeSwap } from "./processor/initializeSwap";
+import { modifySwap } from "./processor/modifySwap";
 import { apiProcessorTranscript } from "./programInstructions/apiProcessor.transcript";
 import { createCancelSwapInstructions } from "./programInstructions/cancelSwap.instructions";
 import { createClaimSwapInstructions } from "./programInstructions/claimSwap.instructions";
 import { createDepositSwapInstructions } from "./programInstructions/depositSwap.instructions";
 import { prepareDepositSwapInstructions } from "./programInstructions/depositSwap.prepareInstructions";
 import { createInitializeSwapInstructions } from "./programInstructions/initializeSwap.instructions";
+import { createModifySwapInstructions } from "./programInstructions/modifySwap.instructions";
 import {
     findNftDataAndMetadataAccount,
     findNftMasterEdition,
@@ -58,6 +60,7 @@ const UTILS = {
 };
 const CREATE_INSTRUCTIONS = {
     createInitializeSwapInstructions,
+    createModifySwapInstructions,
     createDepositSwapInstructions,
     createClaimSwapInstructions,
     createCancelSwapInstructions,
@@ -67,6 +70,7 @@ const CREATE_INSTRUCTIONS = {
 
 export const neoSwap = {
     initializeSwap,
+    modifySwap,
     depositSwap,
     claimAndCloseSwap,
     cancelAndCloseSwap,

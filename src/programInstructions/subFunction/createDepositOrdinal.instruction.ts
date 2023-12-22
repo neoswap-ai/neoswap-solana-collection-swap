@@ -80,7 +80,7 @@ export const createDepositOrdinalIx = async (params: {
             tokenBuyerAccount,
             tokenEscrowAccount,
             systemProgram: web3.SystemProgram.programId,
-            splTokenProgram: process.env.REACT_APP_SOLANA_SPL_ATA,
+            tokenProgram: process.env.REACT_APP_SOLANA_SPL_ATA,
         })
         .instruction();
     Ixs.push(instruction);

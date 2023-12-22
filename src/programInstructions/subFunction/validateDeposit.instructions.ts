@@ -55,7 +55,7 @@ export const validateDeposit = async (Data: {
         {
             tx: new Transaction().add(
                 await program.methods
-                    .validateDeposit(swapIdentity.swapDataAccount_seed)
+                    .depositValidate(swapIdentity.swapDataAccount_seed)
                     .accounts({
                         swapDataAccount: Data.swapDataAccount,
                         signer: Data.signer,

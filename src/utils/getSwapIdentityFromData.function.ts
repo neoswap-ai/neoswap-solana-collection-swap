@@ -9,39 +9,46 @@ export function getSwapIdentityFromData(Data: {
     clusterOrUrl: Cluster | string;
 }): SwapIdentity {
     // console.log("swapdata", Data.swapData);
+    let swapDataAccount_seed: Buffer = Buffer.alloc(32);
     try {
-        let seed = Data.swapData.preSeed;
+        if (Data.swapData.seedString.length === 0) {
+            let seed = Data.swapData.preSeed;
 
-        Data.swapData.nftItems
-            .sort((x, y) => {
-                return (
-                    x.mint.toString() +
-                    x.owner.toString() +
-                    x.destinary.toString()
-                ).localeCompare(y.mint.toString() + y.owner.toString() + y.destinary.toString());
-            })
+            Data.swapData.nftItems
+                .sort((x, y) => {
+                    return (
+                        x.mint.toString() +
+                        x.owner.toString() +
+                        x.destinary.toString()
+                    ).localeCompare(
+                        y.mint.toString() + y.owner.toString() + y.destinary.toString()
+                    );
+                })
 
-            .forEach((item) => {
-                if (item.mint.equals(Data.swapData.acceptedPayement)) {
-                    seed += item.collection;
-                } else {
-                    seed += item.mint;
-                    seed += item.owner;
-                }
-            });
+                .forEach((item) => {
+                    if (item.mint.equals(SystemProgram.programId)) {
+                        seed += item.collection;
+                    } else {
+                        seed += item.mint;
+                        seed += item.owner;
+                    }
+                });
 
-        let swapDataAccount_seed = Buffer.from(hash(seed)).subarray(0, 32);
-
+            swapDataAccount_seed = Buffer.from(hash(seed)).subarray(0, 32);
+            Data.swapData.seedString = bs58.encode(swapDataAccount_seed);
+        } else {
+            swapDataAccount_seed = Buffer.from(bs58.decode(Data.swapData.seedString));
+        }
         const [swapDataAccount_publicKey, swapDataAccount_bump] = PublicKey.findProgramAddressSync(
             [swapDataAccount_seed],
             Data.clusterOrUrl.includes("devnet") ? NEOSWAP_PROGRAM_ID_DEV : NEOSWAP_PROGRAM_ID
         );
         console.log("swapDataAccount_publicKey", swapDataAccount_publicKey.toBase58());
         // console.log("swapDataAccount_publicKey", Data.swapData);
-        console.log(
-            'Data.clusterOrUrl.includes("devnet") ? NEOSWAP_PROGRAM_ID_DEV : NEOSWAP_PROGRAM_ID',
-            Data.clusterOrUrl.includes("devnet") ? NEOSWAP_PROGRAM_ID_DEV : NEOSWAP_PROGRAM_ID
-        );
+        // console.log(
+        //     'Data.clusterOrUrl.includes("devnet") ? NEOSWAP_PROGRAM_ID_DEV : NEOSWAP_PROGRAM_ID',
+        //     Data.clusterOrUrl.includes("devnet") ? NEOSWAP_PROGRAM_ID_DEV : NEOSWAP_PROGRAM_ID
+        // );
 
         // if (!Data.swapData.acceptedPayement)
         //     Data.swapData.items.map((item) => {
@@ -54,11 +61,12 @@ export function getSwapIdentityFromData(Data: {
             tokens: Data.swapData.tokenItems.length,
         };
         Data.swapData.status = 0;
+        let swapDataAccount_seedString = bs58.encode(swapDataAccount_seed);
         return {
             swapDataAccount_publicKey,
             swapDataAccount_seed,
             swapDataAccount_bump,
-            swapDataAccount_seedString: bs58.encode(swapDataAccount_seed),
+            swapDataAccount_seedString,
             swapData: Data.swapData,
         };
     } catch (error) {

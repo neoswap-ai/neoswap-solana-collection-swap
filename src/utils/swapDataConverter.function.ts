@@ -97,7 +97,7 @@ export async function swapDataConverter(Data: {
                             amount: new BN(toDest.amount),
                             status: ItemStatus.NFTPending,
                             collection: new PublicKey(item.collection),
-                        });
+                        } as NftSwapItem);
                     });
                 })
             );
@@ -105,30 +105,30 @@ export async function swapDataConverter(Data: {
 
         if (Data.swapInfo.users[user].items.token.amount !== 0) {
             console.log(user, "token", Data.swapInfo.users[user].items.token.amount);
-            let ccurency = new PublicKey(Data.swapInfo.currency);
             swapDatas.push({
                 owner: new PublicKey(Data.swapInfo.users[user].address),
-                isCompressed: false,
+                // isCompressed: false,
                 amount: new BN(Data.swapInfo.users[user].items.token.amount),
-                destinary: ccurency,
-                mint: ccurency,
-                merkleTree: ccurency,
-                index: new BN(0),
+                // destinary: ccurency,
+                // mint: ccurency,
+                // merkleTree: ccurency,
+                // index: new BN(0),
                 status:
                     Data.swapInfo.users[user].items.token.amount < 0
                         ? ItemStatus.SolPending
                         : ItemStatus.SolToClaim,
                 // collection:new PublicKey(Data.swapInfo.users[user].items.)
-            });
+            } as TokenSwapItem);
         }
     }
     // console.log("swapDatas", swapDatas);
     const nftItems: NftSwapItem[] = [];
     swapDatas.map((x) => {
-        if (Object.prototype.hasOwnProperty.call(x, "mint")) nftItems.push(x as NftSwapItem);
+        if ("mint" in x) nftItems.push(x as NftSwapItem);
+        // if (Object.prototype.hasOwnProperty.call(x, "mint")) nftItems.push(x as NftSwapItem);
     });
     const tokenItems: TokenSwapItem[] = swapDatas.filter((x) => {
-        return !Object.prototype.hasOwnProperty.call(x, "mint"); //.includes("mint");
+        return !("mint" in x); //.includes("mint");
     });
 
     console.log("nftItems", nftItems, "tokenItems", tokenItems);
@@ -144,6 +144,7 @@ export async function swapDataConverter(Data: {
             nftItems,
             tokenItems,
             preSeed: Data.swapInfo.preSeed ? Data.swapInfo.preSeed : "0000",
+            seedString: "",
             acceptedPayement: Data.swapInfo.currency
                 ? new PublicKey(Data.swapInfo.currency)
                 : SystemProgram.programId,

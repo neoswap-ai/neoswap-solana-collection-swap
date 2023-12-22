@@ -18,7 +18,7 @@ export async function getClaimSolInstructions(Data: {
     let instructions: TransactionInstruction[] = [];
 
     let swapDataAccountAta = Data.swapIdentity.swapDataAccount_publicKey;
-    let userAta = Data.signer;
+    let userAta = Data.user;
     let newAtas = [];
 
     if (!Data.mint.equals(SystemProgram.programId)) {
@@ -58,7 +58,7 @@ export async function getClaimSolInstructions(Data: {
             )
             .accounts({
                 systemProgram: SystemProgram.programId,
-                splTokenProgram: TOKEN_PROGRAM_ID,
+                tokenProgram: TOKEN_PROGRAM_ID,
                 swapDataAccount: Data.swapIdentity.swapDataAccount_publicKey,
                 swapDataAccountAta,
                 user: Data.user,

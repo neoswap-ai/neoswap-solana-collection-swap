@@ -3,8 +3,8 @@ import { TxWithSigner, TradeStatus } from "../../utils/types";
 import { getProgram } from "../../utils/getProgram.obj";
 import { getSwapIdentityFromData } from "../../utils/getSwapIdentityFromData.function";
 import { getSwapDataAccountFromPublicKey } from "../../utils/getSwapDataAccountFromPublicKey.function";
-import { SOLANA_SPL_ATA_PROGRAM_ID } from "../../utils/const";
 import { Program } from "@coral-xyz/anchor";
+import { SOLANA_SPL_ATA_PROGRAM_ID } from "../../utils/const";
 
 export const createValidateCanceledInstructions = async (Data: {
     swapDataAccount: PublicKey;
@@ -52,13 +52,13 @@ export const createValidateCanceledInstructions = async (Data: {
         {
             tx: new Transaction().add(
                 await program.methods
-                    .validateCancel(
+                    .cancelValidate(
                         swapIdentity.swapDataAccount_seed
                         // swapIdentity.swapDataAccount_bump
                     )
                     .accounts({
                         systemProgram: SystemProgram.programId,
-                        splTokenProgram: SOLANA_SPL_ATA_PROGRAM_ID,
+                        tokenProgram: SOLANA_SPL_ATA_PROGRAM_ID,
                         swapDataAccount: Data.swapDataAccount,
                         signer: Data.signer,
                     })

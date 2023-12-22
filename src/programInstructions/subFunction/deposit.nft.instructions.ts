@@ -19,8 +19,10 @@ import { SwapIdentity } from "../../utils/types";
 import {
     METAPLEX_AUTH_RULES_PROGRAM,
     SOLANA_SPL_ATA_PROGRAM_ID,
+    // SOLANA_SPL_ATA_PROGRAM_ID,
     TOKEN_METADATA_PROGRAM,
 } from "../../utils/const";
+
 import { errorIfInsufficientBalance } from "../../utils/errorIfInsufficientBalance.function";
 
 export async function getDepositNftInstruction(Data: {
@@ -104,48 +106,48 @@ export async function getDepositNftInstruction(Data: {
         });
         instructions.push(
             await Data.program.methods
-                .depositNft(Data.swapIdentity.swapDataAccount_seed)
+                .depositPNft(Data.swapIdentity.swapDataAccount_seed)
                 .accounts({
                     swapDataAccount: Data.swapIdentity.swapDataAccount_publicKey.toBase58(),
                     signer: Data.signer.toBase58(),
-                    itemFromDeposit: userAta.toBase58(),
+                    userAta: userAta.toBase58(),
+                    swapDataAccountAta: pdaAta.toBase58(),
                     mint: Data.mint.toBase58(),
                     nftMetadata: nftMetadata.toBase58(),
-                    itemToDeposit: pdaAta.toBase58(),
                     nftMasterEdition: nftMasterEdition.toBase58(),
                     ownerTokenRecord: ownerTokenRecord.toBase58(),
                     destinationTokenRecord: destinationTokenRecord.toBase58(),
-                    systemProgram: SystemProgram.programId.toBase58(),
-                    metadataProgram: TOKEN_METADATA_PROGRAM,
-                    sysvarInstructions: SYSVAR_INSTRUCTIONS_PUBKEY.toBase58(),
-                    splTokenProgram: TOKEN_PROGRAM_ID.toBase58(),
-                    splAtaProgram: SOLANA_SPL_ATA_PROGRAM_ID,
                     authRulesProgram: METAPLEX_AUTH_RULES_PROGRAM,
                     authRules,
+                    metadataProgram: TOKEN_METADATA_PROGRAM,
+                    sysvarInstructions: SYSVAR_INSTRUCTIONS_PUBKEY.toBase58(),
+                    splAtaProgram: SOLANA_SPL_ATA_PROGRAM_ID,
+                    tokenProgram: TOKEN_PROGRAM_ID.toBase58(),
+                    systemProgram: SystemProgram.programId.toBase58(),
                 })
                 .instruction()
         );
     } else {
         instructions.push(
             await Data.program.methods
-                .depositNft(Data.swapIdentity.swapDataAccount_seed)
+                .depositPNft(Data.swapIdentity.swapDataAccount_seed)
                 .accounts({
-                    systemProgram: SystemProgram.programId.toBase58(),
-                    metadataProgram: TOKEN_METADATA_PROGRAM,
-                    sysvarInstructions: SYSVAR_INSTRUCTIONS_PUBKEY.toBase58(),
-                    splTokenProgram: TOKEN_PROGRAM_ID.toBase58(),
-                    splAtaProgram: SOLANA_SPL_ATA_PROGRAM_ID,
                     swapDataAccount: Data.swapIdentity.swapDataAccount_publicKey.toBase58(),
                     signer: Data.signer.toBase58(),
-                    itemFromDeposit: userAta.toBase58(),
+                    userAta: userAta.toBase58(),
+                    swapDataAccountAta: pdaAta.toBase58(),
                     mint: Data.mint.toBase58(),
                     nftMetadata: nftMetadata.toBase58(),
-                    itemToDeposit: pdaAta.toBase58(),
                     nftMasterEdition: Data.signer.toBase58(),
                     ownerTokenRecord: Data.signer.toBase58(),
                     destinationTokenRecord: Data.signer.toBase58(),
                     authRulesProgram: METAPLEX_AUTH_RULES_PROGRAM,
                     authRules: Data.signer.toBase58(),
+                    metadataProgram: TOKEN_METADATA_PROGRAM,
+                    sysvarInstructions: SYSVAR_INSTRUCTIONS_PUBKEY.toBase58(),
+                    splAtaProgram: SOLANA_SPL_ATA_PROGRAM_ID,
+                    tokenProgram: TOKEN_PROGRAM_ID.toBase58(),
+                    systemProgram: SystemProgram.programId.toBase58(),
                 })
                 .instruction()
         );

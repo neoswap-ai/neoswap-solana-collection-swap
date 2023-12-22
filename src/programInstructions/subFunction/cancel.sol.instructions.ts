@@ -18,7 +18,7 @@ export async function getCancelSolInstructions(Data: {
     let instructions: TransactionInstruction[] = [];
 
     let swapDataAccountAta = Data.swapIdentity.swapDataAccount_publicKey;
-    let userAta = Data.signer;
+    let userAta = Data.user;
     let newAtas = [];
 
     if (!Data.mint.equals(SystemProgram.programId)) {
@@ -36,17 +36,17 @@ export async function getCancelSolInstructions(Data: {
             console.log("createUserAta CancelSol Tx Added", userAta.toBase58());
         }
 
-        const { mintAta: pdaAta, instruction: pdaAtaIx } = await findOrCreateAta({
+        const { mintAta: foundSwapDataAccountAta, instruction: pdaAtaIx } = await findOrCreateAta({
             connection: Data.program.provider.connection,
             owner: Data.swapIdentity.swapDataAccount_publicKey,
             mint: Data.mint,
             signer: Data.signer,
         });
-        swapDataAccountAta = pdaAta;
-        if (pdaAtaIx && !Data.ataList.includes(pdaAta)) {
+        swapDataAccountAta = foundSwapDataAccountAta;
+        if (pdaAtaIx && !Data.ataList.includes(foundSwapDataAccountAta)) {
             instructions.push(pdaAtaIx);
-            newAtas.push(pdaAta);
-            console.log("createPdaAta CancelSol Tx Added", pdaAta.toBase58());
+            newAtas.push(foundSwapDataAccountAta);
+            console.log("createPdaAta CancelSol Tx Added", foundSwapDataAccountAta.toBase58());
         }
     }
     instructions.push(
@@ -57,7 +57,7 @@ export async function getCancelSolInstructions(Data: {
             )
             .accounts({
                 systemProgram: SystemProgram.programId,
-                splTokenProgram: TOKEN_PROGRAM_ID,
+                tokenProgram: TOKEN_PROGRAM_ID,
                 swapDataAccount: Data.swapIdentity.swapDataAccount_publicKey,
                 swapDataAccountAta,
                 user: Data.user,

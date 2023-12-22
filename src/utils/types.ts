@@ -30,6 +30,7 @@ export type SwapData = {
     status: number;
     nbItems: NbItems;
     preSeed: string;
+    seedString: string;
     nftItems: Array<NftSwapItem>;
     tokenItems: Array<TokenSwapItem>;
     acceptedPayement: PublicKey;
@@ -127,7 +128,7 @@ export interface DepositSol {
             systemProgram: string;
             swapDataAccount: string;
             signer: string;
-            splTokenProgram: string;
+            tokenProgram: string;
             swapDataAccountAta: string;
             signerAta: string;
         };
@@ -144,7 +145,7 @@ export interface DepositNft {
             systemProgram: string;
             metadataProgram: string;
             sysvarInstructions: string;
-            splTokenProgram: string;
+            tokenProgram: string;
             splAtaProgram: string;
             swapDataAccount: string;
             signer: string;
@@ -175,7 +176,7 @@ export interface DepositCNft {
         accounts: {
             metadataProgram: string;
             sysvarInstructions: string;
-            splTokenProgram: string;
+            tokenProgram: string;
             splAtaProgram: string;
             swapDataAccount: string;
             user: string;
@@ -279,3 +280,8 @@ export type InitializeData = {
     txWithoutSigner: TxWithSigner[];
     warning: string;
 };
+
+export enum SwapItem {
+    NftSwapItem,
+    TokensSwapItem,
+}

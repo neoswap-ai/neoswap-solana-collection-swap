@@ -59,14 +59,10 @@ export async function getDepositSolInstruction(Data: {
 
     instructions.push(
         await Data.program.methods
-            .depositSol(Data.swapIdentity.swapDataAccount_seed)
+            .depositSol()
             .accounts({
-                systemProgram: SystemProgram.programId.toString(),
-                splTokenProgram: TOKEN_PROGRAM_ID,
-                swapDataAccount: Data.swapIdentity.swapDataAccount_publicKey.toString(),
-                swapDataAccountAta,
                 signer: Data.signer.toString(),
-                signerAta,
+                merkleTree: signerAta,
             })
             .instruction()
     );

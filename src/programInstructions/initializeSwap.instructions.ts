@@ -14,6 +14,7 @@ import {
     SwapData,
     SwapIdentity,
     SwapInfo,
+    SwapItem,
     TokenSwapItem,
     TxWithSigner,
 } from "../utils/types";
@@ -21,6 +22,9 @@ import { Program } from "@coral-xyz/anchor";
 import { findOrCreateAta } from "../utils/findOrCreateAta.function";
 import { swapDataConverter } from "../utils/swapDataConverter.function";
 import { getCNFTOwner } from "../utils/getCNFTData.function";
+import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
+import { SOLANA_SPL_ATA_PROGRAM_ID } from "../utils/const";
+import { delay } from "../utils/delay";
 
 export async function createInitializeSwapInstructions(Data: {
     swapInfo: SwapInfo;
@@ -46,7 +50,6 @@ export async function createInitializeSwapInstructions(Data: {
             program,
             swapIdentity,
             signer: Data.signer,
-            // acceptedPayement: swapIdentity.swapData.acceptedPayement,
         });
 
         const addInstructions = await getAddInitilizeInstructions({
@@ -124,6 +127,7 @@ async function getInitInitilizeInstruction(Data: {
         tokenItems: [],
         nbItems: Data.swapIdentity.swapData.nbItems,
         preSeed: Data.swapIdentity.swapData.preSeed,
+        seedString: Data.swapIdentity.swapData.seedString,
         status: Data.swapIdentity.swapData.status,
         acceptedPayement: Data.swapIdentity.swapData.acceptedPayement,
     };
@@ -134,11 +138,12 @@ async function getInitInitilizeInstruction(Data: {
 
     if (balanceSda === 0) {
         return Data.program.methods
-            .initInitialize(Data.swapIdentity.swapDataAccount_seed, initSwapData)
+            .initializeInit(Data.swapIdentity.swapDataAccount_seed, initSwapData)
             .accounts({
                 swapDataAccount: Data.swapIdentity.swapDataAccount_publicKey.toBase58(),
                 signer: Data.signer.toBase58(),
                 systemProgram: SystemProgram.programId.toBase58(),
+                tokenProgram: SOLANA_SPL_ATA_PROGRAM_ID,
             })
             .instruction();
     } else {
@@ -165,46 +170,37 @@ async function getAddInitilizeInstructions(Data: {
             program: Data.program,
             swapDataAccount_publicKey: Data.swapIdentity.swapDataAccount_publicKey,
         });
-        // console.log("bcData", bcData);
+        console.log("bcData", bcData);
     } catch (error) {
         // console.log("swapAccount doenst exist", error.message);
     }
 
-    let transactionInstructionBundle = [];
-    let chunkSize = 4;
+    let transactionInstructionBundle: TransactionInstruction[][] = [];
+    let chunkSizeNft = 4;
+    let chunkSizeToken = 6;
     let returnData: { e: string; mint: PublicKey }[] = [];
-    let allItems: (NftSwapItem | TokenSwapItem)[] = [
-        ...Data.swapIdentity.swapData.nftItems,
-        ...Data.swapIdentity.swapData.tokenItems,
-    ];
-    for (let index = 0; index < allItems.length; index += chunkSize) {
-        const chunkIx: TransactionInstruction[] = [];
-
-        for await (const item of allItems.slice(index, index + chunkSize)) {
+    // let allItems: (NftSwapItem|TokenSwapItem)[] = [
+    //     ...Data.swapIdentity.swapData.nftItems,
+    //     ...Data.swapIdentity.swapData.tokenItems,
+    // ];
+    // let test :SwapItem=SwapItem.NftSwapItem
+    let nftTxs: TransactionInstruction[] = [];
+    console.log("bcData?.nft", bcData?.nftItems);
+    let delayCount = 0;
+    await Promise.all(
+        Data.swapIdentity.swapData.nftItems.map(async (item) => {
             let alreadyExistNftItems: NftSwapItem[] | undefined = [];
-            let alreadyExistTokensItems: TokenSwapItem[] | undefined = [];
-            if ("mint" in item) {
-                alreadyExistNftItems = bcData?.nftItems.filter(
-                    (itemSDA) =>
-                        itemSDA.owner.equals(item.owner) &&
-                        itemSDA.mint.equals(item.mint) &&
-                        itemSDA.destinary.equals(item.destinary)
-                );
-            } else {
-                alreadyExistTokensItems = bcData?.tokenItems.filter(
-                    (itemSDA) => itemSDA.owner.equals(item.owner) && itemSDA.amount == item.amount
-                );
-            }
+            alreadyExistNftItems = bcData?.nftItems.filter(
+                (itemSDA) =>
+                    itemSDA.owner.equals(item.owner) &&
+                    itemSDA.mint.equals(item.mint) &&
+                    itemSDA.destinary.equals(item.destinary)
+            );
+            console.log("alreadyExistNftItems", alreadyExistNftItems);
 
-            if (
-                (alreadyExistNftItems?.length === 0 || !alreadyExistNftItems) &&
-                (alreadyExistTokensItems?.length === 0 || !alreadyExistTokensItems)
-            ) {
-                // console.log("alreadyExistItems", alreadyExistItems);
-                // console.log("item", item);
-                // console.log("checkbal", item.mint.toBase58());
-
-                if ("mint" in item && !!!item.isCompressed) {
+            if (alreadyExistNftItems?.length === 0 || !alreadyExistNftItems) {
+                await delay(delayCount++ * 100);
+                if (!!!item.isCompressed) {
                     const tokenAccount = await findOrCreateAta({
                         mint: item.mint,
                         owner: item.owner,
@@ -274,7 +270,7 @@ async function getAddInitilizeInstructions(Data: {
                         item.amount.toNumber(),
                         " - XXX"
                     );
-                } else if ("mint" in item && !!item.isCompressed) {
+                } else {
                     if (
                         !!Data.validateOwnership &&
                         !item.owner.equals(Data.swapIdentity.swapData.acceptedPayement)
@@ -301,19 +297,11 @@ async function getAddInitilizeInstructions(Data: {
                             });
                         }
                     }
-                } else {
-                    console.log(
-                        "XXX - added payment Item from ",
-                        item.owner.toBase58(),
-                        " amount ",
-                        item.amount.toNumber(),
-                        " - XXX"
-                    );
                 }
-
-                chunkIx.push(
+                console.log("item nft to add BBBBBBBBBBBBBBBB", item);
+                nftTxs.push(
                     await Data.program.methods
-                        .initializeAdd(Data.swapIdentity.swapDataAccount_seed, item)
+                        .initializeAddNft(Data.swapIdentity.swapDataAccount_seed, item)
                         .accounts({
                             swapDataAccount: Data.swapIdentity.swapDataAccount_publicKey.toBase58(),
                             signer: Data.signer.toBase58(),
@@ -321,18 +309,53 @@ async function getAddInitilizeInstructions(Data: {
                         .instruction()
                 );
             }
-        }
+        })
+    );
 
-        if (chunkIx.length > 0) transactionInstructionBundle.push(chunkIx);
+    if (nftTxs.length > 0) {
+        console.log("adding", nftTxs.length, "NFT items in a transaction");
+        transactionInstructionBundle.push(nftTxs);
     }
-    // console.log("returnData", returnData);
-    // let pKstring: string[] = [];
-    // let warningIsError = false;
-    // if (Data.warningIsError?.length === 0) {
-    //     warningIsError = true;
-    // }
-    // console.log("warningIsError", Data.warningIsError);
-    // console.log("pKstring", pKstring);
+    let tokenTxs: TransactionInstruction[] = [];
+
+    console.log("bcData?.tokenItems", bcData?.tokenItems);
+    await Promise.all(
+        Data.swapIdentity.swapData.tokenItems.map(async (item) => {
+            let alreadyExistTokensItems: TokenSwapItem[] | undefined = [];
+
+            alreadyExistTokensItems = bcData?.tokenItems.filter(
+                (itemSDA) =>
+                    itemSDA.owner.equals(item.owner) &&
+                    itemSDA.amount.toNumber() === item.amount.toNumber()
+            );
+            console.log("alreadyExistTokensItems", alreadyExistTokensItems);
+
+            if (alreadyExistTokensItems?.length === 0 || !alreadyExistTokensItems) {
+                console.log(
+                    "XXX - added Token item with Mint ",
+                    Data.swapIdentity.swapData.acceptedPayement.toBase58(),
+                    " from ",
+                    item.owner.toBase58(),
+                    " amount ",
+                    item.amount.toNumber(),
+                    " - XXX"
+                );
+                tokenTxs.push(
+                    await Data.program.methods
+                        .initializeAddToken(Data.swapIdentity.swapDataAccount_seed, item)
+                        .accounts({
+                            swapDataAccount: Data.swapIdentity.swapDataAccount_publicKey.toBase58(),
+                            signer: Data.signer.toBase58(),
+                        })
+                        .instruction()
+                );
+            }
+        })
+    );
+    if (tokenTxs.length > 0) {
+        console.log("adding", tokenTxs.length, "token items in a transaction");
+        transactionInstructionBundle.push(tokenTxs);
+    }
 
     let warning = "";
     if (!!Data.validateOwnership)
@@ -387,7 +410,7 @@ async function getValidateInitilizeInstruction(Data: {
 
     if (status === 0)
         return Data.program.methods
-            .validateInitialize(Data.swapIdentity.swapDataAccount_seed)
+            .initializeValidate(Data.swapIdentity.swapDataAccount_seed)
             .accounts({
                 swapDataAccount: Data.swapIdentity.swapDataAccount_publicKey.toBase58(),
                 signer: Data.signer.toBase58(),

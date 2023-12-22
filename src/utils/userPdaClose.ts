@@ -1,9 +1,8 @@
 import { Cluster, Keypair, PublicKey, SystemProgram, Transaction } from "@solana/web3.js";
 import { AnchorProvider } from "@coral-xyz/anchor";
-import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { sendBundledTransactions } from "./sendBundledTransactions.function";
-import { SPL_TOKEN_PROGRAM_ID } from "@metaplex-foundation/mpl-toolbox";
 import { getProgram } from "./getProgram.obj";
+import { SOLANA_SPL_ATA_PROGRAM_ID } from "./const";
 
 export async function closeUserPda(Data: { clusterOrUrl: Cluster | string; signer: Keypair }) {
     let program = getProgram({ clusterOrUrl: Data.clusterOrUrl ,signer:Data.signer});
@@ -18,7 +17,7 @@ export async function closeUserPda(Data: { clusterOrUrl: Cluster | string; signe
             userPda,
             signer: Data.signer.publicKey,
             systemProgram: SystemProgram.programId,
-            splTokenProgram: SPL_TOKEN_PROGRAM_ID,
+            tokenProgram: SOLANA_SPL_ATA_PROGRAM_ID,
         })
         .instruction();
 

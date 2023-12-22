@@ -14,8 +14,8 @@ import {
 } from "../utils/types";
 import { getDepositCNftInstruction } from "./subFunction/deposit.cnft.instructions";
 import { Program } from "@coral-xyz/anchor";
-import { getDepositNftPresignedInstruction } from "./subFunction/depositPresigned.nft.instrictions";
-import { getDepositSolPresignedInstruction } from "./subFunction/depositPresigned.sol.instructions";
+import bs58 from "bs58";
+import { NEOSWAP_PROGRAM_ID, NEOSWAP_PROGRAM_ID_DEV } from "../utils/const";
 
 export async function createDepositSwapInstructions(Data: {
     swapDataAccount: PublicKey;
@@ -29,7 +29,6 @@ export async function createDepositSwapInstructions(Data: {
         program,
         swapDataAccount_publicKey: Data.swapDataAccount,
     });
-    // console.log("swapData", swapData);
 
     if (!swapData) {
         throw {
@@ -45,10 +44,18 @@ export async function createDepositSwapInstructions(Data: {
             swapStatus: swapData.status,
         } as ErrorFeedback;
 
+    console.log("swapData", swapData.tokenItems, swapData.nftItems);
     const swapIdentity = getSwapIdentityFromData({
         swapData,
         clusterOrUrl: Data.clusterOrUrl,
     });
+
+    swapIdentity.swapDataAccount_seed = Buffer.from(bs58.decode(swapData.seedString));
+    swapIdentity.swapDataAccount_publicKey = PublicKey.findProgramAddressSync(
+        [swapIdentity.swapDataAccount_seed],
+        Data.clusterOrUrl.includes("devnet") ? NEOSWAP_PROGRAM_ID_DEV : NEOSWAP_PROGRAM_ID
+    )[0];
+
     console.log("swapIdentity", swapIdentity);
     // console.log("Data.user", Data.user);
     // swapIdentity.swapDataAccount_publicKey=new PublicKey('GnzPof4D1hwbifZaCtEbLbmmWvsyLfqd8gbYhvR1iXY6')
@@ -62,7 +69,7 @@ export async function createDepositSwapInstructions(Data: {
     let swapDataItems: (TokenSwapItem | NftSwapItem)[] = allData.filter((item) =>
         item.owner.equals(Data.user)
     );
-    // console.log("swapDataItems", swapDataItems);
+    console.log("swapDataItems", swapDataItems);
 
     if (swapDataItems.length > 0) isUserPartOfTrade = true;
 
