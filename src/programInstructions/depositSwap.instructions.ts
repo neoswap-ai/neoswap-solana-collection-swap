@@ -1,4 +1,4 @@
-import { Cluster, PublicKey, Transaction } from "@solana/web3.js";
+import { Cluster, PublicKey, SystemProgram, Transaction } from "@solana/web3.js";
 import { getProgram } from "../utils/getProgram.obj";
 import { getSwapDataAccountFromPublicKey } from "../utils/getSwapDataAccountFromPublicKey.function";
 import { getSwapIdentityFromData } from "../utils/getSwapIdentityFromData.function";
@@ -19,7 +19,7 @@ export async function createDepositSwapInstructions(Data: {
         program,
         swapDataAccount_publicKey: Data.swapDataAccount,
     });
-// console.log("swapData", swapData);
+    // console.log("swapData", swapData);
 
     if (!swapData) {
         throw {
@@ -41,7 +41,7 @@ export async function createDepositSwapInstructions(Data: {
     });
     console.log("swapIdentity", swapIdentity);
     // console.log("Data.user", Data.user);
-// swapIdentity.swapDataAccount_publicKey=new PublicKey('GnzPof4D1hwbifZaCtEbLbmmWvsyLfqd8gbYhvR1iXY6')
+    // swapIdentity.swapDataAccount_publicKey=new PublicKey('GnzPof4D1hwbifZaCtEbLbmmWvsyLfqd8gbYhvR1iXY6')
     let depositInstruction: TxWithSigner[] = [];
     let ataList: PublicKey[] = [];
     let isUserPartOfTrade = false;
@@ -106,8 +106,28 @@ export async function createDepositSwapInstructions(Data: {
             }
         } else {
             if (swapDataItem.status === ItemStatus.SolPending) {
+                let tokenName = "SOL";
+
+                switch (swapData.acceptedPayement.toString()) {
+                    case "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v":
+                        tokenName = "USCD";
+                        break;
+                    case "ATLASXmbPQxBUYbxPsV97usA3fPQYEqzQBUHgiFCUsXx":
+                        tokenName = "ATLAS";
+                        break;
+                    case "6dhTynDkYsVM7cbF7TKfC9DWB636TcEM935fq7JzL2ES":
+                        tokenName = "BONK";
+                        break;
+                    case "GENEtH5amGSi8kHAtQoezp1XEXwZJ8vcuePYnXdKrMYz":
+                        tokenName = "GENOPETS";
+                        break;
+                    case SystemProgram.programId.toBase58():
+                        tokenName = "SOL";
+                        break;
+                }
+
                 console.log(
-                    "XXX - Deposit SOL item with mint ",
+                    `XXX - Deposit ${tokenName} item with mint `,
                     swapDataItem.mint.toBase58(),
                     " from ",
                     swapDataItem.owner.toBase58(),
