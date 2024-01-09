@@ -132,7 +132,7 @@ async function getInitInitilizeInstruction(Data: {
         status: Data.swapIdentity.swapData.status,
         acceptedPayement: Data.swapIdentity.swapData.acceptedPayement,
         duration: new BN(Data.swapIdentity.swapData.duration),
-        openTime: new BN(Data.swapIdentity.swapData.openTime),
+        startTime: new BN(Data.swapIdentity.swapData.startTime),
     };
     const balanceSda = await Data.program.provider.connection.getBalance(
         Data.swapIdentity.swapDataAccount_publicKey

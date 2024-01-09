@@ -272,7 +272,7 @@ type SwapInfo = {
     preSeed?: string;
     currency: string;
     users: { address: string; items: SwapUserInfo }[];
-    openTime: number;
+    startTime: number;
     duration: number;
 };
 ```
@@ -345,7 +345,7 @@ type SwapData = {
     nftItems: Array<NftSwapItem>; // Array of NFT Items
     tokenItems: Array<TokenSwapItem>; // Array of Token or Sol Items
     acceptedPayement: PublicKey; // Token mint address of the accepted payement
-    openTime: BN; // Timestamp of the opening of the swap in unix timecode
+    startTime: BN; // Timestamp of the opening of the swap in unix timecode
     duration: BN; // Duration of the swap in seconds
 };
 ```

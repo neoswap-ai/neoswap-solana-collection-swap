@@ -1289,7 +1289,7 @@ export const idlSwap: Idl = {
                         type: "publicKey",
                     },
                     {
-                        name: "openTime",
+                        name: "startTime",
                         type: "i64",
                     },
                     {
@@ -1688,6 +1688,16 @@ export const idlSwap: Idl = {
             code: 6048,
             name: "WrongCollection",
             msg: "Collection given isn't the good one",
+        },
+        {
+            code: 6049,
+            name: "NoCollection",
+            msg: "No collection found",
+        },
+        {
+            code: 6050,
+            name: "TooEarly",
+            msg: "The swap isn't openned yet for depositing",
         },
     ],
 };

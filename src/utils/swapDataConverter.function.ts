@@ -149,7 +149,7 @@ export async function swapDataConverter(Data: {
                 ? new PublicKey(Data.swapInfo.currency)
                 : SystemProgram.programId,
             nbItems: { nft: nftItems.length, tokens: tokenItems.length },
-            openTime: new BN(Data.swapInfo.openTime),
+            startTime: new BN(Data.swapInfo.startTime),
             duration: new BN(Data.swapInfo.duration),
         },
         clusterOrUrl: Data.clusterOrUrl,
@@ -186,7 +186,7 @@ export function invertedSwapDataConverter(Data: { swapData: SwapData }): SwapInf
         status,
         users: [],
         duration: Data.swapData.duration.toNumber(),
-        openTime: Data.swapData.openTime.toNumber(),
+        startTime: Data.swapData.startTime.toNumber(),
     };
 
     let uusers: { [userId: string]: SwapUserInfo } = {};
