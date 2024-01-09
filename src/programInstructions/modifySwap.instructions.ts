@@ -8,7 +8,6 @@ import { getInitializeModifyTokenInstructions } from "./subFunction/InitializeMo
 import bs58 from "bs58";
 import { NEOSWAP_PROGRAM_ID, NEOSWAP_PROGRAM_ID_DEV } from "../utils/const";
 
-
 export async function createModifySwapInstructions(Data: {
     swapInfo: SwapInfo;
     swapDataAccount: PublicKey;
@@ -48,17 +47,21 @@ export async function createModifySwapInstructions(Data: {
         //     )?.amount!
         // )
     );
-
+    let userAdded: string[] = [];
     let tokenItemToUpdate: TokenSwapItem[] = [];
     tokenItemToUpdateEmpty.map((tokenItemToUpdateI) => {
+        console.log("tokenItemToUpdateI", tokenItemToUpdateI);
         let itemfound = swapIdentity.swapData.tokenItems.find((searchItem) => {
-
+            console.log("searchItem", searchItem);
             return (
                 searchItem.amount.eq(tokenItemToUpdateI.amount) &&
-                searchItem.owner.equals(SystemProgram.programId)
+                !!!userAdded.includes(searchItem.owner.toString())
             );
         });
-        if (!!itemfound) tokenItemToUpdate.push(itemfound);
+        if (!!itemfound) {
+            tokenItemToUpdate.push(itemfound);
+            userAdded.push(itemfound.owner.toString());
+        }
     });
 
     // const tokenItemToUpdate = tokenItemToUpdateEmpty.map((tokenItemToUpdateI) => {
