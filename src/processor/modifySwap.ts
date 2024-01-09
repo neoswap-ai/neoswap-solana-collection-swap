@@ -9,6 +9,7 @@ export async function modifySwap(Data: {
     swapInfo: SwapInfo;
     swapDataAccount: PublicKey;
     signer: Keypair;
+    // user: PublicKey;
     clusterOrUrl: Cluster | string;
     simulation?: boolean;
     skipConfirmation?: boolean;
@@ -21,6 +22,7 @@ export async function modifySwap(Data: {
         swapInfo: Data.swapInfo,
         swapDataAccount: Data.swapDataAccount,
         signer: Data.signer.publicKey,
+        // user: Data.user,
         clusterOrUrl: Data.clusterOrUrl,
         program,
         validateOwnership: Data.validateOwnership,

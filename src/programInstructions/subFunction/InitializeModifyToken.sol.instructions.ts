@@ -6,14 +6,19 @@ export async function getInitializeModifyTokenInstructions(Data: {
     program: Program;
     signer: PublicKey;
     swapIdentity: SwapIdentity;
-    tradeToModify?: TokenSwapItem;
+    tradeToModify: TokenSwapItem[];
 }) {
-    if (!Data.tradeToModify) return;
-    return await Data.program.methods
-        .initializeModifyToken(Data.swapIdentity.swapDataAccount_seed, Data.tradeToModify)
-        .accounts({
-            swapDataAccount: Data.swapIdentity.swapDataAccount_publicKey.toBase58(),
-            signer: Data.signer.toBase58(),
+    // if (!Data.tradeToModify) return;
+    return await Promise.all(
+        Data.tradeToModify.map(async (tradeToModify) => {
+            return await Data.program.methods
+                .initializeModifyToken(Data.swapIdentity.swapDataAccount_seed, tradeToModify)
+                .accounts({
+                    swapDataAccount: Data.swapIdentity.swapDataAccount_publicKey.toBase58(),
+                    signer: Data.signer.toBase58(),
+                    user: tradeToModify.owner.toBase58(),
+                })
+                .instruction();
         })
-        .instruction();
+    );
 }

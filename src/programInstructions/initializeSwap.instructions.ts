@@ -25,6 +25,7 @@ import { getCNFTOwner } from "../utils/getCNFTData.function";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { SOLANA_SPL_ATA_PROGRAM_ID } from "../utils/const";
 import { delay } from "../utils/delay";
+import { BN } from "bn.js";
 
 export async function createInitializeSwapInstructions(Data: {
     swapInfo: SwapInfo;
@@ -130,12 +131,16 @@ async function getInitInitilizeInstruction(Data: {
         seedString: Data.swapIdentity.swapData.seedString,
         status: Data.swapIdentity.swapData.status,
         acceptedPayement: Data.swapIdentity.swapData.acceptedPayement,
+        duration: new BN(Data.swapIdentity.swapData.duration),
+        openTime: new BN(Data.swapIdentity.swapData.openTime),
     };
     const balanceSda = await Data.program.provider.connection.getBalance(
         Data.swapIdentity.swapDataAccount_publicKey
     );
     // console.log("balance SDA", balanceSda);
-
+    
+    console.log("initSwapData", initSwapData);
+    
     if (balanceSda === 0) {
         return Data.program.methods
             .initializeInit(Data.swapIdentity.swapDataAccount_seed, initSwapData)
@@ -147,7 +152,7 @@ async function getInitInitilizeInstruction(Data: {
             })
             .instruction();
     } else {
-        // console.log("swap Account already initialized");
+        console.log("swap Account already initialized");
         return undefined;
     }
 }
@@ -172,12 +177,12 @@ async function getAddInitilizeInstructions(Data: {
         });
         console.log("bcData", bcData);
     } catch (error) {
-        // console.log("swapAccount doenst exist", error.message);
+        console.log("swapAccount doenst exist", error);
     }
 
     let transactionInstructionBundle: TransactionInstruction[][] = [];
-    let chunkSizeNft = 4;
-    let chunkSizeToken = 6;
+    // let chunkSizeNft = 4;
+    // let chunkSizeToken = 6;
     let returnData: { e: string; mint: PublicKey }[] = [];
     // let allItems: (NftSwapItem|TokenSwapItem)[] = [
     //     ...Data.swapIdentity.swapData.nftItems,
@@ -201,17 +206,13 @@ async function getAddInitilizeInstructions(Data: {
             if (alreadyExistNftItems?.length === 0 || !alreadyExistNftItems) {
                 await delay(delayCount++ * 100);
                 if (!!!item.isCompressed) {
-                    const tokenAccount = await findOrCreateAta({
-                        mint: item.mint,
-                        owner: item.owner,
-                        clusterOrUrl: Data.clusterOrUrl,
-                        signer: Data.signer,
-                    });
-
-                    if (
-                        !!Data.validateOwnership &&
-                        !item.owner.equals(Data.swapIdentity.swapData.acceptedPayement)
-                    ) {
+                    if (!!Data.validateOwnership && !item.owner.equals(SystemProgram.programId)) {
+                        const tokenAccount = await findOrCreateAta({
+                            mint: item.mint,
+                            owner: item.owner,
+                            clusterOrUrl: Data.clusterOrUrl,
+                            signer: Data.signer,
+                        });
                         console.log(
                             "check NFT/Token balance",
                             "\nmint:",
@@ -271,10 +272,7 @@ async function getAddInitilizeInstructions(Data: {
                         " - XXX"
                     );
                 } else {
-                    if (
-                        !!Data.validateOwnership &&
-                        !item.owner.equals(Data.swapIdentity.swapData.acceptedPayement)
-                    ) {
+                    if (!!Data.validateOwnership && !item.owner.equals(SystemProgram.programId)) {
                         const owner = await getCNFTOwner({
                             tokenId: item.mint.toBase58(),
                             Cluster: Data.clusterOrUrl.includes("mainnet")
@@ -298,7 +296,7 @@ async function getAddInitilizeInstructions(Data: {
                         }
                     }
                 }
-                console.log("item nft to add BBBBBBBBBBBBBBBB", item);
+                console.log("item nft to add ", item);
                 nftTxs.push(
                     await Data.program.methods
                         .initializeAddNft(Data.swapIdentity.swapDataAccount_seed, item)

@@ -257,11 +257,9 @@ const hashArray: string[] = await neoSwap.UTILS.sendBundledTransactions({
 ### Types converter
 
 ```ts
+let swapInfo = neoSwap.UTILS.invertedSwapDataConverter({ swapData: SwapData });
 
-let swapInfo = neoSwap.UTILS.invertedSwapDataConverter({ swapData: SwapData }) 
-
-let swapData = await neoSwap.UTILS.swapDataConverter({ swapInfo: SwapInfo })
-
+let swapData = await neoSwap.UTILS.swapDataConverter({ swapInfo: SwapInfo });
 ```
 
 ### Types
@@ -270,10 +268,12 @@ swapInfo represents the Data of a swap in a human readable way
 
 ```ts
 type SwapInfo = {
-    status?: "initializing" | "active" | "finalizing" | "finalized" | "canceling" | "canceled";
+    status?: TradeStatusInfo;
     preSeed?: string;
     currency: string;
     users: { address: string; items: SwapUserInfo }[];
+    openTime: number;
+    duration: number;
 };
 ```
 
@@ -301,6 +301,7 @@ GiveSwapItem and GetSwapItem represents the data of what a user will give or rec
 type GiveSwapItem = {
     address: string;
     amount: number;
+    collection: string;
     getters: {
         address: string;
         amount: number;
@@ -311,6 +312,7 @@ type GiveSwapItem = {
 type GetSwapItem = {
     address: string;
     amount: number;
+    collection: string;
     givers: {
         amount: number;
         address: string;
@@ -335,21 +337,24 @@ SwapData represents the data of the swap inside the PDA
 
 ```ts
 type SwapData = {
-    initializer: PublicKey;
-    status: number;
-    nbItems: number;
-    preSeed: string;
-    items: Array<NftSwapItem>;
-    acceptedPayement: PublicKey;
+    initializer: PublicKey; // PublicKey of the initializer (Admin)
+    status: number; // Status of the swap
+    nbItems: NbItems; // Number of items (nft and tokens) in the swap
+    preSeed: string; // PreSeed of the Swap
+    seedString: string; // Seed in String format of the Swap
+    nftItems: Array<NftSwapItem>; // Array of NFT Items
+    tokenItems: Array<TokenSwapItem>; // Array of Token or Sol Items
+    acceptedPayement: PublicKey; // Token mint address of the accepted payement
+    openTime: BN; // Timestamp of the opening of the swap in unix timecode
+    duration: BN; // Duration of the swap in seconds
 };
 ```
 
-NftSwapItem represents the data of one Item in SwapData
+NftSwapItem represents the data of NFT Item in SwapData
 
 ```ts
 type NftSwapItem = {
     isCompressed: boolean; // true if the item is a compressed NFT (cNFT)
-    isNft: boolean; // true if the item is a NFT
     mint: PublicKey; // if NFT mint, if cNFT: tokenId, if token: token address, if sol: system program
     merkleTree: PublicKey; // if cNFT: PublicKey of the merkleTree, else same as mint
     index: BN; // if cNFT: Index of the item in the merkleTree, else: 0
@@ -357,6 +362,17 @@ type NftSwapItem = {
     owner: PublicKey; // Owner of the item
     destinary: PublicKey; // Destinary of the item
     status: number; // Status of the item
+    collection: PublicKey; // Collection of the NFT
+};
+```
+
+TokenSwapItem represents the data of Token or Sol Item in SwapData
+
+```ts
+type TokenSwapItem = {
+    amount: BN;
+    owner: PublicKey;
+    status: number;
 };
 ```
 

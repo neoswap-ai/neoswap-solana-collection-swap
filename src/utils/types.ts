@@ -34,6 +34,8 @@ export type SwapData = {
     nftItems: Array<NftSwapItem>;
     tokenItems: Array<TokenSwapItem>;
     acceptedPayement: PublicKey;
+    openTime: BN;
+    duration: BN;
 };
 
 export type NbItems = {
@@ -75,6 +77,8 @@ export type SwapInfo = {
     preSeed?: string;
     currency: string;
     users: { address: string; items: SwapUserInfo }[];
+    openTime: number;
+    duration: number;
 };
 
 export type SwapIdentity = {

@@ -67,7 +67,14 @@ export async function findOrCreateAta(Data: {
             SOLANA_SPL_ATA_PROGRAM_ID
         )[0];
 
-        console.log("no ata found, creating ", mintAta.toBase58(), " from ", Data.mint.toBase58());
+        console.log(
+            "no ata found, creating ",
+            mintAta.toBase58(),
+            " from ",
+            Data.owner.toString(),
+            "mint",
+            Data.mint.toBase58()
+        );
 
         if (Data.prepareInstructions) {
             return {

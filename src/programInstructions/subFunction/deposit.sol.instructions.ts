@@ -14,7 +14,7 @@ export async function getDepositSolInstruction(Data: {
     ataList: string[];
 }): Promise<{
     instructions: TransactionInstruction[];
-    ataList: string[];
+    newAtas: string[];
 }> {
     await errorIfInsufficientBalance({
         amount: Data.amount,
@@ -27,7 +27,7 @@ export async function getDepositSolInstruction(Data: {
 
     let swapDataAccountAta = Data.swapIdentity.swapDataAccount_publicKey;
     let signerAta = Data.signer;
-    let ataList = Data.ataList;
+    let newAtas = Data.ataList;
 
     if (!Data.mint.equals(SystemProgram.programId)) {
         const { mintAta: userAta, instruction: userAtaIx } = await findOrCreateAta({
@@ -37,9 +37,9 @@ export async function getDepositSolInstruction(Data: {
             signer: Data.signer,
         });
         signerAta = userAta;
-        if (userAtaIx && !ataList.includes(userAta.toBase58())) {
+        if (userAtaIx && !Data.ataList.includes(userAta.toString())) {
             instructions.push(userAtaIx);
-            ataList.push(userAta.toBase58());
+            newAtas.push(userAta.toString());
             console.log("createUserAta DepositSol Tx Added", userAta.toBase58());
         }
 
@@ -50,21 +50,25 @@ export async function getDepositSolInstruction(Data: {
             signer: Data.signer,
         });
         swapDataAccountAta = pdaAta;
-        if (pdaAtaIx && !Data.ataList.includes(pdaAta.toBase58())) {
+        if (pdaAtaIx && !Data.ataList.includes(pdaAta.toString())) {
             instructions.push(pdaAtaIx);
-            ataList.push(pdaAta.toBase58());
+            newAtas.push(pdaAta.toString());
             console.log("createPdaAta DepositSol Tx Added", pdaAta.toBase58());
         }
     }
 
     instructions.push(
         await Data.program.methods
-            .depositSol()
+            .depositSol(Data.swapIdentity.swapDataAccount_seed)
             .accounts({
+                systemProgram: SystemProgram.programId.toString(),
+                splTokenProgram: TOKEN_PROGRAM_ID,
+                swapDataAccount: Data.swapIdentity.swapDataAccount_publicKey.toString(),
+                swapDataAccountAta,
+                userAta:signerAta,
                 signer: Data.signer.toString(),
-                merkleTree: signerAta,
             })
             .instruction()
     );
-    return { instructions, ataList };
+    return { instructions, newAtas };
 }

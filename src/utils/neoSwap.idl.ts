@@ -160,6 +160,11 @@ export const idlSwap: Idl = {
                     isMut: true,
                     isSigner: true,
                 },
+                {
+                    name: "user",
+                    isMut: true,
+                    isSigner: false,
+                },
             ],
             args: [
                 {
@@ -175,7 +180,7 @@ export const idlSwap: Idl = {
             ],
         },
         {
-            name: "initializeModifyNft",
+            name: "initializeModifyPnft",
             accounts: [
                 {
                     name: "swapDataAccount",
@@ -186,6 +191,97 @@ export const idlSwap: Idl = {
                     name: "signer",
                     isMut: true,
                     isSigner: true,
+                },
+                {
+                    name: "user",
+                    isMut: true,
+                    isSigner: false,
+                },
+                {
+                    name: "nftMetadata",
+                    isMut: true,
+                    isSigner: false,
+                },
+                {
+                    name: "mint",
+                    isMut: false,
+                    isSigner: false,
+                },
+                {
+                    name: "metadataProgram",
+                    isMut: false,
+                    isSigner: false,
+                },
+            ],
+            args: [
+                {
+                    name: "seed",
+                    type: "bytes",
+                },
+                {
+                    name: "tradeToModify",
+                    type: {
+                        defined: "NftSwapItem",
+                    },
+                },
+                {
+                    name: "isMaker",
+                    type: "bool",
+                },
+            ],
+        },
+        {
+            name: "initializeModifyCnft",
+            accounts: [
+                {
+                    name: "swapDataAccount",
+                    isMut: true,
+                    isSigner: false,
+                },
+                {
+                    name: "signer",
+                    isMut: true,
+                    isSigner: true,
+                },
+                {
+                    name: "user",
+                    isMut: true,
+                    isSigner: false,
+                },
+                {
+                    name: "leafDelegate",
+                    isMut: true,
+                    isSigner: true,
+                },
+                {
+                    name: "treeAuthority",
+                    isMut: true,
+                    isSigner: false,
+                },
+                {
+                    name: "merkleTree",
+                    isMut: true,
+                    isSigner: false,
+                },
+                {
+                    name: "systemProgram",
+                    isMut: false,
+                    isSigner: false,
+                },
+                {
+                    name: "logWrapper",
+                    isMut: false,
+                    isSigner: false,
+                },
+                {
+                    name: "compressionProgram",
+                    isMut: false,
+                    isSigner: false,
+                },
+                {
+                    name: "bubblegumProgram",
+                    isMut: false,
+                    isSigner: false,
                 },
             ],
             args: [
@@ -1192,6 +1288,14 @@ export const idlSwap: Idl = {
                         name: "acceptedPayement",
                         type: "publicKey",
                     },
+                    {
+                        name: "openTime",
+                        type: "i64",
+                    },
+                    {
+                        name: "duration",
+                        type: "i64",
+                    },
                 ],
             },
         },
@@ -1569,6 +1673,21 @@ export const idlSwap: Idl = {
             code: 6045,
             name: "AlreadyModified",
             msg: "Already found something to modify",
+        },
+        {
+            code: 6046,
+            name: "CannotFind",
+            msg: "Cannot find the requested item",
+        },
+        {
+            code: 6047,
+            name: "Expired",
+            msg: "Swap is expired",
+        },
+        {
+            code: 6048,
+            name: "WrongCollection",
+            msg: "Collection given isn't the good one",
         },
     ],
 };

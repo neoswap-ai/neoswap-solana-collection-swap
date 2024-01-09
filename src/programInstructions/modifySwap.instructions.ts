@@ -1,6 +1,6 @@
 import { getSwapDataAccountFromPublicKey } from "../utils/getSwapDataAccountFromPublicKey.function";
 import { Cluster, PublicKey, SystemProgram, Transaction } from "@solana/web3.js";
-import { NftSwapItem, SwapInfo, TxWithSigner } from "../utils/types";
+import { NftSwapItem, SwapInfo, TokenSwapItem, TxWithSigner } from "../utils/types";
 import { Program } from "@coral-xyz/anchor";
 import { swapDataConverter } from "../utils/swapDataConverter.function";
 import { getInitializeModifyNftInstructions } from "./subFunction/InitializeModifyNft.nft.instructions";
@@ -8,10 +8,12 @@ import { getInitializeModifyTokenInstructions } from "./subFunction/InitializeMo
 import bs58 from "bs58";
 import { NEOSWAP_PROGRAM_ID, NEOSWAP_PROGRAM_ID_DEV } from "../utils/const";
 
+
 export async function createModifySwapInstructions(Data: {
     swapInfo: SwapInfo;
     swapDataAccount: PublicKey;
     signer: PublicKey;
+    // user: PublicKey;
     clusterOrUrl: Cluster | string;
     program: Program;
     validateOwnership?: "warning" | "error";
@@ -36,23 +38,37 @@ export async function createModifySwapInstructions(Data: {
         [swapIdentity.swapDataAccount_seed],
         Data.clusterOrUrl.includes("devnet") ? NEOSWAP_PROGRAM_ID_DEV : NEOSWAP_PROGRAM_ID
     )[0];
+    let mintAdded: PublicKey[] = [];
     const tokenItemToUpdateEmpty = bcData.tokenItems.filter(
-        (item) =>
-            item.owner.equals(SystemProgram.programId) &&
-            item.amount.eq(
-                swapIdentity.swapData.tokenItems.find((searchItem) =>
-                    searchItem.amount.eq(item.amount)
-                )?.amount!
-            )
-    )[0];
-    const tokenItemToUpdate = !!!tokenItemToUpdateEmpty
-        ? undefined
-        : swapIdentity.swapData.tokenItems.find((searchItem) => {
-              return (
-                  searchItem.amount.eq(tokenItemToUpdateEmpty.amount) &&
-                  !searchItem.owner.equals(SystemProgram.programId)
-              );
-          });
+        (item) => item.owner.equals(SystemProgram.programId)
+        // &&
+        // item.amount.eq(
+        //     swapIdentity.swapData.tokenItems.find((searchItem) =>
+        //         searchItem.amount.eq(item.amount)
+        //     )?.amount!
+        // )
+    );
+
+    let tokenItemToUpdate: TokenSwapItem[] = [];
+    tokenItemToUpdateEmpty.map((tokenItemToUpdateI) => {
+        let itemfound = swapIdentity.swapData.tokenItems.find((searchItem) => {
+
+            return (
+                searchItem.amount.eq(tokenItemToUpdateI.amount) &&
+                searchItem.owner.equals(SystemProgram.programId)
+            );
+        });
+        if (!!itemfound) tokenItemToUpdate.push(itemfound);
+    });
+
+    // const tokenItemToUpdate = tokenItemToUpdateEmpty.map((tokenItemToUpdateI) => {
+    //    return  swapIdentity.swapData.tokenItems.filter((searchItem) => {
+    //         return (
+    //             searchItem.amount.eq(tokenItemToUpdateI.amount) &&
+    //             !searchItem.owner.equals(SystemProgram.programId)
+    //         );
+    //     });
+    // });
 
     const nftMakerItemToUpdateEmpty = bcData.nftItems.filter(
         (item) => item.destinary.equals(SystemProgram.programId) // &&
@@ -60,16 +76,20 @@ export async function createModifySwapInstructions(Data: {
         // item.mint &&
         // item.merkleTree
     );
+
     let nftMakerItemToUpdate: {
         nftSwapItem: NftSwapItem;
         isMaker: boolean;
     }[] = nftMakerItemToUpdateEmpty
         .map((nftItemToUpdate) => {
-            return swapIdentity.swapData.nftItems.find(
+            let item = swapIdentity.swapData.nftItems.find(
                 (ll) =>
                     ll.owner.equals(nftItemToUpdate.owner) &&
-                    ll.collection.equals(nftItemToUpdate.collection)
+                    ll.collection.equals(nftItemToUpdate.collection) &&
+                    !mintAdded.includes(ll.mint)
             )!;
+            mintAdded.push(item.mint);
+            return item;
         })
         .map((nftItemToUpdate) => {
             return { nftSwapItem: nftItemToUpdate, isMaker: true };
@@ -81,11 +101,14 @@ export async function createModifySwapInstructions(Data: {
     );
     let nftTakerItemToUpdate = nftTakerItemToUpdateEmpty
         .map((nftItemToUpdate) => {
-            return swapIdentity.swapData.nftItems.find(
+            let item = swapIdentity.swapData.nftItems.find(
                 (ll) =>
                     ll.destinary.equals(nftItemToUpdate.destinary) &&
-                    ll.collection.equals(nftItemToUpdate.collection)
+                    ll.collection.equals(nftItemToUpdate.collection) &&
+                    !mintAdded.includes(ll.mint)
             )!;
+            mintAdded.push(item.mint);
+            return item;
         })
         .map((nftItemToUpdate) => {
             return { nftSwapItem: nftItemToUpdate, isMaker: false };
@@ -94,9 +117,10 @@ export async function createModifySwapInstructions(Data: {
     // if (!swapIdentity.swapDataAccount_publicKey.equals(Data.swapDataAccount))
     //     throw "wrong swapDataAccount";
 
-    console.log("token to update", tokenItemToUpdate);
+    console.log("token to update", tokenItemToUpdateEmpty, tokenItemToUpdate);
     console.log("nft Maker to update", nftMakerItemToUpdateEmpty, nftMakerItemToUpdate);
     console.log("nft Taker to update", nftTakerItemToUpdateEmpty, nftTakerItemToUpdate);
+    // console.log("token to update", tokenItemToUpdateEmpty, tokenItemToUpdate);
     console.log("swapidentity to update", swapIdentity);
     console.log("swapData ", swapIdentity.swapData.nftItems, swapIdentity.swapData.tokenItems);
 
@@ -105,6 +129,7 @@ export async function createModifySwapInstructions(Data: {
             program: Data.program,
             swapIdentity,
             signer: Data.signer,
+            // user:Data.user,
             tradeToModify: tokenItemToUpdate,
         });
         const modifyNftInstruction = await getInitializeModifyNftInstructions({
@@ -115,16 +140,16 @@ export async function createModifySwapInstructions(Data: {
         });
         let txWithoutSigner: TxWithSigner[] = [];
 
-        if (modifyTokenInstruction) {
+        if (!!modifyTokenInstruction && modifyTokenInstruction.length > 0) {
             txWithoutSigner.push({
-                tx: new Transaction().add(modifyTokenInstruction),
+                tx: new Transaction().add(...modifyTokenInstruction),
                 // signers: [signer],
             });
         } else {
             console.log("modifyTokenInstruction skipped");
         }
 
-        if (modifyNftInstruction) {
+        if (!!modifyNftInstruction && modifyNftInstruction.length > 0) {
             txWithoutSigner.push({
                 tx: new Transaction().add(...modifyNftInstruction),
             });

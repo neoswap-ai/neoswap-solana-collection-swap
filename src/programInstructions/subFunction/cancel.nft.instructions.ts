@@ -71,7 +71,7 @@ export async function getCancelNftInstructions(Data: {
     const {
         tokenStandard,
         metadataAddress: nftMetadata,
-        metadataBump: nftMetadata_bump,
+        // metadataBump: nftMetadata_bump,
     } = await findNftDataAndMetadataAccount({
         connection: Data.program.provider.connection,
         mint: Data.mint,
