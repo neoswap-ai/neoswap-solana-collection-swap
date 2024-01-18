@@ -15,12 +15,14 @@ import { getSwapIdentityFromData } from "./getSwapIdentityFromData.function";
 // import { neoTypes } from "..";
 import { getProgram } from "./getProgram.obj";
 import { getMerkleTreeAndIndex } from "./getCNFTData.function";
+import { getSwapDataAccountFromPublicKey } from "./getSwapDataAccountFromPublicKey.function";
 
 export async function swapDataConverter(Data: {
     swapInfo: SwapInfo;
     clusterOrUrl?: Cluster | string;
     connection?: Connection;
     // preSeed?: string;
+    swapDataAccount?: PublicKey;
 }): Promise<SwapIdentity> {
     let swapDatas: (NftSwapItem | TokenSwapItem)[] = [];
     if (!!Data.clusterOrUrl && !!Data.connection) {
@@ -28,10 +30,10 @@ export async function swapDataConverter(Data: {
         Data.connection = getProgram({ clusterOrUrl: Data.clusterOrUrl }).provider.connection;
     } else if (!!Data.connection) {
         Data.clusterOrUrl = Data.connection.rpcEndpoint;
-    }
-
-    if (!Data.connection || !Data.clusterOrUrl)
+    } else {
+        !Data.connection || !Data.clusterOrUrl;
         throw "there should be a Connection or a ClusterOrUrl";
+    }
 
     for (const user in Data.swapInfo.users) {
         console.log("user", user, Data.swapInfo.users[user]);
@@ -108,7 +110,7 @@ export async function swapDataConverter(Data: {
             swapDatas.push({
                 owner: new PublicKey(Data.swapInfo.users[user].address),
                 // isCompressed: false,
-                amount: new BN(Data.swapInfo.users[user].items.token.amount),
+                amount: new BN(-Data.swapInfo.users[user].items.token.amount),
                 // destinary: ccurency,
                 // mint: ccurency,
                 // merkleTree: ccurency,
@@ -136,6 +138,16 @@ export async function swapDataConverter(Data: {
     // const items = itemsNfts.concat(itemsSol);
 
     // console.log("items", items);
+    let seedString = "";
+    if (Data.swapDataAccount) {
+        seedString = (
+            await getSwapDataAccountFromPublicKey({
+                swapDataAccount_publicKey: Data.swapDataAccount,
+                clusterOrUrl: Data.clusterOrUrl,
+            })
+        )?.seedString!;
+        console.log("swapDataAccount", Data.swapDataAccount.toString());
+    }
 
     return getSwapIdentityFromData({
         swapData: {
@@ -144,7 +156,7 @@ export async function swapDataConverter(Data: {
             nftItems,
             tokenItems,
             preSeed: Data.swapInfo.preSeed ? Data.swapInfo.preSeed : "0000",
-            seedString: "",
+            seedString,
             acceptedPayement: Data.swapInfo.currency
                 ? new PublicKey(Data.swapInfo.currency)
                 : SystemProgram.programId,

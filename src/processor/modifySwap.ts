@@ -1,6 +1,6 @@
 import { Cluster, Keypair, PublicKey } from "@solana/web3.js";
 import { sendBundledTransactions } from "../utils/sendBundledTransactions.function";
-import { InitializeData, SwapInfo } from "../utils/types";
+import { ErrorFeedback, InitializeData, SwapInfo } from "../utils/types";
 import { getProgram } from "../utils/getProgram.obj";
 import { AnchorProvider } from "@coral-xyz/anchor";
 import { createModifySwapInstructions } from "../programInstructions/modifySwap.instructions";
@@ -28,7 +28,12 @@ export async function modifySwap(Data: {
         validateOwnership: Data.validateOwnership,
         validateOwnershipIgnore: Data.validateOwnershipIgnore,
     });
-
+    if (!modifyData)
+        throw {
+            blockchain: "solana",
+            status: "error",
+            message: "nothing found in the swap to modify",
+        } as ErrorFeedback;
     const transactionHashs = await sendBundledTransactions({
         provider: program.provider as AnchorProvider,
         txsWithoutSigners: modifyData,

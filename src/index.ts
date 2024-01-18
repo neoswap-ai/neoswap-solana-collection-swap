@@ -3,14 +3,18 @@ import { cancelAndCloseSwap } from "./processor/cancelAndCloseSwap";
 import { claimAndCloseSwap } from "./processor/claimAndCloseSwap";
 import { depositSwap } from "./processor/depositSwap";
 import { initializeSwap } from "./processor/initializeSwap";
+import { makeSwap } from "./processor/makeSwap";
 import { modifySwap } from "./processor/modifySwap";
+import { takeSwap } from "./processor/takeSwap";
 import { apiProcessorTranscript } from "./programInstructions/apiProcessor.transcript";
 import { createCancelSwapInstructions } from "./programInstructions/cancelSwap.instructions";
 import { createClaimSwapInstructions } from "./programInstructions/claimSwap.instructions";
 import { createDepositSwapInstructions } from "./programInstructions/depositSwap.instructions";
 import { prepareDepositSwapInstructions } from "./programInstructions/depositSwap.prepareInstructions";
 import { createInitializeSwapInstructions } from "./programInstructions/initializeSwap.instructions";
+import { createMakeSwapInstructions } from "./programInstructions/makeSwap.instructions";
 import { createModifySwapInstructions } from "./programInstructions/modifySwap.instructions";
+import { createTakeSwapInstructions } from "./programInstructions/takeSwap.instructions";
 import {
     findNftDataAndMetadataAccount,
     findNftMasterEdition,
@@ -22,7 +26,7 @@ import { getCNFTData, getCNFTOwner } from "./utils/getCNFTData.function";
 import { getProgram } from "./utils/getProgram.obj";
 import {
     getSwapDataAccountFromPublicKey,
-    getDataFromSwapdataAccountPublickey,
+    getSwapInfoFromSwapdataAccountPublickey,
 } from "./utils/getSwapDataAccountFromPublicKey.function";
 import { getSwapIdentityFromData } from "./utils/getSwapIdentityFromData.function";
 import { isConfirmedTx } from "./utils/isConfirmedTx.function";
@@ -48,7 +52,7 @@ const UTILS = {
     NFT_ACCOUNTS,
     getProgram,
     getSwapDataAccountFromPublicKey,
-    getDataFromSwapdataAccountPublickey,
+    getSwapInfoFromSwapdataAccountPublickey,
     getSwapIdentityFromData,
     userSwapDetails,
     sendBundledTransactions,
@@ -63,6 +67,8 @@ const CREATE_INSTRUCTIONS = {
     createModifySwapInstructions,
     createDepositSwapInstructions,
     createClaimSwapInstructions,
+    createMakeSwapInstructions,
+    createTakeSwapInstructions,
     createCancelSwapInstructions,
     prepareDepositSwapInstructions,
     apiProcessorTranscript,
@@ -75,6 +81,8 @@ export const neoSwap = {
     claimAndCloseSwap,
     cancelAndCloseSwap,
     apiProcessor,
+    makeSwap,
+    takeSwap,
     UTILS,
     CREATE_INSTRUCTIONS,
 };

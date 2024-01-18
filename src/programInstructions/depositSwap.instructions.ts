@@ -8,55 +8,93 @@ import {
     ErrorFeedback,
     ItemStatus,
     NftSwapItem,
+    SwapData,
+    SwapIdentity,
+    SwapInfo,
     TokenSwapItem,
     TradeStatus,
     TxWithSigner,
 } from "../utils/types";
 import { getDepositCNftInstruction } from "./subFunction/deposit.cnft.instructions";
 import { Program } from "@coral-xyz/anchor";
-import bs58 from "bs58";
-import { NEOSWAP_PROGRAM_ID, NEOSWAP_PROGRAM_ID_DEV } from "../utils/const";
+import { swapDataConverter } from "../utils/swapDataConverter.function";
 
 export async function createDepositSwapInstructions(Data: {
     swapDataAccount: PublicKey;
     user: PublicKey;
     signer: PublicKey;
-    clusterOrUrl: Cluster | string;
+    clusterOrUrl?: Cluster | string;
     program?: Program;
+    swapInfo?: SwapInfo;
 }): Promise<TxWithSigner[]> {
-    const program = Data.program ? Data.program : getProgram({ clusterOrUrl: Data.clusterOrUrl });
-    let swapData = await getSwapDataAccountFromPublicKey({
+    if (Data.program && Data.clusterOrUrl) {
+    } else if (!Data.program && Data.clusterOrUrl) {
+        Data.program = getProgram({ clusterOrUrl: Data.clusterOrUrl });
+    } else if (!Data.clusterOrUrl && Data.program) {
+        Data.clusterOrUrl = Data.program.provider.connection.rpcEndpoint;
+    } else {
+        throw {
+            blockchain: "solana",
+            status: "error",
+            message: "clusterOrUrl or program is required",
+        } as ErrorFeedback;
+    }
+
+    const program = Data.program;
+
+    let swapData: SwapData | undefined;
+    let swapDataInfo: SwapData | undefined;
+    let swapDataOnchain: SwapData | undefined;
+
+    let swapIdentity: SwapIdentity | undefined;
+    let swapIdentityInfo: SwapIdentity | undefined;
+    let swapIdentityOnchain: SwapIdentity | undefined;
+
+    let swapInfo: SwapInfo | undefined = Data.swapInfo;
+    let force = false;
+    if (swapInfo) {
+        force = true;
+        swapIdentityInfo = await swapDataConverter({
+            swapInfo,
+            connection: Data.program.provider.connection,
+            clusterOrUrl: Data.clusterOrUrl,
+            swapDataAccount: Data.swapDataAccount,
+        });
+        swapDataInfo = swapIdentityInfo.swapData;
+        swapData = swapDataInfo;
+    }
+
+    swapDataOnchain = await getSwapDataAccountFromPublicKey({
         program,
         swapDataAccount_publicKey: Data.swapDataAccount,
     });
 
-    if (!swapData) {
+    if (!swapDataOnchain) {
         throw {
             blockchain: "solana",
             status: "error",
             message: "Swap initialization in progress or not initialized. Please try again later.",
         } as ErrorFeedback;
-    } else if (swapData.status !== TradeStatus.WaitingToDeposit)
+    } else if (swapDataOnchain.status !== TradeStatus.WaitingToDeposit) {
+        // if (Data.swapInfo) return;
         throw {
             blockchain: "solana",
             status: "error",
             message: "Status of the swap isn't in a depositing state.",
-            swapStatus: swapData.status,
+            swapStatus: swapDataOnchain.status,
         } as ErrorFeedback;
+    }
 
-    console.log("swapData", swapData.tokenItems, swapData.nftItems);
-    const swapIdentity = getSwapIdentityFromData({
-        swapData,
+    swapIdentityOnchain = getSwapIdentityFromData({
+        swapData: swapDataOnchain,
         clusterOrUrl: Data.clusterOrUrl,
     });
 
-    swapIdentity.swapDataAccount_seed = Buffer.from(bs58.decode(swapData.seedString));
-    swapIdentity.swapDataAccount_publicKey = PublicKey.findProgramAddressSync(
-        [swapIdentity.swapDataAccount_seed],
-        Data.clusterOrUrl.includes("devnet") ? NEOSWAP_PROGRAM_ID_DEV : NEOSWAP_PROGRAM_ID
-    )[0];
+    if (!swapIdentity) swapIdentity = swapIdentityOnchain;
+    if (!swapData) swapData = swapDataOnchain;
 
-    console.log("swapIdentity", swapIdentity);
+    console.log("swapData", swapData.tokenItems, swapData.nftItems);
+    console.log("swapIdentity seedstring", swapIdentity.swapDataAccount_seedString);
     // console.log("Data.user", Data.user);
     // swapIdentity.swapDataAccount_publicKey=new PublicKey('GnzPof4D1hwbifZaCtEbLbmmWvsyLfqd8gbYhvR1iXY6')
     let depositInstruction: TxWithSigner[] = [];
@@ -64,7 +102,11 @@ export async function createDepositSwapInstructions(Data: {
     let isUserPartOfTrade = false;
     let isUserAlreadyDeposited = false;
 
-    let allData = [...swapData.nftItems, ...swapData.tokenItems];
+    let allData = [
+        ...swapData.nftItems.filter((item) => !item.mint.equals(SystemProgram.programId)),
+        ...swapData.tokenItems.filter((item) => !item.owner.equals(SystemProgram.programId)),
+    ];
+    console.log("allData", allData);
 
     let swapDataItems: (TokenSwapItem | NftSwapItem)[] = allData.filter((item) =>
         item.owner.equals(Data.user)
@@ -76,6 +118,26 @@ export async function createDepositSwapInstructions(Data: {
     for (const swapDataItem of swapDataItems) {
         if ("mint" in swapDataItem) {
             if (swapDataItem.status === ItemStatus.NFTPending) {
+                if (!!force) {
+                    let existItem = swapDataOnchain.nftItems.find(
+                        (item) =>
+                            item.mint.equals(swapDataItem.mint) &&
+                            item.merkleTree.equals(swapDataItem.merkleTree) &&
+                            item.destinary.equals(swapDataItem.destinary) &&
+                            item.index === swapDataItem.index &&
+                            item.owner.equals(swapDataItem.owner)
+                    );
+                    if (existItem && existItem.status !== ItemStatus.NFTDeposited) {
+                        console.log(
+                            " XXX - SKIP Deposit (C)NFT item with TokenId ",
+                            swapDataItem.mint.toBase58(),
+                            " from ",
+                            swapDataItem.owner.toBase58(),
+                            " - XXX"
+                        );
+                        continue;
+                    }
+                }
                 if (swapDataItem.isCompressed) {
                     console.log(
                         "XXX - Deposit CNFT item with TokenId ",
@@ -84,6 +146,7 @@ export async function createDepositSwapInstructions(Data: {
                         swapDataItem.owner.toBase58(),
                         " - XXX"
                     );
+
                     let ix = await getDepositCNftInstruction({
                         program,
                         signer: Data.user,
@@ -124,7 +187,6 @@ export async function createDepositSwapInstructions(Data: {
         } else {
             if (swapDataItem.status === ItemStatus.SolPending) {
                 let tokenName = "SOL";
-
                 switch (swapData.acceptedPayement.toString()) {
                     case "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v":
                         tokenName = "USCD";
@@ -138,9 +200,23 @@ export async function createDepositSwapInstructions(Data: {
                     case "GENEtH5amGSi8kHAtQoezp1XEXwZJ8vcuePYnXdKrMYz":
                         tokenName = "GENOPETS";
                         break;
-                    case SystemProgram.programId.toBase58():
-                        tokenName = "SOL";
-                        break;
+                }
+                if (!!force) {
+                    let existItem = swapDataOnchain.tokenItems.find(
+                        (item) =>
+                            item.amount === swapDataItem.amount &&
+                            item.owner.equals(swapDataItem.owner)
+                    );
+                    if (existItem && existItem.status !== ItemStatus.SolToClaim) {
+                        console.log(
+                            `XXX - SKIP - Deposit ${tokenName} item with mint `,
+                            swapData.acceptedPayement.toBase58(),
+                            " from ",
+                            swapDataItem.owner.toBase58(),
+                            " - XXX"
+                        );
+                        continue;
+                    }
                 }
 
                 console.log(

@@ -24,13 +24,13 @@ export function getSwapIdentityFromData(Data: {
                         y.mint.toString() + y.owner.toString() + y.destinary.toString()
                     );
                 })
-
                 .forEach((item) => {
                     if (item.mint.equals(SystemProgram.programId)) {
+                        seed += item.owner;
                         seed += item.collection;
                     } else {
-                        seed += item.mint;
                         seed += item.owner;
+                        seed += item.mint;
                     }
                 });
 
@@ -44,6 +44,7 @@ export function getSwapIdentityFromData(Data: {
             Data.clusterOrUrl.includes("devnet") ? NEOSWAP_PROGRAM_ID_DEV : NEOSWAP_PROGRAM_ID
         );
         console.log("swapDataAccount_publicKey", swapDataAccount_publicKey.toBase58());
+
         // console.log("swapDataAccount_publicKey", Data.swapData);
         // console.log(
         //     'Data.clusterOrUrl.includes("devnet") ? NEOSWAP_PROGRAM_ID_DEV : NEOSWAP_PROGRAM_ID',

@@ -903,6 +903,11 @@ export const idlSwap: Idl = {
                     isMut: true,
                     isSigner: true,
                 },
+                {
+                    name: "initializer",
+                    isMut: true,
+                    isSigner: false,
+                },
             ],
             args: [
                 {
@@ -1230,6 +1235,11 @@ export const idlSwap: Idl = {
                     name: "signer",
                     isMut: true,
                     isSigner: true,
+                },
+                {
+                    name: "initializer",
+                    isMut: true,
+                    isSigner: false,
                 },
             ],
             args: [

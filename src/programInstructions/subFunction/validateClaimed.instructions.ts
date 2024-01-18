@@ -9,10 +9,23 @@ import { SOLANA_SPL_ATA_PROGRAM_ID } from "../../utils/const";
 export const createValidateClaimedInstructions = async (Data: {
     swapDataAccount: PublicKey;
     signer: PublicKey;
-    clusterOrUrl: Cluster | string;
+    clusterOrUrl?: Cluster | string;
     program?: Program;
 }): Promise<TxWithSigner[] | undefined> => {
-    const program = Data.program ? Data.program : getProgram({ clusterOrUrl: Data.clusterOrUrl });
+    if (Data.program && Data.clusterOrUrl) {
+    } else if (!Data.program && Data.clusterOrUrl) {
+        Data.program = getProgram({ clusterOrUrl: Data.clusterOrUrl });
+    } else if (!Data.clusterOrUrl && Data.program) {
+        Data.clusterOrUrl = Data.program.provider.connection.rpcEndpoint;
+    } else {
+        throw {
+            blockchain: "solana",
+            status: "error",
+            message: "clusterOrUrl or program is required",
+        } as ErrorFeedback;
+    }
+
+    const program = Data.program;
     const swapData = await getSwapDataAccountFromPublicKey({
         program,
         swapDataAccount_publicKey: Data.swapDataAccount,
@@ -61,6 +74,7 @@ export const createValidateClaimedInstructions = async (Data: {
                         tokenProgram: SOLANA_SPL_ATA_PROGRAM_ID,
                         swapDataAccount: Data.swapDataAccount,
                         signer: Data.signer,
+                        initializer: swapData.initializer,
                     })
                     .instruction()
             ),

@@ -44,11 +44,16 @@ export async function getSwapDataAccountFromPublicKey(Data: {
     }
 }
 
-export async function getDataFromSwapdataAccountPublickey(Data: {
+export async function getSwapInfoFromSwapdataAccountPublickey(Data: {
     clusterOrUrl?: Cluster | string;
     program?: Program;
     swapDataAccount_publicKey: PublicKey;
+    swapData?: SwapData;
 }): Promise<SwapInfo> {
+    if (Data.swapData) {
+        return invertedSwapDataConverter({ swapData: Data.swapData });
+    }
+
     if (!!Data.clusterOrUrl && !!Data.program) {
     } else if (!!Data.clusterOrUrl) {
         Data.program = getProgram({ clusterOrUrl: Data.clusterOrUrl });

@@ -1,4 +1,4 @@
-import { Cluster, PublicKey, Transaction } from "@solana/web3.js";
+import { Cluster, PublicKey, SystemProgram, Transaction } from "@solana/web3.js";
 import { getProgram } from "../utils/getProgram.obj";
 import { getSwapDataAccountFromPublicKey } from "../utils/getSwapDataAccountFromPublicKey.function";
 import { getSwapIdentityFromData } from "../utils/getSwapIdentityFromData.function";
@@ -8,27 +8,75 @@ import {
     ErrorFeedback,
     ItemStatus,
     NftSwapItem,
+    SwapData,
+    SwapIdentity,
+    SwapInfo,
     TokenSwapItem,
     TradeStatus,
     TxWithSigner,
 } from "../utils/types";
 import { getClaimCNftInstruction } from "./subFunction/claim.cnft.instructions";
 import { Program } from "@coral-xyz/anchor";
+import { swapDataConverter } from "../utils/swapDataConverter.function";
 
 export async function createClaimSwapInstructions(Data: {
     swapDataAccount: PublicKey;
     signer: PublicKey;
-    clusterOrUrl: Cluster | string;
-    skipFinalize?: boolean;
+    clusterOrUrl?: Cluster | string;
+    swapInfo?: SwapInfo;
     program?: Program;
 }): Promise<TxWithSigner[] | undefined> {
-    const program = Data.program ? Data.program : getProgram({ clusterOrUrl: Data.clusterOrUrl });
+    if (Data.program && Data.clusterOrUrl) {
+    } else if (!Data.program && Data.clusterOrUrl) {
+        Data.program = getProgram({ clusterOrUrl: Data.clusterOrUrl });
+    } else if (!Data.clusterOrUrl && Data.program) {
+        Data.clusterOrUrl = Data.program.provider.connection.rpcEndpoint;
+    } else {
+        throw {
+            blockchain: "solana",
+            status: "error",
+            message: "clusterOrUrl or program is required",
+        } as ErrorFeedback;
+    }
 
-    const swapData = await getSwapDataAccountFromPublicKey({
+    const program = Data.program;
+
+    let swapData: SwapData | undefined;
+    let swapDataInfo: SwapData | undefined;
+    let swapDataOnchain: SwapData | undefined;
+
+    let swapIdentity: SwapIdentity | undefined;
+    let swapIdentityInfo: SwapIdentity | undefined;
+    let swapIdentityOnchain: SwapIdentity | undefined;
+
+    let swapInfo: SwapInfo | undefined = Data.swapInfo;
+    let force = false;
+    let init = false;
+
+    if (swapInfo) {
+        force = true;
+        swapIdentityInfo = await swapDataConverter({
+            swapInfo,
+            connection: Data.program.provider.connection,
+            clusterOrUrl: Data.clusterOrUrl,
+            swapDataAccount: Data.swapDataAccount,
+        });
+        swapDataInfo = swapIdentityInfo.swapData;
+        swapData = swapDataInfo;
+        init = true;
+    }
+
+    swapDataOnchain = await getSwapDataAccountFromPublicKey({
         program,
         swapDataAccount_publicKey: Data.swapDataAccount,
     });
-    if (!swapData) {
+
+    swapDataOnchain = await getSwapDataAccountFromPublicKey({
+        program,
+        swapDataAccount_publicKey: Data.swapDataAccount,
+    });
+
+    if (!swapDataOnchain) {
         throw {
             blockchain: "solana",
             status: "error",
@@ -36,45 +84,45 @@ export async function createClaimSwapInstructions(Data: {
         } as ErrorFeedback;
     } else if (
         !(
-            swapData.status === TradeStatus.WaitingToClaim ||
-            swapData.status === TradeStatus.WaitingToDeposit
+            swapDataOnchain.status === TradeStatus.WaitingToClaim ||
+            swapDataOnchain.status === TradeStatus.WaitingToDeposit
         )
     ) {
+        // if (Data.swapInfo) return;
         throw {
             blockchain: "solana",
             status: "error",
             message: "Swap is't in the adequate status for Validate Claim.",
-            swapStatus: swapData.status,
+            swapStatus: swapDataOnchain.status,
         } as ErrorFeedback;
     }
-    let init = false;
-    if (swapData.initializer.equals(Data.signer) || !Data.skipFinalize) {
-        init = true;
-    }
-    // else if (swapData.status !== TradeStatus.WaitingToClaim) {
-    //     throw {
-    //         blockchain: "solana",
-    //         status: "error",
-    //         message:
-    //             "Swap is't in the adequate status for Claiming an item & you're not Initializer",
-    //         swapStatus: swapData.status,
-    //     } as ErrorFeedback;
-    // }
-    const swapIdentity = getSwapIdentityFromData({
-        swapData,
+
+    swapIdentityOnchain = getSwapIdentityFromData({
+        swapData: swapDataOnchain,
         clusterOrUrl: Data.clusterOrUrl,
     });
+
+    if (!swapIdentity) swapIdentity = swapIdentityOnchain;
+    if (!swapData) swapData = swapDataOnchain;
+
+    if (swapData.initializer.equals(Data.signer)) {
+        init = true;
+    }
 
     let claimTransactionInstruction: TxWithSigner[] = [];
     let ataList: PublicKey[] = [];
     let allData: (NftSwapItem | TokenSwapItem)[] = [...swapData.nftItems, ...swapData.tokenItems];
-    let swapDataItems = allData.filter(
-        (swapDataItem) =>
-            swapDataItem.status === ItemStatus.NFTDeposited ||
-            swapDataItem.status === ItemStatus.SolToClaim
-    );
 
-    if (!init)
+    let swapDataItems = force
+        ? allData
+        : allData.filter(
+              (swapDataItem) =>
+                  swapDataItem.status === ItemStatus.NFTDeposited ||
+                  swapDataItem.status === ItemStatus.SolToClaim
+          );
+
+    if (!init) {
+        console.log("filtering items for ", Data.signer.toBase58());
         swapDataItems = swapDataItems.filter((item) => {
             if ("mint" in item) {
                 return item.destinary.equals(Data.signer);
@@ -82,7 +130,9 @@ export async function createClaimSwapInstructions(Data: {
                 return item.owner.equals(Data.signer);
             }
         });
-
+    }
+    console.log("swapDataOnchain", swapDataOnchain);
+    console.log("swapDataItems", swapDataItems);
     for (const swapDataItem of swapDataItems) {
         if (
             init === true ||
@@ -90,7 +140,37 @@ export async function createClaimSwapInstructions(Data: {
             (!("mint" in swapDataItem) && swapDataItem.owner.equals(Data.signer))
         ) {
             if ("mint" in swapDataItem) {
-                if (swapDataItem.status === ItemStatus.NFTDeposited) {
+                console.log("NftSwapItem XXX", swapDataItem);
+                let isInSwap = false;
+
+                if (!!force) {
+                    let existItem = swapDataOnchain.nftItems.find((item) => {
+                        console.log("item", item);
+
+                        return (
+                            item.mint.equals(swapDataItem.mint) &&
+                            item.merkleTree.equals(swapDataItem.merkleTree) &&
+                            item.destinary.equals(swapDataItem.destinary) &&
+                            (swapDataItem.isCompressed
+                                ? item.index.eq(swapDataItem.index)
+                                : true) &&
+                            item.owner.equals(swapDataItem.owner)
+                        );
+                    });
+                    console.log("existItem", existItem);
+                    
+                    if (existItem && existItem.status !== ItemStatus.NFTDeposited) {
+                        console.log(
+                            " XXX - SKIP Claim (C)NFT item with TokenId ",
+                            swapDataItem.mint.toBase58(),
+                            " from ",
+                            swapDataItem.owner.toBase58(),
+                            " - XXX"
+                        );
+                        continue;
+                    } else isInSwap = true;
+                }
+                if (swapDataItem.status === ItemStatus.NFTDeposited || isInSwap) {
                     if (swapDataItem.isCompressed) {
                         console.log(
                             "XXX - Claim CNFT swapDataItem with TokenId ",
@@ -138,8 +218,42 @@ export async function createClaimSwapInstructions(Data: {
                     }
                 }
             } else {
+                let tokenName = "SOL";
+                switch (swapData.acceptedPayement.toString()) {
+                    case "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v":
+                        tokenName = "USCD";
+                        break;
+                    case "ATLASXmbPQxBUYbxPsV97usA3fPQYEqzQBUHgiFCUsXx":
+                        tokenName = "ATLAS";
+                        break;
+                    case "6dhTynDkYsVM7cbF7TKfC9DWB636TcEM935fq7JzL2ES":
+                        tokenName = "BONK";
+                        break;
+                    case "GENEtH5amGSi8kHAtQoezp1XEXwZJ8vcuePYnXdKrMYz":
+                        tokenName = "GENOPETS";
+                        break;
+                }
+
+                if (!!force) {
+                    let existItem = swapDataOnchain.tokenItems.find(
+                        (item) =>
+                            item.amount.eq(swapDataItem.amount) &&
+                            item.owner.equals(swapDataItem.owner)
+                    );
+
+                    if (existItem && existItem.status !== ItemStatus.SolToClaim) {
+                        console.log(
+                            `XXX - SKIP - Claim ${tokenName} item with mint `,
+                            swapData.acceptedPayement.toBase58(),
+                            " from ",
+                            swapDataItem.owner.toBase58(),
+                            " - XXX"
+                        );
+                        continue;
+                    }
+                }
                 console.log(
-                    "XXX - Claim Sol item mint ",
+                    `XXX - Claim ${tokenName} item mint `,
                     swapData.acceptedPayement.toBase58(),
                     "to ",
                     swapDataItem.owner.toBase58(),

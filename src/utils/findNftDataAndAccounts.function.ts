@@ -17,7 +17,7 @@ export async function findNftDataAndMetadataAccount(Data: {
     try {
         const metaplex = new Metaplex(Data.connection);
         const nft = await metaplex.nfts().findByMint({ mintAddress: Data.mint });
-        console.log("nftData", nft);
+        // console.log("nftData", nft);
         let tokenStd = nft.tokenStandard;
         const AccountData = PublicKey.findProgramAddressSync(
             [
