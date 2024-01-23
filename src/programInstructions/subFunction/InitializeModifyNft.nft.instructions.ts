@@ -1,15 +1,19 @@
-import { PublicKey, SystemProgram, TransactionInstruction } from "@solana/web3.js";
+import { Cluster, PublicKey, SystemProgram, TransactionInstruction } from "@solana/web3.js";
 import { PROGRAM_ID as MPL_BUBBLEGUM_PROGRAM_ID } from "@metaplex-foundation/mpl-bubblegum";
 
 import { Program } from "@coral-xyz/anchor";
 import { NftSwapItem, SwapIdentity, TokenSwapItem } from "../../utils/types";
-import { findNftDataAndMetadataAccount } from "../../utils/findNftDataAndAccounts.function";
+import {
+    findNftDataAndMetadataAccount,
+    getCollectionPda,
+} from "../../utils/findNftDataAndAccounts.function";
 import { TOKEN_METADATA_PROGRAM } from "../../utils/const";
 import { getCNFTData } from "../../utils/getCNFTData.function";
 import {
     SPL_ACCOUNT_COMPRESSION_PROGRAM_ID,
     SPL_NOOP_PROGRAM_ID,
 } from "@solana/spl-account-compression";
+import { findProgramAddressSync } from "@project-serum/anchor/dist/cjs/utils/pubkey";
 
 export async function getInitializeModifyNftInstructions(Data: {
     program: Program;
@@ -18,6 +22,9 @@ export async function getInitializeModifyNftInstructions(Data: {
     tradesToModify: { nftSwapItem: NftSwapItem; isMaker: boolean }[];
 }) {
     let instructions: TransactionInstruction[] = [];
+    let cluster: Cluster = Data.program.provider.connection.rpcEndpoint.includes("mainnet")
+        ? "mainnet-beta"
+        : "devnet";
     await Promise.all(
         Data.tradesToModify.map(async (tradeToModify) => {
             if (tradeToModify.nftSwapItem.isCompressed) {
@@ -33,13 +40,17 @@ export async function getInitializeModifyNftInstructions(Data: {
                 } = await getCNFTData({
                     connection: Data.program.provider.connection,
                     tokenId: tradeToModify.nftSwapItem.mint.toBase58(),
-                    Cluster: Data.program.provider.connection.rpcEndpoint.includes("mainnet")
-                        ? "mainnet-beta"
-                        : "devnet",
+                    cluster,
                 });
                 let user = tradeToModify.isMaker
                     ? tradeToModify.nftSwapItem.destinary.toBase58()
                     : tradeToModify.nftSwapItem.owner.toBase58();
+
+                let collectionPda = getCollectionPda({
+                    collection: tradeToModify.nftSwapItem.collection,
+                    cluster,
+                    programId: Data.program.programId,
+                });
 
                 instructions.push(
                     await Data.program.methods
@@ -50,6 +61,7 @@ export async function getInitializeModifyNftInstructions(Data: {
                         )
                         .accounts({
                             swapDataAccount: Data.swapIdentity.swapDataAccount_publicKey.toBase58(),
+                            collectionPda,
                             signer: Data.signer.toBase58(),
                             user,
                             leafDelegate: user,

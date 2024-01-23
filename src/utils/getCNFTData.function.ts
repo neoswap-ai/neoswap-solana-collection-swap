@@ -7,10 +7,10 @@ import fetch from "node-fetch";
 
 export async function getCNFTData(Data: {
     tokenId: string;
-    Cluster: Cluster;
+    cluster: Cluster;
     connection?: Connection;
 }) {
-    let solanaUrl = clusterApiUrl(Data.Cluster);
+    let solanaUrl = clusterApiUrl(Data.cluster);
     const treeDataReponse = await fetch(solanaUrl, {
         method: "POST",
         headers: {
@@ -47,7 +47,7 @@ export async function getCNFTData(Data: {
     // console.log("treeProof Results", treeProof);
     const connection = Data.connection
         ? Data.connection
-        : getProgram({ clusterOrUrl: Data.Cluster }).provider.connection;
+        : getProgram({ clusterOrUrl: Data.cluster }).provider.connection;
     // retrieve the merkle tree's account from the blockchain
     const treeAccount = await ConcurrentMerkleTreeAccount.fromAccountAddress(
         connection,

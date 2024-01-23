@@ -239,6 +239,11 @@ export const idlSwap: Idl = {
                     isSigner: false,
                 },
                 {
+                    name: "collectionPda",
+                    isMut: true,
+                    isSigner: false,
+                },
+                {
                     name: "signer",
                     isMut: true,
                     isSigner: true,
@@ -1249,8 +1254,172 @@ export const idlSwap: Idl = {
                 },
             ],
         },
+        {
+            name: "adminPdaInit",
+            docs: ["Maintaining AdminPda"],
+            accounts: [
+                {
+                    name: "adminPda",
+                    isMut: true,
+                    isSigner: false,
+                },
+                {
+                    name: "signer",
+                    isMut: true,
+                    isSigner: true,
+                },
+                {
+                    name: "systemProgram",
+                    isMut: false,
+                    isSigner: false,
+                },
+                {
+                    name: "tokenProgram",
+                    isMut: false,
+                    isSigner: false,
+                },
+            ],
+            args: [
+                {
+                    name: "nb",
+                    type: {
+                        defined: "usize",
+                    },
+                },
+            ],
+        },
+        {
+            name: "adminPdaModify",
+            accounts: [
+                {
+                    name: "adminPda",
+                    isMut: true,
+                    isSigner: false,
+                },
+                {
+                    name: "signer",
+                    isMut: true,
+                    isSigner: true,
+                },
+            ],
+            args: [
+                {
+                    name: "merkleKey",
+                    type: "publicKey",
+                },
+                {
+                    name: "isDelete",
+                    type: "bool",
+                },
+            ],
+        },
+        {
+            name: "collectionPdaInit",
+            docs: ["Maintaining CollectionPda"],
+            accounts: [
+                {
+                    name: "adminPda",
+                    isMut: false,
+                    isSigner: false,
+                },
+                {
+                    name: "collectionPda",
+                    isMut: true,
+                    isSigner: false,
+                },
+                {
+                    name: "signer",
+                    isMut: true,
+                    isSigner: true,
+                },
+                {
+                    name: "systemProgram",
+                    isMut: false,
+                    isSigner: false,
+                },
+                {
+                    name: "tokenProgram",
+                    isMut: false,
+                    isSigner: false,
+                },
+            ],
+            args: [
+                {
+                    name: "nb",
+                    type: {
+                        defined: "usize",
+                    },
+                },
+                {
+                    name: "collection",
+                    type: "publicKey",
+                },
+            ],
+        },
+        {
+            name: "collectionPdaModify",
+            accounts: [
+                {
+                    name: "adminPda",
+                    isMut: false,
+                    isSigner: false,
+                },
+                {
+                    name: "collectionPda",
+                    isMut: true,
+                    isSigner: false,
+                },
+                {
+                    name: "signer",
+                    isMut: true,
+                    isSigner: true,
+                },
+            ],
+            args: [
+                {
+                    name: "merkleKey",
+                    type: "publicKey",
+                },
+                {
+                    name: "isDelete",
+                    type: "bool",
+                },
+            ],
+        },
     ],
     accounts: [
+        {
+            name: "AdminPda",
+            type: {
+                kind: "struct",
+                fields: [
+                    {
+                        name: "adminList",
+                        type: {
+                            vec: "publicKey",
+                        },
+                    },
+                ],
+            },
+        },
+        {
+            name: "CollectionPda",
+            type: {
+                kind: "struct",
+                fields: [
+                    {
+                        name: "collection",
+                        type: "publicKey",
+                    },
+                    {
+                        name: "merkleList",
+                        type: {
+                            vec: "publicKey",
+                        },
+                    },
+                ],
+            },
+        },
         {
             name: "SwapData",
             type: {
@@ -1708,6 +1877,11 @@ export const idlSwap: Idl = {
             code: 6050,
             name: "TooEarly",
             msg: "The swap isn't openned yet for depositing",
+        },
+        {
+            code: 6051,
+            name: "UnauthorizedCollection",
+            msg: "The Collection you are trying to add isn't maintaind by NeoSwap, please contact Neoswap for further information",
         },
     ],
 };

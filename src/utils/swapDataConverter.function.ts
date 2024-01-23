@@ -36,7 +36,12 @@ export async function swapDataConverter(Data: {
     }
 
     for (const user in Data.swapInfo.users) {
-        console.log("user", user, Data.swapInfo.users[user]);
+        console.log(
+            "user",
+            user,
+            Data.swapInfo.users[user].address,
+            Data.swapInfo.users[user].items
+        );
 
         if (Data.swapInfo.users[user].items.give.length > 0) {
             await Promise.all(
@@ -85,7 +90,9 @@ export async function swapDataConverter(Data: {
                             " items ",
                             item.address,
                             "to destinary",
-                            toDest.address
+                            toDest.address,
+                            " from ",
+                            Data.swapInfo.users[user].address
                         );
                         swapDatas.push({
                             // isNft: true,

@@ -28,7 +28,7 @@ export async function getCancelCNftInstructions(Data: {
         await getCNFTData({
             connection: Data.program.provider.connection,
             tokenId: Data.tokenId.toBase58(),
-            Cluster: Data.clusterOrUrl.includes("mainnet") ? "mainnet-beta" : "devnet",
+            cluster: Data.clusterOrUrl.includes("mainnet") ? "mainnet-beta" : "devnet",
         });
 
     return await Data.program.methods
