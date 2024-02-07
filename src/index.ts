@@ -16,6 +16,14 @@ import { createMakeSwapInstructions } from "./programInstructions/makeSwap.instr
 import { createModifySwapInstructions } from "./programInstructions/modifySwap.instructions";
 import { createTakeSwapInstructions } from "./programInstructions/takeSwap.instructions";
 import {
+    createAdminInitIx,
+    createAdminModIx,
+} from "./programInstructions/pdaFunction/admin.instructions";
+import {
+    createCollectionInitIx,
+    createCollectionModIx,
+} from "./programInstructions/pdaFunction/collection.instructions";
+import {
     findNftDataAndMetadataAccount,
     findNftMasterEdition,
     findRuleSet,
@@ -23,6 +31,7 @@ import {
 } from "./utils/findNftDataAndAccounts.function";
 import { findOrCreateAta } from "./utils/findOrCreateAta.function";
 import { getCNFTData, getCNFTOwner } from "./utils/getCNFTData.function";
+import { getAdminPda, getCollectionPda } from "./utils/getPda";
 import { getProgram } from "./utils/getProgram.obj";
 import {
     getSwapDataAccountFromPublicKey,
@@ -46,7 +55,9 @@ const NFT_ACCOUNTS = {
     getCNFTOwner,
 };
 
-const USER_PDA = {};
+const ADMIN = { createAdminInitIx, createAdminModIx, getAdminPda };
+const COLLECTION = { createCollectionInitIx, createCollectionModIx, getCollectionPda };
+const PDA = { ADMIN, COLLECTION };
 
 const UTILS = {
     NFT_ACCOUNTS,
@@ -85,4 +96,5 @@ export const neoSwap = {
     takeSwap,
     UTILS,
     CREATE_INSTRUCTIONS,
+    PDA,
 };

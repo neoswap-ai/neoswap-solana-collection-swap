@@ -188,6 +188,11 @@ export const idlSwap: Idl = {
                     isSigner: false,
                 },
                 {
+                    name: "collectionPda",
+                    isMut: true,
+                    isSigner: false,
+                },
+                {
                     name: "signer",
                     isMut: true,
                     isSigner: true,
@@ -383,7 +388,7 @@ export const idlSwap: Idl = {
                     isSigner: false,
                 },
                 {
-                    name: "splAtaProgram",
+                    name: "ataProgram",
                     isMut: false,
                     isSigner: false,
                 },
@@ -469,7 +474,7 @@ export const idlSwap: Idl = {
                     isSigner: false,
                 },
                 {
-                    name: "splAtaProgram",
+                    name: "ataProgram",
                     isMut: false,
                     isSigner: false,
                 },
@@ -747,7 +752,7 @@ export const idlSwap: Idl = {
                     isSigner: false,
                 },
                 {
-                    name: "splAtaProgram",
+                    name: "ataProgram",
                     isMut: false,
                     isSigner: false,
                 },
@@ -832,7 +837,7 @@ export const idlSwap: Idl = {
                     isSigner: false,
                 },
                 {
-                    name: "splAtaProgram",
+                    name: "ataProgram",
                     isMut: false,
                     isSigner: false,
                 },
@@ -894,7 +899,7 @@ export const idlSwap: Idl = {
                     isSigner: false,
                 },
                 {
-                    name: "tokenProgram",
+                    name: "ataProgram",
                     isMut: false,
                     isSigner: false,
                 },
@@ -1080,7 +1085,7 @@ export const idlSwap: Idl = {
                     isSigner: false,
                 },
                 {
-                    name: "splAtaProgram",
+                    name: "ataProgram",
                     isMut: false,
                     isSigner: false,
                 },
@@ -1165,7 +1170,7 @@ export const idlSwap: Idl = {
                     isSigner: false,
                 },
                 {
-                    name: "splAtaProgram",
+                    name: "ataProgram",
                     isMut: false,
                     isSigner: false,
                 },
@@ -1227,7 +1232,7 @@ export const idlSwap: Idl = {
                     isSigner: false,
                 },
                 {
-                    name: "tokenProgram",
+                    name: "ataProgram",
                     isMut: false,
                     isSigner: false,
                 },
@@ -1282,9 +1287,7 @@ export const idlSwap: Idl = {
             args: [
                 {
                     name: "nb",
-                    type: {
-                        defined: "usize",
-                    },
+                    type: "u32",
                 },
             ],
         },
@@ -1304,7 +1307,7 @@ export const idlSwap: Idl = {
             ],
             args: [
                 {
-                    name: "merkleKey",
+                    name: "adminToAdd",
                     type: "publicKey",
                 },
                 {
@@ -1346,9 +1349,7 @@ export const idlSwap: Idl = {
             args: [
                 {
                     name: "nb",
-                    type: {
-                        defined: "usize",
-                    },
+                    type: "u32",
                 },
                 {
                     name: "collection",
@@ -1882,6 +1883,11 @@ export const idlSwap: Idl = {
             code: 6051,
             name: "UnauthorizedCollection",
             msg: "The Collection you are trying to add isn't maintaind by NeoSwap, please contact Neoswap for further information",
+        },
+        {
+            code: 6052,
+            name: "UnverifiedCollection",
+            msg: "Collection not verified",
         },
     ],
 };

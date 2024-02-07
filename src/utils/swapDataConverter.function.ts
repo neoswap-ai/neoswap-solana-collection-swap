@@ -105,7 +105,10 @@ export async function swapDataConverter(Data: {
                             destinary: new PublicKey(toDest.address),
                             amount: new BN(toDest.amount),
                             status: ItemStatus.NFTPending,
-                            collection: new PublicKey(item.collection),
+                            collection:
+                                !!item.collection && item.collection != ""
+                                    ? new PublicKey(item.collection)
+                                    : SystemProgram.programId,
                         } as NftSwapItem);
                     });
                 })
@@ -226,7 +229,7 @@ export function invertedSwapDataConverter(Data: { swapData: SwapData }): SwapInf
         if (giversMint.length == 0) {
             uusers[item.owner.toBase58()].give.push({
                 address: item.mint.toBase58(),
-                collection: "",
+                collection: item.collection ? item.collection.toBase58() : "",
                 amount: item.amount.toNumber(),
                 getters: [
                     {
@@ -247,7 +250,7 @@ export function invertedSwapDataConverter(Data: { swapData: SwapData }): SwapInf
         if (getterMint.length == 0) {
             uusers[item.destinary.toBase58()].get.push({
                 address: item.mint.toBase58(),
-                collection: "",
+                collection: item.collection ? item.collection.toBase58() : "",
                 amount: item.amount.toNumber(),
                 givers: [
                     {

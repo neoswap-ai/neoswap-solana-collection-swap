@@ -27,30 +27,23 @@ export async function getInitializeModifyNftInstructions(Data: {
         : "devnet";
     await Promise.all(
         Data.tradesToModify.map(async (tradeToModify) => {
+            let collectionPda = getCollectionPda({
+                collection: tradeToModify.nftSwapItem.collection,
+                cluster,
+                programId: Data.program.programId,
+            });
+
             if (tradeToModify.nftSwapItem.isCompressed) {
                 const {
-                    // creatorHash,
-                    // dataHash,
-                    // index,
                     merkleTree,
-                    // nonce,
-                    // proofMeta,
-                    // root,
                     treeAuthority,
                 } = await getCNFTData({
                     connection: Data.program.provider.connection,
                     tokenId: tradeToModify.nftSwapItem.mint.toBase58(),
-                    cluster,
-                });
+                    cluster});
                 let user = tradeToModify.isMaker
                     ? tradeToModify.nftSwapItem.destinary.toBase58()
                     : tradeToModify.nftSwapItem.owner.toBase58();
-
-                let collectionPda = getCollectionPda({
-                    collection: tradeToModify.nftSwapItem.collection,
-                    cluster,
-                    programId: Data.program.programId,
-                });
 
                 instructions.push(
                     await Data.program.methods
@@ -92,6 +85,7 @@ export async function getInitializeModifyNftInstructions(Data: {
                         )
                         .accounts({
                             swapDataAccount: Data.swapIdentity.swapDataAccount_publicKey.toBase58(),
+                            collectionPda,
                             signer: Data.signer.toBase58(),
                             user,
                             nftMetadata,

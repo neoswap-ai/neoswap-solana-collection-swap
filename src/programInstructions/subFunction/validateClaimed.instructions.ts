@@ -71,7 +71,7 @@ export const createValidateClaimedInstructions = async (Data: {
                     .claimValidate(swapIdentity.swapDataAccount_seed)
                     .accounts({
                         systemProgram: SystemProgram.programId,
-                        tokenProgram: SOLANA_SPL_ATA_PROGRAM_ID,
+                        ataProgram: SOLANA_SPL_ATA_PROGRAM_ID,
                         swapDataAccount: Data.swapDataAccount,
                         signer: Data.signer,
                         initializer: swapData.initializer,

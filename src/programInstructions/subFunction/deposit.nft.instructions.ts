@@ -122,7 +122,7 @@ export async function getDepositNftInstruction(Data: {
                     authRules,
                     metadataProgram: TOKEN_METADATA_PROGRAM,
                     sysvarInstructions: SYSVAR_INSTRUCTIONS_PUBKEY.toBase58(),
-                    splAtaProgram: SOLANA_SPL_ATA_PROGRAM_ID,
+                    ataProgram: SOLANA_SPL_ATA_PROGRAM_ID,
                     tokenProgram: TOKEN_PROGRAM_ID.toBase58(),
                     systemProgram: SystemProgram.programId.toBase58(),
                 })
@@ -146,7 +146,7 @@ export async function getDepositNftInstruction(Data: {
                     authRules: Data.signer.toBase58(),
                     metadataProgram: TOKEN_METADATA_PROGRAM,
                     sysvarInstructions: SYSVAR_INSTRUCTIONS_PUBKEY.toBase58(),
-                    splAtaProgram: SOLANA_SPL_ATA_PROGRAM_ID,
+                    ataProgram: SOLANA_SPL_ATA_PROGRAM_ID,
                     tokenProgram: TOKEN_PROGRAM_ID.toBase58(),
                     systemProgram: SystemProgram.programId.toBase58(),
                 })

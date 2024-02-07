@@ -150,7 +150,7 @@ export interface DepositNft {
             metadataProgram: string;
             sysvarInstructions: string;
             tokenProgram: string;
-            splAtaProgram: string;
+            ataProgram: string;
             swapDataAccount: string;
             signer: string;
             itemFromDeposit: string;
@@ -181,7 +181,7 @@ export interface DepositCNft {
             metadataProgram: string;
             sysvarInstructions: string;
             tokenProgram: string;
-            splAtaProgram: string;
+            ataProgram: string;
             swapDataAccount: string;
             user: string;
             leafDelegate: string;
@@ -289,3 +289,12 @@ export enum SwapItem {
     NftSwapItem,
     TokensSwapItem,
 }
+
+export type AdminPdaData = {
+    admin_list: PublicKey[];
+};
+
+export type CollectionPdaData = {
+    collection: PublicKey;
+    merkleList: PublicKey[];
+};

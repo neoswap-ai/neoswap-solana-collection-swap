@@ -33,7 +33,7 @@ export async function getDepositCNftInstruction(Data: {
         await getCNFTData({
             connection: Data.program.provider.connection,
             tokenId: Data.tokenId.toBase58(),
-            Cluster: Data.clusterOrUrl.includes("mainnet") ? "mainnet-beta" : "devnet",
+            cluster: Data.clusterOrUrl.includes("mainnet") ? "mainnet-beta" : "devnet",
         });
     console.log(
         "getDepositCNftInstruction",
@@ -56,7 +56,7 @@ export async function getDepositCNftInstruction(Data: {
         '\nmetadataProgram:', TOKEN_METADATA_PROGRAM.toBase58(),
         '\nsysvarInstructions:', SYSVAR_INSTRUCTIONS_PUBKEY.toBase58(),
         '\ntokenProgram:', TOKEN_PROGRAM_ID.toBase58(),
-        '\nsplAtaProgram:', SOLANA_SPL_ATA_PROGRAM_ID.toBase58(),
+        '\nataProgram:', SOLANA_SPL_ATA_PROGRAM_ID.toBase58(),
         '\nswapDataAccount:', Data.swapIdentity.swapDataAccount_publicKey.toBase58(),
         // 'leafOwner:', Data.signer.toBase58(),
         '\nuser:', Data.signer.toBase58(),
@@ -90,7 +90,7 @@ export async function getDepositCNftInstruction(Data: {
                     metadataProgram: TOKEN_METADATA_PROGRAM,
                     sysvarInstructions: SYSVAR_INSTRUCTIONS_PUBKEY,
                     tokenProgram: TOKEN_PROGRAM_ID,
-                    splAtaProgram: SOLANA_SPL_ATA_PROGRAM_ID,
+                    ataProgram: SOLANA_SPL_ATA_PROGRAM_ID,
                     logWrapper: SPL_NOOP_PROGRAM_ID,
                     compressionProgram: SPL_ACCOUNT_COMPRESSION_PROGRAM_ID,
                     bubblegumProgram: MPL_BUBBLEGUM_PROGRAM_ID,
@@ -117,7 +117,7 @@ export async function getDepositCNftInstruction(Data: {
                             metadataProgram: TOKEN_METADATA_PROGRAM.toBase58(),
                             sysvarInstructions: SYSVAR_INSTRUCTIONS_PUBKEY.toBase58(),
                             tokenProgram: TOKEN_PROGRAM_ID.toBase58(),
-                            splAtaProgram: SOLANA_SPL_ATA_PROGRAM_ID.toBase58(),
+                            ataProgram: SOLANA_SPL_ATA_PROGRAM_ID.toBase58(),
                             swapDataAccount: Data.swapIdentity.swapDataAccount_publicKey.toBase58(),
                             user: Data.signer.toBase58(),
                             leafDelegate: Data.signer.toBase58(),
