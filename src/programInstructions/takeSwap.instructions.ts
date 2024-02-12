@@ -22,6 +22,8 @@ export async function createTakeSwapInstructions(Data: {
         swapInfo: Data.swapInfo,
     });
     if (modifyTxs) txToSend.push(...modifyTxs);
+    else console.log("no modifyTxs");
+
     try {
         let depositTxs = await createDepositSwapInstructions({
             signer: Data.signer,
@@ -32,7 +34,14 @@ export async function createTakeSwapInstructions(Data: {
         });
         if (depositTxs) txToSend.push(...depositTxs);
     } catch (error: any) {
-        if (error.message !== "Status of the swap isn't in a depositing state.") throw error;
+        if (
+            !(
+                error.message === "Status of the swap isn't in a depositing state." ||
+                error.message === "You have no items to escrow in this swap" ||
+                error.message === "You have already escrowed your items in this swap"
+            )
+        )
+            throw error;
         console.log(`error skipped : ${error}`);
         console.log(`String(error) skipped : ${String(error)}`);
         console.log(`error.message skipped : ${error.message}`);
@@ -44,6 +53,7 @@ export async function createTakeSwapInstructions(Data: {
         program: Data.program,
     });
     if (validateDepositTxData) txToSend.push(...validateDepositTxData);
+    else console.log("no validateDepositTxData");
 
     let claimTxData = await createClaimSwapInstructions({
         swapDataAccount: Data.swapDataAccount,
@@ -53,6 +63,7 @@ export async function createTakeSwapInstructions(Data: {
     });
 
     if (claimTxData) txToSend.push(...claimTxData);
+    else console.log("no claimTxData");
 
     let validateClaimTxData = await createValidateClaimedInstructions({
         swapDataAccount: Data.swapDataAccount,
@@ -60,6 +71,7 @@ export async function createTakeSwapInstructions(Data: {
         program: Data.program,
     });
     if (validateClaimTxData) txToSend.push(...validateClaimTxData);
+    else console.log("no validateClaimTxData");
 
     return txToSend;
 }

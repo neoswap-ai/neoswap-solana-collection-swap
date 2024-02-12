@@ -75,7 +75,10 @@ export async function getClaimNftInstructions(Data: {
         connection: Data.program.provider.connection,
         mint: Data.mint,
     });
-
+    let tokenProgram = TOKEN_PROGRAM_ID.toBase58();
+    await Data.program.provider.connection.getAccountInfo(Data.mint).then((mintInfo) => {
+        if (mintInfo) tokenProgram = mintInfo.owner.toBase58();
+    });
     if (tokenStandard === TokenStandard.ProgrammableNonFungible) {
         ///if pNFT
         const nftMasterEdition = findNftMasterEdition({
@@ -117,7 +120,7 @@ export async function getClaimNftInstructions(Data: {
                     authRulesProgram: METAPLEX_AUTH_RULES_PROGRAM,
                     authRules,
                     systemProgram: SystemProgram.programId.toBase58(),
-                    tokenProgram: TOKEN_PROGRAM_ID.toBase58(),
+                    tokenProgram,
                     metadataProgram: TOKEN_METADATA_PROGRAM,
                     sysvarInstructions: SYSVAR_INSTRUCTIONS_PUBKEY.toBase58(),
                     ataProgram: SOLANA_SPL_ATA_PROGRAM_ID,
@@ -145,7 +148,7 @@ export async function getClaimNftInstructions(Data: {
                     authRulesProgram: METAPLEX_AUTH_RULES_PROGRAM,
                     authRules: Data.signer.toBase58(),
                     systemProgram: SystemProgram.programId.toBase58(),
-                    tokenProgram: TOKEN_PROGRAM_ID.toBase58(),
+                    tokenProgram,
                     metadataProgram: TOKEN_METADATA_PROGRAM,
                     sysvarInstructions: SYSVAR_INSTRUCTIONS_PUBKEY.toBase58(),
                     ataProgram: SOLANA_SPL_ATA_PROGRAM_ID,

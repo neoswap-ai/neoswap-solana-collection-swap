@@ -27,13 +27,15 @@ export async function getInitializeModifyNftInstructions(Data: {
         : "devnet";
     await Promise.all(
         Data.tradesToModify.map(async (tradeToModify) => {
-            let collectionPda = getCollectionPda({
-                collection: tradeToModify.nftSwapItem.collection,
-                cluster,
-                programId: Data.program.programId,
-            });
-
+            
             if (tradeToModify.nftSwapItem.isCompressed) {
+                let collectionPda = getCollectionPda({
+                    collection: tradeToModify.nftSwapItem.collection,
+                    cluster,
+                    programId: Data.program.programId,
+                });
+                console.log("collectionPda", collectionPda.toBase58());
+                
                 const {
                     merkleTree,
                     treeAuthority,
@@ -85,7 +87,7 @@ export async function getInitializeModifyNftInstructions(Data: {
                         )
                         .accounts({
                             swapDataAccount: Data.swapIdentity.swapDataAccount_publicKey.toBase58(),
-                            collectionPda,
+                            // collectionPda,
                             signer: Data.signer.toBase58(),
                             user,
                             nftMetadata,

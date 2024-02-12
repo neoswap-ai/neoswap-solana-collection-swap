@@ -23,7 +23,7 @@ import { Program } from "@coral-xyz/anchor";
 import { findOrCreateAta } from "../utils/findOrCreateAta.function";
 import { swapDataConverter } from "../utils/swapDataConverter.function";
 import { getCNFTOwner } from "../utils/getCNFTData.function";
-import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
+import { TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID } from "@solana/spl-token";
 import { SOLANA_SPL_ATA_PROGRAM_ID } from "../utils/const";
 import { delay } from "../utils/delay";
 import { BN } from "bn.js";
@@ -178,7 +178,8 @@ async function getInitInitilizeInstruction(Data: {
                 swapDataAccount: Data.swapIdentity.swapDataAccount_publicKey.toBase58(),
                 signer: Data.signer.toBase58(),
                 systemProgram: SystemProgram.programId.toBase58(),
-                tokenProgram: SOLANA_SPL_ATA_PROGRAM_ID,
+                // tokenProgram: SOLANA_SPL_ATA_PROGRAM_ID,
+                tokenProgram: TOKEN_PROGRAM_ID,
             })
             .instruction();
     } else {

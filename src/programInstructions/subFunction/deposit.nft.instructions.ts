@@ -84,6 +84,11 @@ export async function getDepositNftInstruction(Data: {
         mint: Data.mint,
     });
 
+    let tokenProgram = TOKEN_PROGRAM_ID.toBase58();
+    await Data.program.provider.connection.getAccountInfo(Data.mint).then((mintInfo) => {
+        if (mintInfo) tokenProgram = mintInfo.owner.toBase58();
+    });
+
     if (tokenStandard === TokenStandard.ProgrammableNonFungible) {
         ///if New metaplex standard
         const nftMasterEdition = findNftMasterEdition({
@@ -104,7 +109,7 @@ export async function getDepositNftInstruction(Data: {
             connection: Data.program.provider.connection,
             mint: Data.mint,
         });
-        
+
         instructions.push(
             await Data.program.methods
                 .depositPNft(Data.swapIdentity.swapDataAccount_seed)
@@ -123,7 +128,7 @@ export async function getDepositNftInstruction(Data: {
                     metadataProgram: TOKEN_METADATA_PROGRAM,
                     sysvarInstructions: SYSVAR_INSTRUCTIONS_PUBKEY.toBase58(),
                     ataProgram: SOLANA_SPL_ATA_PROGRAM_ID,
-                    tokenProgram: TOKEN_PROGRAM_ID.toBase58(),
+                    tokenProgram,
                     systemProgram: SystemProgram.programId.toBase58(),
                 })
                 .instruction()
@@ -147,7 +152,7 @@ export async function getDepositNftInstruction(Data: {
                     metadataProgram: TOKEN_METADATA_PROGRAM,
                     sysvarInstructions: SYSVAR_INSTRUCTIONS_PUBKEY.toBase58(),
                     ataProgram: SOLANA_SPL_ATA_PROGRAM_ID,
-                    tokenProgram: TOKEN_PROGRAM_ID.toBase58(),
+                    tokenProgram,
                     systemProgram: SystemProgram.programId.toBase58(),
                 })
                 .instruction()

@@ -53,22 +53,16 @@ export async function swapDataConverter(Data: {
                     let merkleTree = new PublicKey(item.address);
                     let index = new BN(0);
                     try {
-                        const balance = await Data.connection.getBalance(
-                            new PublicKey(item.address)
-                        );
+                        const balance = await Data.connection.getBalance(merkleTree);
                         // console.log("balance", balance);
 
                         if (balance === 0) {
-                            const signa = await Data.connection.getSignaturesForAddress(
-                                new PublicKey(item.address)
-                            );
-                            if (signa.length === 0) {
-                                isCompressed = true;
-                            }
+                            const signa = await Data.connection.getSignaturesForAddress(merkleTree);
+                            if (signa.length === 0) isCompressed = true;
                         }
                     } catch (error) {
                         isCompressed = true;
-                        console.log("error", error);
+                        console.log("error swapDataConverter", error);
                     }
                     if (isCompressed) {
                         let { merkleTree: merkleTreefound, index: indexFound } =
@@ -150,13 +144,18 @@ export async function swapDataConverter(Data: {
     // console.log("items", items);
     let seedString = "";
     if (Data.swapDataAccount) {
-        seedString = (
-            await getSwapDataAccountFromPublicKey({
-                swapDataAccount_publicKey: Data.swapDataAccount,
-                clusterOrUrl: Data.clusterOrUrl,
-            })
-        )?.seedString!;
-        console.log("swapDataAccount", Data.swapDataAccount.toString());
+        try {
+            seedString = (
+                await getSwapDataAccountFromPublicKey({
+                    swapDataAccount_publicKey: Data.swapDataAccount,
+                    clusterOrUrl: Data.clusterOrUrl,
+                })
+            )?.seedString!;
+            console.log("swapDataAccount seedString", seedString);
+        } catch (error) {
+            console.log("swapDataAccount seedString failed", Data.swapDataAccount.toString());
+            console.log(error);
+        }
     }
 
     return getSwapIdentityFromData({

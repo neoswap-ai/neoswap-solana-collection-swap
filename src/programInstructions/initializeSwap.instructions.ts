@@ -153,7 +153,7 @@ async function getInitInitilizeInstruction(Data: {
                 swapDataAccount: Data.swapIdentity.swapDataAccount_publicKey.toBase58(),
                 signer: Data.signer.toBase58(),
                 systemProgram: SystemProgram.programId.toBase58(),
-                tokenProgram: SOLANA_SPL_ATA_PROGRAM_ID,
+                tokenProgram: TOKEN_PROGRAM_ID,
             })
             .instruction();
     } else {

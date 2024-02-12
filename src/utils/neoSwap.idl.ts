@@ -188,11 +188,6 @@ export const idlSwap: Idl = {
                     isSigner: false,
                 },
                 {
-                    name: "collectionPda",
-                    isMut: true,
-                    isSigner: false,
-                },
-                {
                     name: "signer",
                     isMut: true,
                     isSigner: true,
@@ -1386,6 +1381,37 @@ export const idlSwap: Idl = {
                     type: "bool",
                 },
             ],
+        },
+        {
+            name: "collectionPdaDel",
+            accounts: [
+                {
+                    name: "adminPda",
+                    isMut: false,
+                    isSigner: false,
+                },
+                {
+                    name: "collectionPda",
+                    isMut: true,
+                    isSigner: false,
+                },
+                {
+                    name: "signer",
+                    isMut: true,
+                    isSigner: true,
+                },
+                {
+                    name: "systemProgram",
+                    isMut: false,
+                    isSigner: false,
+                },
+                {
+                    name: "ataProgram",
+                    isMut: false,
+                    isSigner: false,
+                },
+            ],
+            args: [],
         },
     ],
     accounts: [

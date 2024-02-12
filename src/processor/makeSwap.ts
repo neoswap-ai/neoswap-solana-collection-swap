@@ -12,12 +12,17 @@ export async function makeSwap(Data: {
     skipFinalize?: boolean;
     simulation?: boolean;
     skipConfirmation?: boolean;
+    validateOwnership?: "warning" | "error";
+    validateOwnershipIgnore?: string[];
 }): Promise<{ hashs: string[]; swapDataAccount: string; programId: string }> {
     const program = getProgram({ clusterOrUrl: Data.clusterOrUrl, signer: Data.signer });
     const { txWithoutSigner, swapIdentity, programId } = await createMakeSwapInstructions({
         program,
         signer: Data.signer.publicKey,
         swapInfo: Data.swapInfo,
+        clusterOrUrl: Data.clusterOrUrl,
+        validateOwnership: Data.validateOwnership,
+        validateOwnershipIgnore: Data.validateOwnershipIgnore,
     });
     try {
         const hashs = await sendBundledTransactions({

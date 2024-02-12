@@ -50,11 +50,11 @@ export async function createClaimSwapInstructions(Data: {
     let swapIdentityOnchain: SwapIdentity | undefined;
 
     let swapInfo: SwapInfo | undefined = Data.swapInfo;
-    let force = false;
+    // let force = false;
     let init = false;
 
     if (swapInfo) {
-        force = true;
+        // force = true;
         swapIdentityInfo = await swapDataConverter({
             swapInfo,
             connection: Data.program.provider.connection,
@@ -65,18 +65,17 @@ export async function createClaimSwapInstructions(Data: {
         swapData = swapDataInfo;
         init = true;
     }
+    try {
+        swapDataOnchain = await getSwapDataAccountFromPublicKey({
+            program,
+            swapDataAccount_publicKey: Data.swapDataAccount,
+        });
+    } catch (error) {
+        console.log("getSwapDataAccountFromPublicKey error", error);
+    }
 
-    swapDataOnchain = await getSwapDataAccountFromPublicKey({
-        program,
-        swapDataAccount_publicKey: Data.swapDataAccount,
-    });
-
-    swapDataOnchain = await getSwapDataAccountFromPublicKey({
-        program,
-        swapDataAccount_publicKey: Data.swapDataAccount,
-    });
-
-    if (!swapDataOnchain) {
+    if (swapInfo) {
+    } else if (!swapDataOnchain) {
         throw {
             blockchain: "solana",
             status: "error",
@@ -95,25 +94,26 @@ export async function createClaimSwapInstructions(Data: {
             message: "Swap is't in the adequate status for Validate Claim.",
             swapStatus: swapDataOnchain.status,
         } as ErrorFeedback;
-    }
+    } else
+        swapIdentityOnchain = getSwapIdentityFromData({
+            swapData: swapDataOnchain,
+            clusterOrUrl: Data.clusterOrUrl,
+        });
 
-    swapIdentityOnchain = getSwapIdentityFromData({
-        swapData: swapDataOnchain,
-        clusterOrUrl: Data.clusterOrUrl,
-    });
-
+    swapIdentity = swapIdentityInfo;
     if (!swapIdentity) swapIdentity = swapIdentityOnchain;
     if (!swapData) swapData = swapDataOnchain;
 
-    if (swapData.initializer.equals(Data.signer)) {
-        init = true;
-    }
+    if (!swapData) throw "swapData not found";
+    if (!swapIdentity) throw "swapIdentity not found";
+
+    if (swapData.initializer.equals(Data.signer)) init = true;
 
     let claimTransactionInstruction: TxWithSigner[] = [];
     let ataList: PublicKey[] = [];
     let allData: (NftSwapItem | TokenSwapItem)[] = [...swapData.nftItems, ...swapData.tokenItems];
 
-    let swapDataItems = force
+    let swapDataItems = swapInfo
         ? allData
         : allData.filter(
               (swapDataItem) =>
@@ -143,7 +143,7 @@ export async function createClaimSwapInstructions(Data: {
                 console.log("NftSwapItem XXX", swapDataItem);
                 let isInSwap = false;
 
-                if (!!force) {
+                if (swapDataOnchain) {
                     let existItem = swapDataOnchain.nftItems.find((item) => {
                         console.log("item", item);
 
@@ -152,13 +152,13 @@ export async function createClaimSwapInstructions(Data: {
                             item.merkleTree.equals(swapDataItem.merkleTree) &&
                             item.destinary.equals(swapDataItem.destinary) &&
                             (swapDataItem.isCompressed
-                                ? item.index.eq(swapDataItem.index)
+                                ? item.index === swapDataItem.index
                                 : true) &&
                             item.owner.equals(swapDataItem.owner)
                         );
                     });
                     console.log("existItem", existItem);
-                    
+
                     if (existItem && existItem.status !== ItemStatus.NFTDeposited) {
                         console.log(
                             " XXX - SKIP Claim (C)NFT item with TokenId ",
@@ -234,7 +234,7 @@ export async function createClaimSwapInstructions(Data: {
                         break;
                 }
 
-                if (!!force) {
+                if (swapDataOnchain) {
                     let existItem = swapDataOnchain.tokenItems.find(
                         (item) =>
                             item.amount.eq(swapDataItem.amount) &&

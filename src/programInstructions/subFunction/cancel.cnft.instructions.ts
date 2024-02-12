@@ -30,7 +30,7 @@ export async function getCancelCNftInstructions(Data: {
             tokenId: Data.tokenId.toBase58(),
             cluster: Data.clusterOrUrl.includes("mainnet") ? "mainnet-beta" : "devnet",
         });
-
+    
     return await Data.program.methods
         .cancelCNft(
             Data.swapIdentity.swapDataAccount_seed,
