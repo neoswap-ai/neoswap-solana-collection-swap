@@ -15,14 +15,22 @@ export async function findNftDataAndMetadataAccount(Data: {
 }> {
     // console.log(preSeed);
     try {
+        let tokenOwner = (await Data.connection.getAccountInfo(Data.mint))?.owner;
+        console.log("tokenOwner", tokenOwner?.toBase58());
+
         const metaplex = new Metaplex(Data.connection);
-        const nft = await metaplex.nfts().findByMint({ mintAddress: Data.mint });
+        const nft = await metaplex.nfts().findByMint({
+            mintAddress: Data.mint,
+            tokenOwner,
+        });
         let tokenStd = nft.tokenStandard;
-        // console.log('nftData', nft);
+        console.log("nftData", nft);
         const AccountData = PublicKey.findProgramAddressSync(
             [Buffer.from("metadata"), TOKEN_METADATA_PROGRAM.toBuffer(), Data.mint.toBuffer()],
             TOKEN_METADATA_PROGRAM
         );
+        console.log("AccountData", AccountData);
+
         if (tokenStd) {
             return {
                 tokenStandard: tokenStd,

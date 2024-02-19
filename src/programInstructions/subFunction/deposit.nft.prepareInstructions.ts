@@ -29,7 +29,6 @@ export async function prepareDepositNftInstruction(Data: {
     instructions: ApiProcessorConfigType[];
     newAtas: PublicKey[];
 }> {
-
     await errorIfInsufficientBalance({
         amount: Data.amount,
         connection: Data.program.provider.connection,
@@ -37,7 +36,6 @@ export async function prepareDepositNftInstruction(Data: {
         mint: Data.mint,
     });
 
-    
     let instructions: ApiProcessorConfigType[] = [];
     let newAtas: PublicKey[] = [];
 
@@ -72,6 +70,12 @@ export async function prepareDepositNftInstruction(Data: {
         mint: Data.mint,
     });
 
+    let splTokenProgram = (
+        await Data.program.provider.connection.getAccountInfo(Data.mint)
+    )?.owner.toString();
+    if (!splTokenProgram) splTokenProgram = TOKEN_PROGRAM_ID.toString();
+    console.log("splTokenProgram",splTokenProgram);
+
     if (tokenStandard === TokenStandard.ProgrammableNonFungible) {
         const nftMasterEdition = findNftMasterEdition({
             mint: Data.mint,
@@ -100,7 +104,7 @@ export async function prepareDepositNftInstruction(Data: {
                     systemProgram: SystemProgram.programId.toString(),
                     metadataProgram: TOKEN_METADATA_PROGRAM.toString(),
                     sysvarInstructions: SYSVAR_INSTRUCTIONS_PUBKEY.toString(),
-                    splTokenProgram: TOKEN_PROGRAM_ID.toString(),
+                    splTokenProgram,
                     splAtaProgram: SOLANA_SPL_ATA_PROGRAM_ID.toString(),
                     swapDataAccount: Data.swapIdentity.swapDataAccount_publicKey.toString(),
                     signer: Data.signer.toString(),
@@ -128,7 +132,7 @@ export async function prepareDepositNftInstruction(Data: {
                     systemProgram: SystemProgram.programId.toString(),
                     metadataProgram: TOKEN_METADATA_PROGRAM.toString(),
                     sysvarInstructions: SYSVAR_INSTRUCTIONS_PUBKEY.toString(),
-                    splTokenProgram: TOKEN_PROGRAM_ID.toString(),
+                    splTokenProgram,
                     splAtaProgram: SOLANA_SPL_ATA_PROGRAM_ID.toString(),
                     swapDataAccount: Data.swapIdentity.swapDataAccount_publicKey.toString(),
                     signer: Data.signer.toString(),

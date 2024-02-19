@@ -27,9 +27,11 @@ export async function findOrCreateAta(Data: {
 
     try {
         let values: { address: PublicKey; value: number }[] = [];
+        let programId = (await Data.connection.getAccountInfo(Data.mint))?.owner;
         let mintAtas = (
             await Data.connection.getTokenAccountsByOwner(Data.owner, {
                 mint: Data.mint,
+                programId,
             })
         ).value;
         let mintAta = mintAtas[0].pubkey;
