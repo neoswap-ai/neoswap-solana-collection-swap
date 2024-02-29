@@ -1,5 +1,5 @@
 import { getProgram } from "../utils/getProgram.obj";
-import { getSwapDataAccountFromPublicKey } from "../utils/getSwapDataAccountFromPublicKey.function";
+import { getSdaData } from "../utils/getSdaData.function";
 import {
     Cluster,
     ComputeBudgetProgram,
@@ -69,7 +69,7 @@ export async function createClaimSwapInstructions(Data: {
     ];
 
     try {
-        let swapDataData = await getSwapDataAccountFromPublicKey({
+        let swapDataData = await getSdaData({
             program: Data.program,
             swapDataAccount_publicKey: Data.swapDataAccount,
         });
@@ -198,7 +198,7 @@ export async function createClaimSwapInstructions(Data: {
                 swapDataAccountMakerNftAta,
                 swapDataAccountTokenAta,
 
-                NS_FEE,
+                nsFee: NS_FEE,
                 nsFeeTokenAta,
 
                 taker: Data.taker,

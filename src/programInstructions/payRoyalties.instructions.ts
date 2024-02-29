@@ -1,5 +1,5 @@
 import { getProgram } from "../utils/getProgram.obj";
-import { getSwapDataAccountFromPublicKey } from "../utils/getSwapDataAccountFromPublicKey.function";
+import { getSdaData } from "../utils/getSdaData.function";
 import {
     Cluster,
     ComputeBudgetProgram,
@@ -41,7 +41,9 @@ import { getCreatorData } from "../utils/creators";
 
 export async function createPayRoyaltiesInstructions(Data: {
     swapDataAccount: PublicKey;
-    taker: PublicKey;
+    taker?: PublicKey;
+    nftMintTaker?: PublicKey;
+    bid?: Bid;
     clusterOrUrl?: Cluster | string;
     program?: Program;
 }): Promise<Transaction> {
@@ -68,21 +70,26 @@ export async function createPayRoyaltiesInstructions(Data: {
     ];
 
     try {
-        let swapDataData = await getSwapDataAccountFromPublicKey({
+        let swapDataData = await getSdaData({
             program: Data.program,
             swapDataAccount_publicKey: Data.swapDataAccount,
         });
         if (!swapDataData) throw "no swapData found at " + Data.swapDataAccount.toBase58();
-        const { paymentMint, maker, nftMintMaker, taker, nftMintTaker, acceptedBid } = swapDataData;
+        let { paymentMint, maker, nftMintMaker, taker, nftMintTaker, acceptedBid } = swapDataData;
 
-        if (!(nftMintTaker && taker && acceptedBid))
-            throw "SDA doesnt have accepted bids" + swapDataData;
+        if (!taker && !!Data.taker) taker = Data.taker;
+        if (!nftMintTaker && !!Data.nftMintTaker) nftMintTaker = Data.nftMintTaker;
+        if (!acceptedBid && !!Data.bid) acceptedBid = Data.bid;
+
+        if (!(nftMintTaker && taker && acceptedBid)) {
+            throw "SDA doesnt have accepted bids" + JSON.stringify(swapDataData);
+        }
 
         let { mintAta: takerNftAta, instruction: tn } = await findOrCreateAta({
             connection,
             mint: nftMintTaker,
-            owner: Data.taker,
-            signer: Data.taker,
+            owner: taker,
+            signer: taker,
         });
         if (tn) {
             instructions.push(tn);
@@ -92,8 +99,8 @@ export async function createPayRoyaltiesInstructions(Data: {
         let { mintAta: takerTokenAta, instruction: tt } = await findOrCreateAta({
             connection,
             mint: paymentMint,
-            owner: Data.taker,
-            signer: Data.taker,
+            owner: taker,
+            signer: taker,
         });
         if (tt) {
             instructions.push(tt);
@@ -104,7 +111,7 @@ export async function createPayRoyaltiesInstructions(Data: {
             connection,
             mint: nftMintTaker,
             owner: maker,
-            signer: Data.taker,
+            signer: taker,
         });
         if (mn) {
             instructions.push(mn);
@@ -115,7 +122,7 @@ export async function createPayRoyaltiesInstructions(Data: {
             connection,
             mint: paymentMint,
             owner: maker,
-            signer: Data.taker,
+            signer: taker,
         });
         if (mt) {
             instructions.push(mt);
@@ -125,7 +132,7 @@ export async function createPayRoyaltiesInstructions(Data: {
             connection,
             mint: paymentMint,
             owner: Data.swapDataAccount,
-            signer: Data.taker,
+            signer: taker,
         });
         if (sdat) {
             instructions.push(sdat);
@@ -135,7 +142,7 @@ export async function createPayRoyaltiesInstructions(Data: {
             connection,
             mint: paymentMint,
             owner: NS_FEE,
-            signer: Data.taker,
+            signer: taker,
         });
         if (nst) {
             instructions.push(nst);
@@ -174,7 +181,7 @@ export async function createPayRoyaltiesInstructions(Data: {
                 makerNftAta,
                 makerTokenAta,
 
-                taker: Data.taker,
+                taker,
                 takerNftAta,
                 takerTokenAta,
 

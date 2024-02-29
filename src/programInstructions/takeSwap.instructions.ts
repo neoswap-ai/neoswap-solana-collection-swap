@@ -1,5 +1,5 @@
 import { getProgram } from "../utils/getProgram.obj";
-import { getSwapDataAccountFromPublicKey } from "../utils/getSwapDataAccountFromPublicKey.function";
+import { getSdaData } from "../utils/getSdaData.function";
 import {
     Cluster,
     ComputeBudgetProgram,
@@ -69,15 +69,25 @@ export async function createTakeSwapInstructions(Data: {
     ];
 
     try {
-        let swapDataData = await getSwapDataAccountFromPublicKey({
+        let swapDataData = await getSdaData({
             program: Data.program,
             swapDataAccount_publicKey: Data.swapDataAccount,
         });
         if (!swapDataData) throw "no swapData found at " + Data.swapDataAccount.toBase58();
         const { paymentMint, maker, nftMintMaker, bids } = swapDataData;
+        console.log("bids", bids);
 
-        const foundBid = bids.find((b) => b == Data.bid);
-        if (!foundBid) throw `bid ${Data.bid} not found`;
+        const foundBid = bids.find(
+            (b) =>
+                b.amount.eq(Data.bid.amount) &&
+                b.collection.equals(Data.bid.collection) &&
+                b.takerNeoswapFee.eq(Data.bid.takerNeoswapFee) &&
+                b.takerRoyalties.eq(Data.bid.takerRoyalties) &&
+                b.makerRoyalties.eq(Data.bid.makerRoyalties) &&
+                b.makerNeoswapFee.eq(Data.bid.makerNeoswapFee)
+        );
+        if (!foundBid)
+            throw `bid ${JSON.stringify(Data.bid)} not found in ${JSON.stringify(bids)} `;
 
         let { mintAta: takerNftAta, instruction: tn } = await findOrCreateAta({
             connection,
@@ -132,20 +142,11 @@ export async function createTakeSwapInstructions(Data: {
             instructions.push(sdat);
             console.log("swapDataAccountTokenAta", swapDataAccountTokenAta.toBase58());
         }
-        let { mintAta: nsFeeTokenAta, instruction: nst } = await findOrCreateAta({
-            connection,
-            mint: paymentMint,
-            owner: NS_FEE,
-            signer: Data.taker,
-        });
-        if (nst) {
-            instructions.push(nst);
-            console.log("nsFeeTokenAta", nsFeeTokenAta.toBase58());
-        }
 
         const { metadataAddress: nftMetadata, tokenStandard } = await findNftDataAndMetadataAccount(
-            { connection: Data.program.provider.connection, mint: nftMintMaker }
+            { connection: Data.program.provider.connection, mint: Data.nftMintTaker }
         );
+        console.log("nftMetadata", nftMetadata.toBase58());
 
         let nftMasterEdition = maker;
         let ownerTokenRecord = maker;
@@ -154,23 +155,28 @@ export async function createTakeSwapInstructions(Data: {
 
         if (tokenStandard == TokenStandard.ProgrammableNonFungible) {
             const nftMasterEditionF = findNftMasterEdition({
-                mint: nftMintMaker,
+                mint: Data.nftMintTaker,
             });
+            console.log("nftMasterEditionF", nftMasterEditionF.toBase58());
 
             const ownerTokenRecordF = findUserTokenRecord({
-                mint: nftMintMaker,
+                mint: Data.nftMintTaker,
                 userMintAta: makerNftAta,
             });
+            console.log("ownerTokenRecordF", ownerTokenRecordF.toBase58());
 
             const destinationTokenRecordF = findUserTokenRecord({
-                mint: nftMintMaker,
+                mint: Data.nftMintTaker,
                 userMintAta: makerNftAta,
             });
+            console.log("destinationTokenRecordF", destinationTokenRecordF.toBase58());
 
             const authRulesF = await findRuleSet({
                 connection,
-                mint: nftMintMaker,
+                mint: Data.nftMintTaker,
             });
+            console.log("authRulesF", authRulesF.toBase58());
+
             nftMasterEdition = nftMasterEditionF;
             ownerTokenRecord = ownerTokenRecordF;
             destinationTokenRecord = destinationTokenRecordF;
@@ -191,9 +197,6 @@ export async function createTakeSwapInstructions(Data: {
                 taker: Data.taker,
                 takerNftAta,
                 takerTokenAta,
-
-                nsFee: NS_FEE,
-                nsFeeTokenAta,
 
                 nftMintTaker: Data.nftMintTaker,
                 mintToken: paymentMint,

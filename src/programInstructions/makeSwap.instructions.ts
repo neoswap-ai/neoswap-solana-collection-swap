@@ -1,5 +1,5 @@
 import { getProgram } from "../utils/getProgram.obj";
-import { getSwapDataAccountFromPublicKey } from "../utils/getSwapDataAccountFromPublicKey.function";
+import { getSdaData } from "../utils/getSdaData.function";
 import {
     Cluster,
     ComputeBudgetProgram,

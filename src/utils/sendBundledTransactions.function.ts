@@ -1,17 +1,14 @@
-import { Cluster, Connection, Keypair, VersionedTransaction } from "@solana/web3.js";
+import { Cluster, Keypair } from "@solana/web3.js";
 import { getProgram } from "./getProgram.obj";
 import { ErrorFeedback, TxWithSigner } from "./types";
 import { isConfirmedTx } from "./isConfirmedTx.function";
 import { AnchorProvider } from "@coral-xyz/anchor";
-import { delay } from "./delay";
-
-// const getProgram  from "./getProgram.obj");
 
 export async function sendBundledTransactions(Data: {
     txsWithoutSigners: TxWithSigner[];
     signer: Keypair;
     clusterOrUrl: Cluster | string;
-    simulation?: boolean;
+    skipSimulation?: boolean;
     skipConfirmation?: boolean;
     provider?: AnchorProvider;
 }): Promise<string[]> {
@@ -33,32 +30,15 @@ export async function sendBundledTransactions(Data: {
             "User ",
             Data.signer.publicKey.toBase58(),
             " has found to have ",
-            txsWithSigners.length,
+            Data.txsWithoutSigners.length,
             " transaction(s) to send \nBroadcasting to blockchain ..."
         );
         if (!provider.sendAll) throw { message: "your provider is not an AnchorProvider type" };
-        if (!Data.simulation) Data.simulation = false;
+        if (!Data.skipConfirmation) Data.skipConfirmation = false;
 
-        const transactionHashs = await Promise.all(
-            Data.txsWithoutSigners.map(async (txWithoutSigner, d) => {
-                txWithoutSigner.tx.sign(Data.signer);
-                await delay(250 * d);
-                return await provider.connection.sendTransaction(
-                    txWithoutSigner.tx,
-                    [Data.signer],
-                    {
-                        skipPreflight: Data.simulation,
-                    }
-                );
-            })
-        );
-
-        provider.sendAll(txsWithSigners, {
+        let transactionHashs = await provider.sendAll(txsWithSigners, {
             maxRetries: 5,
-            skipPreflight: !Data.simulation,
-            commitment: "single",
-            // preflightCommitment:"singleGossip"
-            // skipPreflight: true,
+            skipPreflight: Data.skipConfirmation,
         });
 
         if (!Data.skipConfirmation) {
@@ -78,7 +58,6 @@ export async function sendBundledTransactions(Data: {
                     } as ErrorFeedback;
             });
         }
-        // console.log("transactionHashs: ", transactionHashs);
 
         return transactionHashs;
     } catch (error) {

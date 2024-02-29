@@ -1,6 +1,7 @@
 import { claimSwap } from "./processor/claimSwap";
 import { makeSwap } from "./processor/makeSwap";
 import { payRoyalties } from "./processor/payRoyalties";
+import { takeAndCloseSwap } from "./processor/takeAndCloseSwap";
 import { takeSwap } from "./processor/takeSwap";
 import { createClaimSwapInstructions } from "./programInstructions/claimSwap.instructions";
 import { createMakeSwapInstructions } from "./programInstructions/makeSwap.instructions";
@@ -15,7 +16,7 @@ import {
 import { findOrCreateAta } from "./utils/findOrCreateAta.function";
 import { getCNFTData, getCNFTOwner } from "./utils/getCNFTData.function";
 import { getProgram } from "./utils/getProgram.obj";
-import { getSwapDataAccountFromPublicKey } from "./utils/getSwapDataAccountFromPublicKey.function";
+import { getOpenSda, getSdaData } from "./utils/getSdaData.function";
 import { isConfirmedTx } from "./utils/isConfirmedTx.function";
 import { sendBundledTransactions } from "./utils/sendBundledTransactions.function";
 import { closeUserPda } from "./utils/userPdaClose";
@@ -34,7 +35,8 @@ const NFT_ACCOUNTS = {
 const UTILS = {
     NFT_ACCOUNTS,
     getProgram,
-    getSwapDataAccountFromPublicKey,
+    getSdaData,
+    getOpenSda,
     sendBundledTransactions,
     isConfirmedTx,
     findOrCreateAta,
@@ -50,6 +52,7 @@ const CREATE_INSTRUCTIONS = {
 export const neoSwap = {
     makeSwap,
     takeSwap,
+    takeAndCloseSwap,
     payRoyalties,
     claimSwap,
     UTILS,

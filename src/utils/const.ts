@@ -2,7 +2,8 @@ import { PublicKey } from "@solana/web3.js";
 import { idlSwap } from "./neoSwap.idl";
 // export const NEOSWAP_PROGRAM_ID = new PublicKey("HCg7NKnvWwWZdLXqDwZdjn9RDz9eLDYuSAcUHqeC1vmH"); // mainnet
 // export const NEOSWAP_PROGRAM_ID = new PublicKey("Et2RutKNHzB6XmsDXUGnDHJAGAsJ73gdHVkoKyV79BFY"); // local test
-export const NEOSWAP_PROGRAM_ID_DEV = new PublicKey("7H73hAEk1R1EXXgheDBdAn3Un3W7SQKMuKtwpfU67eet"); // devnet  latest
+// export const NEOSWAP_PROGRAM_ID_DEV = new PublicKey("7H73hAEk1R1EXXgheDBdAn3Un3W7SQKMuKtwpfU67eet"); // devnet
+export const NEOSWAP_PROGRAM_ID_DEV = new PublicKey("CtZHiWNnLu5rQuTN3jo7CmYDR8Wns6qXHn7taPvmnACp"); // devnet  latest
 // export const NEOSWAP_PROGRAM_ID = new PublicKey("EU5zoiRSvPE5k1Fy49UJZvPMBKxzatdBGFJ11XPFD42Z"); // mainnet test
 export const NEOSWAP_PROGRAM_ID = new PublicKey("2vumtPDSVo3UKqYYxMVbDaQz1K4foQf6A31KiUaii1M7"); // mainnet test latest
 export const SOLANA_SPL_ATA_PROGRAM_ID = new PublicKey(

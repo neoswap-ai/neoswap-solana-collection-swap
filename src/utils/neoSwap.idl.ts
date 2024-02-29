@@ -174,16 +174,6 @@ export const idlSwap: Idl = {
                     isSigner: false,
                 },
                 {
-                    name: "nsFee",
-                    isMut: false,
-                    isSigner: false,
-                },
-                {
-                    name: "nsFeeTokenAta",
-                    isMut: true,
-                    isSigner: false,
-                },
-                {
                     name: "nftMetadata",
                     isMut: true,
                     isSigner: false,
@@ -398,7 +388,7 @@ export const idlSwap: Idl = {
                 },
                 {
                     name: "maker",
-                    isMut: false,
+                    isMut: true,
                     isSigner: false,
                 },
                 {
