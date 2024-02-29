@@ -1,26 +1,10 @@
-import { Cluster, PublicKey } from "@solana/web3.js";
-import { NEOSWAP_PROGRAM_ID, NEOSWAP_PROGRAM_ID_DEV } from "../utils/const";
+import { PublicKey } from "@solana/web3.js";
 
-export function getAdminPda(Data: { cluster?: Cluster; programId?: PublicKey }) {
-    let pid = NEOSWAP_PROGRAM_ID;
-    if (!!Data.programId) {
-        pid = Data.programId;
-    } else if (!!Data.cluster) {
-        pid = Data.cluster == "mainnet-beta" ? NEOSWAP_PROGRAM_ID : NEOSWAP_PROGRAM_ID_DEV;
-    }
-    return PublicKey.findProgramAddressSync([Buffer.from("admin")], pid)[0];
+export function getSdaSeed(maker: PublicKey, makerMint: PublicKey) {
+    let string = maker.toString().slice(0, 16) + makerMint.toString().slice(0, 16);
+    return { buffer: [Buffer.from(string)], string };
 }
 
-export function getCollectionPda(Data: {
-    collection: PublicKey;
-    cluster?: Cluster;
-    programId?: PublicKey;
-}) {
-    let pid = NEOSWAP_PROGRAM_ID;
-    if (!!Data.programId) {
-        pid = Data.programId;
-    } else if (!!Data.cluster) {
-        pid = Data.cluster == "mainnet-beta" ? NEOSWAP_PROGRAM_ID : NEOSWAP_PROGRAM_ID_DEV;
-    }
-    return PublicKey.findProgramAddressSync([Data.collection.toBuffer()], pid)[0];
+export function getSda(maker: PublicKey, makerMint: PublicKey, programId: PublicKey) {
+    return PublicKey.findProgramAddressSync(getSdaSeed(maker, makerMint).buffer, programId)[0];
 }

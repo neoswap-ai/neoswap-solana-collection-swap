@@ -1,28 +1,11 @@
-import { apiProcessor } from "./processor/apiProcessor";
-import { cancelAndCloseSwap } from "./processor/cancelAndCloseSwap";
-import { claimAndCloseSwap } from "./processor/claimAndCloseSwap";
-import { depositSwap } from "./processor/depositSwap";
-import { initializeSwap } from "./processor/initializeSwap";
+import { claimSwap } from "./processor/claimSwap";
 import { makeSwap } from "./processor/makeSwap";
-import { modifySwap } from "./processor/modifySwap";
+import { payRoyalties } from "./processor/payRoyalties";
 import { takeSwap } from "./processor/takeSwap";
-import { apiProcessorTranscript } from "./programInstructions/apiProcessor.transcript";
-import { createCancelSwapInstructions } from "./programInstructions/cancelSwap.instructions";
 import { createClaimSwapInstructions } from "./programInstructions/claimSwap.instructions";
-import { createDepositSwapInstructions } from "./programInstructions/depositSwap.instructions";
-import { prepareDepositSwapInstructions } from "./programInstructions/depositSwap.prepareInstructions";
-import { createInitializeSwapInstructions } from "./programInstructions/initializeSwap.instructions";
 import { createMakeSwapInstructions } from "./programInstructions/makeSwap.instructions";
-import { createModifySwapInstructions } from "./programInstructions/modifySwap.instructions";
+import { createPayRoyaltiesInstructions } from "./programInstructions/payRoyalties.instructions";
 import { createTakeSwapInstructions } from "./programInstructions/takeSwap.instructions";
-import {
-    createAdminInitIx,
-    createAdminModIx,
-} from "./programInstructions/pdaFunction/admin.instructions";
-import {
-    createCollectionInitIx,
-    createCollectionModIx,
-} from "./programInstructions/pdaFunction/collection.instructions";
 import {
     findNftDataAndMetadataAccount,
     findNftMasterEdition,
@@ -31,18 +14,11 @@ import {
 } from "./utils/findNftDataAndAccounts.function";
 import { findOrCreateAta } from "./utils/findOrCreateAta.function";
 import { getCNFTData, getCNFTOwner } from "./utils/getCNFTData.function";
-import { getAdminPda, getCollectionPda } from "./utils/getPda";
 import { getProgram } from "./utils/getProgram.obj";
-import {
-    getSwapDataAccountFromPublicKey,
-    getSwapInfoFromSwapdataAccountPublickey,
-} from "./utils/getSwapDataAccountFromPublicKey.function";
-import { getSwapIdentityFromData } from "./utils/getSwapIdentityFromData.function";
+import { getSwapDataAccountFromPublicKey } from "./utils/getSwapDataAccountFromPublicKey.function";
 import { isConfirmedTx } from "./utils/isConfirmedTx.function";
 import { sendBundledTransactions } from "./utils/sendBundledTransactions.function";
-import { invertedSwapDataConverter, swapDataConverter } from "./utils/swapDataConverter.function";
 import { closeUserPda } from "./utils/userPdaClose";
-import { userSwapDetails } from "./utils/userSwapDetails.obj";
 export * as neoTypes from "./utils/types";
 export * as neoConst from "./utils/const";
 
@@ -55,46 +31,27 @@ const NFT_ACCOUNTS = {
     getCNFTOwner,
 };
 
-const ADMIN = { createAdminInitIx, createAdminModIx, getAdminPda };
-const COLLECTION = { createCollectionInitIx, createCollectionModIx, getCollectionPda };
-const PDA = { ADMIN, COLLECTION };
-
 const UTILS = {
     NFT_ACCOUNTS,
     getProgram,
     getSwapDataAccountFromPublicKey,
-    getSwapInfoFromSwapdataAccountPublickey,
-    getSwapIdentityFromData,
-    userSwapDetails,
     sendBundledTransactions,
     isConfirmedTx,
     findOrCreateAta,
-    swapDataConverter,
-    invertedSwapDataConverter,
-    closeUserPda,
+    // closeUserPda,
 };
 const CREATE_INSTRUCTIONS = {
-    createInitializeSwapInstructions,
-    createModifySwapInstructions,
-    createDepositSwapInstructions,
-    createClaimSwapInstructions,
     createMakeSwapInstructions,
     createTakeSwapInstructions,
-    createCancelSwapInstructions,
-    prepareDepositSwapInstructions,
-    apiProcessorTranscript,
+    createPayRoyaltiesInstructions,
+    createClaimSwapInstructions,
 };
 
 export const neoSwap = {
-    initializeSwap,
-    modifySwap,
-    depositSwap,
-    claimAndCloseSwap,
-    cancelAndCloseSwap,
-    apiProcessor,
     makeSwap,
     takeSwap,
+    payRoyalties,
+    claimSwap,
     UTILS,
     CREATE_INSTRUCTIONS,
-    PDA,
 };

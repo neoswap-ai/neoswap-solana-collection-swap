@@ -1,6 +1,40 @@
 import { BN } from "@coral-xyz/anchor";
 import { PublicKey, Signer, Transaction } from "@solana/web3.js";
 
+export type Bid = {
+    collection: PublicKey;
+    amount: BN;
+    makerNeoswapFee: BN;
+    takerNeoswapFee: BN;
+    takerRoyalties: BN;
+    makerRoyalties: BN;
+};
+
+export type SwapData = {
+    maker: PublicKey;
+    nftMintMaker: PublicKey;
+
+    bids: Bid[];
+
+    taker?: PublicKey;
+    nftMintTaker?: PublicKey;
+    acceptedBid?: Bid;
+
+    endTime: BN;
+
+    royaltiesPaid: boolean;
+
+    paymentMint: PublicKey;
+    seed: string;
+};
+
+//
+//
+//
+//
+//
+//
+
 export type ItemStatusInfo = "pending" | "deposited" | "claimed" | "returned";
 export type TradeStatusInfo =
     | "initializing"
@@ -24,18 +58,6 @@ export type TokenSwapItem = {
     amount: BN;
     owner: PublicKey;
     status: number;
-};
-export type SwapData = {
-    initializer: PublicKey;
-    status: number;
-    nbItems: NbItems;
-    preSeed: string;
-    seedString: string;
-    nftItems: Array<NftSwapItem>;
-    tokenItems: Array<TokenSwapItem>;
-    acceptedPayement: PublicKey;
-    startTime: BN;
-    duration: BN;
 };
 
 export type NbItems = {
@@ -279,10 +301,11 @@ export enum ItemStatus {
 }
 
 export type InitializeData = {
-    swapIdentity: SwapIdentity;
-    programId: PublicKey;
-    txWithoutSigner: TxWithSigner[];
-    warning: string;
+    // swapIdentity: SwapIdentity;
+    // programId: PublicKey;
+    swapDataAccount: PublicKey;
+    tx: Transaction;
+    // warning: string;
 };
 
 export enum SwapItem {

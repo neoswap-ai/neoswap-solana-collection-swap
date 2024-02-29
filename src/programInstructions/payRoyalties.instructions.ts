@@ -37,12 +37,11 @@ import {
     findUserTokenRecord,
 } from "../utils/findNftDataAndAccounts.function";
 import { TokenStandard } from "@metaplex-foundation/mpl-token-metadata";
+import { getCreatorData } from "../utils/creators";
 
-export async function createTakeSwapInstructions(Data: {
+export async function createPayRoyaltiesInstructions(Data: {
     swapDataAccount: PublicKey;
     taker: PublicKey;
-    nftMintTaker: PublicKey;
-    bid: Bid;
     clusterOrUrl?: Cluster | string;
     program?: Program;
 }): Promise<Transaction> {
@@ -64,7 +63,7 @@ export async function createTakeSwapInstructions(Data: {
 
     let instructions: TransactionInstruction[] = [
         ComputeBudgetProgram.setComputeUnitLimit({
-            units: 250000,
+            units: 300000,
         }),
     ];
 
@@ -74,14 +73,14 @@ export async function createTakeSwapInstructions(Data: {
             swapDataAccount_publicKey: Data.swapDataAccount,
         });
         if (!swapDataData) throw "no swapData found at " + Data.swapDataAccount.toBase58();
-        const { paymentMint, maker, nftMintMaker, bids } = swapDataData;
+        const { paymentMint, maker, nftMintMaker, taker, nftMintTaker, acceptedBid } = swapDataData;
 
-        const foundBid = bids.find((b) => b == Data.bid);
-        if (!foundBid) throw `bid ${Data.bid} not found`;
+        if (!(nftMintTaker && taker && acceptedBid))
+            throw "SDA doesnt have accepted bids" + swapDataData;
 
         let { mintAta: takerNftAta, instruction: tn } = await findOrCreateAta({
             connection,
-            mint: Data.nftMintTaker,
+            mint: nftMintTaker,
             owner: Data.taker,
             signer: Data.taker,
         });
@@ -103,7 +102,7 @@ export async function createTakeSwapInstructions(Data: {
 
         let { mintAta: makerNftAta, instruction: mn } = await findOrCreateAta({
             connection,
-            mint: Data.nftMintTaker,
+            mint: nftMintTaker,
             owner: maker,
             signer: Data.taker,
         });
@@ -143,43 +142,30 @@ export async function createTakeSwapInstructions(Data: {
             console.log("nsFeeTokenAta", nsFeeTokenAta.toBase58());
         }
 
-        const { metadataAddress: nftMetadata, tokenStandard } = await findNftDataAndMetadataAccount(
-            { connection: Data.program.provider.connection, mint: nftMintMaker }
-        );
+        let {
+            makerCreator,
+            makerCreatorTokenAta,
+            takerCreator,
+            takerCreatorTokenAta,
+            instructions: creatorIxs,
+        } = await getCreatorData({ connection, nftMintMaker, paymentMint, taker, nftMintTaker });
 
-        let nftMasterEdition = maker;
-        let ownerTokenRecord = maker;
-        let destinationTokenRecord = maker;
-        let authRules = maker;
+        if (creatorIxs) instructions.push(...creatorIxs);
 
-        if (tokenStandard == TokenStandard.ProgrammableNonFungible) {
-            const nftMasterEditionF = findNftMasterEdition({
-                mint: nftMintMaker,
-            });
+        const { metadataAddress: takerNftMetadata } = await findNftDataAndMetadataAccount({
+            connection: Data.program.provider.connection,
+            mint: nftMintTaker,
+        });
+        console.log("takerNftMetadata", takerNftMetadata.toBase58());
 
-            const ownerTokenRecordF = findUserTokenRecord({
-                mint: nftMintMaker,
-                userMintAta: makerNftAta,
-            });
-
-            const destinationTokenRecordF = findUserTokenRecord({
-                mint: nftMintMaker,
-                userMintAta: makerNftAta,
-            });
-
-            const authRulesF = await findRuleSet({
-                connection,
-                mint: nftMintMaker,
-            });
-            nftMasterEdition = nftMasterEditionF;
-            ownerTokenRecord = ownerTokenRecordF;
-            destinationTokenRecord = destinationTokenRecordF;
-            authRules = authRulesF;
-        }
-        console.log("bid", Data.bid);
+        const { metadataAddress: makerNftMetadata } = await findNftDataAndMetadataAccount({
+            connection: Data.program.provider.connection,
+            mint: nftMintMaker,
+        });
+        console.log("makerNftMetadata", makerNftMetadata.toBase58());
 
         const initIx = await Data.program.methods
-            .takeSwap(Data.bid)
+            .payRoyalties()
             .accounts({
                 swapDataAccount: Data.swapDataAccount,
                 swapDataAccountTokenAta,
@@ -195,14 +181,11 @@ export async function createTakeSwapInstructions(Data: {
                 nsFee: NS_FEE,
                 nsFeeTokenAta,
 
-                nftMintTaker: Data.nftMintTaker,
+                takerMintNft: nftMintTaker,
                 mintToken: paymentMint,
 
-                nftMetadata,
-                nftMasterEdition,
-                ownerTokenRecord,
-                destinationTokenRecord,
-                authRules,
+                takerNftMetadata,
+                makerNftMetadata,
 
                 systemProgram: SystemProgram.programId,
                 metadataProgram: TOKEN_METADATA_PROGRAM,
@@ -210,6 +193,19 @@ export async function createTakeSwapInstructions(Data: {
                 tokenProgram: TOKEN_PROGRAM_ID,
                 ataProgram: SOLANA_SPL_ATA_PROGRAM_ID,
                 authRulesProgram: METAPLEX_AUTH_RULES_PROGRAM,
+
+                makerCreator0: makerCreator[0],
+                makerCreator0TokenAta: makerCreatorTokenAta[0],
+                makerCreator1: makerCreator[1],
+                makerCreator1TokenAta: makerCreatorTokenAta[1],
+                makerCreator2: makerCreator[2],
+                makerCreator2TokenAta: makerCreatorTokenAta[2],
+                takerCreator0: takerCreator[0],
+                takerCreator0TokenAta: takerCreatorTokenAta[0],
+                takerCreator1: takerCreator[1],
+                takerCreator1TokenAta: takerCreatorTokenAta[1],
+                takerCreator2: takerCreator[2],
+                takerCreator2TokenAta: takerCreatorTokenAta[2],
             })
             .instruction();
         instructions.push(initIx);
@@ -223,10 +219,6 @@ export async function createTakeSwapInstructions(Data: {
         // console.log("txSig", txSig);
 
         return tx;
-        // {
-        //     tx,
-        //     swapDataAccount,
-        // };
     } catch (error: any) {
         console.log("error init", error);
 

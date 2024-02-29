@@ -15,3 +15,4 @@ export const METAPLEX_AUTH_RULES_PROGRAM = new PublicKey(
 );
 
 export const NEOSWAP_IDL = idlSwap;
+export const NS_FEE = new PublicKey('FjecsBcSXQh4rjPSksh2eBiXUswcMpAwU25ykcr842j8')

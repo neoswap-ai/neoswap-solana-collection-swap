@@ -1,48 +1,48 @@
-import { Cluster, Keypair } from "@solana/web3.js";
-import { sendBundledTransactions } from "../utils/sendBundledTransactions.function";
-import { ErrorFeedback, SwapInfo } from "../utils/types";
+import { Cluster, Keypair, PublicKey } from "@solana/web3.js";
+import { Bid, ErrorFeedback } from "../utils/types";
 import { getProgram } from "../utils/getProgram.obj";
 import { AnchorProvider } from "@coral-xyz/anchor";
 import { createMakeSwapInstructions } from "../programInstructions/makeSwap.instructions";
+import { sendSingleTransaction } from "../utils/sendSingleTransaction.function";
 
 export async function makeSwap(Data: {
-    swapInfo: SwapInfo;
-    signer: Keypair;
+    maker: Keypair;
+    nftMintMaker: string;
+    paymentMint: string;
+    bid: Bid;
+    duration: number;
     clusterOrUrl: Cluster | string;
-    skipFinalize?: boolean;
-    simulation?: boolean;
+    skipSimulation?: boolean;
     skipConfirmation?: boolean;
-    validateOwnership?: "warning" | "error";
-    validateOwnershipIgnore?: string[];
-}): Promise<{ hashs: string[]; swapDataAccount: string; programId: string }> {
-    const program = getProgram({ clusterOrUrl: Data.clusterOrUrl, signer: Data.signer });
-    const { txWithoutSigner, swapIdentity, programId } = await createMakeSwapInstructions({
+}): Promise<{ hash: string; swapDataAccount: string }> {
+    const program = getProgram({ clusterOrUrl: Data.clusterOrUrl, signer: Data.maker });
+
+    const { tx, swapDataAccount } = await createMakeSwapInstructions({
         program,
-        signer: Data.signer.publicKey,
-        swapInfo: Data.swapInfo,
-        clusterOrUrl: Data.clusterOrUrl,
-        validateOwnership: Data.validateOwnership,
-        validateOwnershipIgnore: Data.validateOwnershipIgnore,
+        maker: Data.maker.publicKey,
+        bid: Data.bid,
+        duration: Data.duration,
+        nftMintMaker: new PublicKey(Data.nftMintMaker),
+        paymentMint: new PublicKey(Data.paymentMint),
     });
     try {
-        const hashs = await sendBundledTransactions({
+        const hash = await sendSingleTransaction({
             provider: program.provider as AnchorProvider,
-            txsWithoutSigners: txWithoutSigner,
-            signer: Data.signer,
+            tx,
+            signer: Data.maker,
             clusterOrUrl: Data.clusterOrUrl,
-            simulation: Data.simulation,
+            skipSimulation: Data.skipSimulation,
             skipConfirmation: Data.skipConfirmation,
         });
 
         return {
-            hashs,
-            swapDataAccount: swapIdentity.swapDataAccount_publicKey.toString(),
-            programId: programId.toString(),
+            hash,
+            swapDataAccount: swapDataAccount.toString(),
         };
     } catch (error) {
         throw {
             blockchain: "solana",
-            message: swapIdentity.swapDataAccount_publicKey.toString() + error,
+            message: swapDataAccount.toString() + `- -\n` + error,
             status: "error",
         } as ErrorFeedback;
     }

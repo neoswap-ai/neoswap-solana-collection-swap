@@ -5,10 +5,8 @@ import {
     NEOSWAP_PROGRAM_ID,
     NEOSWAP_PROGRAM_ID_DEV,
 } from "../utils/const";
-import { Program } from "@coral-xyz/anchor";
 import { CreateAssociatedTokenAccountInstructionData } from "./types";
 import { delay } from "./delay";
-import { getProgram } from "./getProgram.obj";
 
 export async function findOrCreateAta(Data: {
     clusterOrUrl?: Cluster | string;

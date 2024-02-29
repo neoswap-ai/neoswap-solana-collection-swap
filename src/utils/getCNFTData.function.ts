@@ -1,8 +1,8 @@
 import { AccountMeta, Cluster, Connection, PublicKey, clusterApiUrl } from "@solana/web3.js";
 import { getProgram } from "./getProgram.obj";
 import { ConcurrentMerkleTreeAccount } from "@solana/spl-account-compression";
-import { decode, encode } from "bs58";
-import { BN, Program } from "@coral-xyz/anchor";
+import { decode } from "bs58";
+import { BN } from "@coral-xyz/anchor";
 import fetch from "node-fetch";
 
 export async function getCNFTData(Data: {
