@@ -1,8 +1,9 @@
-import { Cluster, Keypair } from "@solana/web3.js";
+import { Cluster, Connection, Keypair, VersionedTransaction } from "@solana/web3.js";
 import { getProgram } from "./getProgram.obj";
 import { ErrorFeedback, TxWithSigner } from "./types";
 import { isConfirmedTx } from "./isConfirmedTx.function";
 import { AnchorProvider } from "@coral-xyz/anchor";
+import { delay } from "./delay";
 
 // const getProgram  from "./getProgram.obj");
 
@@ -37,7 +38,22 @@ export async function sendBundledTransactions(Data: {
         );
         if (!provider.sendAll) throw { message: "your provider is not an AnchorProvider type" };
         if (!Data.simulation) Data.simulation = false;
-        const transactionHashs = await provider.sendAll(txsWithSigners, {
+
+        const transactionHashs = await Promise.all(
+            Data.txsWithoutSigners.map(async (txWithoutSigner, d) => {
+                txWithoutSigner.tx.sign(Data.signer);
+                await delay(250 * d);
+                return await provider.connection.sendTransaction(
+                    txWithoutSigner.tx,
+                    [Data.signer],
+                    {
+                        skipPreflight: Data.simulation,
+                    }
+                );
+            })
+        );
+
+        provider.sendAll(txsWithSigners, {
             maxRetries: 5,
             skipPreflight: !Data.simulation,
             commitment: "single",
