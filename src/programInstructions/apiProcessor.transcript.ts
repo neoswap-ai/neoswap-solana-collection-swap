@@ -54,8 +54,8 @@ export const apiProcessorTranscript = async (Data: {
                         systemProgram: new PublicKey(item.data.accounts.systemProgram),
                         metadataProgram: new PublicKey(item.data.accounts.metadataProgram),
                         sysvarInstructions: new PublicKey(item.data.accounts.sysvarInstructions),
-                        splTokenProgram: new PublicKey(item.data.accounts.splTokenProgram),
-                        splAtaProgram: new PublicKey(item.data.accounts.splAtaProgram),
+                        tokenProgram: new PublicKey(item.data.accounts.tokenProgram),
+                        ataProgram: new PublicKey(item.data.accounts.ataProgram),
                         swapDataAccount: new PublicKey(item.data.accounts.swapDataAccount),
                         signer: new PublicKey(item.data.accounts.signer),
                         itemFromDeposit: new PublicKey(item.data.accounts.itemFromDeposit),
@@ -99,8 +99,8 @@ export const apiProcessorTranscript = async (Data: {
                     .accounts({
                         metadataProgram: item.data.accounts.metadataProgram,
                         sysvarInstructions: item.data.accounts.sysvarInstructions,
-                        splTokenProgram: item.data.accounts.splTokenProgram,
-                        splAtaProgram: item.data.accounts.splAtaProgram,
+                        tokenProgram: item.data.accounts.tokenProgram,
+                        ataProgram: item.data.accounts.ataProgram,
                         swapDataAccount: item.data.accounts.swapDataAccount,
                         user: item.data.accounts.user,
                         leafDelegate: item.data.accounts.leafDelegate,
@@ -124,7 +124,7 @@ export const apiProcessorTranscript = async (Data: {
                     .depositSol(Buffer.from(item.data.arguments.SDA_seed))
                     .accounts({
                         systemProgram: new PublicKey(item.data.accounts.systemProgram),
-                        splTokenProgram: new PublicKey(item.data.accounts.splTokenProgram),
+                        tokenProgram: new PublicKey(item.data.accounts.tokenProgram),
                         swapDataAccount: new PublicKey(item.data.accounts.swapDataAccount),
                         swapDataAccountAta: new PublicKey(item.data.accounts.swapDataAccountAta),
                         signer: new PublicKey(item.data.accounts.signer),
@@ -155,4 +155,3 @@ export const apiProcessorTranscript = async (Data: {
     return txWithoutSigner;
 };
 
-// export default apiProcessorTranscript;

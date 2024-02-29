@@ -23,7 +23,7 @@ export async function getClaimCNftInstruction(Data: {
         await getCNFTData({
             connection: Data.program.provider.connection,
             tokenId: Data.tokenId.toBase58(),
-            Cluster: Data.clusterOrUrl.includes("mainnet") ? "mainnet-beta" : "devnet",
+            cluster: Data.clusterOrUrl.includes("mainnet") ? "mainnet-beta" : "devnet",
         });
     return await Data.program.methods
         .claimCNft(
@@ -39,8 +39,8 @@ export async function getClaimCNftInstruction(Data: {
             systemProgram: SystemProgram.programId.toBase58(),
             metadataProgram: TOKEN_METADATA_PROGRAM,
             sysvarInstructions: SYSVAR_INSTRUCTIONS_PUBKEY,
-            splTokenProgram: TOKEN_PROGRAM_ID,
-            splAtaProgram: SOLANA_SPL_ATA_PROGRAM_ID,
+            tokenProgram: TOKEN_PROGRAM_ID,
+            ataProgram: SOLANA_SPL_ATA_PROGRAM_ID,
             swapDataAccount: Data.swapIdentity.swapDataAccount_publicKey,
             user: Data.user,
             signer: Data.signer,

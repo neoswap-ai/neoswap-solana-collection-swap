@@ -4,7 +4,14 @@ import { getCancelNftInstructions } from "./subFunction/cancel.nft.instructions"
 import { getSwapIdentityFromData } from "../utils/getSwapIdentityFromData.function";
 import { getCancelSolInstructions } from "./subFunction/cancel.sol.instructions";
 import { Cluster, PublicKey, Transaction } from "@solana/web3.js";
-import { ErrorFeedback, ItemStatus, TradeStatus, TxWithSigner } from "../utils/types";
+import {
+    ErrorFeedback,
+    ItemStatus,
+    NftSwapItem,
+    TokenSwapItem,
+    TradeStatus,
+    TxWithSigner,
+} from "../utils/types";
 import { getCancelCNftInstructions } from "./subFunction/cancel.cnft.instructions";
 import { Program } from "@coral-xyz/anchor";
 
@@ -54,7 +61,8 @@ export async function createCancelSwapInstructions(Data: {
     // swapIdentity.swapDataAccount_publicKey=new PublicKey('GnzPof4D1hwbifZaCtEbLbmmWvsyLfqd8gbYhvR1iXY6')
     let cancelTransactionInstruction: TxWithSigner[] = [];
     let ataList: PublicKey[] = [];
-    let toBeCancelledItems = swapData.items.filter(
+    let allItems: (NftSwapItem | TokenSwapItem)[] = [...swapData.nftItems, ...swapData.tokenItems];
+    let toBeCancelledItems = allItems.filter(
         (item) => item.status === ItemStatus.NFTDeposited || item.status === ItemStatus.SolDeposited
     );
     if (!init)
@@ -62,7 +70,7 @@ export async function createCancelSwapInstructions(Data: {
 
     for (const swapDataItem of toBeCancelledItems) {
         if (!userPartOfTrade && swapDataItem.owner.equals(Data.signer)) userPartOfTrade = true;
-        if (swapDataItem.isNft) {
+        if ("mint" in swapDataItem) {
             if (swapDataItem.isCompressed) {
                 console.log(
                     "XXX - cancel CNFT item with TokenId ",
@@ -108,7 +116,7 @@ export async function createCancelSwapInstructions(Data: {
         } else {
             console.log(
                 "XXX - cancel Sol item mint ",
-                swapDataItem.mint.toBase58(),
+                swapData.acceptedPayement.toBase58(),
                 "to ",
                 swapDataItem.owner.toBase58(),
                 " - XXX"
@@ -119,7 +127,7 @@ export async function createCancelSwapInstructions(Data: {
                 signer: Data.signer,
                 swapIdentity,
                 ataList,
-                mint: swapDataItem.mint,
+                mint: swapData.acceptedPayement,
             });
             cancelTransactionInstruction.push({
                 tx: new Transaction().add(...cancelSolData.instructions),

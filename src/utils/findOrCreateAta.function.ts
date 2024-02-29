@@ -1,6 +1,10 @@
 import { createAssociatedTokenAccountInstruction, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { Cluster, Connection, PublicKey, TransactionInstruction } from "@solana/web3.js";
-import { SOLANA_SPL_ATA_PROGRAM_ID, SWAP_PROGRAM_ID, SWAP_PROGRAM_ID_DEV } from "../utils/const";
+import {
+    SOLANA_SPL_ATA_PROGRAM_ID,
+    NEOSWAP_PROGRAM_ID,
+    NEOSWAP_PROGRAM_ID_DEV,
+} from "../utils/const";
 import { Program } from "@coral-xyz/anchor";
 import { CreateAssociatedTokenAccountInstructionData } from "./types";
 import { delay } from "./delay";
@@ -58,12 +62,19 @@ export async function findOrCreateAta(Data: {
             mintAta,
         };
     } catch (eee) {
-        console.log("no ata found, creating one");
-
         const mintAta = PublicKey.findProgramAddressSync(
             [Data.owner.toBuffer(), TOKEN_PROGRAM_ID.toBuffer(), Data.mint.toBuffer()],
             SOLANA_SPL_ATA_PROGRAM_ID
         )[0];
+
+        console.log(
+            "no ata found, creating ",
+            mintAta.toBase58(),
+            " from ",
+            Data.owner.toString(),
+            "mint",
+            Data.mint.toBase58()
+        );
 
         if (Data.prepareInstructions) {
             return {
@@ -71,8 +82,8 @@ export async function findOrCreateAta(Data: {
                 prepareInstruction: {
                     type: "createAssociatedTokenAccountInstruction",
                     programId: (Data.clusterOrUrl.includes("mainnet")
-                        ? SWAP_PROGRAM_ID_DEV
-                        : SWAP_PROGRAM_ID
+                        ? NEOSWAP_PROGRAM_ID_DEV
+                        : NEOSWAP_PROGRAM_ID
                     ).toBase58(),
                     data: {
                         payer: Data.signer.toString(),

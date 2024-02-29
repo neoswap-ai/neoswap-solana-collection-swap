@@ -71,10 +71,15 @@ export async function getCancelNftInstructions(Data: {
     const {
         tokenStandard,
         metadataAddress: nftMetadata,
-        metadataBump: nftMetadata_bump,
+        // metadataBump: nftMetadata_bump,
     } = await findNftDataAndMetadataAccount({
         connection: Data.program.provider.connection,
         mint: Data.mint,
+    });
+    
+    let tokenProgram = TOKEN_PROGRAM_ID.toBase58();
+    await Data.program.provider.connection.getAccountInfo(Data.mint).then((mintInfo) => {
+        if (mintInfo) tokenProgram = mintInfo.owner.toBase58();
     });
 
     if (tokenStandard === TokenStandard.ProgrammableNonFungible) {
@@ -94,7 +99,7 @@ export async function getCancelNftInstructions(Data: {
         });
         instructions.push(
             await Data.program.methods
-                .cancelNft(
+                .cancelPNft(
                     Data.swapIdentity.swapDataAccount_seed,
                     Data.swapIdentity.swapDataAccount_bump
                 )
@@ -102,8 +107,8 @@ export async function getCancelNftInstructions(Data: {
                     systemProgram: SystemProgram.programId.toBase58(),
                     metadataProgram: TOKEN_METADATA_PROGRAM,
                     sysvarInstructions: SYSVAR_INSTRUCTIONS_PUBKEY.toBase58(),
-                    splTokenProgram: TOKEN_PROGRAM_ID.toBase58(),
-                    splAtaProgram: SOLANA_SPL_ATA_PROGRAM_ID,
+                    tokenProgram,
+                    ataProgram: SOLANA_SPL_ATA_PROGRAM_ID,
                     swapDataAccount: Data.swapIdentity.swapDataAccount_publicKey.toBase58(),
                     user: Data.owner.toBase58(),
                     signer: Data.signer.toBase58(),
@@ -122,7 +127,7 @@ export async function getCancelNftInstructions(Data: {
     } else {
         instructions.push(
             await Data.program.methods
-                .cancelNft(
+                .cancelPNft(
                     Data.swapIdentity.swapDataAccount_seed,
                     Data.swapIdentity.swapDataAccount_bump
                 )
@@ -130,8 +135,8 @@ export async function getCancelNftInstructions(Data: {
                     systemProgram: SystemProgram.programId.toBase58(),
                     metadataProgram: TOKEN_METADATA_PROGRAM,
                     sysvarInstructions: SYSVAR_INSTRUCTIONS_PUBKEY.toBase58(),
-                    splTokenProgram: TOKEN_PROGRAM_ID.toBase58(),
-                    splAtaProgram: SOLANA_SPL_ATA_PROGRAM_ID,
+                    tokenProgram,
+                    ataProgram: SOLANA_SPL_ATA_PROGRAM_ID,
                     swapDataAccount: Data.swapIdentity.swapDataAccount_publicKey.toBase58(),
                     user: Data.owner.toBase58(),
                     signer: Data.signer.toBase58(),

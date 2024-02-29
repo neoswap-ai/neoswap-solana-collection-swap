@@ -11,7 +11,6 @@ export type TradeStatusInfo =
     | "canceled";
 export type NftSwapItem = {
     isCompressed: boolean;
-    isNft: boolean;
     mint: PublicKey;
     merkleTree: PublicKey;
     index: BN;
@@ -19,18 +18,34 @@ export type NftSwapItem = {
     owner: PublicKey;
     destinary: PublicKey;
     status: number;
+    collection: PublicKey;
+};
+export type TokenSwapItem = {
+    amount: BN;
+    owner: PublicKey;
+    status: number;
 };
 export type SwapData = {
     initializer: PublicKey;
     status: number;
-    nbItems: number;
+    nbItems: NbItems;
     preSeed: string;
-    items: Array<NftSwapItem>;
+    seedString: string;
+    nftItems: Array<NftSwapItem>;
+    tokenItems: Array<TokenSwapItem>;
     acceptedPayement: PublicKey;
+    startTime: BN;
+    duration: BN;
+};
+
+export type NbItems = {
+    nft: number;
+    tokens: number;
 };
 
 export type GiveSwapItem = {
     address: string;
+    collection: string;
     amount: number;
     getters: {
         address: string;
@@ -41,6 +56,7 @@ export type GiveSwapItem = {
 
 export type GetSwapItem = {
     address: string;
+    collection: string;
     amount: number;
     givers: {
         amount: number;
@@ -61,6 +77,8 @@ export type SwapInfo = {
     preSeed?: string;
     currency: string;
     users: { address: string; items: SwapUserInfo }[];
+    startTime: number;
+    duration: number;
 };
 
 export type SwapIdentity = {
@@ -114,7 +132,7 @@ export interface DepositSol {
             systemProgram: string;
             swapDataAccount: string;
             signer: string;
-            splTokenProgram: string;
+            tokenProgram: string;
             swapDataAccountAta: string;
             signerAta: string;
         };
@@ -131,8 +149,8 @@ export interface DepositNft {
             systemProgram: string;
             metadataProgram: string;
             sysvarInstructions: string;
-            splTokenProgram: string;
-            splAtaProgram: string;
+            tokenProgram: string;
+            ataProgram: string;
             swapDataAccount: string;
             signer: string;
             itemFromDeposit: string;
@@ -162,8 +180,8 @@ export interface DepositCNft {
         accounts: {
             metadataProgram: string;
             sysvarInstructions: string;
-            splTokenProgram: string;
-            splAtaProgram: string;
+            tokenProgram: string;
+            ataProgram: string;
             swapDataAccount: string;
             user: string;
             leafDelegate: string;
@@ -243,6 +261,8 @@ export enum TradeStatus {
 export enum ItemStatus {
     NFTPending = 10,
     SolPending = 11,
+    NFTPendingPresign = 12,
+    SolPendingPresign = 13,
 
     NFTDeposited = 20,
     SolDeposited = 21,
@@ -251,11 +271,11 @@ export enum ItemStatus {
     NFTClaimed = 30,
     SolClaimed = 31,
 
-    NFTcanceled = 100,
-    Solcanceled = 101,
+    NFTCanceled = 100,
+    SolCanceled = 101,
 
-    NFTcanceledRecovered = 110,
-    SolcanceledRecovered = 111,
+    NFTCanceledRecovered = 110,
+    SolCanceledRecovered = 111,
 }
 
 export type InitializeData = {
@@ -263,4 +283,18 @@ export type InitializeData = {
     programId: PublicKey;
     txWithoutSigner: TxWithSigner[];
     warning: string;
+};
+
+export enum SwapItem {
+    NftSwapItem,
+    TokensSwapItem,
+}
+
+export type AdminPdaData = {
+    admin_list: PublicKey[];
+};
+
+export type CollectionPdaData = {
+    collection: PublicKey;
+    merkleList: PublicKey[];
 };

@@ -27,9 +27,10 @@ export async function userSwapDetails(Data: {
         throw {
             message: `no swap found at the given publicKey: ${Data.swapDataAccount_publicKey.toString()}`,
         };
-
-    let userItems = swapData.items.filter((item) => item.owner.equals(Data.user));
-    let receiveItems = swapData.items.filter((item) => item.destinary.equals(Data.user));
+        
+    let allitems = [...swapData.nftItems, ...swapData.tokenItems];
+    let userItems = allitems.filter((item) => item.owner.equals(Data.user));
+    let receiveItems = swapData.nftItems.filter((item) => item.destinary.equals(Data.user));
 
     return {
         userNftToDeposit: userItems.filter((item) => item.status === ItemStatus.NFTPending),
@@ -38,10 +39,10 @@ export async function userSwapDetails(Data: {
         userNftToReceive: receiveItems.filter((item) => item.status === ItemStatus.NFTDeposited),
         userNftReceived: receiveItems.filter((item) => item.status === ItemStatus.NFTClaimed),
         userNftCancelled: userItems.filter(
-            (item) => item.status === ItemStatus.NFTcanceledRecovered
+            (item) => item.status === ItemStatus.NFTCanceledRecovered
         ),
         userSolCancelled: userItems.filter(
-            (item) => item.status === ItemStatus.SolcanceledRecovered
+            (item) => item.status === ItemStatus.SolCanceledRecovered
         ),
 
         userSolToDeposit: userItems.filter((item) => item.status === ItemStatus.SolPending),

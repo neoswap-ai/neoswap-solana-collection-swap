@@ -11,10 +11,10 @@ export async function getDepositSolInstruction(Data: {
     mint: PublicKey;
     amount: number;
     swapIdentity: SwapIdentity;
-    ataList: PublicKey[];
+    ataList: string[];
 }): Promise<{
     instructions: TransactionInstruction[];
-    newAtas: PublicKey[];
+    newAtas: string[];
 }> {
     await errorIfInsufficientBalance({
         amount: Data.amount,
@@ -22,7 +22,7 @@ export async function getDepositSolInstruction(Data: {
         mint: Data.mint,
         owner: Data.signer,
     });
-    
+
     let instructions: TransactionInstruction[] = [];
 
     let swapDataAccountAta = Data.swapIdentity.swapDataAccount_publicKey;
@@ -37,9 +37,9 @@ export async function getDepositSolInstruction(Data: {
             signer: Data.signer,
         });
         signerAta = userAta;
-        if (userAtaIx && !Data.ataList.includes(userAta)) {
+        if (userAtaIx && !Data.ataList.includes(userAta.toString())) {
             instructions.push(userAtaIx);
-            newAtas.push(userAta);
+            newAtas.push(userAta.toString());
             console.log("createUserAta DepositSol Tx Added", userAta.toBase58());
         }
 
@@ -50,9 +50,9 @@ export async function getDepositSolInstruction(Data: {
             signer: Data.signer,
         });
         swapDataAccountAta = pdaAta;
-        if (pdaAtaIx && !Data.ataList.includes(pdaAta)) {
+        if (pdaAtaIx && !Data.ataList.includes(pdaAta.toString())) {
             instructions.push(pdaAtaIx);
-            newAtas.push(pdaAta);
+            newAtas.push(pdaAta.toString());
             console.log("createPdaAta DepositSol Tx Added", pdaAta.toBase58());
         }
     }
@@ -65,8 +65,8 @@ export async function getDepositSolInstruction(Data: {
                 splTokenProgram: TOKEN_PROGRAM_ID,
                 swapDataAccount: Data.swapIdentity.swapDataAccount_publicKey.toString(),
                 swapDataAccountAta,
+                userAta:signerAta,
                 signer: Data.signer.toString(),
-                signerAta,
             })
             .instruction()
     );

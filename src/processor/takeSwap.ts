@@ -1,32 +1,30 @@
 import { Cluster, Keypair, PublicKey } from "@solana/web3.js";
 import { sendBundledTransactions } from "../utils/sendBundledTransactions.function";
-import { createDepositSwapInstructions } from "../programInstructions/depositSwap.instructions";
+import { SwapInfo } from "../utils/types";
 import { getProgram } from "../utils/getProgram.obj";
 import { AnchorProvider } from "@coral-xyz/anchor";
+import { createTakeSwapInstructions } from "../programInstructions/takeSwap.instructions";
 
-export async function depositSwap(Data: {
+export async function takeSwap(Data: {
     swapDataAccount: PublicKey;
+    swapInfo: SwapInfo;
     signer: Keypair;
     clusterOrUrl: Cluster | string;
     simulation?: boolean;
     skipConfirmation?: boolean;
 }): Promise<string[]> {
     const program = getProgram({ clusterOrUrl: Data.clusterOrUrl, signer: Data.signer });
-    let depositSwapData = await createDepositSwapInstructions({
-        swapDataAccount: Data.swapDataAccount,
-        user: Data.signer.publicKey,
-        signer: Data.signer.publicKey,
-        clusterOrUrl: Data.clusterOrUrl,
-        program,
-    });
-    const transactionHashs = await sendBundledTransactions({
+    return await sendBundledTransactions({
         provider: program.provider as AnchorProvider,
-        txsWithoutSigners: depositSwapData,
+        txsWithoutSigners: await createTakeSwapInstructions({
+            program,
+            swapDataAccount: Data.swapDataAccount,
+            signer: Data.signer.publicKey,
+            swapInfo: Data.swapInfo,
+        }),
         signer: Data.signer,
         clusterOrUrl: Data.clusterOrUrl,
         simulation: Data.simulation,
         skipConfirmation: Data.skipConfirmation,
     });
-
-    return transactionHashs;
 }

@@ -4,7 +4,14 @@ import { getSwapDataAccountFromPublicKey } from "../utils/getSwapDataAccountFrom
 import { getSwapIdentityFromData } from "../utils/getSwapIdentityFromData.function";
 import { prepareDepositNftInstruction } from "./subFunction/deposit.nft.prepareInstructions";
 import { prepareDepositSolInstruction } from "./subFunction/deposit.sol.prepareInstructions";
-import { ApiProcessorData, ErrorFeedback, ItemStatus, TradeStatus } from "../utils/types";
+import {
+    ApiProcessorData,
+    ErrorFeedback,
+    ItemStatus,
+    NftSwapItem,
+    TokenSwapItem,
+    TradeStatus,
+} from "../utils/types";
 import { getDepositCNftInstruction } from "./subFunction/deposit.cnft.instructions";
 import { Program } from "@coral-xyz/anchor";
 
@@ -45,13 +52,13 @@ export async function prepareDepositSwapInstructions(Data: {
     let ataList: PublicKey[] = [];
     let isUserPartOfTrade = false;
     let isUserAlreadyDeposited = false;
-
-    let swapDataItems = swapData.items.filter((item) => item.owner.equals(Data.user));
+    let allData: (TokenSwapItem | NftSwapItem)[] = [...swapData.tokenItems, ...swapData.nftItems];
+    let swapDataItems = allData.filter((item) => item.owner.equals(Data.user));
 
     if (swapDataItems.length > 0) isUserPartOfTrade = true;
 
     for (const swapDataItem of swapDataItems) {
-        if (swapDataItem.isNft) {
+        if ("mint" in swapDataItem) {
             if (swapDataItem.status === ItemStatus.NFTPending) {
                 if (swapDataItem.isCompressed) {
                     console.log(
@@ -139,7 +146,7 @@ export async function prepareDepositSwapInstructions(Data: {
 
                 console.log(
                     `XXX - Deposit ${tokenName} item with mint `,
-                    swapDataItem.mint.toBase58(),
+                    swapData.acceptedPayement.toBase58(),
                     " from ",
                     swapDataItem.owner.toBase58(),
                     " - XXX"
@@ -149,7 +156,7 @@ export async function prepareDepositSwapInstructions(Data: {
                     swapIdentity,
                     amount: swapDataItem.amount.toNumber(),
                     ataList,
-                    mint: swapDataItem.mint,
+                    mint: swapData.acceptedPayement,
                     signer: Data.user,
                 });
                 depositSolInstruction.newAtas.forEach((element) => {

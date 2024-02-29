@@ -70,7 +70,7 @@ export async function prepareDepositSolInstruction(Data: {
                 systemProgram: SystemProgram.programId.toString(),
                 swapDataAccount: Data.swapIdentity.swapDataAccount_publicKey.toString(),
                 signer: Data.signer.toString(),
-                splTokenProgram: TOKEN_PROGRAM_ID.toString(),
+                tokenProgram: TOKEN_PROGRAM_ID.toString(),
                 swapDataAccountAta: swapDataAccountAta.toString(),
                 signerAta: userAta.toString(),
             },

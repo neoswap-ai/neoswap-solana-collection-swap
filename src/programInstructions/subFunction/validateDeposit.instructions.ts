@@ -1,5 +1,5 @@
 import { Cluster, PublicKey, Transaction } from "@solana/web3.js";
-import { TxWithSigner, TradeStatus } from "../../utils/types";
+import { TxWithSigner, TradeStatus, ErrorFeedback } from "../../utils/types";
 import { getProgram } from "../../utils/getProgram.obj";
 import { getSwapIdentityFromData } from "../../utils/getSwapIdentityFromData.function";
 import { getSwapDataAccountFromPublicKey } from "../../utils/getSwapDataAccountFromPublicKey.function";
@@ -8,10 +8,23 @@ import { Program } from "@coral-xyz/anchor";
 export const validateDeposit = async (Data: {
     swapDataAccount: PublicKey;
     signer: PublicKey;
-    clusterOrUrl: Cluster | string;
+    clusterOrUrl?: Cluster | string;
     program?: Program;
 }): Promise<TxWithSigner[] | undefined> => {
-    const program = Data.program ? Data.program : getProgram({ clusterOrUrl: Data.clusterOrUrl });
+    if (Data.program && Data.clusterOrUrl) {
+    } else if (!Data.program && Data.clusterOrUrl) {
+        Data.program = getProgram({ clusterOrUrl: Data.clusterOrUrl });
+    } else if (!Data.clusterOrUrl && Data.program) {
+        Data.clusterOrUrl = Data.program.provider.connection.rpcEndpoint;
+    } else {
+        throw {
+            blockchain: "solana",
+            status: "error",
+            message: "clusterOrUrl or program is required",
+        } as ErrorFeedback;
+    }
+
+    const program = Data.program;
     const swapData = await getSwapDataAccountFromPublicKey({
         program,
         swapDataAccount_publicKey: Data.swapDataAccount,
@@ -55,7 +68,7 @@ export const validateDeposit = async (Data: {
         {
             tx: new Transaction().add(
                 await program.methods
-                    .validateDeposit(swapIdentity.swapDataAccount_seed)
+                    .depositValidate(swapIdentity.swapDataAccount_seed)
                     .accounts({
                         swapDataAccount: Data.swapDataAccount,
                         signer: Data.signer,

@@ -1,8 +1,14 @@
-import { Connection, PublicKey } from "@solana/web3.js";
-import { TOKEN_METADATA_PROGRAM, METAPLEX_AUTH_RULES } from "./const";
+import { Cluster, Connection, PublicKey } from "@solana/web3.js";
+import {
+    TOKEN_METADATA_PROGRAM,
+    METAPLEX_AUTH_RULES,
+    NEOSWAP_PROGRAM_ID_DEV,
+    NEOSWAP_PROGRAM_ID,
+} from "./const";
 import { ErrorFeedback } from "./types";
 // import { Metaplex } from "@metaplex-foundation/js/dist/types/Metaplex";
 import { Metaplex } from "@metaplex-foundation/js";
+import { findProgramAddressSync } from "@project-serum/anchor/dist/cjs/utils/pubkey";
 // const { Metaplex } = require("@metaplex-foundation/js");
 
 export async function findNftDataAndMetadataAccount(Data: {
@@ -17,10 +23,14 @@ export async function findNftDataAndMetadataAccount(Data: {
     try {
         const metaplex = new Metaplex(Data.connection);
         const nft = await metaplex.nfts().findByMint({ mintAddress: Data.mint });
+        // console.log("nftData", nft);
         let tokenStd = nft.tokenStandard;
-        // console.log('nftData', nft);
         const AccountData = PublicKey.findProgramAddressSync(
-            [Buffer.from("metadata"), TOKEN_METADATA_PROGRAM.toBuffer(), Data.mint.toBuffer()],
+            [
+                Buffer.from("metadata"),
+                TOKEN_METADATA_PROGRAM.toBuffer(),
+                nft.mint.address.toBuffer(),
+            ],
             TOKEN_METADATA_PROGRAM
         );
         if (tokenStd) {
@@ -82,4 +92,20 @@ export async function findRuleSet(Data: {
     } catch (error) {
         throw { blockchain: "solana", order: 0, status: "error", message: error } as ErrorFeedback;
     }
+}
+
+export function getCollectionPda(Data: {
+    collection: PublicKey;
+    cluster: Cluster;
+    programId?: PublicKey;
+}) {
+    let pId = Data.cluster == "mainnet-beta" ? NEOSWAP_PROGRAM_ID : NEOSWAP_PROGRAM_ID_DEV;
+    if (!!Data.programId) pId = Data.programId;
+    return findProgramAddressSync([Data.collection.toBuffer()], pId)[0];
+}
+
+export function getAdminPda(cluster: Cluster, programId?: PublicKey) {
+    let pId = cluster == "mainnet-beta" ? NEOSWAP_PROGRAM_ID : NEOSWAP_PROGRAM_ID_DEV;
+    if (!!programId) pId = programId;
+    return findProgramAddressSync([Buffer.from("admin")], pId)[0];
 }

@@ -9,6 +9,7 @@ import {
     TransactionInstruction,
 } from "@solana/web3.js";
 import {
+    ErrorFeedback,
     InitializeData,
     NftSwapItem,
     SwapData,
@@ -22,27 +23,37 @@ import { Program } from "@coral-xyz/anchor";
 import { findOrCreateAta } from "../utils/findOrCreateAta.function";
 import { swapDataConverter } from "../utils/swapDataConverter.function";
 import { getCNFTOwner } from "../utils/getCNFTData.function";
-import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
+import { TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID } from "@solana/spl-token";
 import { SOLANA_SPL_ATA_PROGRAM_ID } from "../utils/const";
 import { delay } from "../utils/delay";
 import { BN } from "bn.js";
+import { createDepositSwapInstructions } from "./depositSwap.instructions";
 
-export async function createInitializeSwapInstructions(Data: {
+export async function createMakeSwapInstructions(Data: {
     swapInfo: SwapInfo;
     signer: PublicKey;
-    clusterOrUrl: Cluster | string;
+    clusterOrUrl?: Cluster | string;
     program?: Program;
     validateOwnership?: "warning" | "error";
     validateOwnershipIgnore?: string[];
-    swapDataAccount?: PublicKey;
 }): Promise<InitializeData> {
-    const program = Data.program ? Data.program : getProgram({ clusterOrUrl: Data.clusterOrUrl });
+    if (Data.program && Data.clusterOrUrl) {
+    } else if (!Data.program && Data.clusterOrUrl) {
+        Data.program = getProgram({ clusterOrUrl: Data.clusterOrUrl });
+    } else if (!Data.clusterOrUrl && Data.program) {
+        Data.clusterOrUrl = Data.program.provider.connection.rpcEndpoint;
+    } else {
+        throw {
+            blockchain: "solana",
+            status: "error",
+            message: "clusterOrUrl or program is required",
+        } as ErrorFeedback;
+    }
 
     let swapIdentity = await swapDataConverter({
         swapInfo: Data.swapInfo,
         clusterOrUrl: Data.clusterOrUrl,
-        connection: program.provider.connection,
-        swapDataAccount: Data.swapDataAccount,
+        connection: Data.program.provider.connection,
     });
     swapIdentity.swapData.initializer = Data.signer;
     console.log("swapData to initialize", swapIdentity);
@@ -50,13 +61,13 @@ export async function createInitializeSwapInstructions(Data: {
 
     try {
         const initInstruction = await getInitInitilizeInstruction({
-            program,
+            program: Data.program,
             swapIdentity,
             signer: Data.signer,
         });
 
         const addInstructions = await getAddInitilizeInstructions({
-            program,
+            program: Data.program,
             swapIdentity,
             signer: Data.signer,
             clusterOrUrl: Data.clusterOrUrl,
@@ -65,9 +76,17 @@ export async function createInitializeSwapInstructions(Data: {
         });
 
         const validateInstruction = await getValidateInitilizeInstruction({
-            program,
+            program: Data.program,
             swapIdentity,
             signer: Data.signer,
+        });
+
+        const depositTxs = await createDepositSwapInstructions({
+            program: Data.program,
+            swapDataAccount: swapIdentity.swapDataAccount_publicKey,
+            swapInfo: Data.swapInfo,
+            signer: Data.signer,
+            user: Data.signer,
         });
 
         let txWithoutSigner: TxWithSigner[] = [];
@@ -89,7 +108,7 @@ export async function createInitializeSwapInstructions(Data: {
                 });
             });
         } else {
-            console.log("Add-Instrutions was skipped");
+            console.log("Add-Initialize was skipped");
         }
 
         if (!!validateInstruction) {
@@ -97,13 +116,19 @@ export async function createInitializeSwapInstructions(Data: {
                 tx: new Transaction().add(validateInstruction),
             });
         } else {
-            console.log("validate-Instrutions was skipped");
+            console.log("validate-Initialize was skipped");
+        }
+
+        if (!!depositTxs) {
+            txWithoutSigner.push(...depositTxs);
+        } else {
+            console.log("deposit instructions were skipped");
         }
 
         return {
             // initializeData: {
             swapIdentity,
-            programId: program.programId,
+            programId: Data.program.programId,
             txWithoutSigner,
             warning: addInstructions.warning,
             // },
@@ -153,6 +178,7 @@ async function getInitInitilizeInstruction(Data: {
                 swapDataAccount: Data.swapIdentity.swapDataAccount_publicKey.toBase58(),
                 signer: Data.signer.toBase58(),
                 systemProgram: SystemProgram.programId.toBase58(),
+                // tokenProgram: SOLANA_SPL_ATA_PROGRAM_ID,
                 tokenProgram: TOKEN_PROGRAM_ID,
             })
             .instruction();
