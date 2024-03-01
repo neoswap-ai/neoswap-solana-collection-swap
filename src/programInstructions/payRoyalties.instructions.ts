@@ -85,26 +85,41 @@ export async function createPayRoyaltiesInstructions(Data: {
             throw "SDA doesnt have accepted bids" + JSON.stringify(swapDataData);
         }
 
-        let { mintAta: takerNftAta, instruction: tn } = await findOrCreateAta({
+        let {
+            makerCreator,
+            makerCreatorTokenAta,
+            takerCreator,
+            takerCreatorTokenAta,
+            instructions: creatorIxs,
+        } = await getCreatorData({
             connection,
-            mint: nftMintTaker,
-            owner: taker,
-            signer: taker,
+            nftMintMaker,
+            paymentMint,
+            taker,
+            nftMintTaker,
         });
-        if (tn) {
-            instructions.push(tn);
-            console.log("takerNftAta", takerNftAta.toBase58());
-        }
 
-        let { mintAta: takerTokenAta, instruction: tt } = await findOrCreateAta({
+        if (creatorIxs) instructions.push(...creatorIxs);
+
+        let { mintAta: swapDataAccountTokenAta, instruction: sdat } = await findOrCreateAta({
             connection,
             mint: paymentMint,
-            owner: taker,
+            owner: Data.swapDataAccount,
             signer: taker,
         });
-        if (tt) {
-            instructions.push(tt);
-            console.log("takerTokenAta", takerTokenAta.toBase58());
+        if (sdat) {
+            instructions.push(sdat);
+            console.log("swapDataAccountTokenAta", swapDataAccountTokenAta.toBase58());
+        }
+        let { mintAta: nsFeeTokenAta, instruction: nst } = await findOrCreateAta({
+            connection,
+            mint: paymentMint,
+            owner: NS_FEE,
+            signer: taker,
+        });
+        if (nst) {
+            instructions.push(nst);
+            console.log("nsFeeTokenAta", nsFeeTokenAta.toBase58());
         }
 
         let { mintAta: makerNftAta, instruction: mn } = await findOrCreateAta({
@@ -128,50 +143,45 @@ export async function createPayRoyaltiesInstructions(Data: {
             instructions.push(mt);
             console.log("makerTokenAta", makerTokenAta.toBase58());
         }
-        let { mintAta: swapDataAccountTokenAta, instruction: sdat } = await findOrCreateAta({
+
+        let { mintAta: takerNftAta, instruction: tn } = await findOrCreateAta({
             connection,
-            mint: paymentMint,
-            owner: Data.swapDataAccount,
-            signer: taker,
-        });
-        if (sdat) {
-            instructions.push(sdat);
-            console.log("swapDataAccountTokenAta", swapDataAccountTokenAta.toBase58());
-        }
-        let { mintAta: nsFeeTokenAta, instruction: nst } = await findOrCreateAta({
-            connection,
-            mint: paymentMint,
-            owner: NS_FEE,
-            signer: taker,
-        });
-        if (nst) {
-            instructions.push(nst);
-            console.log("nsFeeTokenAta", nsFeeTokenAta.toBase58());
-        }
-
-        let {
-            makerCreator,
-            makerCreatorTokenAta,
-            takerCreator,
-            takerCreatorTokenAta,
-            instructions: creatorIxs,
-        } = await getCreatorData({ connection, nftMintMaker, paymentMint, taker, nftMintTaker });
-
-        if (creatorIxs) instructions.push(...creatorIxs);
-
-        const { metadataAddress: takerNftMetadata } = await findNftDataAndMetadataAccount({
-            connection: Data.program.provider.connection,
             mint: nftMintTaker,
+            owner: taker,
+            signer: taker,
         });
-        console.log("takerNftMetadata", takerNftMetadata.toBase58());
+        if (tn) {
+            instructions.push(tn);
+            console.log("takerNftAta", takerNftAta.toBase58());
+        }
 
-        const { metadataAddress: makerNftMetadata } = await findNftDataAndMetadataAccount({
-            connection: Data.program.provider.connection,
-            mint: nftMintMaker,
+        let { mintAta: takerTokenAta, instruction: tt } = await findOrCreateAta({
+            connection,
+            mint: paymentMint,
+            owner: taker,
+            signer: taker,
         });
-        console.log("makerNftMetadata", makerNftMetadata.toBase58());
+        if (tt) {
+            instructions.push(tt);
+            console.log("takerTokenAta", takerTokenAta.toBase58());
+        }
 
-        const initIx = await Data.program.methods
+        const { metadataAddress: nftMetadataMaker, tokenStandard: tokenStandardMaker } =
+            await findNftDataAndMetadataAccount({
+                connection,
+                mint: nftMintMaker,
+            });
+
+        console.log("nftMetadataMaker", nftMetadataMaker.toBase58());
+
+        const { metadataAddress: nftMetadataTaker, tokenStandard: tokenStandardTaker } =
+            await findNftDataAndMetadataAccount({
+                connection,
+                mint: nftMintTaker,
+            });
+        console.log("nftMetadataTaker", nftMetadataTaker.toBase58());
+
+        const payRIx = await Data.program.methods
             .payRoyalties()
             .accounts({
                 swapDataAccount: Data.swapDataAccount,
@@ -188,11 +198,11 @@ export async function createPayRoyaltiesInstructions(Data: {
                 nsFee: NS_FEE,
                 nsFeeTokenAta,
 
-                takerMintNft: nftMintTaker,
+                nftMintTaker: nftMintTaker,
                 mintToken: paymentMint,
 
-                takerNftMetadata,
-                makerNftMetadata,
+                nftMetadataTaker,
+                nftMetadataMaker,
 
                 systemProgram: SystemProgram.programId,
                 metadataProgram: TOKEN_METADATA_PROGRAM,
@@ -215,7 +225,7 @@ export async function createPayRoyaltiesInstructions(Data: {
                 takerCreator2TokenAta: takerCreatorTokenAta[2],
             })
             .instruction();
-        instructions.push(initIx);
+        instructions.push(payRIx);
 
         const tx = new Transaction().add(...instructions);
         tx.feePayer = Data.taker;

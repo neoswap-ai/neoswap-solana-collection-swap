@@ -100,7 +100,7 @@ export type SwapInfo = {
     currency: string;
     users: { address: string; items: SwapUserInfo }[];
     startTime: number;
-    duration: number;
+    endDate: number;
 };
 
 export type SwapIdentity = {

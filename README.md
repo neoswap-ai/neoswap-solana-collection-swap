@@ -273,7 +273,7 @@ type SwapInfo = {
     currency: string;
     users: { address: string; items: SwapUserInfo }[];
     startTime: number;
-    duration: number;
+    endDate: number;
 };
 ```
 
@@ -346,7 +346,7 @@ type SwapData = {
     tokenItems: Array<TokenSwapItem>; // Array of Token or Sol Items
     acceptedPayement: PublicKey; // Token mint address of the accepted payement
     startTime: BN; // Timestamp of the opening of the swap in unix timecode
-    duration: BN; // Duration of the swap in seconds
+    endDate: BN; // endDate of the swap in seconds
 };
 ```
 

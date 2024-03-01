@@ -10,7 +10,7 @@ export async function makeSwap(Data: {
     nftMintMaker: PublicKey;
     paymentMint: PublicKey;
     bid: Bid;
-    duration: number;
+    endDate: number;
     clusterOrUrl: Cluster | string;
     skipSimulation?: boolean;
     skipConfirmation?: boolean;
@@ -21,7 +21,7 @@ export async function makeSwap(Data: {
         program,
         maker: Data.maker.publicKey,
         bid: Data.bid,
-        duration: Data.duration,
+        endDate: Data.endDate,
         nftMintMaker: Data.nftMintMaker,
         paymentMint: Data.paymentMint,
     });

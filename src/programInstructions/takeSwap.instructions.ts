@@ -143,17 +143,19 @@ export async function createTakeSwapInstructions(Data: {
             console.log("swapDataAccountTokenAta", swapDataAccountTokenAta.toBase58());
         }
 
-        const { metadataAddress: nftMetadata, tokenStandard } = await findNftDataAndMetadataAccount(
-            { connection: Data.program.provider.connection, mint: Data.nftMintTaker }
-        );
-        console.log("nftMetadata", nftMetadata.toBase58());
+        const { metadataAddress: nftMetadataTaker, tokenStandard: tokenStandardTaker } =
+            await findNftDataAndMetadataAccount({
+                connection,
+                mint: Data.nftMintTaker,
+            });
+        console.log("nftMetadataTaker", nftMetadataTaker.toBase58());
 
-        let nftMasterEdition = maker;
-        let ownerTokenRecord = maker;
-        let destinationTokenRecord = maker;
-        let authRules = maker;
+        let nftMasterEditionTaker = Data.taker;
+        let ownerTokenRecordTaker = Data.taker;
+        let destinationTokenRecordTaker = Data.taker;
+        let authRulesTaker = Data.taker;
 
-        if (tokenStandard == TokenStandard.ProgrammableNonFungible) {
+        if (tokenStandardTaker == TokenStandard.ProgrammableNonFungible) {
             const nftMasterEditionF = findNftMasterEdition({
                 mint: Data.nftMintTaker,
             });
@@ -161,7 +163,7 @@ export async function createTakeSwapInstructions(Data: {
 
             const ownerTokenRecordF = findUserTokenRecord({
                 mint: Data.nftMintTaker,
-                userMintAta: makerNftAta,
+                userMintAta: takerNftAta,
             });
             console.log("ownerTokenRecordF", ownerTokenRecordF.toBase58());
 
@@ -177,14 +179,14 @@ export async function createTakeSwapInstructions(Data: {
             });
             console.log("authRulesF", authRulesF.toBase58());
 
-            nftMasterEdition = nftMasterEditionF;
-            ownerTokenRecord = ownerTokenRecordF;
-            destinationTokenRecord = destinationTokenRecordF;
-            authRules = authRulesF;
+            nftMasterEditionTaker = nftMasterEditionF;
+            ownerTokenRecordTaker = ownerTokenRecordF;
+            destinationTokenRecordTaker = destinationTokenRecordF;
+            authRulesTaker = authRulesF;
         }
         console.log("bid", Data.bid);
 
-        const initIx = await Data.program.methods
+        const takeIx = await Data.program.methods
             .takeSwap(Data.bid)
             .accounts({
                 swapDataAccount: Data.swapDataAccount,
@@ -201,11 +203,11 @@ export async function createTakeSwapInstructions(Data: {
                 nftMintTaker: Data.nftMintTaker,
                 mintToken: paymentMint,
 
-                nftMetadata,
-                nftMasterEdition,
-                ownerTokenRecord,
-                destinationTokenRecord,
-                authRules,
+                nftMetadataTaker,
+                nftMasterEditionTaker,
+                ownerTokenRecordTaker,
+                destinationTokenRecordTaker,
+                authRulesTaker,
 
                 systemProgram: SystemProgram.programId,
                 metadataProgram: TOKEN_METADATA_PROGRAM,
@@ -215,7 +217,7 @@ export async function createTakeSwapInstructions(Data: {
                 authRulesProgram: METAPLEX_AUTH_RULES_PROGRAM,
             })
             .instruction();
-        instructions.push(initIx);
+        instructions.push(takeIx);
 
         const tx = new Transaction().add(...instructions);
         tx.feePayer = Data.taker;

@@ -1,5 +1,4 @@
 import { getProgram } from "../utils/getProgram.obj";
-import { getSdaData } from "../utils/getSdaData.function";
 import {
     Cluster,
     ComputeBudgetProgram,
@@ -43,7 +42,7 @@ export async function createMakeSwapInstructions(Data: {
     nftMintMaker: PublicKey;
     paymentMint: PublicKey;
     bid: Bid;
-    duration: number;
+    endDate: number;
     clusterOrUrl?: Cluster | string;
     program?: Program;
 }): Promise<InitializeData> {
@@ -113,14 +112,16 @@ export async function createMakeSwapInstructions(Data: {
         });
         if (!mt) console.log("makerTokenAta", makerTokenAta.toBase58());
 
-        const { metadataAddress: nftMetadata, tokenStandard } = await findNftDataAndMetadataAccount(
-            { connection: Data.program.provider.connection, mint: Data.nftMintMaker }
-        );
+        const { metadataAddress: nftMetadataMaker, tokenStandard } =
+            await findNftDataAndMetadataAccount({
+                connection: Data.program.provider.connection,
+                mint: Data.nftMintMaker,
+            });
 
-        let nftMasterEdition = Data.maker;
-        let ownerTokenRecord = Data.maker;
-        let destinationTokenRecord = Data.maker;
-        let authRules = Data.maker;
+        let nftMasterEditionMaker = Data.maker;
+        let ownerTokenRecordMaker = Data.maker;
+        let destinationTokenRecordMaker = Data.maker;
+        let authRulesMaker = Data.maker;
 
         if (tokenStandard == TokenStandard.ProgrammableNonFungible) {
             const nftMasterEditionF = findNftMasterEdition({
@@ -134,22 +135,22 @@ export async function createMakeSwapInstructions(Data: {
 
             const destinationTokenRecordF = findUserTokenRecord({
                 mint: Data.nftMintMaker,
-                userMintAta: makerNftAta,
+                userMintAta: swapDataAccountNftAta,
             });
 
             const authRulesF = await findRuleSet({
                 connection,
                 mint: Data.nftMintMaker,
             });
-            nftMasterEdition = nftMasterEditionF;
-            ownerTokenRecord = ownerTokenRecordF;
-            destinationTokenRecord = destinationTokenRecordF;
-            authRules = authRulesF;
+            nftMasterEditionMaker = nftMasterEditionF;
+            ownerTokenRecordMaker = ownerTokenRecordF;
+            destinationTokenRecordMaker = destinationTokenRecordF;
+            authRulesMaker = authRulesF;
         }
         console.log("bid", Data.bid);
 
         const initIx = await Data.program.methods
-            .makeSwap(Data.bid, new BN(Data.duration))
+            .makeSwap(Data.bid, new BN(Data.endDate))
             .accounts({
                 swapDataAccount,
                 swapDataAccountNftAta,
@@ -159,14 +160,14 @@ export async function createMakeSwapInstructions(Data: {
                 makerNftAta,
                 makerTokenAta,
 
-                mintNft: Data.nftMintMaker,
+                nftMintMaker: Data.nftMintMaker,
                 mintToken: Data.paymentMint,
 
-                nftMetadata,
-                nftMasterEdition,
-                ownerTokenRecord,
-                destinationTokenRecord,
-                authRules,
+                nftMetadataMaker,
+                nftMasterEditionMaker,
+                ownerTokenRecordMaker,
+                destinationTokenRecordMaker,
+                authRulesMaker,
 
                 systemProgram: SystemProgram.programId,
                 metadataProgram: TOKEN_METADATA_PROGRAM,
