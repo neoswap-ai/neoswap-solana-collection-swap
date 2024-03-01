@@ -7,7 +7,7 @@ import { sendSingleTransaction } from "../utils/sendSingleTransaction.function";
 
 export async function makeSwap(
     Data: OptionSend &
-        MakeSArg & {
+        Omit<MakeSArg, "maker"> & {
             maker: Keypair;
         }
 ): Promise<{ hash: string; swapDataAccount: string }> {

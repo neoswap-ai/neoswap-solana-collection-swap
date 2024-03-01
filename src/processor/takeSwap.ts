@@ -7,7 +7,7 @@ import { createTakeSwapInstructions } from "../programInstructions/takeSwap.inst
 
 export async function takeSwap(
     Data: OptionSend &
-        TakeSArg & {
+        Omit<TakeSArg, "taker"> & {
             taker: Keypair;
         }
 ): Promise<string> {
