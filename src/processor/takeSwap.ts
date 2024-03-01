@@ -1,31 +1,30 @@
 import { Cluster, Keypair, PublicKey } from "@solana/web3.js";
-import { Bid, ErrorFeedback } from "../utils/types";
+import { Bid, ErrorFeedback, OptionSend, TakeSArg } from "../utils/types";
 import { getProgram } from "../utils/getProgram.obj";
 import { AnchorProvider } from "@coral-xyz/anchor";
 import { sendSingleTransaction } from "../utils/sendSingleTransaction.function";
 import { createTakeSwapInstructions } from "../programInstructions/takeSwap.instructions";
 
-export async function takeSwap(Data: {
-    swapDataAccount: string;
-    taker: Keypair;
-    nftMintTaker: string;
-    bid: Bid;
-    clusterOrUrl: Cluster | string;
-    skipSimulation?: boolean;
-    skipConfirmation?: boolean;
-}): Promise<string> {
+export async function takeSwap(
+    Data: OptionSend &
+        TakeSArg & {
+            taker: Keypair;
+        }
+): Promise<string> {
     const program = getProgram({ clusterOrUrl: Data.clusterOrUrl, signer: Data.taker });
 
     try {
         return await sendSingleTransaction({
             provider: program.provider as AnchorProvider,
-            tx: await createTakeSwapInstructions({
-                program,
-                taker: Data.taker.publicKey.toString(),
-                bid: Data.bid,
-                swapDataAccount: Data.swapDataAccount,
-                nftMintTaker: Data.nftMintTaker,
-            }),
+            tx: (
+                await createTakeSwapInstructions({
+                    program,
+                    taker: Data.taker.publicKey.toString(),
+                    bid: Data.bid,
+                    swapDataAccount: Data.swapDataAccount,
+                    nftMintTaker: Data.nftMintTaker,
+                })
+            ).tx,
             signer: Data.taker,
             clusterOrUrl: Data.clusterOrUrl,
             skipSimulation: Data.skipSimulation,

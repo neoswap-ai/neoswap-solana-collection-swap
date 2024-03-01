@@ -9,9 +9,7 @@ import {
     Transaction,
     TransactionInstruction,
 } from "@solana/web3.js";
-import {
-    ErrorFeedback,
-} from "../utils/types";
+import { EnvOpts, ErrorFeedback } from "../utils/types";
 import { Program } from "@coral-xyz/anchor";
 import { findOrCreateAta } from "../utils/findOrCreateAta.function";
 import { getCNFTOwner } from "../utils/getCNFTData.function";
@@ -30,14 +28,12 @@ import {
 } from "../utils/findNftDataAndAccounts.function";
 import { TokenStandard } from "@metaplex-foundation/mpl-token-metadata";
 
-export async function createClaimSwapInstructions(Data: {
-    swapDataAccount: string;
-    taker: string;
-    // nftMintTaker: PublicKey;
-    // bid: Bid;
-    clusterOrUrl?: Cluster | string;
-    program?: Program;
-}): Promise<Transaction> {
+export async function createClaimSwapInstructions(
+    Data: EnvOpts & {
+        swapDataAccount: string;
+        // taker: string;
+    }
+): Promise<Transaction> {
     if (Data.program && Data.clusterOrUrl) {
     } else if (!Data.program && Data.clusterOrUrl) {
         Data.program = getProgram({ clusterOrUrl: Data.clusterOrUrl });
@@ -66,13 +62,17 @@ export async function createClaimSwapInstructions(Data: {
             swapDataAccount: Data.swapDataAccount,
         });
         if (!swapDataData) throw "no swapData found at " + Data.swapDataAccount;
-        const { paymentMint, maker, nftMintMaker } = swapDataData;
+        let { paymentMint, maker, nftMintMaker, taker, nftMintTaker, acceptedBid } = swapDataData;
+
+        if (!(nftMintTaker && taker && acceptedBid)) {
+            throw "SDA doesnt have accepted bids" + JSON.stringify(swapDataData);
+        }
 
         let { mintAta: swapDataAccountNftAta, instruction: sdan } = await findOrCreateAta({
             connection,
             mint: nftMintMaker,
             owner: Data.swapDataAccount,
-            signer: Data.taker,
+            signer: taker,
         });
         if (sdan) {
             instructions.push(sdan);
@@ -81,8 +81,8 @@ export async function createClaimSwapInstructions(Data: {
         let { mintAta: takerNftAtaMaker, instruction: tmn } = await findOrCreateAta({
             connection,
             mint: nftMintMaker,
-            owner: Data.taker,
-            signer: Data.taker,
+            owner: taker,
+            signer: taker,
         });
         if (tmn) {
             instructions.push(tmn);
@@ -92,8 +92,8 @@ export async function createClaimSwapInstructions(Data: {
         let { mintAta: takerTokenAta, instruction: tt } = await findOrCreateAta({
             connection,
             mint: paymentMint,
-            owner: Data.taker,
-            signer: Data.taker,
+            owner: taker,
+            signer: taker,
         });
         if (tt) {
             instructions.push(tt);
@@ -104,7 +104,7 @@ export async function createClaimSwapInstructions(Data: {
             connection,
             mint: paymentMint,
             owner: NS_FEE,
-            signer: Data.taker,
+            signer: taker,
         });
         if (nst) {
             instructions.push(nst);
@@ -115,7 +115,7 @@ export async function createClaimSwapInstructions(Data: {
             connection,
             mint: paymentMint,
             owner: Data.swapDataAccount,
-            signer: Data.taker,
+            signer: taker,
         });
         if (sdat) {
             instructions.push(sdat);
@@ -126,7 +126,7 @@ export async function createClaimSwapInstructions(Data: {
             connection,
             mint: paymentMint,
             owner: maker,
-            signer: Data.taker,
+            signer: taker,
         });
         if (mt) {
             instructions.push(mt);
@@ -141,10 +141,10 @@ export async function createClaimSwapInstructions(Data: {
 
         console.log("nftMetadataMaker", nftMetadataMaker);
 
-        let nftMasterEditionMaker = Data.taker;
-        let ownerTokenRecordMaker = Data.taker;
-        let destinationTokenRecordMaker = Data.taker;
-        let authRulesMaker = Data.taker;
+        let nftMasterEditionMaker = taker;
+        let ownerTokenRecordMaker = taker;
+        let destinationTokenRecordMaker = taker;
+        let authRulesMaker = taker;
         if (tokenStandardMaker == TokenStandard.ProgrammableNonFungible) {
             const nftMasterEditionF = findNftMasterEdition({
                 mint: nftMintMaker,
@@ -180,7 +180,7 @@ export async function createClaimSwapInstructions(Data: {
                 nsFee: NS_FEE,
                 nsFeeTokenAta,
 
-                taker: Data.taker,
+                taker: taker,
                 takerNftAtaMaker,
                 takerTokenAta,
 
@@ -208,7 +208,7 @@ export async function createClaimSwapInstructions(Data: {
         instructions.push(initIx);
 
         const tx = new Transaction().add(...instructions);
-        tx.feePayer = new PublicKey(Data.taker);
+        tx.feePayer = new PublicKey(taker);
         tx.recentBlockhash = dummyBlockhash;
         // // let simu = await connection.simulateTransaction(tx);
         // // console.log("simu", simu.value);

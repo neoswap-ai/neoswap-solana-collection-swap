@@ -1,20 +1,17 @@
 import { Cluster, Keypair, PublicKey } from "@solana/web3.js";
-import { Bid, ErrorFeedback } from "../utils/types";
+import { Bid, ErrorFeedback, OptionSend, TakeSArg } from "../utils/types";
 import { getProgram } from "../utils/getProgram.obj";
 import { AnchorProvider } from "@coral-xyz/anchor";
 import { sendBundledTransactions } from "../utils/sendBundledTransactions.function";
 
 import { createTakeAndCloseSwapInstructions } from "../programInstructions/takeAndCloseSwap.instructions";
 
-export async function takeAndCloseSwap(Data: {
-    swapDataAccount: string;
-    taker: Keypair;
-    nftMintTaker: string;
-    bid: Bid;
-    clusterOrUrl: Cluster | string;
-    skipSimulation?: boolean;
-    skipConfirmation?: boolean;
-}): Promise<string[]> {
+export async function takeAndCloseSwap(
+    Data: OptionSend &
+        TakeSArg & {
+            taker: Keypair;
+        }
+): Promise<string[]> {
     const program = getProgram({ clusterOrUrl: Data.clusterOrUrl, signer: Data.taker });
 
     try {

@@ -2,13 +2,14 @@ import { getProgram } from "../utils/getProgram.obj";
 import { getSdaData } from "../utils/getSdaData.function";
 import {
     Cluster,
+    ComputeBudgetProgram,
     PublicKey,
     SYSVAR_INSTRUCTIONS_PUBKEY,
     SystemProgram,
     Transaction,
     TransactionInstruction,
 } from "@solana/web3.js";
-import { ErrorFeedback } from "../utils/types";
+import { ErrorFeedback, EnvOpts, BundleTransaction } from "../utils/types";
 import { Program } from "@coral-xyz/anchor";
 import { findOrCreateAta } from "../utils/findOrCreateAta.function";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
@@ -24,12 +25,13 @@ import {
     findUserTokenRecord,
 } from "../utils/findNftDataAndAccounts.function";
 import { TokenStandard } from "@metaplex-foundation/mpl-token-metadata";
+import { DESC } from "../utils/descriptions";
 
-export async function createCancelSwapInstructions(Data: {
-    swapDataAccount: string;
-    clusterOrUrl?: Cluster | string;
-    program?: Program;
-}): Promise<Transaction> {
+export async function createCancelSwapInstructions(
+    Data: EnvOpts & {
+        swapDataAccount: string;
+    }
+): Promise<BundleTransaction> {
     if (Data.program && Data.clusterOrUrl) {
     } else if (!Data.program && Data.clusterOrUrl) {
         Data.program = getProgram({ clusterOrUrl: Data.clusterOrUrl });
@@ -45,7 +47,11 @@ export async function createCancelSwapInstructions(Data: {
 
     let connection = Data.program.provider.connection;
     let dummyBlockhash = (await connection.getLatestBlockhash()).blockhash;
-    let instructions: TransactionInstruction[] = [];
+    let instructions: TransactionInstruction[] = [
+        ComputeBudgetProgram.setComputeUnitLimit({
+            units: 4500000,
+        }),
+    ];
     try {
         let swapDataData = await getSdaData({
             program: Data.program,
@@ -180,7 +186,14 @@ export async function createCancelSwapInstructions(Data: {
         let cancelSwapTx = new Transaction().add(...instructions);
         cancelSwapTx.recentBlockhash = dummyBlockhash;
         cancelSwapTx.feePayer = new PublicKey(maker);
-        return cancelSwapTx;
+        return {
+            tx: cancelSwapTx,
+            description: DESC.cancelSwap,
+            details: { swapDataAccount: Data.swapDataAccount },
+            priority: 0,
+            blockheight: (await connection.getLatestBlockhash()).lastValidBlockHeight,
+            status: "pending",
+        };
     } catch (error: any) {
         throw {
             blockchain: "solana",

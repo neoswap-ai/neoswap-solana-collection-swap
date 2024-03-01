@@ -1,4 +1,12 @@
-import { PublicKey, Signer, Transaction } from "@solana/web3.js";
+import { Program } from "@coral-xyz/anchor";
+import {
+    Cluster,
+    Keypair,
+    PublicKey,
+    Signer,
+    Transaction,
+    VersionedTransaction,
+} from "@solana/web3.js";
 import BN from "bn.js";
 
 export type Bid = {
@@ -81,3 +89,44 @@ export type InitializeData = {
     swapDataAccount: string;
     tx: Transaction;
 };
+
+export type BundleTxBase = {
+    tx: Transaction; // [];
+    stx?: Transaction; // [];
+    blockheight?: number;
+    description: string;
+    priority: number;
+    status: "pending" | "broadcast" | "success" | "failed";
+    hash?: string;
+    failedReason?: string;
+    retries?: number;
+};
+
+export type BundleTransaction = BundleTxBase &
+    ({ details: MakeSArg } | { details: TakeSArg } | { details: { swapDataAccount: string } });
+
+    export type MakeSArg = {
+    maker: string;
+    nftMintMaker: string;
+    paymentMint: string;
+    bid: Bid;
+    endDate: number;
+};
+export type TakeSArg = {
+    swapDataAccount: string;
+    taker: string;
+    nftMintTaker: string;
+    bid: Bid;
+};
+
+export type OptionSend = {
+    clusterOrUrl: Cluster | string;
+    skipSimulation?: boolean;
+    skipConfirmation?: boolean;
+};
+export type EnvOpts = {
+    clusterOrUrl?: Cluster | string;
+    program?: Program;
+};
+export type MakeSwapData = { bTx: BundleTransaction; swapDataAccount: string };
+export type TakeAndCloseSwapData = { bTxs: BundleTransaction[]; swapDataAccount: string };

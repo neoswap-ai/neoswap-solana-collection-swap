@@ -9,7 +9,14 @@ import {
     Transaction,
     TransactionInstruction,
 } from "@solana/web3.js";
-import { Bid, ErrorFeedback, TxWithSigner } from "../utils/types";
+import {
+    Bid,
+    BundleTransaction,
+    EnvOpts,
+    ErrorFeedback,
+    TakeSArg,
+    TxWithSigner,
+} from "../utils/types";
 import { Program } from "@coral-xyz/anchor";
 import { findOrCreateAta } from "../utils/findOrCreateAta.function";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
@@ -28,15 +35,11 @@ import {
 import { TokenStandard } from "@metaplex-foundation/mpl-token-metadata";
 import { getCreatorData } from "../utils/creators";
 import { bidToscBid } from "../utils/typeSwap";
+import { DESC } from "../utils/descriptions";
 
-export async function createTakeAndCloseSwapInstructions(Data: {
-    swapDataAccount: string;
-    taker: string;
-    nftMintTaker: string;
-    bid: Bid;
-    clusterOrUrl?: Cluster | string;
-    program?: Program;
-}): Promise<TxWithSigner[]> {
+export async function createTakeAndCloseSwapInstructions(
+    Data: TakeSArg & EnvOpts
+): Promise<BundleTransaction[]> {
     if (Data.program && Data.clusterOrUrl) {
     } else if (!Data.program && Data.clusterOrUrl) {
         Data.program = getProgram({ clusterOrUrl: Data.clusterOrUrl });
@@ -55,7 +58,7 @@ export async function createTakeAndCloseSwapInstructions(Data: {
 
     let takeIxs: TransactionInstruction[] = [
         ComputeBudgetProgram.setComputeUnitLimit({
-            units: 300000,
+            units: 4500000,
         }),
     ];
     try {
@@ -221,7 +224,7 @@ export async function createTakeAndCloseSwapInstructions(Data: {
 
         let payRIxs: TransactionInstruction[] = [
             ComputeBudgetProgram.setComputeUnitLimit({
-                units: 500000,
+                units: 600000,
             }),
         ];
 
@@ -415,17 +418,54 @@ export async function createTakeAndCloseSwapInstructions(Data: {
         claimSwapTx.recentBlockhash = dummyBlockhash;
         claimSwapTx.feePayer = new PublicKey(Data.taker);
 
-        let txsWithoutSigners: TxWithSigner[] = [];
+        let bTTakeAndClose: BundleTransaction[] = [];
+        let priority = 0;
 
-        if (takeSwapTx) txsWithoutSigners.push({ tx: takeSwapTx });
-        else console.log("no takeSwapTx");
+        if (takeSwapTx) {
+            bTTakeAndClose.push({
+                tx: takeSwapTx,
+                description: DESC.takeSwap,
+                details: {
+                    bid: Data.bid,
+                    nftMintTaker: Data.nftMintTaker,
+                    swapDataAccount: Data.swapDataAccount,
+                    taker: Data.taker,
+                },
+                priority,
+                status: "pending",
+                blockheight: (await connection.getLatestBlockhash()).lastValidBlockHeight,
+            });
 
-        if (payRoyaltiesTx) txsWithoutSigners.push({ tx: payRoyaltiesTx });
-        else console.log("no payRoyaltiesTx");
+            priority++;
+        } else console.log("no takeSwapTx");
 
-        txsWithoutSigners.push({ tx: claimSwapTx });
+        if (payRoyaltiesTx) {
+            bTTakeAndClose.push({
+                tx: payRoyaltiesTx,
+                description: DESC.payRoyalties,
+                details: {
+                    swapDataAccount: Data.swapDataAccount,
+                },
+                priority,
+                status: "pending",
+                blockheight: (await connection.getLatestBlockhash()).lastValidBlockHeight,
+            });
 
-        return txsWithoutSigners;
+            priority++;
+        } else console.log("no payRoyaltiesTx");
+
+        bTTakeAndClose.push({
+            tx: claimSwapTx,
+            description: DESC.payRoyalties,
+            details: {
+                swapDataAccount: Data.swapDataAccount,
+            },
+            priority,
+            status: "pending",
+            blockheight: (await connection.getLatestBlockhash()).lastValidBlockHeight,
+        });
+
+        return bTTakeAndClose;
     } catch (error: any) {
         console.log("error init", error);
 

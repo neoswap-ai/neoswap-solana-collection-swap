@@ -9,7 +9,7 @@ import {
     Transaction,
     TransactionInstruction,
 } from "@solana/web3.js";
-import { Bid, ErrorFeedback } from "../utils/types";
+import { BundleTransaction, EnvOpts, ErrorFeedback } from "../utils/types";
 import { Program } from "@coral-xyz/anchor";
 import { findOrCreateAta } from "../utils/findOrCreateAta.function";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
@@ -21,15 +21,13 @@ import {
 } from "../utils/const";
 import { findNftDataAndMetadataAccount } from "../utils/findNftDataAndAccounts.function";
 import { getCreatorData } from "../utils/creators";
+import { DESC } from "../utils/descriptions";
 
-export async function createPayRoyaltiesInstructions(Data: {
-    swapDataAccount: string;
-    taker?: string;
-    nftMintTaker?: string;
-    bid?: Bid;
-    clusterOrUrl?: Cluster | string;
-    program?: Program;
-}): Promise<Transaction> {
+export async function createPayRoyaltiesInstructions(
+    Data: EnvOpts & {
+        swapDataAccount: string;
+    }
+): Promise<BundleTransaction> {
     if (Data.program && Data.clusterOrUrl) {
     } else if (!Data.program && Data.clusterOrUrl) {
         Data.program = getProgram({ clusterOrUrl: Data.clusterOrUrl });
@@ -59,10 +57,6 @@ export async function createPayRoyaltiesInstructions(Data: {
         });
         if (!swapDataData) throw "no swapData found at " + Data.swapDataAccount;
         let { paymentMint, maker, nftMintMaker, taker, nftMintTaker, acceptedBid } = swapDataData;
-
-        if (!taker && !!Data.taker) taker = Data.taker;
-        if (!nftMintTaker && !!Data.nftMintTaker) nftMintTaker = Data.nftMintTaker;
-        if (!acceptedBid && !!Data.bid) acceptedBid = Data.bid;
 
         if (!(nftMintTaker && taker && acceptedBid)) {
             throw "SDA doesnt have accepted bids" + JSON.stringify(swapDataData);
@@ -218,7 +212,14 @@ export async function createPayRoyaltiesInstructions(Data: {
         // const txSig = await connection.sendTransaction(tx, [maker]);
         // console.log("txSig", txSig);
 
-        return tx;
+        return {
+            tx,
+            description: DESC.payRoyalties,
+            details: { swapDataAccount: Data.swapDataAccount },
+            priority: 0,
+            status: "pending",
+            blockheight: (await connection.getLatestBlockhash()).lastValidBlockHeight,
+        };
     } catch (error: any) {
         console.log("error init", error);
 

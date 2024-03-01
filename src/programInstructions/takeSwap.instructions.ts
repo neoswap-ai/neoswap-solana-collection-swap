@@ -9,7 +9,7 @@ import {
     Transaction,
     TransactionInstruction,
 } from "@solana/web3.js";
-import { Bid, ErrorFeedback } from "../utils/types";
+import { BundleTransaction, EnvOpts, ErrorFeedback, TakeSArg } from "../utils/types";
 import { Program } from "@coral-xyz/anchor";
 import { findOrCreateAta } from "../utils/findOrCreateAta.function";
 import { getCNFTOwner } from "../utils/getCNFTData.function";
@@ -30,15 +30,11 @@ import {
 } from "../utils/findNftDataAndAccounts.function";
 import { TokenStandard } from "@metaplex-foundation/mpl-token-metadata";
 import { bidToscBid } from "../utils/typeSwap";
+import { DESC } from "../utils/descriptions";
 
-export async function createTakeSwapInstructions(Data: {
-    swapDataAccount: string;
-    taker: string;
-    nftMintTaker: string;
-    bid: Bid;
-    clusterOrUrl?: Cluster | string;
-    program?: Program;
-}): Promise<Transaction> {
+export async function createTakeSwapInstructions(
+    Data: TakeSArg & EnvOpts
+): Promise<BundleTransaction> {
     if (Data.program && Data.clusterOrUrl) {
     } else if (!Data.program && Data.clusterOrUrl) {
         Data.program = getProgram({ clusterOrUrl: Data.clusterOrUrl });
@@ -220,7 +216,18 @@ export async function createTakeSwapInstructions(Data: {
         // const txSig = await connection.sendTransaction(tx, [maker]);
         // console.log("txSig", txSig);
 
-        return tx;
+        return {
+            tx,
+            description: DESC.takeSwap,
+            details: {
+                bid: Data.bid,
+                nftMintTaker: Data.nftMintTaker,
+                swapDataAccount: Data.swapDataAccount,
+                taker: Data.taker,
+            },
+            priority: 0,
+            status: "pending",
+        };
         // {
         //     tx,
         //     swapDataAccount,

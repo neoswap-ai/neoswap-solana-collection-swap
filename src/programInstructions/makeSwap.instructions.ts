@@ -8,7 +8,7 @@ import {
     Transaction,
     TransactionInstruction,
 } from "@solana/web3.js";
-import { Bid, ErrorFeedback, InitializeData, ScBid } from "../utils/types";
+import { Bid, EnvOpts, ErrorFeedback, MakeSArg, MakeSwapData, ScBid } from "../utils/types";
 import { Program } from "@coral-xyz/anchor";
 import { findOrCreateAta } from "../utils/findOrCreateAta.function";
 import { getCNFTOwner } from "../utils/getCNFTData.function";
@@ -29,16 +29,9 @@ import {
 import { TokenStandard } from "@metaplex-foundation/mpl-token-metadata";
 import { getSda } from "../utils/getPda";
 import { bidToscBid } from "../utils/typeSwap";
+import { DESC } from "../utils/descriptions";
 
-export async function createMakeSwapInstructions(Data: {
-    maker: string;
-    nftMintMaker: string;
-    paymentMint: string;
-    bid: Bid;
-    endDate: number;
-    clusterOrUrl?: Cluster | string;
-    program?: Program;
-}): Promise<InitializeData> {
+export async function createMakeSwapInstructions(Data: MakeSArg & EnvOpts): Promise<MakeSwapData> {
     if (Data.program && Data.clusterOrUrl) {
     } else if (!Data.program && Data.clusterOrUrl) {
         Data.program = getProgram({ clusterOrUrl: Data.clusterOrUrl });
@@ -225,7 +218,20 @@ export async function createMakeSwapInstructions(Data: {
         // console.log("txSig", txSig);
 
         return {
-            tx,
+            bTx: {
+                description: DESC.makeSwap,
+                details: {
+                    bid: Data.bid,
+                    endDate: Data.endDate,
+                    maker: Data.maker,
+                    nftMintMaker: Data.nftMintMaker,
+                    paymentMint: Data.paymentMint,
+                },
+                priority: 0,
+                status: "pending",
+                tx,
+                blockheight: (await connection.getLatestBlockhash()).lastValidBlockHeight,
+            },
             swapDataAccount: swapDataAccount.toString(),
         };
     } catch (error: any) {
