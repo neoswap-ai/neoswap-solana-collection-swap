@@ -1,6 +1,6 @@
 {
     "name": "@neoswap/solana-collection-swap",
-    "version": "0.1.0-Beta4",
+    "version": "0.1.1",
     "repository": {
         "type": "git",
         "url": "git+htt// Data after initializing the swapps://github.com/neoswap-ai/neo-swap-npm.git"
