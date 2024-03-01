@@ -1,12 +1,13 @@
 import { Program } from "@coral-xyz/anchor";
 import { Cluster, PublicKey } from "@solana/web3.js";
-import { ErrorFeedback, SwapData, SwapInfo } from "./types";
+import { ErrorFeedback, ScSwapData, SwapData } from "./types";
 import { getProgram } from "./getProgram.obj";
+import { scSwapDataToSwapData } from "./typeSwap";
 
 export async function getSdaData(Data: {
     clusterOrUrl?: Cluster | string;
     program?: Program;
-    swapDataAccount_publicKey: PublicKey;
+    swapDataAccount: string;
 }): Promise<SwapData | undefined> {
     if (!!Data.clusterOrUrl && !!Data.program) {
     } else if (!!Data.clusterOrUrl) {
@@ -17,14 +18,14 @@ export async function getSdaData(Data: {
 
     try {
         const swapData = (await Data.program.account.swapData.fetch(
-            Data.swapDataAccount_publicKey
-        )) as SwapData;
-        console.log(Data.swapDataAccount_publicKey.toBase58(), swapData.seed);
+            Data.swapDataAccount
+        )) as ScSwapData;
+        console.log(Data.swapDataAccount, swapData.seed);
 
         if (!swapData) {
-            throw `No SwapData found ${Data.swapDataAccount_publicKey.toBase58()}`;
+            throw `No SwapData found ${Data.swapDataAccount}`;
         } else {
-            return swapData;
+            return scSwapDataToSwapData(swapData);
         }
     } catch (error) {
         throw {
@@ -47,13 +48,33 @@ export async function getOpenSda(Data: {
     } else throw "there should be a Program or a Cluster";
 
     try {
+        console.log("Program Id", Data.program.programId.toString());
+
         let openSda = (
             await Data.program.provider.connection.getProgramAccounts(Data.program.programId)
         ).map((x) => x.pubkey);
+        console.log(
+            "openSda",
+            openSda.map((x) => x.toBase58())
+        );
+        [
+            "FsJgyoFyf5UdZmVvCPBhYbYajz9ShJy8hVwZNAur93cE",
+            "DSWxzxKrDvRPKtjCgR3mEzx2ZzK7VPSammbZcVQiBXCY",
+            "AAGKWoK1WV4adSh1dQ8LWviSW97YnxXNCPmbFSyNaqTb",
+            "8RZykLrfvGNfBSDyFNQawEmXZvkUzRkLK4MuT1eqrxf",
+            "D1BQhb6FV3KSTxib8ftrYahfvGKdxBctW6Yc9JMSaUXu",
+            "8YJwoJ9VrqoHKxTmsMPcieK8oZRr3FNsytabKmSEmend",
+            "HDh5W3X1qEKnhMP8MNb2StmWEHuRhusJN5kSbbEMUr8N",
+            "9RjTFaJ5Vs8hpFPji21u5XrPV9NiqtVXHpKtYss9jYcp",
+        ]
+            .map((x) => new PublicKey(x))
+            .map((blacklist) => {
+                openSda = openSda.filter((x) => !x.equals(blacklist));
+            });
 
-        const swapDatas = (await Data.program.account.swapData.fetchMultiple(
-            openSda
-        )) as SwapData[];
+        const swapDatas = (await Data.program.account.swapData.fetchMultiple(openSda)).map((x) =>
+            scSwapDataToSwapData(x as ScSwapData)
+        ) as SwapData[];
         console.log("swapDatas", swapDatas);
 
         if (!swapDatas) {

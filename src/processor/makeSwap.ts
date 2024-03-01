@@ -7,8 +7,8 @@ import { sendSingleTransaction } from "../utils/sendSingleTransaction.function";
 
 export async function makeSwap(Data: {
     maker: Keypair;
-    nftMintMaker: PublicKey;
-    paymentMint: PublicKey;
+    nftMintMaker: string;
+    paymentMint: string;
     bid: Bid;
     endDate: number;
     clusterOrUrl: Cluster | string;
@@ -19,7 +19,7 @@ export async function makeSwap(Data: {
 
     const { tx, swapDataAccount } = await createMakeSwapInstructions({
         program,
-        maker: Data.maker.publicKey,
+        maker: Data.maker.publicKey.toString(),
         bid: Data.bid,
         endDate: Data.endDate,
         nftMintMaker: Data.nftMintMaker,

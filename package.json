@@ -1,6 +1,6 @@
 {
     "name": "@neoswap/solana-collection-swap",
-    "version": "0.1.0-Beta0",
+    "version": "0.1.0-Beta3",
     "repository": {
         "type": "git",
         "url": "git+htt// Data after initializing the swapps://github.com/neoswap-ai/neo-swap-npm.git"
@@ -26,14 +26,16 @@
         "@metaplex-foundation/mpl-token-metadata": "^2.11.1",
         "@metaplex-foundation/mpl-toolbox": "^0.9.1",
         "@project-serum/anchor": "^0.26.0",
+        "@solana/spl-account-compression": "0.2.0",
         "@solana/spl-token": "^0.3.7",
         "@solana/web3.js": "1.87.6",
-        "@solana/spl-account-compression": "0.2.0",
-        "@types/bn.js": "^5.1.1",
         "@types/debug": "^4.1.8",
         "@types/node-fetch": "^2.6.4",
         "bs58": "^5.0.0",
         "parcel": "^2.5.0",
         "typescript": "^4.6.3"
+    },
+    "devDependencies": {
+        "@types/bn.js": "^5.1.5"
     }
 }

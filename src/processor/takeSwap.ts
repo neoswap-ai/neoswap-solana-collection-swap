@@ -6,9 +6,9 @@ import { sendSingleTransaction } from "../utils/sendSingleTransaction.function";
 import { createTakeSwapInstructions } from "../programInstructions/takeSwap.instructions";
 
 export async function takeSwap(Data: {
-    swapDataAccount: PublicKey;
+    swapDataAccount: string;
     taker: Keypair;
-    nftMintTaker: PublicKey;
+    nftMintTaker: string;
     bid: Bid;
     clusterOrUrl: Cluster | string;
     skipSimulation?: boolean;
@@ -21,7 +21,7 @@ export async function takeSwap(Data: {
             provider: program.provider as AnchorProvider,
             tx: await createTakeSwapInstructions({
                 program,
-                taker: Data.taker.publicKey,
+                taker: Data.taker.publicKey.toString(),
                 bid: Data.bid,
                 swapDataAccount: Data.swapDataAccount,
                 nftMintTaker: Data.nftMintTaker,

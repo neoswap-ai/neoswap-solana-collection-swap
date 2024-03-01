@@ -1,12 +1,12 @@
 import { Cluster, Keypair, PublicKey } from "@solana/web3.js";
-import {  ErrorFeedback,  } from "../utils/types";
+import { ErrorFeedback } from "../utils/types";
 import { getProgram } from "../utils/getProgram.obj";
 import { AnchorProvider } from "@coral-xyz/anchor";
 import { sendSingleTransaction } from "../utils/sendSingleTransaction.function";
 import { createClaimSwapInstructions } from "../programInstructions/claimSwap.instructions";
 
 export async function claimSwap(Data: {
-    swapDataAccount: PublicKey;
+    swapDataAccount: string;
     taker: Keypair;
     clusterOrUrl: Cluster | string;
     skipSimulation?: boolean;
@@ -18,7 +18,7 @@ export async function claimSwap(Data: {
             provider: program.provider as AnchorProvider,
             tx: await createClaimSwapInstructions({
                 program,
-                taker: Data.taker.publicKey,
+                taker: Data.taker.publicKey.toString(),
                 swapDataAccount: Data.swapDataAccount,
             }),
             signer: Data.taker,

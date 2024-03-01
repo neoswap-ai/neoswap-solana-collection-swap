@@ -2,11 +2,10 @@ import { Cluster, Keypair, PublicKey } from "@solana/web3.js";
 import { Bid, ErrorFeedback } from "../utils/types";
 import { getProgram } from "../utils/getProgram.obj";
 import { AnchorProvider } from "@coral-xyz/anchor";
-import { sendBundledTransactions } from "../utils/sendBundledTransactions.function";
+import { sendSingleTransaction } from "../utils/sendSingleTransaction.function";
+import { createCancelSwapInstructions } from "../programInstructions/cancelSwap.instructions";
 
-import { createTakeAndCloseSwapInstructions } from "../programInstructions/takeAndCloseSwap.instructions";
-
-export async function takeAndCloseSwap(Data: {
+export async function cancelSwap(Data: {
     swapDataAccount: string;
     taker: Keypair;
     nftMintTaker: string;
@@ -14,17 +13,14 @@ export async function takeAndCloseSwap(Data: {
     clusterOrUrl: Cluster | string;
     skipSimulation?: boolean;
     skipConfirmation?: boolean;
-}): Promise<string[]> {
+}): Promise<string> {
     const program = getProgram({ clusterOrUrl: Data.clusterOrUrl, signer: Data.taker });
 
     try {
-        return await sendBundledTransactions({
+        return await sendSingleTransaction({
             provider: program.provider as AnchorProvider,
-            txsWithoutSigners: await createTakeAndCloseSwapInstructions({
+            tx: await createCancelSwapInstructions({
                 swapDataAccount: Data.swapDataAccount,
-                taker: Data.taker.publicKey.toString(),
-                nftMintTaker: Data.nftMintTaker,
-                bid: Data.bid,
                 program,
             }),
             signer: Data.taker,

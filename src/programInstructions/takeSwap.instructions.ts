@@ -9,15 +9,7 @@ import {
     Transaction,
     TransactionInstruction,
 } from "@solana/web3.js";
-import {
-    Bid,
-    ErrorFeedback,
-    InitializeData,
-    NftSwapItem,
-    SwapData,
-    SwapIdentity,
-    TokenSwapItem,
-} from "../utils/types";
+import { Bid, ErrorFeedback } from "../utils/types";
 import { Program } from "@coral-xyz/anchor";
 import { findOrCreateAta } from "../utils/findOrCreateAta.function";
 import { getCNFTOwner } from "../utils/getCNFTData.function";
@@ -37,11 +29,12 @@ import {
     findUserTokenRecord,
 } from "../utils/findNftDataAndAccounts.function";
 import { TokenStandard } from "@metaplex-foundation/mpl-token-metadata";
+import { bidToscBid } from "../utils/typeSwap";
 
 export async function createTakeSwapInstructions(Data: {
-    swapDataAccount: PublicKey;
-    taker: PublicKey;
-    nftMintTaker: PublicKey;
+    swapDataAccount: string;
+    taker: string;
+    nftMintTaker: string;
     bid: Bid;
     clusterOrUrl?: Cluster | string;
     program?: Program;
@@ -64,27 +57,27 @@ export async function createTakeSwapInstructions(Data: {
 
     let instructions: TransactionInstruction[] = [
         ComputeBudgetProgram.setComputeUnitLimit({
-            units: 250000,
+            units: 500000,
         }),
     ];
 
     try {
         let swapDataData = await getSdaData({
             program: Data.program,
-            swapDataAccount_publicKey: Data.swapDataAccount,
+            swapDataAccount: Data.swapDataAccount,
         });
-        if (!swapDataData) throw "no swapData found at " + Data.swapDataAccount.toBase58();
+        if (!swapDataData) throw "no swapData found at " + Data.swapDataAccount;
         const { paymentMint, maker, nftMintMaker, bids } = swapDataData;
         console.log("bids", bids);
 
         const foundBid = bids.find(
             (b) =>
-                b.amount.eq(Data.bid.amount) &&
-                b.collection.equals(Data.bid.collection) &&
-                b.takerNeoswapFee.eq(Data.bid.takerNeoswapFee) &&
-                b.takerRoyalties.eq(Data.bid.takerRoyalties) &&
-                b.makerRoyalties.eq(Data.bid.makerRoyalties) &&
-                b.makerNeoswapFee.eq(Data.bid.makerNeoswapFee)
+                b.amount == Data.bid.amount &&
+                b.collection.localeCompare(Data.bid.collection) &&
+                b.takerNeoswapFee == Data.bid.takerNeoswapFee &&
+                b.takerRoyalties == Data.bid.takerRoyalties &&
+                b.makerRoyalties == Data.bid.makerRoyalties &&
+                b.makerNeoswapFee == Data.bid.makerNeoswapFee
         );
         if (!foundBid)
             throw `bid ${JSON.stringify(Data.bid)} not found in ${JSON.stringify(bids)} `;
@@ -97,7 +90,7 @@ export async function createTakeSwapInstructions(Data: {
         });
         if (tn) {
             instructions.push(tn);
-            console.log("takerNftAta", takerNftAta.toBase58());
+            console.log("takerNftAta", takerNftAta);
         }
 
         let { mintAta: takerTokenAta, instruction: tt } = await findOrCreateAta({
@@ -108,7 +101,7 @@ export async function createTakeSwapInstructions(Data: {
         });
         if (tt) {
             instructions.push(tt);
-            console.log("takerTokenAta", takerTokenAta.toBase58());
+            console.log("takerTokenAta", takerTokenAta);
         }
 
         let { mintAta: makerNftAta, instruction: mn } = await findOrCreateAta({
@@ -119,7 +112,7 @@ export async function createTakeSwapInstructions(Data: {
         });
         if (mn) {
             instructions.push(mn);
-            console.log("makerNftAta", makerNftAta.toBase58());
+            console.log("makerNftAta", makerNftAta);
         }
 
         let { mintAta: makerTokenAta, instruction: mt } = await findOrCreateAta({
@@ -130,7 +123,7 @@ export async function createTakeSwapInstructions(Data: {
         });
         if (mt) {
             instructions.push(mt);
-            console.log("makerTokenAta", makerTokenAta.toBase58());
+            console.log("makerTokenAta", makerTokenAta);
         }
         let { mintAta: swapDataAccountTokenAta, instruction: sdat } = await findOrCreateAta({
             connection,
@@ -140,7 +133,7 @@ export async function createTakeSwapInstructions(Data: {
         });
         if (sdat) {
             instructions.push(sdat);
-            console.log("swapDataAccountTokenAta", swapDataAccountTokenAta.toBase58());
+            console.log("swapDataAccountTokenAta", swapDataAccountTokenAta);
         }
 
         const { metadataAddress: nftMetadataTaker, tokenStandard: tokenStandardTaker } =
@@ -148,7 +141,7 @@ export async function createTakeSwapInstructions(Data: {
                 connection,
                 mint: Data.nftMintTaker,
             });
-        console.log("nftMetadataTaker", nftMetadataTaker.toBase58());
+        console.log("nftMetadataTaker", nftMetadataTaker);
 
         let nftMasterEditionTaker = Data.taker;
         let ownerTokenRecordTaker = Data.taker;
@@ -159,35 +152,35 @@ export async function createTakeSwapInstructions(Data: {
             const nftMasterEditionF = findNftMasterEdition({
                 mint: Data.nftMintTaker,
             });
-            console.log("nftMasterEditionF", nftMasterEditionF.toBase58());
+            console.log("nftMasterEditionF", nftMasterEditionF);
 
             const ownerTokenRecordF = findUserTokenRecord({
                 mint: Data.nftMintTaker,
                 userMintAta: takerNftAta,
             });
-            console.log("ownerTokenRecordF", ownerTokenRecordF.toBase58());
+            console.log("ownerTokenRecordF", ownerTokenRecordF);
 
             const destinationTokenRecordF = findUserTokenRecord({
                 mint: Data.nftMintTaker,
                 userMintAta: makerNftAta,
             });
-            console.log("destinationTokenRecordF", destinationTokenRecordF.toBase58());
+            console.log("destinationTokenRecordF", destinationTokenRecordF);
 
             const authRulesF = await findRuleSet({
                 connection,
                 mint: Data.nftMintTaker,
             });
-            console.log("authRulesF", authRulesF.toBase58());
+            console.log("authRulesF", authRulesF);
 
             nftMasterEditionTaker = nftMasterEditionF;
             ownerTokenRecordTaker = ownerTokenRecordF;
             destinationTokenRecordTaker = destinationTokenRecordF;
             authRulesTaker = authRulesF;
         }
-        console.log("bid", Data.bid);
+        console.log("bid", bidToscBid(Data.bid));
 
         const takeIx = await Data.program.methods
-            .takeSwap(Data.bid)
+            .takeSwap(bidToscBid(Data.bid))
             .accounts({
                 swapDataAccount: Data.swapDataAccount,
                 swapDataAccountTokenAta,
@@ -220,7 +213,7 @@ export async function createTakeSwapInstructions(Data: {
         instructions.push(takeIx);
 
         const tx = new Transaction().add(...instructions);
-        tx.feePayer = Data.taker;
+        tx.feePayer = new PublicKey(Data.taker);
         tx.recentBlockhash = dummyBlockhash;
         // // let simu = await connection.simulateTransaction(tx);
         // // console.log("simu", simu.value);
@@ -239,7 +232,7 @@ export async function createTakeSwapInstructions(Data: {
             blockchain: "solana",
             status: "error",
             message: error,
-            swapDataAccount: Data.swapDataAccount.toBase58(),
+            swapDataAccount: Data.swapDataAccount,
         };
     }
 }

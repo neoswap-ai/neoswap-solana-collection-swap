@@ -1,11 +1,14 @@
+import { cancelSwap } from "./processor/cancelSwap";
 import { claimSwap } from "./processor/claimSwap";
 import { makeSwap } from "./processor/makeSwap";
 import { payRoyalties } from "./processor/payRoyalties";
 import { takeAndCloseSwap } from "./processor/takeAndCloseSwap";
 import { takeSwap } from "./processor/takeSwap";
+import { createCancelSwapInstructions } from "./programInstructions/cancelSwap.instructions";
 import { createClaimSwapInstructions } from "./programInstructions/claimSwap.instructions";
 import { createMakeSwapInstructions } from "./programInstructions/makeSwap.instructions";
 import { createPayRoyaltiesInstructions } from "./programInstructions/payRoyalties.instructions";
+import { createTakeAndCloseSwapInstructions } from "./programInstructions/takeAndCloseSwap.instructions";
 import { createTakeSwapInstructions } from "./programInstructions/takeSwap.instructions";
 import {
     findNftDataAndMetadataAccount,
@@ -47,6 +50,8 @@ const CREATE_INSTRUCTIONS = {
     createTakeSwapInstructions,
     createPayRoyaltiesInstructions,
     createClaimSwapInstructions,
+    createTakeAndCloseSwapInstructions,
+    createCancelSwapInstructions,
 };
 
 export const neoSwap = {
@@ -55,6 +60,7 @@ export const neoSwap = {
     takeAndCloseSwap,
     payRoyalties,
     claimSwap,
+    cancelSwap,
     UTILS,
     CREATE_INSTRUCTIONS,
 };

@@ -6,7 +6,7 @@ import { sendSingleTransaction } from "../utils/sendSingleTransaction.function";
 import { createPayRoyaltiesInstructions } from "../programInstructions/payRoyalties.instructions";
 
 export async function payRoyalties(Data: {
-    swapDataAccount: PublicKey;
+    swapDataAccount: string;
     taker: Keypair;
     clusterOrUrl: Cluster | string;
     skipSimulation?: boolean;
@@ -18,7 +18,7 @@ export async function payRoyalties(Data: {
             provider: program.provider as AnchorProvider,
             tx: await createPayRoyaltiesInstructions({
                 program,
-                taker: Data.taker.publicKey,
+                taker: Data.taker.publicKey.toString(),
                 swapDataAccount: Data.swapDataAccount,
             }),
             signer: Data.taker,
