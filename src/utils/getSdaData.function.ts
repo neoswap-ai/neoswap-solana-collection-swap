@@ -39,7 +39,7 @@ export async function getSdaData(Data: {
 export async function getOpenSda(Data: {
     clusterOrUrl?: Cluster | string;
     program?: Program;
-}): Promise<SwapData[]> {
+}): Promise<{ sda: string; data: SwapData }[]> {
     if (!!Data.clusterOrUrl && !!Data.program) {
     } else if (!!Data.clusterOrUrl) {
         Data.program = getProgram({ clusterOrUrl: Data.clusterOrUrl });
@@ -72,9 +72,13 @@ export async function getOpenSda(Data: {
                 openSda = openSda.filter((x) => !x.equals(blacklist));
             });
 
-        const swapDatas = (await Data.program.account.swapData.fetchMultiple(openSda)).map((x) =>
-            scSwapDataToSwapData(x as ScSwapData)
-        ) as SwapData[];
+        const swapDatas = (
+            (await Data.program.account.swapData.fetchMultiple(openSda)).map((x) =>
+                scSwapDataToSwapData(x as ScSwapData)
+            ) as SwapData[]
+        ).map((x, i) => {
+            return { sda: openSda[i].toString(), data: x };
+        });
         console.log("swapDatas", swapDatas);
 
         if (!swapDatas) {
