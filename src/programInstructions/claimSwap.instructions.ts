@@ -52,7 +52,7 @@ export async function createClaimSwapInstructions(
 
     let instructions: TransactionInstruction[] = [
         ComputeBudgetProgram.setComputeUnitLimit({
-            units: 500000,
+            units: 800000,
         }),
     ];
 

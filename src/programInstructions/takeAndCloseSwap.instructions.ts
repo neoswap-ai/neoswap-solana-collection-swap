@@ -58,7 +58,7 @@ export async function createTakeAndCloseSwapInstructions(
 
     let takeIxs: TransactionInstruction[] = [
         ComputeBudgetProgram.setComputeUnitLimit({
-            units: 4500000,
+            units: 8500000,
         }),
     ];
     try {
@@ -224,7 +224,7 @@ export async function createTakeAndCloseSwapInstructions(
 
         let payRIxs: TransactionInstruction[] = [
             ComputeBudgetProgram.setComputeUnitLimit({
-                units: 600000,
+                units: 800000,
             }),
         ];
 

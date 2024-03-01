@@ -49,7 +49,7 @@ export async function createCancelSwapInstructions(
     let dummyBlockhash = (await connection.getLatestBlockhash()).blockhash;
     let instructions: TransactionInstruction[] = [
         ComputeBudgetProgram.setComputeUnitLimit({
-            units: 4500000,
+            units: 800000,
         }),
     ];
     try {

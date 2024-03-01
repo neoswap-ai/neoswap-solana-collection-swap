@@ -54,7 +54,7 @@ export async function createMakeSwapInstructions(Data: MakeSArg & EnvOpts): Prom
 
     let instructions: TransactionInstruction[] = [
         ComputeBudgetProgram.setComputeUnitLimit({
-            units: 500000,
+            units: 800000,
         }),
     ];
 
@@ -135,50 +135,7 @@ export async function createMakeSwapInstructions(Data: MakeSArg & EnvOpts): Prom
             authRulesMaker = authRulesF;
         }
         console.log("bid", bidToscBid(Data.bid));
-        console.log(
-            "swapDataAccounts:",
-            swapDataAccount,
-            "swapDataAccountNftAtas:",
-            swapDataAccountNftAta,
-            "swapDataAccountTokenAtas:",
-            swapDataAccountTokenAta,
 
-            "maker:",
-            Data.maker,
-            "makerNftAta:",
-            makerNftAta,
-            "makerTokenAta:",
-            makerTokenAta,
-
-            "nftMintMaker:",
-            Data.nftMintMaker,
-            "mintToken:",
-            Data.paymentMint,
-
-            "nftMetadataMaker:",
-            nftMetadataMaker,
-            "nftMasterEditionMaker:",
-            nftMasterEditionMaker,
-            "ownerTokenRecordMaker:",
-            ownerTokenRecordMaker,
-            "destinationTokenRecordMaker:",
-            destinationTokenRecordMaker,
-            "authRulesMaker:",
-            authRulesMaker,
-
-            "systemProgram:",
-            SystemProgram.programId,
-            "metadataProgram:",
-            TOKEN_METADATA_PROGRAM,
-            "sysvarInstructions:",
-            SYSVAR_INSTRUCTIONS_PUBKEY,
-            "tokenProgram:",
-            TOKEN_PROGRAM_ID,
-            "ataProgram:",
-            SOLANA_SPL_ATA_PROGRAM_ID,
-            "authRulesProgram:",
-            METAPLEX_AUTH_RULES_PROGRAM
-        );
         const initIx = await Data.program.methods
             .makeSwap(bidToscBid(Data.bid), new BN(Data.endDate))
             .accounts({
