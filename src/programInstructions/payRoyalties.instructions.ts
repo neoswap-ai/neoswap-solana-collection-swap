@@ -166,29 +166,30 @@ export async function createPayRoyaltiesInstructions(
                 swapDataAccount: Data.swapDataAccount,
                 swapDataAccountTokenAta,
 
-                maker,
-                makerNftAta,
-                makerTokenAta,
+                // maker,
+                // makerNftAta,
+                // makerTokenAta,
 
-                taker,
-                takerNftAta,
-                takerTokenAta,
+                signer: taker,
+                // takerNftAta,
+                // takerTokenAta,
 
-                nsFee: NS_FEE,
-                nsFeeTokenAta,
+                // nsFee: NS_FEE,
+                // nsFeeTokenAta,
 
-                nftMintTaker: nftMintTaker,
+                // nftMintTaker: nftMintTaker,
                 mintToken: paymentMint,
 
                 nftMetadataTaker,
                 nftMetadataMaker,
 
-                systemProgram: SystemProgram.programId,
                 metadataProgram: TOKEN_METADATA_PROGRAM,
-                sysvarInstructions: SYSVAR_INSTRUCTIONS_PUBKEY,
                 tokenProgram: TOKEN_PROGRAM_ID,
-                ataProgram: SOLANA_SPL_ATA_PROGRAM_ID,
-                authRulesProgram: METAPLEX_AUTH_RULES_PROGRAM,
+
+                // systemProgram: SystemProgram.programId,
+                // sysvarInstructions: SYSVAR_INSTRUCTIONS_PUBKEY,
+                // ataProgram: SOLANA_SPL_ATA_PROGRAM_ID,
+                // authRulesProgram: METAPLEX_AUTH_RULES_PROGRAM,
 
                 makerCreator0: makerCreator[0],
                 makerCreator0TokenAta: makerCreatorTokenAta[0],
@@ -215,7 +216,7 @@ export async function createPayRoyaltiesInstructions(
         // console.log("txSig", txSig);
 
         return {
-            tx:new VersionedTransaction(tx.compileMessage()),
+            tx: new VersionedTransaction(tx.compileMessage()),
             description: DESC.payRoyalties,
             details: { swapDataAccount: Data.swapDataAccount },
             priority: 0,

@@ -261,6 +261,11 @@ export const idlSwap: Idl = {
                     isSigner: false,
                 },
                 {
+                    name: "signer",
+                    isMut: false,
+                    isSigner: true,
+                },
+                {
                     name: "nftMetadataTaker",
                     isMut: true,
                     isSigner: false,
@@ -365,6 +370,7 @@ export const idlSwap: Idl = {
                     name: "nsFee",
                     isMut: true,
                     isSigner: false,
+                    docs: ["CHECK : in constraints"],
                 },
                 {
                     name: "nsFeeTokenAta",
@@ -374,7 +380,8 @@ export const idlSwap: Idl = {
                 {
                     name: "taker",
                     isMut: false,
-                    isSigner: true,
+                    isSigner: false,
+                    docs: ["CHECK : in constraints"],
                 },
                 {
                     name: "takerNftAtaMaker",
@@ -405,6 +412,11 @@ export const idlSwap: Idl = {
                     name: "mintToken",
                     isMut: false,
                     isSigner: false,
+                },
+                {
+                    name: "signer",
+                    isMut: false,
+                    isSigner: true,
                 },
                 {
                     name: "nftMetadataMaker",
@@ -791,6 +803,16 @@ export const idlSwap: Idl = {
             code: 6019,
             name: "RoyaltiesAlreadyPaid",
             msg: "Royalties already paied",
+        },
+        {
+            code: 6020,
+            name: "TooLate",
+            msg: "the Swap you tried to accept is expired",
+        },
+        {
+            code: 6021,
+            name: "TooEarly",
+            msg: "Too early to perform this action",
         },
         {
             code: 6900,
