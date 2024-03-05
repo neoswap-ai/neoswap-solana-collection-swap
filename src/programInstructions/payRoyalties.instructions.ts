@@ -8,6 +8,7 @@ import {
     SystemProgram,
     Transaction,
     TransactionInstruction,
+    VersionedTransaction,
 } from "@solana/web3.js";
 import { BundleTransaction, EnvOpts, ErrorFeedback } from "../utils/types";
 import { Program } from "@coral-xyz/anchor";
@@ -22,6 +23,7 @@ import {
 import { findNftDataAndMetadataAccount } from "../utils/findNftDataAndAccounts.function";
 import { getCreatorData } from "../utils/creators";
 import { DESC } from "../utils/descriptions";
+import { Version } from "@metaplex-foundation/mpl-bubblegum";
 
 export async function createPayRoyaltiesInstructions(
     Data: EnvOpts & {
@@ -213,7 +215,7 @@ export async function createPayRoyaltiesInstructions(
         // console.log("txSig", txSig);
 
         return {
-            tx,
+            tx:new VersionedTransaction(tx.compileMessage()),
             description: DESC.payRoyalties,
             details: { swapDataAccount: Data.swapDataAccount },
             priority: 0,

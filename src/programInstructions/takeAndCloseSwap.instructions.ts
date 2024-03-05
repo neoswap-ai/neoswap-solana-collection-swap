@@ -8,6 +8,7 @@ import {
     SystemProgram,
     Transaction,
     TransactionInstruction,
+    VersionedTransaction,
 } from "@solana/web3.js";
 import {
     Bid,
@@ -423,7 +424,7 @@ export async function createTakeAndCloseSwapInstructions(
 
         if (takeSwapTx) {
             bTTakeAndClose.push({
-                tx: takeSwapTx,
+                tx: new VersionedTransaction(takeSwapTx.compileMessage()),
                 description: DESC.takeSwap,
                 details: {
                     bid: Data.bid,
@@ -441,7 +442,7 @@ export async function createTakeAndCloseSwapInstructions(
 
         if (payRoyaltiesTx) {
             bTTakeAndClose.push({
-                tx: payRoyaltiesTx,
+                tx: new VersionedTransaction(payRoyaltiesTx.compileMessage()),
                 description: DESC.payRoyalties,
                 details: {
                     swapDataAccount: Data.swapDataAccount,
@@ -455,7 +456,7 @@ export async function createTakeAndCloseSwapInstructions(
         } else console.log("no payRoyaltiesTx");
 
         bTTakeAndClose.push({
-            tx: claimSwapTx,
+            tx: new VersionedTransaction(claimSwapTx.compileMessage()),
             description: DESC.payRoyalties,
             details: {
                 swapDataAccount: Data.swapDataAccount,

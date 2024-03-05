@@ -83,16 +83,16 @@ export type ErrorFeedback = {
     swapStatus?: number;
 };
 
-export type TxWithSigner = { tx: Transaction; signers?: Signer[] };
+export type TxWithSigner = { tx: VersionedTransaction; signers?: Signer[] };
 
 export type InitializeData = {
     swapDataAccount: string;
-    tx: Transaction;
+    tx: VersionedTransaction;
 };
 
 export type BundleTxBase = {
-    tx: Transaction; // [];
-    stx?: Transaction; // [];
+    tx: VersionedTransaction; // [];
+    stx?: VersionedTransaction; // [];
     blockheight?: number;
     description: string;
     priority: number;

@@ -8,6 +8,7 @@ import {
     SystemProgram,
     Transaction,
     TransactionInstruction,
+    VersionedTransaction,
 } from "@solana/web3.js";
 import { ErrorFeedback, EnvOpts, BundleTransaction } from "../utils/types";
 import { Program } from "@coral-xyz/anchor";
@@ -187,7 +188,7 @@ export async function createCancelSwapInstructions(
         cancelSwapTx.recentBlockhash = dummyBlockhash;
         cancelSwapTx.feePayer = new PublicKey(maker);
         return {
-            tx: cancelSwapTx,
+            tx: new VersionedTransaction(cancelSwapTx.compileMessage()),
             description: DESC.cancelSwap,
             details: { swapDataAccount: Data.swapDataAccount },
             priority: 0,

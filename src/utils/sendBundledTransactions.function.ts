@@ -13,18 +13,14 @@ export async function sendBundledTransactions(Data: {
     provider?: AnchorProvider;
 }): Promise<string[]> {
     try {
-        // console.log(txWithSigners);
-
         const provider = Data.provider
             ? Data.provider
             : getProgram({ clusterOrUrl: Data.clusterOrUrl, signer: Data.signer }).provider;
 
         const txsWithSigners = Data.txsWithoutSigners.map((txWithSigners) => {
             txWithSigners.signers = [Data.signer];
-            txWithSigners.tx.feePayer = Data.signer.publicKey;
             return txWithSigners;
         });
-        // console.log('program',program);
 
         console.log(
             "User ",

@@ -8,8 +8,9 @@ import {
     SystemProgram,
     Transaction,
     TransactionInstruction,
+    VersionedTransaction,
 } from "@solana/web3.js";
-import { EnvOpts, ErrorFeedback } from "../utils/types";
+import { BundleTransaction, EnvOpts, ErrorFeedback } from "../utils/types";
 import { Program } from "@coral-xyz/anchor";
 import { findOrCreateAta } from "../utils/findOrCreateAta.function";
 import { getCNFTOwner } from "../utils/getCNFTData.function";
@@ -27,13 +28,14 @@ import {
     findUserTokenRecord,
 } from "../utils/findNftDataAndAccounts.function";
 import { TokenStandard } from "@metaplex-foundation/mpl-token-metadata";
+import { DESC } from "../utils/descriptions";
 
 export async function createClaimSwapInstructions(
     Data: EnvOpts & {
         swapDataAccount: string;
         // taker: string;
     }
-): Promise<Transaction> {
+): Promise<BundleTransaction> {
     if (Data.program && Data.clusterOrUrl) {
     } else if (!Data.program && Data.clusterOrUrl) {
         Data.program = getProgram({ clusterOrUrl: Data.clusterOrUrl });
@@ -215,7 +217,13 @@ export async function createClaimSwapInstructions(
         // const txSig = await connection.sendTransaction(tx, [maker]);
         // console.log("txSig", txSig);
 
-        return tx;
+        return {
+            tx: new VersionedTransaction(tx.compileMessage()),
+            description: DESC.claimSwap,
+            details: { swapDataAccount: Data.swapDataAccount },
+            priority: 0,
+            status: "pending",
+        } as BundleTransaction;
         // {
         //     tx,
         //     swapDataAccount,

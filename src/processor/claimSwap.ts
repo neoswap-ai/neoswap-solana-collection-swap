@@ -15,10 +15,12 @@ export async function claimSwap(
     try {
         return await sendSingleTransaction({
             provider: program.provider as AnchorProvider,
-            tx: await createClaimSwapInstructions({
-                program,
-                swapDataAccount: Data.swapDataAccount,
-            }),
+            tx: (
+                await createClaimSwapInstructions({
+                    program,
+                    swapDataAccount: Data.swapDataAccount,
+                })
+            ).tx,
             signer: Data.taker,
             clusterOrUrl: Data.clusterOrUrl,
             skipSimulation: Data.skipSimulation,

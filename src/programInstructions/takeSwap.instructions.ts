@@ -8,6 +8,7 @@ import {
     SystemProgram,
     Transaction,
     TransactionInstruction,
+    VersionedTransaction,
 } from "@solana/web3.js";
 import { BundleTransaction, EnvOpts, ErrorFeedback, TakeSArg } from "../utils/types";
 import { Program } from "@coral-xyz/anchor";
@@ -217,7 +218,7 @@ export async function createTakeSwapInstructions(
         // console.log("txSig", txSig);
 
         return {
-            tx,
+            tx: new VersionedTransaction(tx.compileMessage()),
             description: DESC.takeSwap,
             details: {
                 bid: Data.bid,

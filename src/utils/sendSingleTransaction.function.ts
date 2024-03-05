@@ -1,11 +1,11 @@
-import { Cluster, Keypair, Transaction } from "@solana/web3.js";
+import { Cluster, Keypair, Transaction, VersionedTransaction } from "@solana/web3.js";
 import { getProgram } from "./getProgram.obj";
 import { ErrorFeedback } from "./types";
 import { isConfirmedTx } from "./isConfirmedTx.function";
 import { AnchorProvider } from "@coral-xyz/anchor";
 
 export async function sendSingleTransaction(Data: {
-    tx: Transaction;
+    tx: Transaction | VersionedTransaction;
     signer: Keypair;
     clusterOrUrl: Cluster | string;
     skipSimulation?: boolean;
