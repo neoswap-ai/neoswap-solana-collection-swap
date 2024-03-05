@@ -7,12 +7,13 @@ import {
     SystemProgram,
     Transaction,
     TransactionInstruction,
+    VersionedTransaction,
 } from "@solana/web3.js";
 import { Bid, EnvOpts, ErrorFeedback, MakeSArg, MakeSwapData, ScBid } from "../utils/types";
 import { Program } from "@coral-xyz/anchor";
 import { findOrCreateAta } from "../utils/findOrCreateAta.function";
 import { getCNFTOwner } from "../utils/getCNFTData.function";
-import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
+import { TOKEN_PROGRAM_ID, createSyncNativeInstruction } from "@solana/spl-token";
 import {
     METAPLEX_AUTH_RULES_PROGRAM,
     SOLANA_SPL_ATA_PROGRAM_ID,
@@ -30,6 +31,7 @@ import { TokenStandard } from "@metaplex-foundation/mpl-token-metadata";
 import { getSda } from "../utils/getPda";
 import { bidToscBid } from "../utils/typeSwap";
 import { DESC } from "../utils/descriptions";
+import { WRAPPED_SOL_MINT } from "@metaplex-foundation/js";
 
 export async function createMakeSwapInstructions(Data: MakeSArg & EnvOpts): Promise<MakeSwapData> {
     if (Data.program && Data.clusterOrUrl) {
@@ -134,6 +136,20 @@ export async function createMakeSwapInstructions(Data: MakeSArg & EnvOpts): Prom
             destinationTokenRecordMaker = destinationTokenRecordF;
             authRulesMaker = authRulesF;
         }
+
+        // if wSOL
+        if ((Data.paymentMint = WRAPPED_SOL_MINT.toString())) {
+            let amount = Data.bid.makerNeoswapFee + Data.bid.makerRoyalties;
+            if (Data.bid.amount < 0) amount += Data.bid.amount;
+            instructions.push(
+                SystemProgram.transfer({
+                    fromPubkey: new PublicKey(Data.maker),
+                    toPubkey: new PublicKey(makerTokenAta),
+                    lamports: amount,
+                }),
+                createSyncNativeInstruction(new PublicKey(makerTokenAta))
+            );
+        }
         console.log("bid", bidToscBid(Data.bid));
 
         const initIx = await Data.program.methods
@@ -186,7 +202,7 @@ export async function createMakeSwapInstructions(Data: MakeSArg & EnvOpts): Prom
                 },
                 priority: 0,
                 status: "pending",
-                tx,
+                tx: new VersionedTransaction(tx.compileMessage()),
                 blockheight: (await connection.getLatestBlockhash()).lastValidBlockHeight,
             },
             swapDataAccount: swapDataAccount.toString(),

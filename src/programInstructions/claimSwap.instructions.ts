@@ -14,7 +14,7 @@ import { BundleTransaction, EnvOpts, ErrorFeedback } from "../utils/types";
 import { Program } from "@coral-xyz/anchor";
 import { findOrCreateAta } from "../utils/findOrCreateAta.function";
 import { getCNFTOwner } from "../utils/getCNFTData.function";
-import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
+import { TOKEN_PROGRAM_ID, createCloseAccountInstruction } from "@solana/spl-token";
 import {
     METAPLEX_AUTH_RULES_PROGRAM,
     NS_FEE,
@@ -182,6 +182,7 @@ export async function createClaimSwapInstructions(
                 nsFee: NS_FEE,
                 nsFeeTokenAta,
 
+                signer: taker,
                 taker: taker,
                 takerNftAtaMaker,
                 takerTokenAta,
@@ -209,13 +210,21 @@ export async function createClaimSwapInstructions(
             .instruction();
         instructions.push(initIx);
 
+        instructions.push(
+            createCloseAccountInstruction(
+                new PublicKey(makerTokenAta),
+                new PublicKey(maker),
+                new PublicKey(maker)
+            ),
+            createCloseAccountInstruction(
+                new PublicKey(takerTokenAta),
+                new PublicKey(taker),
+                new PublicKey(taker)
+            )
+        );
         const tx = new Transaction().add(...instructions);
         tx.feePayer = new PublicKey(taker);
         tx.recentBlockhash = dummyBlockhash;
-        // // let simu = await connection.simulateTransaction(tx);
-        // // console.log("simu", simu.value);
-        // const txSig = await connection.sendTransaction(tx, [maker]);
-        // console.log("txSig", txSig);
 
         return {
             tx: new VersionedTransaction(tx.compileMessage()),
