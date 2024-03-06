@@ -42,7 +42,6 @@ import { WRAPPED_SOL_MINT } from "@metaplex-foundation/js";
 export async function createTakeAndCloseSwapInstructions(
     Data: TakeSArg & EnvOpts
 ): Promise<BundleTransaction[]> {
-    
     if (Data.program && Data.clusterOrUrl) {
     } else if (!Data.program && Data.clusterOrUrl) {
         Data.program = getProgram({ clusterOrUrl: Data.clusterOrUrl });
@@ -58,10 +57,13 @@ export async function createTakeAndCloseSwapInstructions(
 
     let connection = Data.program.provider.connection;
     let dummyBlockhash = (await connection.getLatestBlockhash()).blockhash;
-
+    let microLamports = (await connection.getRecentPrioritizationFees())[0].prioritizationFee;
     let takeIxs: TransactionInstruction[] = [
         ComputeBudgetProgram.setComputeUnitLimit({
             units: 8500000,
+        }),
+        ComputeBudgetProgram.setComputeUnitPrice({
+            microLamports,
         }),
     ];
     try {
@@ -233,7 +235,7 @@ export async function createTakeAndCloseSwapInstructions(
         }
 
         let takeSwapTx = undefined;
-        if (takeIxs.length > 1) {
+        if (takeIxs.length > 2) {
             takeSwapTx = new Transaction().add(...takeIxs);
             takeSwapTx.recentBlockhash = dummyBlockhash;
             takeSwapTx.feePayer = new PublicKey(Data.taker);
@@ -242,6 +244,9 @@ export async function createTakeAndCloseSwapInstructions(
         let payRIxs: TransactionInstruction[] = [
             ComputeBudgetProgram.setComputeUnitLimit({
                 units: 800000,
+            }),
+            ComputeBudgetProgram.setComputeUnitPrice({
+                microLamports,
             }),
         ];
 
@@ -328,7 +333,7 @@ export async function createTakeAndCloseSwapInstructions(
         }
 
         let payRoyaltiesTx = undefined;
-        if (payRIxs.length > 1) {
+        if (payRIxs.length > 2) {
             payRoyaltiesTx = new Transaction().add(...payRIxs);
             payRoyaltiesTx.recentBlockhash = dummyBlockhash;
             payRoyaltiesTx.feePayer = new PublicKey(Data.taker);
@@ -338,6 +343,9 @@ export async function createTakeAndCloseSwapInstructions(
         let claimSIxs: TransactionInstruction[] = [
             ComputeBudgetProgram.setComputeUnitLimit({
                 units: 800000,
+            }),
+            ComputeBudgetProgram.setComputeUnitPrice({
+                microLamports,
             }),
         ];
 

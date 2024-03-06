@@ -379,7 +379,7 @@ export const idlSwap: Idl = {
                 },
                 {
                     name: "taker",
-                    isMut: false,
+                    isMut: true,
                     isSigner: false,
                     docs: ["CHECK : in constraints"],
                 },
