@@ -23,7 +23,7 @@ export async function makeSwap(
     });
     try {
         const hash = await sendSingleTransaction({
-            provider: program.provider as AnchorProvider,
+            connection: program.provider.connection,
             tx: bTx.tx,
             signer: Data.maker,
             clusterOrUrl: Data.clusterOrUrl,

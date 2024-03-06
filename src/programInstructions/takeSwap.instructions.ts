@@ -14,7 +14,7 @@ import { BundleTransaction, EnvOpts, ErrorFeedback, TakeSArg } from "../utils/ty
 import { Program } from "@coral-xyz/anchor";
 import { findOrCreateAta } from "../utils/findOrCreateAta.function";
 import { getCNFTOwner } from "../utils/getCNFTData.function";
-import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
+import { TOKEN_PROGRAM_ID, createSyncNativeInstruction } from "@solana/spl-token";
 import {
     METAPLEX_AUTH_RULES_PROGRAM,
     NS_FEE,
@@ -32,6 +32,7 @@ import {
 import { TokenStandard } from "@metaplex-foundation/mpl-token-metadata";
 import { bidToscBid } from "../utils/typeSwap";
 import { DESC } from "../utils/descriptions";
+import { WRAPPED_SOL_MINT } from "@metaplex-foundation/js";
 
 export async function createTakeSwapInstructions(
     Data: TakeSArg & EnvOpts
@@ -69,12 +70,12 @@ export async function createTakeSwapInstructions(
 
         const foundBid = bids.find(
             (b) =>
-                b.amount == Data.bid.amount &&
-                b.collection.localeCompare(Data.bid.collection) &&
-                b.takerNeoswapFee == Data.bid.takerNeoswapFee &&
-                b.takerRoyalties == Data.bid.takerRoyalties &&
-                b.makerRoyalties == Data.bid.makerRoyalties &&
-                b.makerNeoswapFee == Data.bid.makerNeoswapFee
+                b.amount === Data.bid.amount &&
+                b.collection === Data.bid.collection &&
+                b.takerNeoswapFee === Data.bid.takerNeoswapFee &&
+                b.takerRoyalties === Data.bid.takerRoyalties &&
+                b.makerRoyalties === Data.bid.makerRoyalties &&
+                b.makerNeoswapFee === Data.bid.makerNeoswapFee
         );
         if (!foundBid)
             throw `bid ${JSON.stringify(Data.bid)} not found in ${JSON.stringify(bids)} `;
@@ -175,6 +176,21 @@ export async function createTakeSwapInstructions(
             authRulesTaker = authRulesF;
         }
         console.log("bid", bidToscBid(Data.bid));
+
+        if (swapDataData.paymentMint === WRAPPED_SOL_MINT.toString()) {
+            let amount = Data.bid.takerNeoswapFee + Data.bid.takerRoyalties;
+            if (Data.bid.amount > 0) amount += Data.bid.amount;
+            console.log("Wrapping " + amount + " lamports to wSOL");
+
+            instructions.push(
+                SystemProgram.transfer({
+                    fromPubkey: new PublicKey(Data.taker),
+                    toPubkey: new PublicKey(takerTokenAta),
+                    lamports: amount,
+                }),
+                createSyncNativeInstruction(new PublicKey(takerTokenAta))
+            );
+        }
 
         const takeIx = await Data.program.methods
             .takeSwap(bidToscBid(Data.bid))

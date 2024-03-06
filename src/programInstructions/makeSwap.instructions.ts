@@ -70,8 +70,7 @@ export async function createMakeSwapInstructions(Data: MakeSArg & EnvOpts): Prom
             });
         if (swapDataAccountNftAtaIx) {
             instructions.push(swapDataAccountNftAtaIx);
-            console.log("swapDataAccountNftAta", swapDataAccountNftAta);
-        }
+        } else console.log("swapDataAccountNftAta", swapDataAccountNftAta);
 
         let { mintAta: swapDataAccountTokenAta, instruction: swapDataAccountTokenAtaIx } =
             await findOrCreateAta({
@@ -82,8 +81,7 @@ export async function createMakeSwapInstructions(Data: MakeSArg & EnvOpts): Prom
             });
         if (swapDataAccountTokenAtaIx) {
             instructions.push(swapDataAccountTokenAtaIx);
-            console.log("swapDataAccountTokenAta", swapDataAccountTokenAta);
-        }
+        } else console.log("swapDataAccountTokenAta", swapDataAccountTokenAta);
 
         let { mintAta: makerNftAta, instruction: mn } = await findOrCreateAta({
             connection,
@@ -91,7 +89,9 @@ export async function createMakeSwapInstructions(Data: MakeSArg & EnvOpts): Prom
             owner: Data.maker,
             signer: Data.maker,
         });
-        if (!mn) console.log("makerNftAta", makerNftAta);
+        if (mn) {
+            instructions.push(mn);
+        } else console.log("makerNftAta", makerNftAta);
 
         let { mintAta: makerTokenAta, instruction: mt } = await findOrCreateAta({
             connection,
@@ -99,7 +99,9 @@ export async function createMakeSwapInstructions(Data: MakeSArg & EnvOpts): Prom
             owner: Data.maker,
             signer: Data.maker,
         });
-        if (!mt) console.log("makerTokenAta", makerTokenAta);
+        if (mt) {
+            instructions.push(mt);
+        } else console.log("makerTokenAta", makerTokenAta);
 
         const { metadataAddress: nftMetadataMaker, tokenStandard } =
             await findNftDataAndMetadataAccount({
@@ -138,14 +140,16 @@ export async function createMakeSwapInstructions(Data: MakeSArg & EnvOpts): Prom
         }
 
         // if wSOL
-        if ((Data.paymentMint = WRAPPED_SOL_MINT.toString())) {
+        if (Data.paymentMint === WRAPPED_SOL_MINT.toString()) {
             let amount = Data.bid.makerNeoswapFee + Data.bid.makerRoyalties;
             if (Data.bid.amount < 0) amount += Data.bid.amount;
+            console.log("Wrapping " + amount + " lamports to wSOL");
+
             instructions.push(
                 SystemProgram.transfer({
                     fromPubkey: new PublicKey(Data.maker),
                     toPubkey: new PublicKey(makerTokenAta),
-                    lamports: amount,
+                    lamports: -amount,
                 }),
                 createSyncNativeInstruction(new PublicKey(makerTokenAta))
             );

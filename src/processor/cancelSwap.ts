@@ -15,7 +15,7 @@ export async function cancelSwap(
 
     try {
         return await sendSingleTransaction({
-            provider: program.provider as AnchorProvider,
+            connection: program.provider.connection,
             tx: (
                 await createCancelSwapInstructions({
                     swapDataAccount: Data.swapDataAccount,

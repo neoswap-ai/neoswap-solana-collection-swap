@@ -29,10 +29,12 @@ import {
 } from "../utils/findNftDataAndAccounts.function";
 import { TokenStandard } from "@metaplex-foundation/mpl-token-metadata";
 import { DESC } from "../utils/descriptions";
+import { WRAPPED_SOL_MINT } from "@metaplex-foundation/js";
 
 export async function createClaimSwapInstructions(
     Data: EnvOpts & {
         swapDataAccount: string;
+        signer: string;
         // taker: string;
     }
 ): Promise<BundleTransaction> {
@@ -66,74 +68,61 @@ export async function createClaimSwapInstructions(
         if (!swapDataData) throw "no swapData found at " + Data.swapDataAccount;
         let { paymentMint, maker, nftMintMaker, taker, nftMintTaker, acceptedBid } = swapDataData;
 
-        if (!(nftMintTaker && taker && acceptedBid)) {
+        if (!(nftMintTaker && taker && acceptedBid))
             throw "SDA doesnt have accepted bids" + JSON.stringify(swapDataData);
-        }
 
         let { mintAta: swapDataAccountNftAta, instruction: sdan } = await findOrCreateAta({
             connection,
             mint: nftMintMaker,
             owner: Data.swapDataAccount,
-            signer: taker,
+            signer: Data.signer,
         });
-        if (sdan) {
-            instructions.push(sdan);
-            console.log("swapDataAccountNftAta", swapDataAccountNftAta);
-        }
+        if (sdan) instructions.push(sdan);
+        else console.log("swapDataAccountNftAta", swapDataAccountNftAta);
         let { mintAta: takerNftAtaMaker, instruction: tmn } = await findOrCreateAta({
             connection,
             mint: nftMintMaker,
             owner: taker,
-            signer: taker,
+            signer: Data.signer,
         });
-        if (tmn) {
-            instructions.push(tmn);
-            console.log("takerNftAta", takerNftAtaMaker);
-        }
+        if (tmn) instructions.push(tmn);
+        else console.log("takerNftAta", takerNftAtaMaker);
 
         let { mintAta: takerTokenAta, instruction: tt } = await findOrCreateAta({
             connection,
             mint: paymentMint,
             owner: taker,
-            signer: taker,
+            signer: Data.signer,
         });
-        if (tt) {
-            instructions.push(tt);
-            console.log("takerTokenAta", takerTokenAta);
-        }
+        if (tt) instructions.push(tt);
+        else console.log("takerTokenAta", takerTokenAta);
 
         let { mintAta: nsFeeTokenAta, instruction: nst } = await findOrCreateAta({
             connection,
             mint: paymentMint,
             owner: NS_FEE,
-            signer: taker,
+            signer: Data.signer,
         });
-        if (nst) {
-            instructions.push(nst);
-            console.log("nsFeeTokenAta", nsFeeTokenAta);
-        }
+        if (nst) instructions.push(nst);
+        else console.log("nsFeeTokenAta", nsFeeTokenAta);
 
         let { mintAta: swapDataAccountTokenAta, instruction: sdat } = await findOrCreateAta({
             connection,
             mint: paymentMint,
             owner: Data.swapDataAccount,
-            signer: taker,
+            signer: Data.signer,
         });
-        if (sdat) {
-            instructions.push(sdat);
-            console.log("swapDataAccountTokenAta", swapDataAccountTokenAta);
-        }
+        if (sdat) instructions.push(sdat);
+        else console.log("swapDataAccountTokenAta", swapDataAccountTokenAta);
 
         let { mintAta: makerTokenAta, instruction: mt } = await findOrCreateAta({
             connection,
             mint: paymentMint,
             owner: maker,
-            signer: taker,
+            signer: Data.signer,
         });
-        if (mt) {
-            instructions.push(mt);
-            console.log("makerTokenAta", makerTokenAta);
-        }
+        if (mt) instructions.push(mt);
+        else console.log("makerTokenAta", makerTokenAta);
 
         const { metadataAddress: nftMetadataMaker, tokenStandard: tokenStandardMaker } =
             await findNftDataAndMetadataAccount({
@@ -182,7 +171,7 @@ export async function createClaimSwapInstructions(
                 nsFee: NS_FEE,
                 nsFeeTokenAta,
 
-                signer: taker,
+                signer: Data.signer,
                 taker: taker,
                 takerNftAtaMaker,
                 takerTokenAta,
@@ -210,20 +199,25 @@ export async function createClaimSwapInstructions(
             .instruction();
         instructions.push(initIx);
 
-        instructions.push(
-            createCloseAccountInstruction(
-                new PublicKey(makerTokenAta),
-                new PublicKey(maker),
-                new PublicKey(maker)
-            ),
-            createCloseAccountInstruction(
-                new PublicKey(takerTokenAta),
-                new PublicKey(taker),
-                new PublicKey(taker)
-            )
-        );
+        if (swapDataData.paymentMint === WRAPPED_SOL_MINT.toString())
+            if (Data.signer === taker)
+                instructions.push(
+                    createCloseAccountInstruction(
+                        new PublicKey(takerTokenAta),
+                        new PublicKey(taker),
+                        new PublicKey(taker)
+                    )
+                );
+            else if (Data.signer === maker)
+                instructions.push(
+                    createCloseAccountInstruction(
+                        new PublicKey(makerTokenAta),
+                        new PublicKey(maker),
+                        new PublicKey(maker)
+                    )
+                );
         const tx = new Transaction().add(...instructions);
-        tx.feePayer = new PublicKey(taker);
+        tx.feePayer = new PublicKey(Data.signer);
         tx.recentBlockhash = dummyBlockhash;
 
         return {

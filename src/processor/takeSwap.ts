@@ -15,7 +15,7 @@ export async function takeSwap(
 
     try {
         return await sendSingleTransaction({
-            provider: program.provider as AnchorProvider,
+            connection: program.provider.connection,
             tx: (
                 await createTakeSwapInstructions({
                     program,

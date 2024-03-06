@@ -28,6 +28,7 @@ import { Version } from "@metaplex-foundation/mpl-bubblegum";
 export async function createPayRoyaltiesInstructions(
     Data: EnvOpts & {
         swapDataAccount: string;
+        signer: string;
     }
 ): Promise<BundleTransaction> {
     if (Data.program && Data.clusterOrUrl) {
@@ -84,7 +85,7 @@ export async function createPayRoyaltiesInstructions(
             connection,
             mint: paymentMint,
             owner: Data.swapDataAccount,
-            signer: taker,
+            signer: Data.signer,
         });
         if (sdat) {
             instructions.push(sdat);
@@ -94,7 +95,7 @@ export async function createPayRoyaltiesInstructions(
             connection,
             mint: paymentMint,
             owner: NS_FEE,
-            signer: taker,
+            signer: Data.signer,
         });
         if (nst) {
             instructions.push(nst);
@@ -105,7 +106,7 @@ export async function createPayRoyaltiesInstructions(
             connection,
             mint: nftMintTaker,
             owner: maker,
-            signer: taker,
+            signer: Data.signer,
         });
         if (mn) {
             instructions.push(mn);
@@ -116,7 +117,7 @@ export async function createPayRoyaltiesInstructions(
             connection,
             mint: paymentMint,
             owner: maker,
-            signer: taker,
+            signer: Data.signer,
         });
         if (mt) {
             instructions.push(mt);
@@ -127,7 +128,7 @@ export async function createPayRoyaltiesInstructions(
             connection,
             mint: nftMintTaker,
             owner: taker,
-            signer: taker,
+            signer: Data.signer,
         });
         if (tn) {
             instructions.push(tn);
@@ -138,7 +139,7 @@ export async function createPayRoyaltiesInstructions(
             connection,
             mint: paymentMint,
             owner: taker,
-            signer: taker,
+            signer: Data.signer,
         });
         if (tt) {
             instructions.push(tt);
@@ -170,7 +171,7 @@ export async function createPayRoyaltiesInstructions(
                 // makerNftAta,
                 // makerTokenAta,
 
-                signer: taker,
+                signer: Data.signer,
                 // takerNftAta,
                 // takerTokenAta,
 
@@ -208,7 +209,7 @@ export async function createPayRoyaltiesInstructions(
         instructions.push(payRIx);
 
         const tx = new Transaction().add(...instructions);
-        tx.feePayer = new PublicKey(taker);
+        tx.feePayer = new PublicKey(Data.signer);
         tx.recentBlockhash = dummyBlockhash;
         // // let simu = await connection.simulateTransaction(tx);
         // // console.log("simu", simu.value);

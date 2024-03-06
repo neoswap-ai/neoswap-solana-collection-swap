@@ -1,40 +1,52 @@
-import { Cluster, Keypair, Transaction, VersionedTransaction } from "@solana/web3.js";
+import { Cluster, Connection, Keypair, Transaction, VersionedTransaction } from "@solana/web3.js";
 import { getProgram } from "./getProgram.obj";
 import { ErrorFeedback } from "./types";
 import { isConfirmedTx } from "./isConfirmedTx.function";
 import { AnchorProvider } from "@coral-xyz/anchor";
+import bs58 from "bs58";
 
 export async function sendSingleTransaction(Data: {
-    tx: Transaction | VersionedTransaction;
+    tx: VersionedTransaction;
     signer: Keypair;
-    clusterOrUrl: Cluster | string;
+    clusterOrUrl?: Cluster | string;
     skipSimulation?: boolean;
     skipConfirmation?: boolean;
-    provider?: AnchorProvider;
+    connection?: Connection;
 }): Promise<string> {
     if (!Data.skipSimulation) Data.skipSimulation = false;
+    if (Data.connection && Data.clusterOrUrl) {
+    } else if (!Data.connection && Data.clusterOrUrl) {
+        Data.connection = new Connection(Data.clusterOrUrl);
+    } else if (!Data.clusterOrUrl && Data.connection) {
+        Data.clusterOrUrl = Data.connection.rpcEndpoint;
+    } else {
+        throw {
+            blockchain: "solana",
+            status: "error",
+            message: "clusterOrUrl or program is required",
+        } as ErrorFeedback;
+    }
 
-    const provider = Data.provider
-        ? Data.provider
-        : getProgram({ clusterOrUrl: Data.clusterOrUrl, signer: Data.signer }).provider;
-
+    Data.tx.message.recentBlockhash = (await Data.connection.getLatestBlockhash()).blockhash;
+    Data.tx.sign([Data.signer]);
     console.log(
         "User ",
         Data.signer.publicKey.toBase58(),
-        " has found a transaction to send \nBroadcasting to blockchain ..."
+        " has found a transaction to send \nBroadcasting " +
+            bs58.encode(Data.tx.signatures[0]) +
+            " to blockchain ..."
     );
 
-    if (!provider.sendAndConfirm) throw { message: "your provider is not an AnchorProvider type" };
-
-    let hash = await provider.sendAndConfirm(Data.tx, [Data.signer], {
+    let hash = await Data.connection.sendRawTransaction(Data.tx.serialize(), {
         skipPreflight: Data.skipSimulation,
+        maxRetries:5
     });
 
     if (!Data.skipConfirmation) {
         const confirmArray = await isConfirmedTx({
             clusterOrUrl: Data.clusterOrUrl,
             transactionHashs: [hash],
-            connection: provider.connection,
+            connection: Data.connection,
         });
         confirmArray.forEach((confirmTx) => {
             console.log("validating ", confirmTx.transactionHash, " ...");

@@ -20,7 +20,7 @@ import {
 } from "../utils/types";
 import { Program } from "@coral-xyz/anchor";
 import { findOrCreateAta } from "../utils/findOrCreateAta.function";
-import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
+import { TOKEN_PROGRAM_ID, createSyncNativeInstruction } from "@solana/spl-token";
 import {
     METAPLEX_AUTH_RULES_PROGRAM,
     NS_FEE,
@@ -37,10 +37,12 @@ import { TokenStandard } from "@metaplex-foundation/mpl-token-metadata";
 import { getCreatorData } from "../utils/creators";
 import { bidToscBid } from "../utils/typeSwap";
 import { DESC } from "../utils/descriptions";
+import { WRAPPED_SOL_MINT } from "@metaplex-foundation/js";
 
 export async function createTakeAndCloseSwapInstructions(
     Data: TakeSArg & EnvOpts
 ): Promise<BundleTransaction[]> {
+    
     if (Data.program && Data.clusterOrUrl) {
     } else if (!Data.program && Data.clusterOrUrl) {
         Data.program = getProgram({ clusterOrUrl: Data.clusterOrUrl });
@@ -74,12 +76,12 @@ export async function createTakeAndCloseSwapInstructions(
 
         const foundBid = bids.find(
             (b) =>
-                b.amount == Data.bid.amount &&
-                b.collection == Data.bid.collection &&
-                b.takerNeoswapFee == Data.bid.takerNeoswapFee &&
-                b.takerRoyalties == Data.bid.takerRoyalties &&
-                b.makerRoyalties == Data.bid.makerRoyalties &&
-                b.makerNeoswapFee == Data.bid.makerNeoswapFee
+                b.amount === Data.bid.amount &&
+                b.collection === Data.bid.collection &&
+                b.takerNeoswapFee === Data.bid.takerNeoswapFee &&
+                b.takerRoyalties === Data.bid.takerRoyalties &&
+                b.makerRoyalties === Data.bid.makerRoyalties &&
+                b.makerNeoswapFee === Data.bid.makerNeoswapFee
         );
         if (!foundBid)
             throw `bid ${JSON.stringify(Data.bid)} not found in ${JSON.stringify(bids)} `;
@@ -182,6 +184,20 @@ export async function createTakeAndCloseSwapInstructions(
         console.log("bid", Data.bid);
 
         if (!acceptedBid) {
+            if (swapDataData.paymentMint === WRAPPED_SOL_MINT.toString()) {
+                let amount = Data.bid.takerNeoswapFee + Data.bid.takerRoyalties;
+                if (Data.bid.amount > 0) amount += Data.bid.amount;
+                console.log("Wrapping " + amount + " lamports to wSOL");
+
+                takeIxs.push(
+                    SystemProgram.transfer({
+                        fromPubkey: new PublicKey(Data.taker),
+                        toPubkey: new PublicKey(takerTokenAta),
+                        lamports: amount,
+                    }),
+                    createSyncNativeInstruction(new PublicKey(takerTokenAta))
+                );
+            }
             const takeIx = await Data.program.methods
                 .takeSwap(bidToscBid(Data.bid))
                 .accounts({
@@ -269,29 +285,30 @@ export async function createTakeAndCloseSwapInstructions(
                     swapDataAccount: Data.swapDataAccount,
                     swapDataAccountTokenAta,
 
-                    maker,
+                    // maker,
                     // makerNftAta,
-                    makerTokenAta,
+                    // makerTokenAta,
+                    signer: Data.taker,
 
-                    taker: Data.taker,
-                    takerNftAta,
-                    takerTokenAta,
+                    // taker: Data.taker,
+                    // takerNftAta,
+                    // takerTokenAta,
 
-                    nsFee: NS_FEE,
-                    nsFeeTokenAta,
+                    // nsFee: NS_FEE,
+                    // nsFeeTokenAta,
 
-                    nftMintTaker: Data.nftMintTaker,
+                    // nftMintTaker: Data.nftMintTaker,
                     mintToken: paymentMint,
 
                     nftMetadataTaker,
                     nftMetadataMaker,
 
-                    systemProgram: SystemProgram.programId,
                     metadataProgram: TOKEN_METADATA_PROGRAM,
-                    sysvarInstructions: SYSVAR_INSTRUCTIONS_PUBKEY,
                     tokenProgram: TOKEN_PROGRAM_ID,
-                    ataProgram: SOLANA_SPL_ATA_PROGRAM_ID,
-                    authRulesProgram: METAPLEX_AUTH_RULES_PROGRAM,
+                    // systemProgram: SystemProgram.programId,
+                    // sysvarInstructions: SYSVAR_INSTRUCTIONS_PUBKEY,
+                    // ataProgram: SOLANA_SPL_ATA_PROGRAM_ID,
+                    // authRulesProgram: METAPLEX_AUTH_RULES_PROGRAM,
 
                     makerCreator0: makerCreator[0],
                     makerCreator0TokenAta: makerCreatorTokenAta[0],
@@ -387,6 +404,7 @@ export async function createTakeAndCloseSwapInstructions(
                 nsFee: NS_FEE,
                 nsFeeTokenAta,
 
+                signer: taker,
                 taker: Data.taker,
                 takerNftAtaMaker,
                 takerTokenAta,
@@ -421,6 +439,7 @@ export async function createTakeAndCloseSwapInstructions(
 
         let bTTakeAndClose: BundleTransaction[] = [];
         let priority = 0;
+        let blockheight = (await connection.getLatestBlockhash()).lastValidBlockHeight;
 
         if (takeSwapTx) {
             bTTakeAndClose.push({
@@ -434,7 +453,7 @@ export async function createTakeAndCloseSwapInstructions(
                 },
                 priority,
                 status: "pending",
-                blockheight: (await connection.getLatestBlockhash()).lastValidBlockHeight,
+                blockheight,
             });
 
             priority++;
@@ -449,7 +468,7 @@ export async function createTakeAndCloseSwapInstructions(
                 },
                 priority,
                 status: "pending",
-                blockheight: (await connection.getLatestBlockhash()).lastValidBlockHeight,
+                blockheight,
             });
 
             priority++;
@@ -463,9 +482,10 @@ export async function createTakeAndCloseSwapInstructions(
             },
             priority,
             status: "pending",
-            blockheight: (await connection.getLatestBlockhash()).lastValidBlockHeight,
+            blockheight,
         });
-
+        let bh = (await connection.getLatestBlockhash()).blockhash;
+        bTTakeAndClose.map((b) => (b.tx.message.recentBlockhash = bh));
         return bTTakeAndClose;
     } catch (error: any) {
         console.log("error init", error);

@@ -8,20 +8,21 @@ import { createClaimSwapInstructions } from "../programInstructions/claimSwap.in
 export async function claimSwap(
     Data: OptionSend & {
         swapDataAccount: string;
-        taker: Keypair;
+        signer: Keypair;
     }
 ): Promise<string> {
-    const program = getProgram({ clusterOrUrl: Data.clusterOrUrl, signer: Data.taker });
+    const program = getProgram({ clusterOrUrl: Data.clusterOrUrl, signer: Data.signer });
     try {
         return await sendSingleTransaction({
-            provider: program.provider as AnchorProvider,
+            connection: program.provider.connection,
             tx: (
                 await createClaimSwapInstructions({
                     program,
                     swapDataAccount: Data.swapDataAccount,
+                    signer: Data.signer.publicKey.toBase58(),
                 })
             ).tx,
-            signer: Data.taker,
+            signer: Data.signer,
             clusterOrUrl: Data.clusterOrUrl,
             skipSimulation: Data.skipSimulation,
             skipConfirmation: Data.skipConfirmation,
