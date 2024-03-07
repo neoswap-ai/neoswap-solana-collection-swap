@@ -49,8 +49,8 @@ export async function createPayRoyaltiesInstructions(
 
        let microLamports = 100;
     let netLam = (await connection.getRecentPrioritizationFees())[0].prioritizationFee * 2;
-    console.log(microLamports, "netLam", netLam); // ((await connection.getRecentPrioritizationFees())[0].prioritizationFee * 2);
-
+    console.log(microLamports, "netLam", netLam); 
+    
     let instructions: TransactionInstruction[] = [
         ComputeBudgetProgram.setComputeUnitLimit({
             units: 800000,

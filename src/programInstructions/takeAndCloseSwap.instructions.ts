@@ -57,9 +57,10 @@ export async function createTakeAndCloseSwapInstructions(
 
     let connection = Data.program.provider.connection;
     let dummyBlockhash = (await connection.getLatestBlockhash()).blockhash;
-    let microLamports = 100
-    console.log("microLamports", microLamports);
-    
+    let microLamports = 100;
+    let netLam = (await connection.getRecentPrioritizationFees())[0].prioritizationFee * 2;
+    console.log(microLamports, "netLam", netLam);
+
     let takeIxs: TransactionInstruction[] = [
         ComputeBudgetProgram.setComputeUnitLimit({
             units: 8500000,
