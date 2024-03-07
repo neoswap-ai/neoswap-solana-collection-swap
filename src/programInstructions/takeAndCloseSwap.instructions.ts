@@ -57,7 +57,9 @@ export async function createTakeAndCloseSwapInstructions(
 
     let connection = Data.program.provider.connection;
     let dummyBlockhash = (await connection.getLatestBlockhash()).blockhash;
-    let microLamports = (await connection.getRecentPrioritizationFees())[0].prioritizationFee;
+    let microLamports = 1000
+    console.log("microLamports", microLamports);
+    
     let takeIxs: TransactionInstruction[] = [
         ComputeBudgetProgram.setComputeUnitLimit({
             units: 8500000,
@@ -261,6 +263,7 @@ export async function createTakeAndCloseSwapInstructions(
             nftMintMaker,
             paymentMint,
             taker: Data.taker,
+            signer: Data.taker,
             nftMintTaker: Data.nftMintTaker,
         });
         if (creatorIxs) payRIxs.push(...creatorIxs);
@@ -484,7 +487,7 @@ export async function createTakeAndCloseSwapInstructions(
 
         bTTakeAndClose.push({
             tx: new VersionedTransaction(claimSwapTx.compileMessage()),
-            description: DESC.payRoyalties,
+            description: DESC.claimSwap,
             details: {
                 swapDataAccount: Data.swapDataAccount,
             },

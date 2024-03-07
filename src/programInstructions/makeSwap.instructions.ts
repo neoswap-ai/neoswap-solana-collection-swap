@@ -54,9 +54,14 @@ export async function createMakeSwapInstructions(Data: MakeSArg & EnvOpts): Prom
     let swapDataAccount = getSda(Data.maker, Data.nftMintMaker, Data.program.programId.toString());
     console.log("swapDataAccount", swapDataAccount);
 
+    let microLamports = ((await connection.getRecentPrioritizationFees())[0].prioritizationFee * 2);
+
     let instructions: TransactionInstruction[] = [
         ComputeBudgetProgram.setComputeUnitLimit({
             units: 800000,
+        }),
+        ComputeBudgetProgram.setComputeUnitPrice({
+            microLamports,
         }),
     ];
 

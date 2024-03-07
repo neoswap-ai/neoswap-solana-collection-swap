@@ -54,9 +54,14 @@ export async function createClaimSwapInstructions(
     let connection = Data.program.provider.connection;
     let dummyBlockhash = (await connection.getLatestBlockhash()).blockhash;
 
+    let microLamports = ((await connection.getRecentPrioritizationFees())[0].prioritizationFee * 2);
+    console.log("microLamports", microLamports);
     let instructions: TransactionInstruction[] = [
         ComputeBudgetProgram.setComputeUnitLimit({
             units: 800000,
+        }),
+        ComputeBudgetProgram.setComputeUnitPrice({
+            microLamports,
         }),
     ];
 

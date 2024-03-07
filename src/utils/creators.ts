@@ -4,6 +4,7 @@ import { Metaplex } from "@metaplex-foundation/js";
 
 export async function getCreatorData(Data: {
     taker: string;
+    signer: string;
     nftMintTaker: string;
     nftMintMaker: string;
     connection: Connection;
@@ -27,7 +28,7 @@ export async function getCreatorData(Data: {
             connection: Data.connection,
             mint: Data.paymentMint,
             owner: Data.taker,
-            signer: Data.taker,
+            signer: Data.signer,
         })
     ).mintAta;
 
@@ -47,7 +48,7 @@ export async function getCreatorData(Data: {
 
                 mint: Data.paymentMint,
                 owner: c.address.toString(),
-                signer: Data.taker,
+                signer: Data.signer,
             });
             if (ataData.instruction && !mintAtaList.includes(ataData.mintAta.toString())) {
                 instructions.push(ataData.instruction);
@@ -67,7 +68,7 @@ export async function getCreatorData(Data: {
                 connection: Data.connection,
                 mint: Data.paymentMint,
                 owner: c.address.toString(),
-                signer: Data.taker,
+                signer: Data.signer,
             });
             takerCreatorTokenAta[i] = ataData.mintAta;
             if (ataData.instruction && !mintAtaList.includes(ataData.mintAta.toString())) {
