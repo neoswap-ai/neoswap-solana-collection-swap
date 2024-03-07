@@ -57,7 +57,7 @@ export async function createTakeAndCloseSwapInstructions(
 
     let connection = Data.program.provider.connection;
     let dummyBlockhash = (await connection.getLatestBlockhash()).blockhash;
-    let microLamports = 1000
+    let microLamports = 100
     console.log("microLamports", microLamports);
     
     let takeIxs: TransactionInstruction[] = [
