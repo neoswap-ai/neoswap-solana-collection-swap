@@ -33,6 +33,7 @@ import { TokenStandard } from "@metaplex-foundation/mpl-token-metadata";
 import { bidToscBid } from "../utils/typeSwap";
 import { DESC } from "../utils/descriptions";
 import { WRAPPED_SOL_MINT } from "@metaplex-foundation/js";
+import { addPriorityFee } from "../utils/fees";
 
 export async function createTakeSwapInstructions(
     Data: TakeSArg & EnvOpts
@@ -60,9 +61,6 @@ export async function createTakeSwapInstructions(
     let instructions: TransactionInstruction[] = [
         ComputeBudgetProgram.setComputeUnitLimit({
             units: 800000,
-        }),
-        ComputeBudgetProgram.setComputeUnitPrice({
-            microLamports,
         }),
     ];
 
@@ -232,7 +230,8 @@ export async function createTakeSwapInstructions(
             .instruction();
         instructions.push(takeIx);
 
-        const tx = new Transaction().add(...instructions);
+        let tx = new Transaction().add(...instructions);
+        tx = await addPriorityFee(tx);
         tx.feePayer = new PublicKey(Data.taker);
         tx.recentBlockhash = dummyBlockhash;
         // // let simu = await connection.simulateTransaction(tx);

@@ -30,6 +30,7 @@ import {
 import { TokenStandard } from "@metaplex-foundation/mpl-token-metadata";
 import { DESC } from "../utils/descriptions";
 import { WRAPPED_SOL_MINT } from "@metaplex-foundation/js";
+import { addPriorityFee } from "../utils/fees";
 
 export async function createClaimSwapInstructions(
     Data: EnvOpts & {
@@ -60,9 +61,6 @@ export async function createClaimSwapInstructions(
     let instructions: TransactionInstruction[] = [
         ComputeBudgetProgram.setComputeUnitLimit({
             units: 800000,
-        }),
-        ComputeBudgetProgram.setComputeUnitPrice({
-            microLamports,
         }),
     ];
 
@@ -222,7 +220,8 @@ export async function createClaimSwapInstructions(
                         new PublicKey(maker)
                     )
                 );
-        const tx = new Transaction().add(...instructions);
+        let tx = new Transaction().add(...instructions);
+        tx = await addPriorityFee(tx);
         tx.feePayer = new PublicKey(Data.signer);
         tx.recentBlockhash = dummyBlockhash;
 

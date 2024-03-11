@@ -27,6 +27,7 @@ import {
 } from "../utils/findNftDataAndAccounts.function";
 import { TokenStandard } from "@metaplex-foundation/mpl-token-metadata";
 import { DESC } from "../utils/descriptions";
+import { addPriorityFee } from "../utils/fees";
 
 export async function createCancelSwapInstructions(
     Data: EnvOpts & {
@@ -48,16 +49,13 @@ export async function createCancelSwapInstructions(
 
     let connection = Data.program.provider.connection;
     let dummyBlockhash = (await connection.getLatestBlockhash()).blockhash;
-       let microLamports = 100;
+    let microLamports = 100;
     let netLam = (await connection.getRecentPrioritizationFees())[0].prioritizationFee * 2;
     console.log(microLamports, "netLam", netLam);
 
     let instructions: TransactionInstruction[] = [
         ComputeBudgetProgram.setComputeUnitLimit({
             units: 800000,
-        }),
-        ComputeBudgetProgram.setComputeUnitPrice({
-            microLamports,
         }),
     ];
     try {
@@ -192,6 +190,7 @@ export async function createCancelSwapInstructions(
         instructions.push(cancelIx);
 
         let cancelSwapTx = new Transaction().add(...instructions);
+        cancelSwapTx = await addPriorityFee(cancelSwapTx);
         cancelSwapTx.recentBlockhash = dummyBlockhash;
         cancelSwapTx.feePayer = new PublicKey(maker);
         return {

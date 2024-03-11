@@ -38,6 +38,7 @@ import { getCreatorData } from "../utils/creators";
 import { bidToscBid } from "../utils/typeSwap";
 import { DESC } from "../utils/descriptions";
 import { WRAPPED_SOL_MINT } from "@metaplex-foundation/js";
+import { addPriorityFee } from "../utils/fees";
 
 export async function createTakeAndCloseSwapInstructions(
     Data: TakeSArg & EnvOpts
@@ -64,9 +65,6 @@ export async function createTakeAndCloseSwapInstructions(
     let takeIxs: TransactionInstruction[] = [
         ComputeBudgetProgram.setComputeUnitLimit({
             units: 8500000,
-        }),
-        ComputeBudgetProgram.setComputeUnitPrice({
-            microLamports,
         }),
     ];
     try {
@@ -240,6 +238,7 @@ export async function createTakeAndCloseSwapInstructions(
         let takeSwapTx = undefined;
         if (takeIxs.length > 2) {
             takeSwapTx = new Transaction().add(...takeIxs);
+            takeSwapTx = await addPriorityFee(takeSwapTx);
             takeSwapTx.recentBlockhash = dummyBlockhash;
             takeSwapTx.feePayer = new PublicKey(Data.taker);
         }
@@ -247,9 +246,6 @@ export async function createTakeAndCloseSwapInstructions(
         let payRIxs: TransactionInstruction[] = [
             ComputeBudgetProgram.setComputeUnitLimit({
                 units: 800000,
-            }),
-            ComputeBudgetProgram.setComputeUnitPrice({
-                microLamports,
             }),
         ];
 
@@ -339,6 +335,7 @@ export async function createTakeAndCloseSwapInstructions(
         let payRoyaltiesTx = undefined;
         if (payRIxs.length > 2) {
             payRoyaltiesTx = new Transaction().add(...payRIxs);
+            payRoyaltiesTx = await addPriorityFee(payRoyaltiesTx);
             payRoyaltiesTx.recentBlockhash = dummyBlockhash;
             payRoyaltiesTx.feePayer = new PublicKey(Data.taker);
         }
@@ -347,9 +344,6 @@ export async function createTakeAndCloseSwapInstructions(
         let claimSIxs: TransactionInstruction[] = [
             ComputeBudgetProgram.setComputeUnitLimit({
                 units: 800000,
-            }),
-            ComputeBudgetProgram.setComputeUnitPrice({
-                microLamports,
             }),
         ];
 
@@ -446,6 +440,7 @@ export async function createTakeAndCloseSwapInstructions(
         claimSIxs.push(initIx);
 
         let claimSwapTx = new Transaction().add(...claimSIxs);
+        claimSwapTx = await addPriorityFee(claimSwapTx);
         claimSwapTx.recentBlockhash = dummyBlockhash;
         claimSwapTx.feePayer = new PublicKey(Data.taker);
 

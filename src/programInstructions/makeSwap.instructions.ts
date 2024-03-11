@@ -32,6 +32,7 @@ import { getSda } from "../utils/getPda";
 import { bidToscBid } from "../utils/typeSwap";
 import { DESC } from "../utils/descriptions";
 import { WRAPPED_SOL_MINT } from "@metaplex-foundation/js";
+import { addPriorityFee } from "../utils/fees";
 
 export async function createMakeSwapInstructions(Data: MakeSArg & EnvOpts): Promise<MakeSwapData> {
     if (Data.program && Data.clusterOrUrl) {
@@ -61,9 +62,6 @@ export async function createMakeSwapInstructions(Data: MakeSArg & EnvOpts): Prom
     let instructions: TransactionInstruction[] = [
         ComputeBudgetProgram.setComputeUnitLimit({
             units: 800000,
-        }),
-        ComputeBudgetProgram.setComputeUnitPrice({
-            microLamports,
         }),
     ];
 
@@ -193,7 +191,8 @@ export async function createMakeSwapInstructions(Data: MakeSArg & EnvOpts): Prom
             .instruction();
         instructions.push(initIx);
 
-        const tx = new Transaction().add(...instructions);
+        let tx = new Transaction().add(...instructions);
+        tx = await addPriorityFee(tx);
         tx.feePayer = new PublicKey(Data.maker);
         tx.recentBlockhash = dummyBlockhash;
         // // let simu = await connection.simulateTransaction(tx);

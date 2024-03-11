@@ -24,6 +24,7 @@ import { findNftDataAndMetadataAccount } from "../utils/findNftDataAndAccounts.f
 import { getCreatorData } from "../utils/creators";
 import { DESC } from "../utils/descriptions";
 import { Version } from "@metaplex-foundation/mpl-bubblegum";
+import { addPriorityFee } from "../utils/fees";
 
 export async function createPayRoyaltiesInstructions(
     Data: EnvOpts & {
@@ -47,16 +48,13 @@ export async function createPayRoyaltiesInstructions(
     let connection = Data.program.provider.connection;
     let dummyBlockhash = (await connection.getLatestBlockhash()).blockhash;
 
-       let microLamports = 100;
+    let microLamports = 100;
     let netLam = (await connection.getRecentPrioritizationFees())[0].prioritizationFee * 2;
-    console.log(microLamports, "netLam", netLam); 
-    
+    console.log(microLamports, "netLam", netLam);
+
     let instructions: TransactionInstruction[] = [
         ComputeBudgetProgram.setComputeUnitLimit({
             units: 800000,
-        }),
-        ComputeBudgetProgram.setComputeUnitPrice({
-            microLamports,
         }),
     ];
 
@@ -216,7 +214,8 @@ export async function createPayRoyaltiesInstructions(
             .instruction();
         instructions.push(payRIx);
 
-        const tx = new Transaction().add(...instructions);
+        let tx = new Transaction().add(...instructions);
+        tx = await addPriorityFee(tx);
         tx.feePayer = new PublicKey(Data.signer);
         tx.recentBlockhash = dummyBlockhash;
         // // let simu = await connection.simulateTransaction(tx);
