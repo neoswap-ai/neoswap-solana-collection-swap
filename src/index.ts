@@ -22,7 +22,7 @@ import { getProgram } from "./utils/getProgram.obj";
 import { getOpenSda, getSdaData } from "./utils/getSdaData.function";
 import { isConfirmedTx } from "./utils/isConfirmedTx.function";
 import { sendBundledTransactions } from "./utils/sendBundledTransactions.function";
-import { closeUserPda } from "./utils/userPdaClose";
+// import { closeUserPda } from "./utils/userPdaClose";
 export * as neoTypes from "./utils/types";
 export * as neoConst from "./utils/const";
 

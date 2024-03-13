@@ -19,6 +19,7 @@ import {
     METAPLEX_AUTH_RULES_PROGRAM,
     SOLANA_SPL_ATA_PROGRAM_ID,
     TOKEN_METADATA_PROGRAM,
+    VERSION,
 } from "../utils/const";
 import { delay } from "../utils/delay";
 import { BN } from "bn.js";
@@ -36,7 +37,7 @@ import { WRAPPED_SOL_MINT } from "@metaplex-foundation/js";
 import { addPriorityFee } from "../utils/fees";
 
 export async function createMakeSwapInstructions(Data: MakeSArg & EnvOpts): Promise<MakeSwapData> {
-    console.log("v0.1.5-Beta10");
+    console.log(VERSION);
     if (Data.program && Data.clusterOrUrl) {
     } else if (!Data.program && Data.clusterOrUrl) {
         Data.program = getProgram({ clusterOrUrl: Data.clusterOrUrl });

@@ -20,6 +20,7 @@ import {
     NS_FEE,
     SOLANA_SPL_ATA_PROGRAM_ID,
     TOKEN_METADATA_PROGRAM,
+    VERSION,
 } from "../utils/const";
 import {
     findNftDataAndMetadataAccount,
@@ -39,7 +40,7 @@ export async function createClaimSwapInstructions(
         // taker: string;
     }
 ): Promise<BundleTransaction> {
-    console.log("v0.1.5-Beta10");
+    console.log(VERSION);
     if (Data.program && Data.clusterOrUrl) {
     } else if (!Data.program && Data.clusterOrUrl) {
         Data.program = getProgram({ clusterOrUrl: Data.clusterOrUrl });

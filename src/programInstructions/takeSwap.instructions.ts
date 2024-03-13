@@ -20,6 +20,7 @@ import {
     NS_FEE,
     SOLANA_SPL_ATA_PROGRAM_ID,
     TOKEN_METADATA_PROGRAM,
+    VERSION,
 } from "../utils/const";
 import { delay } from "../utils/delay";
 import { BN } from "bn.js";
@@ -38,7 +39,7 @@ import { addPriorityFee } from "../utils/fees";
 export async function createTakeSwapInstructions(
     Data: TakeSArg & EnvOpts
 ): Promise<BundleTransaction> {
-    console.log("v0.1.5-Beta10");
+    console.log(VERSION);
 
     if (Data.program && Data.clusterOrUrl) {
     } else if (!Data.program && Data.clusterOrUrl) {
