@@ -20,11 +20,7 @@ import {
 } from "../utils/types";
 import { Program } from "@coral-xyz/anchor";
 import { findOrCreateAta } from "../utils/findOrCreateAta.function";
-import {
-    TOKEN_PROGRAM_ID,
-    createCloseAccountInstruction,
-    createSyncNativeInstruction,
-} from "@solana/spl-token";
+import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import {
     METAPLEX_AUTH_RULES_PROGRAM,
     NS_FEE,
@@ -44,6 +40,7 @@ import { bidToscBid } from "../utils/typeSwap";
 import { DESC } from "../utils/descriptions";
 import { WRAPPED_SOL_MINT } from "@metaplex-foundation/js";
 import { addPriorityFee } from "../utils/fees";
+import { addWSol, closeWSol } from "../utils/wsol";
 
 export async function createTakeAndCloseSwapInstructions(
     Data: TakeSArg & EnvOpts
@@ -195,14 +192,7 @@ export async function createTakeAndCloseSwapInstructions(
                 if (Data.bid.amount > 0) amount += Data.bid.amount;
                 console.log("Wrapping " + amount + " lamports to wSOL");
 
-                takeIxs.push(
-                    SystemProgram.transfer({
-                        fromPubkey: new PublicKey(Data.taker),
-                        toPubkey: new PublicKey(takerTokenAta),
-                        lamports: amount,
-                    }),
-                    createSyncNativeInstruction(new PublicKey(takerTokenAta))
-                );
+                takeIxs.push(...addWSol(Data.taker, takerTokenAta, amount));
             }
             const takeIx = await Data.program.methods
                 .takeSwap(bidToscBid(Data.bid))
@@ -443,13 +433,7 @@ export async function createTakeAndCloseSwapInstructions(
 
         let claimSwapTx = new Transaction()
             .add(...claimSIxs)
-            .add(
-                createCloseAccountInstruction(
-                    new PublicKey(takerTokenAta),
-                    new PublicKey(Data.taker),
-                    new PublicKey(Data.taker)
-                )
-            );
+            .add(closeWSol(Data.taker, Data.taker, takerTokenAta));
 
         claimSwapTx = await addPriorityFee(claimSwapTx);
         claimSwapTx.recentBlockhash = blockhash;

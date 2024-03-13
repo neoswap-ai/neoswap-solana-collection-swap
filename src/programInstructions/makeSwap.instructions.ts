@@ -1,6 +1,5 @@
 import { getProgram } from "../utils/getProgram.obj";
 import {
-    Cluster,
     ComputeBudgetProgram,
     LAMPORTS_PER_SOL,
     PublicKey,
@@ -10,18 +9,15 @@ import {
     TransactionInstruction,
     VersionedTransaction,
 } from "@solana/web3.js";
-import { Bid, EnvOpts, ErrorFeedback, MakeSArg, MakeSwapData, ScBid } from "../utils/types";
-import { Program } from "@coral-xyz/anchor";
+import { EnvOpts, ErrorFeedback, MakeSArg, MakeSwapData } from "../utils/types";
 import { findOrCreateAta } from "../utils/findOrCreateAta.function";
-import { getCNFTOwner } from "../utils/getCNFTData.function";
-import { TOKEN_PROGRAM_ID, createSyncNativeInstruction } from "@solana/spl-token";
+import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import {
     METAPLEX_AUTH_RULES_PROGRAM,
     SOLANA_SPL_ATA_PROGRAM_ID,
     TOKEN_METADATA_PROGRAM,
     VERSION,
 } from "../utils/const";
-import { delay } from "../utils/delay";
 import { BN } from "bn.js";
 import {
     findNftDataAndMetadataAccount,
@@ -35,6 +31,7 @@ import { bidToscBid } from "../utils/typeSwap";
 import { DESC } from "../utils/descriptions";
 import { WRAPPED_SOL_MINT } from "@metaplex-foundation/js";
 import { addPriorityFee } from "../utils/fees";
+import { addWSol } from "../utils/wsol";
 
 export async function createMakeSwapInstructions(Data: MakeSArg & EnvOpts): Promise<MakeSwapData> {
     console.log(VERSION);
@@ -147,14 +144,7 @@ export async function createMakeSwapInstructions(Data: MakeSArg & EnvOpts): Prom
                 " ) lamports to wSOL"
             );
 
-            instructions.push(
-                SystemProgram.transfer({
-                    fromPubkey: new PublicKey(Data.maker),
-                    toPubkey: new PublicKey(makerTokenAta),
-                    lamports: amount,
-                }),
-                createSyncNativeInstruction(new PublicKey(makerTokenAta))
-            );
+            instructions.push(...addWSol(Data.maker, makerTokenAta, amount));
         }
         console.log("bid", Data.bid);
 

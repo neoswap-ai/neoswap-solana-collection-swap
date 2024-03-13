@@ -22,6 +22,7 @@ import { getProgram } from "./utils/getProgram.obj";
 import { getOpenSda, getSdaData } from "./utils/getSdaData.function";
 import { isConfirmedTx } from "./utils/isConfirmedTx.function";
 import { sendBundledTransactions } from "./utils/sendBundledTransactions.function";
+import { addWSol, closeWSol } from "./utils/wsol";
 // import { closeUserPda } from "./utils/userPdaClose";
 export * as neoTypes from "./utils/types";
 export * as neoConst from "./utils/const";
@@ -43,6 +44,8 @@ const UTILS = {
     sendBundledTransactions,
     isConfirmedTx,
     findOrCreateAta,
+    addWSol,
+    closeWSol,
     // closeUserPda,
 };
 const CREATE_INSTRUCTIONS = {

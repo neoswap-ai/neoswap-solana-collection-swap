@@ -32,6 +32,7 @@ import { TokenStandard } from "@metaplex-foundation/mpl-token-metadata";
 import { DESC } from "../utils/descriptions";
 import { WRAPPED_SOL_MINT } from "@metaplex-foundation/js";
 import { addPriorityFee } from "../utils/fees";
+import { closeWSol } from "../utils/wsol";
 
 export async function createClaimSwapInstructions(
     Data: EnvOpts & {
@@ -202,22 +203,9 @@ export async function createClaimSwapInstructions(
         instructions.push(initIx);
 
         if (swapDataData.paymentMint === WRAPPED_SOL_MINT.toString())
-            if (Data.signer === taker)
-                instructions.push(
-                    createCloseAccountInstruction(
-                        new PublicKey(takerTokenAta),
-                        new PublicKey(taker),
-                        new PublicKey(taker)
-                    )
-                );
+            if (Data.signer === taker) instructions.push(closeWSol(taker, taker, takerTokenAta));
             else if (Data.signer === maker)
-                instructions.push(
-                    createCloseAccountInstruction(
-                        new PublicKey(makerTokenAta),
-                        new PublicKey(maker),
-                        new PublicKey(maker)
-                    )
-                );
+                instructions.push(closeWSol(maker, maker, makerTokenAta));
         let tx = new Transaction().add(...instructions);
         tx = await addPriorityFee(tx);
         tx.feePayer = new PublicKey(Data.signer);
@@ -230,10 +218,6 @@ export async function createClaimSwapInstructions(
             priority: 0,
             status: "pending",
         } as BundleTransaction;
-        // {
-        //     tx,
-        //     swapDataAccount,
-        // };
     } catch (error: any) {
         console.log("error init", error);
 

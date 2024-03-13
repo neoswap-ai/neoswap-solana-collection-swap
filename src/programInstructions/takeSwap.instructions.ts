@@ -14,7 +14,7 @@ import { BundleTransaction, EnvOpts, ErrorFeedback, TakeSArg } from "../utils/ty
 import { Program } from "@coral-xyz/anchor";
 import { findOrCreateAta } from "../utils/findOrCreateAta.function";
 import { getCNFTOwner } from "../utils/getCNFTData.function";
-import { TOKEN_PROGRAM_ID, createSyncNativeInstruction } from "@solana/spl-token";
+import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import {
     METAPLEX_AUTH_RULES_PROGRAM,
     NS_FEE,
@@ -35,6 +35,7 @@ import { bidToscBid } from "../utils/typeSwap";
 import { DESC } from "../utils/descriptions";
 import { WRAPPED_SOL_MINT } from "@metaplex-foundation/js";
 import { addPriorityFee } from "../utils/fees";
+import { addWSol } from "../utils/wsol";
 
 export async function createTakeSwapInstructions(
     Data: TakeSArg & EnvOpts
@@ -185,14 +186,7 @@ export async function createTakeSwapInstructions(
             if (Data.bid.amount > 0) amount += Data.bid.amount;
             console.log("Wrapping " + amount + " lamports to wSOL");
 
-            instructions.push(
-                SystemProgram.transfer({
-                    fromPubkey: new PublicKey(Data.taker),
-                    toPubkey: new PublicKey(takerTokenAta),
-                    lamports: amount,
-                }),
-                createSyncNativeInstruction(new PublicKey(takerTokenAta))
-            );
+            instructions.push(...addWSol(Data.taker, takerTokenAta, amount));
         }
 
         const takeIx = await Data.program.methods
