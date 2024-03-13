@@ -2,6 +2,7 @@ import { getProgram } from "../utils/getProgram.obj";
 import {
     Cluster,
     ComputeBudgetProgram,
+    LAMPORTS_PER_SOL,
     PublicKey,
     SYSVAR_INSTRUCTIONS_PUBKEY,
     SystemProgram,
@@ -35,6 +36,7 @@ import { WRAPPED_SOL_MINT } from "@metaplex-foundation/js";
 import { addPriorityFee } from "../utils/fees";
 
 export async function createMakeSwapInstructions(Data: MakeSArg & EnvOpts): Promise<MakeSwapData> {
+    console.log("v0.1.5-Beta10");
     if (Data.program && Data.clusterOrUrl) {
     } else if (!Data.program && Data.clusterOrUrl) {
         Data.program = getProgram({ clusterOrUrl: Data.clusterOrUrl });
@@ -47,17 +49,11 @@ export async function createMakeSwapInstructions(Data: MakeSArg & EnvOpts): Prom
             message: "clusterOrUrl or program is required",
         } as ErrorFeedback;
     }
-    console.log("v0.0.1");
 
     let connection = Data.program.provider.connection;
-    let dummyBlockhash = (await connection.getLatestBlockhash()).blockhash;
 
     let swapDataAccount = getSda(Data.maker, Data.nftMintMaker, Data.program.programId.toString());
     console.log("swapDataAccount", swapDataAccount);
-
-       let microLamports = 100;
-    let netLam = (await connection.getRecentPrioritizationFees())[0].prioritizationFee * 2;
-    console.log(microLamports, "netLam", netLam); 
 
     let instructions: TransactionInstruction[] = [
         ComputeBudgetProgram.setComputeUnitLimit({
@@ -66,27 +62,23 @@ export async function createMakeSwapInstructions(Data: MakeSArg & EnvOpts): Prom
     ];
 
     try {
-        let { mintAta: swapDataAccountNftAta, instruction: swapDataAccountNftAtaIx } =
-            await findOrCreateAta({
-                connection,
-                mint: Data.nftMintMaker,
-                owner: swapDataAccount,
-                signer: Data.maker,
-            });
-        if (swapDataAccountNftAtaIx) {
-            instructions.push(swapDataAccountNftAtaIx);
-        } else console.log("swapDataAccountNftAta", swapDataAccountNftAta);
+        let { mintAta: swapDataAccountNftAta, instruction: sn } = await findOrCreateAta({
+            connection,
+            mint: Data.nftMintMaker,
+            owner: swapDataAccount,
+            signer: Data.maker,
+        });
+        if (sn) instructions.push(sn);
+        else console.log("swapDataAccountNftAta", swapDataAccountNftAta);
 
-        let { mintAta: swapDataAccountTokenAta, instruction: swapDataAccountTokenAtaIx } =
-            await findOrCreateAta({
-                connection,
-                mint: Data.paymentMint,
-                owner: swapDataAccount,
-                signer: Data.maker,
-            });
-        if (swapDataAccountTokenAtaIx) {
-            instructions.push(swapDataAccountTokenAtaIx);
-        } else console.log("swapDataAccountTokenAta", swapDataAccountTokenAta);
+        let { mintAta: swapDataAccountTokenAta, instruction: st } = await findOrCreateAta({
+            connection,
+            mint: Data.paymentMint,
+            owner: swapDataAccount,
+            signer: Data.maker,
+        });
+        if (st) instructions.push(st);
+        else console.log("swapDataAccountTokenAta", swapDataAccountTokenAta);
 
         let { mintAta: makerNftAta, instruction: mn } = await findOrCreateAta({
             connection,
@@ -94,9 +86,8 @@ export async function createMakeSwapInstructions(Data: MakeSArg & EnvOpts): Prom
             owner: Data.maker,
             signer: Data.maker,
         });
-        if (mn) {
-            instructions.push(mn);
-        } else console.log("makerNftAta", makerNftAta);
+        if (mn) instructions.push(mn);
+        else console.log("makerNftAta", makerNftAta);
 
         let { mintAta: makerTokenAta, instruction: mt } = await findOrCreateAta({
             connection,
@@ -104,9 +95,8 @@ export async function createMakeSwapInstructions(Data: MakeSArg & EnvOpts): Prom
             owner: Data.maker,
             signer: Data.maker,
         });
-        if (mt) {
-            instructions.push(mt);
-        } else console.log("makerTokenAta", makerTokenAta);
+        if (mt) instructions.push(mt);
+        else console.log("makerTokenAta", makerTokenAta);
 
         const { metadataAddress: nftMetadataMaker, tokenStandard } =
             await findNftDataAndMetadataAccount({
@@ -147,19 +137,25 @@ export async function createMakeSwapInstructions(Data: MakeSArg & EnvOpts): Prom
         // if wSOL
         if (Data.paymentMint === WRAPPED_SOL_MINT.toString()) {
             let amount = Data.bid.makerNeoswapFee + Data.bid.makerRoyalties;
-            if (Data.bid.amount < 0) amount += Data.bid.amount;
-            console.log("Wrapping " + amount + " lamports to wSOL");
+            if (Data.bid.amount < 0) amount += -Data.bid.amount;
+            console.log(
+                "Wrapping ",
+                amount,
+                " ( ",
+                amount / LAMPORTS_PER_SOL,
+                " ) lamports to wSOL"
+            );
 
             instructions.push(
                 SystemProgram.transfer({
                     fromPubkey: new PublicKey(Data.maker),
                     toPubkey: new PublicKey(makerTokenAta),
-                    lamports: -amount,
+                    lamports: amount,
                 }),
                 createSyncNativeInstruction(new PublicKey(makerTokenAta))
             );
         }
-        console.log("bid", bidToscBid(Data.bid));
+        console.log("bid", Data.bid);
 
         const initIx = await Data.program.methods
             .makeSwap(bidToscBid(Data.bid), new BN(Data.endDate))
@@ -194,7 +190,7 @@ export async function createMakeSwapInstructions(Data: MakeSArg & EnvOpts): Prom
         let tx = new Transaction().add(...instructions);
         tx = await addPriorityFee(tx);
         tx.feePayer = new PublicKey(Data.maker);
-        tx.recentBlockhash = dummyBlockhash;
+        tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
         // // let simu = await connection.simulateTransaction(tx);
         // // console.log("simu", simu.value);
         // const txSig = await connection.sendTransaction(tx, [maker]);
