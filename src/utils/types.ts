@@ -39,7 +39,7 @@ export type SwapData = {
     endTime: number;
 
     royaltiesPaid: boolean;
-
+    status: "active" | "expired" | "accepted";
     paymentMint: string;
     seed: string;
 };
@@ -105,7 +105,7 @@ export type BundleTxBase = {
 export type BundleTransaction = BundleTxBase &
     ({ details: MakeSArg } | { details: TakeSArg } | { details: { swapDataAccount: string } });
 
-    export type MakeSArg = {
+export type MakeSArg = {
     maker: string;
     nftMintMaker: string;
     paymentMint: string;

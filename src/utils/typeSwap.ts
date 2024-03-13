@@ -40,6 +40,9 @@ export function swapDataToScSwapData(bid: SwapData): ScSwapData {
 }
 
 export function scSwapDataToSwapData(scSwapData: ScSwapData): SwapData {
+    let status: SwapData["status"] = "active";
+    if (scSwapData.acceptedBid) status = "accepted";
+    else if (scSwapData.endTime.lt(new BN(Date.now() / 1000))) status = "expired";
     return {
         bids: scSwapData.bids.map(scBidToBid),
         endTime: scSwapData.endTime.toNumber(),
@@ -51,5 +54,6 @@ export function scSwapDataToSwapData(scSwapData: ScSwapData): SwapData {
         acceptedBid: scSwapData.acceptedBid ? scBidToBid(scSwapData.acceptedBid) : undefined,
         nftMintTaker: scSwapData.nftMintTaker ? scSwapData.nftMintTaker.toString() : undefined,
         taker: scSwapData.taker ? scSwapData.taker.toString() : undefined,
+        status,
     };
 }
