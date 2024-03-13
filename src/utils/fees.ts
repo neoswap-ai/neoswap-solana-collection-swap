@@ -10,7 +10,7 @@ export async function addPriorityFee(tx: Transaction): Promise<Transaction> {
         writableAccounts,
         "https://rpc.hellomoon.io"
     );
-    console.log("using getPrioritizationFee", estimatedFee);
+    console.log("using getPrioritizationFee from hellomoon", estimatedFee);
 
     if (estimatedFee > 0) {
         tx = tx.add(ComputeBudgetProgram.setComputeUnitPrice({ microLamports: estimatedFee }));
@@ -34,12 +34,12 @@ const getRecentPrioritizationFeesHM = async (
             method: "getPrioritizationFee",
             params: {
                 writableAccounts,
-                percentiles: [0, 25, 50, 75, 100],
+                percentiles: [0, 25, 50, 75, 90, 100],
                 lookbackSlots: 100,
             },
         }),
     });
-    const data = await response.json();
+    const data = (await response.json()).result.percentileToFee;
     console.log("getPrioritizationFee:", data);
-    return data.result.percentileToFee["50"];
+    return data["90"];
 };
