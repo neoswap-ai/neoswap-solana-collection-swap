@@ -20,12 +20,17 @@ import {
 } from "../utils/types";
 import { Program } from "@coral-xyz/anchor";
 import { findOrCreateAta } from "../utils/findOrCreateAta.function";
-import { TOKEN_PROGRAM_ID, createSyncNativeInstruction } from "@solana/spl-token";
+import {
+    TOKEN_PROGRAM_ID,
+    createCloseAccountInstruction,
+    createSyncNativeInstruction,
+} from "@solana/spl-token";
 import {
     METAPLEX_AUTH_RULES_PROGRAM,
     NS_FEE,
     SOLANA_SPL_ATA_PROGRAM_ID,
     TOKEN_METADATA_PROGRAM,
+    VERSION,
 } from "../utils/const";
 import {
     findNftDataAndMetadataAccount,
@@ -43,6 +48,7 @@ import { addPriorityFee } from "../utils/fees";
 export async function createTakeAndCloseSwapInstructions(
     Data: TakeSArg & EnvOpts
 ): Promise<BundleTransaction[]> {
+    console.log(VERSION);
     if (Data.program && Data.clusterOrUrl) {
     } else if (!Data.program && Data.clusterOrUrl) {
         Data.program = getProgram({ clusterOrUrl: Data.clusterOrUrl });
@@ -58,9 +64,6 @@ export async function createTakeAndCloseSwapInstructions(
 
     let connection = Data.program.provider.connection;
     let dummyBlockhash = (await connection.getLatestBlockhash()).blockhash;
-    let microLamports = 100;
-    let netLam = (await connection.getRecentPrioritizationFees())[0].prioritizationFee * 2;
-    console.log(microLamports, "netLam", netLam);
 
     let takeIxs: TransactionInstruction[] = [
         ComputeBudgetProgram.setComputeUnitLimit({
@@ -239,8 +242,6 @@ export async function createTakeAndCloseSwapInstructions(
         if (takeIxs.length > 2) {
             takeSwapTx = new Transaction().add(...takeIxs);
             takeSwapTx = await addPriorityFee(takeSwapTx);
-            takeSwapTx.recentBlockhash = dummyBlockhash;
-            takeSwapTx.feePayer = new PublicKey(Data.taker);
         }
 
         let payRIxs: TransactionInstruction[] = [
@@ -336,8 +337,6 @@ export async function createTakeAndCloseSwapInstructions(
         if (payRIxs.length > 2) {
             payRoyaltiesTx = new Transaction().add(...payRIxs);
             payRoyaltiesTx = await addPriorityFee(payRoyaltiesTx);
-            payRoyaltiesTx.recentBlockhash = dummyBlockhash;
-            payRoyaltiesTx.feePayer = new PublicKey(Data.taker);
         }
         ///////////////////////////////////
 
@@ -439,16 +438,29 @@ export async function createTakeAndCloseSwapInstructions(
 
         claimSIxs.push(initIx);
 
-        let claimSwapTx = new Transaction().add(...claimSIxs);
+        let { lastValidBlockHeight: blockheight, blockhash } =
+            await connection.getLatestBlockhash();
+
+        let claimSwapTx = new Transaction()
+            .add(...claimSIxs)
+            .add(
+                createCloseAccountInstruction(
+                    new PublicKey(takerTokenAta),
+                    new PublicKey(Data.taker),
+                    new PublicKey(Data.taker)
+                )
+            );
+
         claimSwapTx = await addPriorityFee(claimSwapTx);
-        claimSwapTx.recentBlockhash = dummyBlockhash;
+        claimSwapTx.recentBlockhash = blockhash;
         claimSwapTx.feePayer = new PublicKey(Data.taker);
 
         let bTTakeAndClose: BundleTransaction[] = [];
         let priority = 0;
-        let blockheight = (await connection.getLatestBlockhash()).lastValidBlockHeight;
 
         if (takeSwapTx) {
+            takeSwapTx.recentBlockhash = blockhash;
+            takeSwapTx.feePayer = new PublicKey(Data.taker);
             bTTakeAndClose.push({
                 tx: new VersionedTransaction(takeSwapTx.compileMessage()),
                 description: DESC.takeSwap,
@@ -467,6 +479,8 @@ export async function createTakeAndCloseSwapInstructions(
         } else console.log("no takeSwapTx");
 
         if (payRoyaltiesTx) {
+            payRoyaltiesTx.recentBlockhash = blockhash;
+            payRoyaltiesTx.feePayer = new PublicKey(Data.taker);
             bTTakeAndClose.push({
                 tx: new VersionedTransaction(payRoyaltiesTx.compileMessage()),
                 description: DESC.payRoyalties,
