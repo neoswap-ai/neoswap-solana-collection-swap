@@ -10,10 +10,16 @@ export async function addPriorityFee(tx: Transaction): Promise<Transaction> {
         writableAccounts,
         "https://rpc.hellomoon.io"
     );
+    if (estimatedFee < 1000) estimatedFee = 1000;
+
     console.log("using getPrioritizationFee from hellomoon", estimatedFee);
 
     if (estimatedFee > 0) {
-        tx = tx.add(ComputeBudgetProgram.setComputeUnitPrice({ microLamports: estimatedFee }));
+        tx = tx.add(
+            ComputeBudgetProgram.setComputeUnitPrice({
+                microLamports: estimatedFee,
+            })
+        );
     }
 
     return tx;
