@@ -14,4 +14,4 @@ export const METAPLEX_AUTH_RULES_PROGRAM = "auth9SigNpDKz4sJJ1DfCTuZrZNSAgh9sFD3
 export const NEOSWAP_IDL = idlSwap;
 export const NS_FEE = "FjecsBcSXQh4rjPSksh2eBiXUswcMpAwU25ykcr842j8";
 
-export const VERSION = "0.1.5-Beta15";
+export const VERSION = "0.1.5-Beta16";

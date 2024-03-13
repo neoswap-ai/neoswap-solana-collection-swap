@@ -229,7 +229,7 @@ export async function createTakeAndCloseSwapInstructions(
         }
 
         let takeSwapTx = undefined;
-        if (takeIxs.length > 2) {
+        if (takeIxs.length > 1) {
             takeSwapTx = new Transaction().add(...takeIxs);
             takeSwapTx = await addPriorityFee(takeSwapTx);
         }
@@ -324,7 +324,7 @@ export async function createTakeAndCloseSwapInstructions(
         }
 
         let payRoyaltiesTx = undefined;
-        if (payRIxs.length > 2) {
+        if (payRIxs.length > 1) {
             payRoyaltiesTx = new Transaction().add(...payRIxs);
             payRoyaltiesTx = await addPriorityFee(payRoyaltiesTx);
         }
@@ -431,9 +431,9 @@ export async function createTakeAndCloseSwapInstructions(
         let { lastValidBlockHeight: blockheight, blockhash } =
             await connection.getLatestBlockhash();
 
-        let claimSwapTx = new Transaction()
-            .add(...claimSIxs)
-            .add(closeWSol(Data.taker, Data.taker, takerTokenAta));
+        let claimSwapTx = new Transaction().add(...claimSIxs);
+        if (swapDataData.paymentMint === WRAPPED_SOL_MINT.toString())
+            claimSwapTx.add(closeWSol(Data.taker, Data.taker, takerTokenAta));
 
         claimSwapTx = await addPriorityFee(claimSwapTx);
         claimSwapTx.recentBlockhash = blockhash;
