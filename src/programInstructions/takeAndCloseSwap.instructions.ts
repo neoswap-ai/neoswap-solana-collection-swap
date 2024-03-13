@@ -60,7 +60,6 @@ export async function createTakeAndCloseSwapInstructions(
     }
 
     let connection = Data.program.provider.connection;
-    let dummyBlockhash = (await connection.getLatestBlockhash()).blockhash;
 
     let takeIxs: TransactionInstruction[] = [
         ComputeBudgetProgram.setComputeUnitLimit({
@@ -74,8 +73,7 @@ export async function createTakeAndCloseSwapInstructions(
         });
         if (!swapDataData) throw "no swapData found at " + Data.swapDataAccount;
 
-        const { paymentMint, maker, nftMintMaker, bids, taker, acceptedBid, royaltiesPaid } =
-            swapDataData;
+        const { paymentMint, maker, nftMintMaker, bids, acceptedBid, royaltiesPaid } = swapDataData;
 
         const foundBid = bids.find(
             (b) =>
@@ -399,7 +397,7 @@ export async function createTakeAndCloseSwapInstructions(
                 nsFee: NS_FEE,
                 nsFeeTokenAta,
 
-                signer: taker,
+                signer: Data.taker,
                 taker: Data.taker,
                 takerNftAtaMaker,
                 takerTokenAta,

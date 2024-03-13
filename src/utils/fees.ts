@@ -10,7 +10,7 @@ export async function addPriorityFee(tx: Transaction): Promise<Transaction> {
         writableAccounts,
         "https://rpc.hellomoon.io"
     );
-    if (estimatedFee < 5000) estimatedFee = 5000;
+    if (estimatedFee < 50000) estimatedFee = 50000;
 
     console.log("using getPrioritizationFee from hellomoon", estimatedFee);
 
