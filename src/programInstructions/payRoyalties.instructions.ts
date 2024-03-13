@@ -32,6 +32,7 @@ export async function createPayRoyaltiesInstructions(
         signer: string;
     }
 ): Promise<BundleTransaction> {
+    console.log("v0.1.5-Beta10");
     if (Data.program && Data.clusterOrUrl) {
     } else if (!Data.program && Data.clusterOrUrl) {
         Data.program = getProgram({ clusterOrUrl: Data.clusterOrUrl });
@@ -46,11 +47,6 @@ export async function createPayRoyaltiesInstructions(
     }
 
     let connection = Data.program.provider.connection;
-    let dummyBlockhash = (await connection.getLatestBlockhash()).blockhash;
-
-    let microLamports = 100;
-    let netLam = (await connection.getRecentPrioritizationFees())[0].prioritizationFee * 2;
-    console.log(microLamports, "netLam", netLam);
 
     let instructions: TransactionInstruction[] = [
         ComputeBudgetProgram.setComputeUnitLimit({
@@ -217,7 +213,7 @@ export async function createPayRoyaltiesInstructions(
         let tx = new Transaction().add(...instructions);
         tx = await addPriorityFee(tx);
         tx.feePayer = new PublicKey(Data.signer);
-        tx.recentBlockhash = dummyBlockhash;
+        tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
         // // let simu = await connection.simulateTransaction(tx);
         // // console.log("simu", simu.value);
         // const txSig = await connection.sendTransaction(tx, [maker]);
