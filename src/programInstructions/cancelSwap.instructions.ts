@@ -186,17 +186,13 @@ export async function createCancelSwapInstructions(
         instructions.push(cancelIx);
 
         let cancelSwapTx = new Transaction().add(...instructions);
-        cancelSwapTx = await addPriorityFee(cancelSwapTx, Data.fees);
+        cancelSwapTx = await addPriorityFee(cancelSwapTx, Data.prioritizationFee);
         cancelSwapTx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
         cancelSwapTx.feePayer = new PublicKey(maker);
         return {
             tx: new VersionedTransaction(cancelSwapTx.compileMessage()),
             description: DESC.cancelSwap,
-            details: {
-                swapDataAccount: Data.swapDataAccount,
-                signer: Data.signer,
-                fees: Data.fees,
-            },
+            details: Data,
             priority: 0,
             blockheight: (await connection.getLatestBlockhash()).lastValidBlockHeight,
             status: "pending",

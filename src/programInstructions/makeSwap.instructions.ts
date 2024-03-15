@@ -179,7 +179,7 @@ export async function createMakeSwapInstructions(Data: MakeSArg & EnvOpts): Prom
         instructions.push(initIx);
 
         let tx = new Transaction().add(...instructions);
-        tx = await addPriorityFee(tx, Data.fees);
+        tx = await addPriorityFee(tx, Data.prioritizationFee);
         tx.feePayer = new PublicKey(Data.maker);
         tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
         // // let simu = await connection.simulateTransaction(tx);
@@ -190,13 +190,7 @@ export async function createMakeSwapInstructions(Data: MakeSArg & EnvOpts): Prom
         return {
             bTx: {
                 description: DESC.makeSwap,
-                details: {
-                    bid: Data.bid,
-                    endDate: Data.endDate,
-                    maker: Data.maker,
-                    nftMintMaker: Data.nftMintMaker,
-                    paymentMint: Data.paymentMint,
-                },
+                details:Data,
                 priority: 0,
                 status: "pending",
                 tx: new VersionedTransaction(tx.compileMessage()),

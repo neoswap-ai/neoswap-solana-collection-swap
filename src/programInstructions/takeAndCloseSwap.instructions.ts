@@ -232,7 +232,7 @@ export async function createTakeAndCloseSwapInstructions(
         let takeSwapTx = undefined;
         if (takeIxs.length > 1) {
             takeSwapTx = new Transaction().add(...takeIxs);
-            takeSwapTx = await addPriorityFee(takeSwapTx,Data.fees);
+            takeSwapTx = await addPriorityFee(takeSwapTx, Data.prioritizationFee);
         }
 
         let payRIxs: TransactionInstruction[] = [
@@ -327,7 +327,7 @@ export async function createTakeAndCloseSwapInstructions(
         let payRoyaltiesTx = undefined;
         if (payRIxs.length > 1) {
             payRoyaltiesTx = new Transaction().add(...payRIxs);
-            payRoyaltiesTx = await addPriorityFee(payRoyaltiesTx,Data.fees);
+            payRoyaltiesTx = await addPriorityFee(payRoyaltiesTx, Data.prioritizationFee);
         }
         ///////////////////////////////////
 
@@ -436,7 +436,7 @@ export async function createTakeAndCloseSwapInstructions(
         if (swapDataData.paymentMint === WRAPPED_SOL_MINT.toString())
             claimSwapTx.add(closeWSol(Data.taker, Data.taker, takerTokenAta));
 
-        claimSwapTx = await addPriorityFee(claimSwapTx,Data.fees);
+        claimSwapTx = await addPriorityFee(claimSwapTx, Data.prioritizationFee);
         claimSwapTx.recentBlockhash = blockhash;
         claimSwapTx.feePayer = new PublicKey(Data.taker);
 
@@ -454,6 +454,7 @@ export async function createTakeAndCloseSwapInstructions(
                     nftMintTaker: Data.nftMintTaker,
                     swapDataAccount: Data.swapDataAccount,
                     taker: Data.taker,
+                    prioritizationFee: Data.prioritizationFee,
                 },
                 priority,
                 status: "pending",
@@ -472,7 +473,7 @@ export async function createTakeAndCloseSwapInstructions(
                 details: {
                     swapDataAccount: Data.swapDataAccount,
                     signer: Data.taker,
-                    fees: Data.fees,
+                    prioritizationFee: Data.prioritizationFee,
                 },
                 priority,
                 status: "pending",
@@ -488,7 +489,7 @@ export async function createTakeAndCloseSwapInstructions(
             details: {
                 swapDataAccount: Data.swapDataAccount,
                 signer: Data.taker,
-                fees: Data.fees,
+                prioritizationFee: Data.prioritizationFee,
             },
             priority,
             status: "pending",

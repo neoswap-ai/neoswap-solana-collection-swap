@@ -20,7 +20,7 @@ export async function cancelSwap(
                 await createCancelSwapInstructions({
                     swapDataAccount: Data.swapDataAccount,
                     signer: Data.signer.publicKey.toString(),
-                    fees: Data.fees,
+                    prioritizationFee: Data.prioritizationFee,
                     program,
                 })
             ).tx,

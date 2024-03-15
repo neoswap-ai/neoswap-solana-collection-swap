@@ -203,14 +203,14 @@ export async function createClaimSwapInstructions(
             else if (Data.signer === maker)
                 instructions.push(closeWSol(maker, maker, makerTokenAta));
         let tx = new Transaction().add(...instructions);
-        tx = await addPriorityFee(tx,Data.fees);
+        tx = await addPriorityFee(tx,Data.prioritizationFee);
         tx.feePayer = new PublicKey(Data.signer);
         tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
 
         return {
             tx: new VersionedTransaction(tx.compileMessage()),
             description: DESC.claimSwap,
-            details: { swapDataAccount: Data.swapDataAccount },
+            details:Data,
             priority: 0,
             status: "pending",
         } as BundleTransaction;

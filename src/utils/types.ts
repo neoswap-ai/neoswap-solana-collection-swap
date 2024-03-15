@@ -114,19 +114,19 @@ export type MakeSArg = {
     paymentMint: string;
     bid: Bid;
     endDate: number;
-    fees?: number;
+    prioritizationFee?: number;
 };
 export type TakeSArg = {
     swapDataAccount: string;
     taker: string;
     nftMintTaker: string;
     bid: Bid;
-    fees?: number;
+    prioritizationFee?: number;
 };
 export type ClaimArg = {
     swapDataAccount: string;
     signer: string;
-    fees?: number;
+    prioritizationFee?: number;
 };
 export type OptionSend = {
     clusterOrUrl: Cluster | string;

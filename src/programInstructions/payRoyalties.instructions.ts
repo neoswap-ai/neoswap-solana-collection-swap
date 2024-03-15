@@ -209,7 +209,7 @@ export async function createPayRoyaltiesInstructions(
         instructions.push(payRIx);
 
         let tx = new Transaction().add(...instructions);
-        tx = await addPriorityFee(tx,Data.fees);
+        tx = await addPriorityFee(tx, Data.prioritizationFee);
         tx.feePayer = new PublicKey(Data.signer);
         tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
         // // let simu = await connection.simulateTransaction(tx);
@@ -220,11 +220,7 @@ export async function createPayRoyaltiesInstructions(
         return {
             tx: new VersionedTransaction(tx.compileMessage()),
             description: DESC.payRoyalties,
-            details: {
-                swapDataAccount: Data.swapDataAccount,
-                signer: Data.signer,
-                fees: Data.fees,
-            },
+            details: Data,
             priority: 0,
             status: "pending",
             blockheight: (await connection.getLatestBlockhash()).lastValidBlockHeight,

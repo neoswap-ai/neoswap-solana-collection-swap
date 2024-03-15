@@ -223,7 +223,7 @@ export async function createTakeSwapInstructions(
         instructions.push(takeIx);
 
         let tx = new Transaction().add(...instructions);
-        tx = await addPriorityFee(tx, Data.fees);
+        tx = await addPriorityFee(tx, Data.prioritizationFee);
         tx.feePayer = new PublicKey(Data.taker);
         tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
         // // let simu = await connection.simulateTransaction(tx);
@@ -234,12 +234,7 @@ export async function createTakeSwapInstructions(
         return {
             tx: new VersionedTransaction(tx.compileMessage()),
             description: DESC.takeSwap,
-            details: {
-                bid: Data.bid,
-                nftMintTaker: Data.nftMintTaker,
-                swapDataAccount: Data.swapDataAccount,
-                taker: Data.taker,
-            },
+            details: Data,
             priority: 0,
             status: "pending",
         };

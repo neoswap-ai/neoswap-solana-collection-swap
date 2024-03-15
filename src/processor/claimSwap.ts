@@ -20,7 +20,7 @@ export async function claimSwap(
                     program,
                     swapDataAccount: Data.swapDataAccount,
                     signer: Data.signer.publicKey.toBase58(),
-                    fees: Data.fees,
+                    prioritizationFee: Data.prioritizationFee,
                 })
             ).tx,
             signer: Data.signer,

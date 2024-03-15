@@ -1,7 +1,10 @@
 import { ComputeBudgetProgram, Transaction } from "@solana/web3.js";
 
-export async function addPriorityFee(tx: Transaction, fees?: number): Promise<Transaction> {
-    let estimatedFee = fees ? fees : 0;
+export async function addPriorityFee(
+    tx: Transaction,
+    prioritizationFee?: number
+): Promise<Transaction> {
+    let estimatedFee = prioritizationFee ? prioritizationFee : 0;
     let writableAccounts = tx.instructions
         .map((ix) => ix.keys.filter((key) => key.isWritable).map((key) => key.pubkey.toBase58()))
         .flat();

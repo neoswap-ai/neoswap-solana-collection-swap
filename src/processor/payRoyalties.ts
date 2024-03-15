@@ -20,7 +20,7 @@ export async function payRoyalties(
                     program,
                     swapDataAccount: Data.swapDataAccount,
                     signer: Data.signer.publicKey.toString(),
-                    fees: Data.fees,
+                    prioritizationFee: Data.prioritizationFee,
                 })
             ).tx,
             signer: Data.signer,
