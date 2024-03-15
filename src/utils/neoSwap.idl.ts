@@ -501,6 +501,11 @@ export const idlSwap: Idl = {
                 {
                     name: "maker",
                     isMut: false,
+                    isSigner: false,
+                },
+                {
+                    name: "signer",
+                    isMut: false,
                     isSigner: true,
                 },
                 {

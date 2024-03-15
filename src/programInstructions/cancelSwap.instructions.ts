@@ -67,7 +67,7 @@ export async function createCancelSwapInstructions(
             connection,
             mint: nftMintMaker,
             owner: maker,
-            signer: maker,
+            signer: Data.signer,
         });
         if (mN) {
             console.log("adding );");
@@ -78,7 +78,7 @@ export async function createCancelSwapInstructions(
             connection,
             mint: paymentMint,
             owner: maker,
-            signer: maker,
+            signer: Data.signer,
         });
         if (mT) {
             console.log("adding );");
@@ -88,7 +88,7 @@ export async function createCancelSwapInstructions(
             connection,
             mint: paymentMint,
             owner: Data.swapDataAccount,
-            signer: maker,
+            signer: Data.signer,
         });
         if (sdaT) {
             console.log("adding sdaT");
@@ -99,7 +99,7 @@ export async function createCancelSwapInstructions(
             connection,
             mint: nftMintMaker,
             owner: Data.swapDataAccount,
-            signer: maker,
+            signer: Data.signer,
         });
 
         if (sdaN) {
@@ -111,7 +111,7 @@ export async function createCancelSwapInstructions(
             connection,
             mint: nftMintMaker,
             owner: maker,
-            signer: maker,
+            signer: Data.signer,
         });
         if (tmN) {
             console.log("adding tmN");
@@ -124,10 +124,10 @@ export async function createCancelSwapInstructions(
                 mint: nftMintMaker,
             });
 
-        let nftMasterEditionMaker = maker;
-        let ownerTokenRecordMaker = maker;
-        let destinationTokenRecordMaker = maker;
-        let authRulesMaker = maker;
+        let nftMasterEditionMaker = Data.signer;
+        let ownerTokenRecordMaker = Data.signer;
+        let destinationTokenRecordMaker = Data.signer;
+        let authRulesMaker = Data.signer;
 
         if (tokenStandardMaker == TokenStandard.ProgrammableNonFungible) {
             const nftMasterEditionF = findNftMasterEdition({
@@ -157,6 +157,8 @@ export async function createCancelSwapInstructions(
         const cancelIx = await Data.program.methods
             .cancelSwap()
             .accounts({
+                signer: Data.signer,
+
                 swapDataAccount: Data.swapDataAccount,
                 swapDataAccountNftAta,
                 swapDataAccountTokenAta,
@@ -188,7 +190,7 @@ export async function createCancelSwapInstructions(
         let cancelSwapTx = new Transaction().add(...instructions);
         cancelSwapTx = await addPriorityFee(cancelSwapTx, Data.prioritizationFee);
         cancelSwapTx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
-        cancelSwapTx.feePayer = new PublicKey(maker);
+        cancelSwapTx.feePayer = new PublicKey(Data.signer);
         return {
             tx: new VersionedTransaction(cancelSwapTx.compileMessage()),
             description: DESC.cancelSwap,
