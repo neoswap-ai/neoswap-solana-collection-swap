@@ -10,7 +10,7 @@ import {
     TransactionInstruction,
     VersionedTransaction,
 } from "@solana/web3.js";
-import { ErrorFeedback, EnvOpts, BundleTransaction } from "../utils/types";
+import { ErrorFeedback, EnvOpts, BundleTransaction, ClaimArg, BTClaim } from "../utils/types";
 import { Program } from "@coral-xyz/anchor";
 import { findOrCreateAta } from "../utils/findOrCreateAta.function";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
@@ -31,9 +31,7 @@ import { DESC } from "../utils/descriptions";
 import { addPriorityFee } from "../utils/fees";
 
 export async function createCancelSwapInstructions(
-    Data: EnvOpts & {
-        swapDataAccount: string;
-    }
+    Data: EnvOpts & ClaimArg
 ): Promise<BundleTransaction> {
     console.log(VERSION);
     if (Data.program && Data.clusterOrUrl) {
@@ -188,17 +186,21 @@ export async function createCancelSwapInstructions(
         instructions.push(cancelIx);
 
         let cancelSwapTx = new Transaction().add(...instructions);
-        cancelSwapTx = await addPriorityFee(cancelSwapTx);
+        cancelSwapTx = await addPriorityFee(cancelSwapTx, Data.fees);
         cancelSwapTx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
         cancelSwapTx.feePayer = new PublicKey(maker);
         return {
             tx: new VersionedTransaction(cancelSwapTx.compileMessage()),
             description: DESC.cancelSwap,
-            details: { swapDataAccount: Data.swapDataAccount },
+            details: {
+                swapDataAccount: Data.swapDataAccount,
+                signer: Data.signer,
+                fees: Data.fees,
+            },
             priority: 0,
             blockheight: (await connection.getLatestBlockhash()).lastValidBlockHeight,
             status: "pending",
-        };
+        } as BTClaim;
     } catch (error: any) {
         throw {
             blockchain: "solana",

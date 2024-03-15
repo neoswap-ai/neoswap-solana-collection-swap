@@ -11,8 +11,11 @@ import {
     VersionedTransaction,
 } from "@solana/web3.js";
 import {
+    BTClaim,
+    BTTake,
     Bid,
     BundleTransaction,
+    ClaimArg,
     EnvOpts,
     ErrorFeedback,
     TakeSArg,
@@ -229,7 +232,7 @@ export async function createTakeAndCloseSwapInstructions(
         let takeSwapTx = undefined;
         if (takeIxs.length > 1) {
             takeSwapTx = new Transaction().add(...takeIxs);
-            takeSwapTx = await addPriorityFee(takeSwapTx);
+            takeSwapTx = await addPriorityFee(takeSwapTx,Data.fees);
         }
 
         let payRIxs: TransactionInstruction[] = [
@@ -324,7 +327,7 @@ export async function createTakeAndCloseSwapInstructions(
         let payRoyaltiesTx = undefined;
         if (payRIxs.length > 1) {
             payRoyaltiesTx = new Transaction().add(...payRIxs);
-            payRoyaltiesTx = await addPriorityFee(payRoyaltiesTx);
+            payRoyaltiesTx = await addPriorityFee(payRoyaltiesTx,Data.fees);
         }
         ///////////////////////////////////
 
@@ -433,7 +436,7 @@ export async function createTakeAndCloseSwapInstructions(
         if (swapDataData.paymentMint === WRAPPED_SOL_MINT.toString())
             claimSwapTx.add(closeWSol(Data.taker, Data.taker, takerTokenAta));
 
-        claimSwapTx = await addPriorityFee(claimSwapTx);
+        claimSwapTx = await addPriorityFee(claimSwapTx,Data.fees);
         claimSwapTx.recentBlockhash = blockhash;
         claimSwapTx.feePayer = new PublicKey(Data.taker);
 
@@ -455,7 +458,7 @@ export async function createTakeAndCloseSwapInstructions(
                 priority,
                 status: "pending",
                 blockheight,
-            });
+            } as BTTake);
 
             priority++;
         } else console.log("no takeSwapTx");
@@ -468,11 +471,13 @@ export async function createTakeAndCloseSwapInstructions(
                 description: DESC.payRoyalties,
                 details: {
                     swapDataAccount: Data.swapDataAccount,
+                    signer: Data.taker,
+                    fees: Data.fees,
                 },
                 priority,
                 status: "pending",
                 blockheight,
-            });
+            } as BTClaim);
 
             priority++;
         } else console.log("no payRoyaltiesTx");
@@ -482,11 +487,13 @@ export async function createTakeAndCloseSwapInstructions(
             description: DESC.claimSwap,
             details: {
                 swapDataAccount: Data.swapDataAccount,
+                signer: Data.taker,
+                fees: Data.fees,
             },
             priority,
             status: "pending",
             blockheight,
-        });
+        } as BTClaim);
         let bh = (await connection.getLatestBlockhash()).blockhash;
         bTTakeAndClose.map((b) => (b.tx.message.recentBlockhash = bh));
         return bTTakeAndClose;

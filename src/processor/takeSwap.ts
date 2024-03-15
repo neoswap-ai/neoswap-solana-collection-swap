@@ -23,6 +23,7 @@ export async function takeSwap(
                     bid: Data.bid,
                     swapDataAccount: Data.swapDataAccount,
                     nftMintTaker: Data.nftMintTaker,
+                    fees: Data.fees,
                 })
             ).tx,
             signer: Data.taker,

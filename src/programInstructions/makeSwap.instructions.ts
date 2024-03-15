@@ -47,7 +47,7 @@ export async function createMakeSwapInstructions(Data: MakeSArg & EnvOpts): Prom
             message: "clusterOrUrl or program is required",
         } as ErrorFeedback;
     }
-    
+
     let connection = Data.program.provider.connection;
 
     let swapDataAccount = getSda(Data.maker, Data.nftMintMaker, Data.program.programId.toString());
@@ -179,7 +179,7 @@ export async function createMakeSwapInstructions(Data: MakeSArg & EnvOpts): Prom
         instructions.push(initIx);
 
         let tx = new Transaction().add(...instructions);
-        tx = await addPriorityFee(tx);
+        tx = await addPriorityFee(tx, Data.fees);
         tx.feePayer = new PublicKey(Data.maker);
         tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
         // // let simu = await connection.simulateTransaction(tx);

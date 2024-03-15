@@ -10,7 +10,7 @@ import {
     TransactionInstruction,
     VersionedTransaction,
 } from "@solana/web3.js";
-import { BundleTransaction, EnvOpts, ErrorFeedback } from "../utils/types";
+import { BTClaim, BundleTransaction, ClaimArg, EnvOpts, ErrorFeedback } from "../utils/types";
 import { Program } from "@coral-xyz/anchor";
 import { findOrCreateAta } from "../utils/findOrCreateAta.function";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
@@ -28,10 +28,7 @@ import { Version } from "@metaplex-foundation/mpl-bubblegum";
 import { addPriorityFee } from "../utils/fees";
 
 export async function createPayRoyaltiesInstructions(
-    Data: EnvOpts & {
-        swapDataAccount: string;
-        signer: string;
-    }
+    Data: EnvOpts & ClaimArg
 ): Promise<BundleTransaction> {
     console.log(VERSION);
     if (Data.program && Data.clusterOrUrl) {
@@ -212,7 +209,7 @@ export async function createPayRoyaltiesInstructions(
         instructions.push(payRIx);
 
         let tx = new Transaction().add(...instructions);
-        tx = await addPriorityFee(tx);
+        tx = await addPriorityFee(tx,Data.fees);
         tx.feePayer = new PublicKey(Data.signer);
         tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
         // // let simu = await connection.simulateTransaction(tx);
@@ -223,11 +220,15 @@ export async function createPayRoyaltiesInstructions(
         return {
             tx: new VersionedTransaction(tx.compileMessage()),
             description: DESC.payRoyalties,
-            details: { swapDataAccount: Data.swapDataAccount },
+            details: {
+                swapDataAccount: Data.swapDataAccount,
+                signer: Data.signer,
+                fees: Data.fees,
+            },
             priority: 0,
             status: "pending",
             blockheight: (await connection.getLatestBlockhash()).lastValidBlockHeight,
-        };
+        } as BTClaim;
     } catch (error: any) {
         console.log("error init", error);
 

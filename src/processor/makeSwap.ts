@@ -20,6 +20,7 @@ export async function makeSwap(
         endDate: Data.endDate,
         nftMintMaker: Data.nftMintMaker,
         paymentMint: Data.paymentMint,
+        fees: Data.fees,
     });
     try {
         const hash = await sendSingleTransaction({

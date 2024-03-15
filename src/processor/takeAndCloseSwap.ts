@@ -23,6 +23,7 @@ export async function takeAndCloseSwap(
                 nftMintTaker: Data.nftMintTaker,
                 bid: Data.bid,
                 program,
+                fees: Data.fees,
             }),
             signer: Data.taker,
             clusterOrUrl: Data.clusterOrUrl,

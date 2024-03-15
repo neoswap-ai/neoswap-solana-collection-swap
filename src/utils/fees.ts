@@ -1,18 +1,19 @@
 import { ComputeBudgetProgram, Transaction } from "@solana/web3.js";
 
-export async function addPriorityFee(tx: Transaction): Promise<Transaction> {
-    let estimatedFee = 0;
+export async function addPriorityFee(tx: Transaction, fees?: number): Promise<Transaction> {
+    let estimatedFee = fees ? fees : 0;
     let writableAccounts = tx.instructions
         .map((ix) => ix.keys.filter((key) => key.isWritable).map((key) => key.pubkey.toBase58()))
         .flat();
 
-    estimatedFee = await getRecentPrioritizationFeesHM(
-        writableAccounts,
-        "https://rpc.hellomoon.io"
-    );
-    if (estimatedFee < 50000) estimatedFee = 50000;
-
-    console.log("using getPrioritizationFee from hellomoon", estimatedFee);
+    if (estimatedFee === 0) {
+        estimatedFee = await getRecentPrioritizationFeesHM(
+            writableAccounts,
+            "https://rpc.hellomoon.io"
+        );
+        if (estimatedFee < 50000) estimatedFee = 50000;
+        console.log("using getPrioritizationFee from hellomoon", estimatedFee);
+    } else console.log("force fees", estimatedFee);
 
     if (estimatedFee > 0) {
         tx = tx.add(

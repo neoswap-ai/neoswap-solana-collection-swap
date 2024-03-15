@@ -223,7 +223,7 @@ export async function createTakeSwapInstructions(
         instructions.push(takeIx);
 
         let tx = new Transaction().add(...instructions);
-        tx = await addPriorityFee(tx);
+        tx = await addPriorityFee(tx, Data.fees);
         tx.feePayer = new PublicKey(Data.taker);
         tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
         // // let simu = await connection.simulateTransaction(tx);

@@ -10,7 +10,7 @@ import {
     TransactionInstruction,
     VersionedTransaction,
 } from "@solana/web3.js";
-import { BundleTransaction, EnvOpts, ErrorFeedback } from "../utils/types";
+import { BundleTransaction, ClaimArg, EnvOpts, ErrorFeedback } from "../utils/types";
 import { Program } from "@coral-xyz/anchor";
 import { findOrCreateAta } from "../utils/findOrCreateAta.function";
 import { getCNFTOwner } from "../utils/getCNFTData.function";
@@ -35,11 +35,7 @@ import { addPriorityFee } from "../utils/fees";
 import { closeWSol } from "../utils/wsol";
 
 export async function createClaimSwapInstructions(
-    Data: EnvOpts & {
-        swapDataAccount: string;
-        signer: string;
-        // taker: string;
-    }
+    Data: EnvOpts & ClaimArg
 ): Promise<BundleTransaction> {
     console.log(VERSION);
     if (Data.program && Data.clusterOrUrl) {
@@ -207,7 +203,7 @@ export async function createClaimSwapInstructions(
             else if (Data.signer === maker)
                 instructions.push(closeWSol(maker, maker, makerTokenAta));
         let tx = new Transaction().add(...instructions);
-        tx = await addPriorityFee(tx);
+        tx = await addPriorityFee(tx,Data.fees);
         tx.feePayer = new PublicKey(Data.signer);
         tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
 

@@ -1,15 +1,15 @@
 import { Cluster, Keypair, PublicKey } from "@solana/web3.js";
-import { ErrorFeedback, OptionSend } from "../utils/types";
+import { ClaimArg, ErrorFeedback, OptionSend } from "../utils/types";
 import { getProgram } from "../utils/getProgram.obj";
 import { AnchorProvider } from "@coral-xyz/anchor";
 import { sendSingleTransaction } from "../utils/sendSingleTransaction.function";
 import { createClaimSwapInstructions } from "../programInstructions/claimSwap.instructions";
 
 export async function claimSwap(
-    Data: OptionSend & {
-        swapDataAccount: string;
-        signer: Keypair;
-    }
+    Data: OptionSend &
+        Omit<ClaimArg, "signer"> & {
+            signer: Keypair;
+        }
 ): Promise<string> {
     const program = getProgram({ clusterOrUrl: Data.clusterOrUrl, signer: Data.signer });
     try {
@@ -20,6 +20,7 @@ export async function claimSwap(
                     program,
                     swapDataAccount: Data.swapDataAccount,
                     signer: Data.signer.publicKey.toBase58(),
+                    fees: Data.fees,
                 })
             ).tx,
             signer: Data.signer,
