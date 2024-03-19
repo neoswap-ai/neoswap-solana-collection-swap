@@ -481,6 +481,203 @@ export const idlSwap: Idl = {
             args: [],
         },
         {
+            name: "payAndClaim",
+            accounts: [
+                {
+                    name: "swapDataAccount",
+                    isMut: true,
+                    isSigner: false,
+                },
+                {
+                    name: "swapDataAccountTokenAta",
+                    isMut: true,
+                    isSigner: false,
+                },
+                {
+                    name: "mintToken",
+                    isMut: false,
+                    isSigner: false,
+                },
+                {
+                    name: "signer",
+                    isMut: false,
+                    isSigner: true,
+                },
+                {
+                    name: "nftMetadataTaker",
+                    isMut: true,
+                    isSigner: false,
+                },
+                {
+                    name: "nftMetadataMaker",
+                    isMut: true,
+                    isSigner: false,
+                },
+                {
+                    name: "metadataProgram",
+                    isMut: false,
+                    isSigner: false,
+                },
+                {
+                    name: "tokenProgram",
+                    isMut: false,
+                    isSigner: false,
+                },
+                {
+                    name: "makerCreator0",
+                    isMut: false,
+                    isSigner: false,
+                },
+                {
+                    name: "makerCreator0TokenAta",
+                    isMut: true,
+                    isSigner: false,
+                },
+                {
+                    name: "makerCreator1",
+                    isMut: false,
+                    isSigner: false,
+                },
+                {
+                    name: "makerCreator1TokenAta",
+                    isMut: true,
+                    isSigner: false,
+                },
+                {
+                    name: "makerCreator2",
+                    isMut: false,
+                    isSigner: false,
+                },
+                {
+                    name: "makerCreator2TokenAta",
+                    isMut: true,
+                    isSigner: false,
+                },
+                {
+                    name: "takerCreator0",
+                    isMut: false,
+                    isSigner: false,
+                },
+                {
+                    name: "takerCreator0TokenAta",
+                    isMut: true,
+                    isSigner: false,
+                },
+                {
+                    name: "takerCreator1",
+                    isMut: false,
+                    isSigner: false,
+                },
+                {
+                    name: "takerCreator1TokenAta",
+                    isMut: true,
+                    isSigner: false,
+                },
+                {
+                    name: "takerCreator2",
+                    isMut: false,
+                    isSigner: false,
+                },
+                {
+                    name: "takerCreator2TokenAta",
+                    isMut: true,
+                    isSigner: false,
+                },
+                {
+                    name: "swapDataAccountNftAta",
+                    isMut: true,
+                    isSigner: false,
+                },
+                {
+                    name: "nsFee",
+                    isMut: true,
+                    isSigner: false,
+                    docs: ["CHECK : in constraints"],
+                },
+                {
+                    name: "nsFeeTokenAta",
+                    isMut: true,
+                    isSigner: false,
+                },
+                {
+                    name: "taker",
+                    isMut: true,
+                    isSigner: false,
+                    docs: ["CHECK : in constraints"],
+                },
+                {
+                    name: "takerNftAtaMaker",
+                    isMut: true,
+                    isSigner: false,
+                },
+                {
+                    name: "takerTokenAta",
+                    isMut: true,
+                    isSigner: false,
+                },
+                {
+                    name: "maker",
+                    isMut: true,
+                    isSigner: false,
+                },
+                {
+                    name: "makerTokenAta",
+                    isMut: true,
+                    isSigner: false,
+                },
+                {
+                    name: "nftMintMaker",
+                    isMut: false,
+                    isSigner: false,
+                },
+                {
+                    name: "nftMasterEditionMaker",
+                    isMut: false,
+                    isSigner: false,
+                    isOptional: true,
+                },
+                {
+                    name: "ownerTokenRecordMaker",
+                    isMut: true,
+                    isSigner: false,
+                    isOptional: true,
+                },
+                {
+                    name: "destinationTokenRecordMaker",
+                    isMut: true,
+                    isSigner: false,
+                    isOptional: true,
+                },
+                {
+                    name: "authRulesMaker",
+                    isMut: false,
+                    isSigner: false,
+                    isOptional: true,
+                },
+                {
+                    name: "systemProgram",
+                    isMut: false,
+                    isSigner: false,
+                },
+                {
+                    name: "sysvarInstructions",
+                    isMut: false,
+                    isSigner: false,
+                },
+                {
+                    name: "ataProgram",
+                    isMut: false,
+                    isSigner: false,
+                },
+                {
+                    name: "authRulesProgram",
+                    isMut: false,
+                    isSigner: false,
+                },
+            ],
+            args: [],
+        },
+        {
             name: "cancelSwap",
             accounts: [
                 {

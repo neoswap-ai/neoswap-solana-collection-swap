@@ -7,6 +7,7 @@ import { takeSwap } from "./processor/takeSwap";
 import { createCancelSwapInstructions } from "./programInstructions/cancelSwap.instructions";
 import { createClaimSwapInstructions } from "./programInstructions/claimSwap.instructions";
 import { createMakeSwapInstructions } from "./programInstructions/makeSwap.instructions";
+import { createPayAndCloseSwapInstructions } from "./programInstructions/payAndClaim.instructions";
 import { createPayRoyaltiesInstructions } from "./programInstructions/payRoyalties.instructions";
 import { createTakeAndCloseSwapInstructions } from "./programInstructions/takeAndCloseSwap.instructions";
 import { createTakeSwapInstructions } from "./programInstructions/takeSwap.instructions";
@@ -55,6 +56,7 @@ const CREATE_INSTRUCTIONS = {
     createClaimSwapInstructions,
     createTakeAndCloseSwapInstructions,
     createCancelSwapInstructions,
+    createPayAndCloseSwapInstructions
 };
 
 export const neoSwap = {

@@ -1,11 +1,11 @@
 import { Cluster, Keypair } from "@solana/web3.js";
 import { getProgram } from "./getProgram.obj";
-import { ErrorFeedback, TxWithSigner } from "./types";
+import { BundleTransaction, ErrorFeedback, TxWithSigner } from "./types";
 import { isConfirmedTx } from "./isConfirmedTx.function";
 import { AnchorProvider } from "@coral-xyz/anchor";
 
 export async function sendBundledTransactions(Data: {
-    txsWithoutSigners: TxWithSigner[];
+    txsWithoutSigners: (TxWithSigner | BundleTransaction)[];
     signer: Keypair;
     clusterOrUrl: Cluster | string;
     skipSimulation?: boolean;
@@ -17,11 +17,6 @@ export async function sendBundledTransactions(Data: {
             ? Data.provider
             : getProgram({ clusterOrUrl: Data.clusterOrUrl, signer: Data.signer }).provider;
 
-        const txsWithSigners = Data.txsWithoutSigners.map((txWithSigners) => {
-            txWithSigners.signers = [Data.signer];
-            return txWithSigners;
-        });
-
         console.log(
             "User ",
             Data.signer.publicKey.toBase58(),
@@ -32,7 +27,7 @@ export async function sendBundledTransactions(Data: {
         if (!provider.sendAll) throw { message: "your provider is not an AnchorProvider type" };
         if (!Data.skipConfirmation) Data.skipConfirmation = false;
 
-        let transactionHashs = await provider.sendAll(txsWithSigners, {
+        let transactionHashs = await provider.sendAll(Data.txsWithoutSigners, {
             maxRetries: 5,
             skipPreflight: Data.skipConfirmation,
         });
