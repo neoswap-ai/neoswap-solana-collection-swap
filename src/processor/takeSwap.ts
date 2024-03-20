@@ -1,9 +1,10 @@
-import { Cluster, Keypair, PublicKey } from "@solana/web3.js";
+import { Cluster, Connection, Keypair, PublicKey } from "@solana/web3.js";
 import { Bid, ErrorFeedback, OptionSend, TakeSArg } from "../utils/types";
 import { getProgram } from "../utils/getProgram.obj";
 import { AnchorProvider } from "@coral-xyz/anchor";
 import { sendSingleTransaction } from "../utils/sendSingleTransaction.function";
 import { createTakeSwapInstructions } from "../programInstructions/takeSwap.instructions";
+import { checkOptionSend } from "../utils/check";
 
 export async function takeSwap(
     Data: OptionSend &
@@ -11,30 +12,39 @@ export async function takeSwap(
             taker: Keypair;
         }
 ): Promise<string> {
-    const program = getProgram({ clusterOrUrl: Data.clusterOrUrl, signer: Data.taker });
+    let {
+        bid,
+        nftMintTaker,
+        swapDataAccount,
+        taker,
+        prioritizationFee,
+    } = Data;
+
+    let optionSend = checkOptionSend(Data);
+    let clusterOrUrl = optionSend.clusterOrUrl;
+    const program = getProgram({ clusterOrUrl, signer: taker });
 
     try {
         return await sendSingleTransaction({
-            connection: program.provider.connection,
-            tx: (
-                await createTakeSwapInstructions({
-                    program,
-                    taker: Data.taker.publicKey.toString(),
-                    bid: Data.bid,
-                    swapDataAccount: Data.swapDataAccount,
-                    nftMintTaker: Data.nftMintTaker,
-                    prioritizationFee: Data.prioritizationFee,
-                })
-            ).tx,
-            signer: Data.taker,
-            clusterOrUrl: Data.clusterOrUrl,
-            skipSimulation: Data.skipSimulation,
-            skipConfirmation: Data.skipConfirmation,
+            ...optionSend,
+            tx: {
+                tx: (
+                    await createTakeSwapInstructions({
+                        program,
+                        taker: taker.publicKey.toString(),
+                        bid,
+                        swapDataAccount,
+                        nftMintTaker,
+                        prioritizationFee,
+                    })
+                ).tx,
+                signers: [taker],
+            },
         });
     } catch (error) {
         throw {
             blockchain: "solana",
-            message: Data.swapDataAccount.toString() + `- -\n` + error,
+            message: swapDataAccount.toString() + `- -\n` + error,
             status: "error",
         } as ErrorFeedback;
     }

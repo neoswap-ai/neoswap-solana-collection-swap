@@ -1,6 +1,8 @@
 import { Program } from "@coral-xyz/anchor";
 import {
     Cluster,
+    Connection,
+    Finality,
     Keypair,
     PublicKey,
     Signer,
@@ -114,28 +116,45 @@ export type MakeSArg = {
     paymentMint: string;
     bid: Bid;
     endDate: number;
-    prioritizationFee?: number;
 };
 export type TakeSArg = {
     swapDataAccount: string;
     taker: string;
     nftMintTaker: string;
     bid: Bid;
-    prioritizationFee?: number;
 };
 export type ClaimArg = {
     swapDataAccount: string;
     signer: string;
-    prioritizationFee?: number;
 };
 export type OptionSend = {
-    clusterOrUrl: Cluster | string;
+    clusterOrUrl?: Cluster | string;
     skipSimulation?: boolean;
     skipConfirmation?: boolean;
+    commitment?: Finality;
+    connection?: Connection;
+    retryDelay?: number;
+    prioritizationFee?: number;
 };
 export type EnvOpts = {
     clusterOrUrl?: Cluster | string;
     program?: Program;
+    prioritizationFee?: number;
+};
+
+export type COptionSend = {
+    clusterOrUrl: Cluster | string;
+    skipSimulation: boolean;
+    skipConfirmation: boolean;
+    commitment: Finality;
+    connection: Connection;
+    retryDelay: number;
+    prioritizationFee?: number;
+};
+export type CEnvOpts = {
+    clusterOrUrl: Cluster | string;
+    program: Program;
+    prioritizationFee?: number;
 };
 export type MakeSwapData = { bTx: BundleTransaction; swapDataAccount: string };
 export type TakeAndCloseSwapData = { bTxs: BundleTransaction[]; swapDataAccount: string };

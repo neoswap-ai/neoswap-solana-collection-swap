@@ -1,9 +1,9 @@
-import { Cluster, Keypair, PublicKey } from "@solana/web3.js";
-import { Bid, ErrorFeedback, MakeSArg, OptionSend } from "../utils/types";
+import { Keypair } from "@solana/web3.js";
+import { EnvOpts, ErrorFeedback, MakeSArg, OptionSend } from "../utils/types";
 import { getProgram } from "../utils/getProgram.obj";
-import { AnchorProvider } from "@coral-xyz/anchor";
 import { createMakeSwapInstructions } from "../programInstructions/makeSwap.instructions";
 import { sendSingleTransaction } from "../utils/sendSingleTransaction.function";
+import { checkOptionSend, getMakeArgs } from "../utils/check";
 
 export async function makeSwap(
     Data: OptionSend &
@@ -11,35 +11,37 @@ export async function makeSwap(
             maker: Keypair;
         }
 ): Promise<{ hash: string; swapDataAccount: string }> {
-    const program = getProgram({ clusterOrUrl: Data.clusterOrUrl, signer: Data.maker });
+    let { maker } = Data;
 
-    const { bTx, swapDataAccount } = await createMakeSwapInstructions({
-        program,
-        maker: Data.maker.publicKey.toString(),
-        bid: Data.bid,
-        endDate: Data.endDate,
-        nftMintMaker: Data.nftMintMaker,
-        paymentMint: Data.paymentMint,
-        prioritizationFee: Data.prioritizationFee,
-    });
+    let optionSend = checkOptionSend(Data);
+    let { clusterOrUrl, prioritizationFee } = optionSend;
+
+    let makeArgs = getMakeArgs(Data);
+
+    const program = getProgram({ clusterOrUrl: clusterOrUrl, signer: maker });
+    let envOpts: EnvOpts = { clusterOrUrl, prioritizationFee, program };
+
+    let sda = "NOSDA";
+
     try {
+        const { bTx, swapDataAccount } = await createMakeSwapInstructions({
+            ...makeArgs,
+            ...envOpts,
+        });
+        sda = swapDataAccount;
         const hash = await sendSingleTransaction({
-            connection: program.provider.connection,
-            tx: bTx.tx,
-            signer: Data.maker,
-            clusterOrUrl: Data.clusterOrUrl,
-            skipSimulation: Data.skipSimulation,
-            skipConfirmation: Data.skipConfirmation,
+            tx: { tx: bTx.tx, signers: [maker] },
+            ...optionSend,
         });
 
         return {
             hash,
-            swapDataAccount: swapDataAccount.toString(),
+            swapDataAccount,
         };
     } catch (error) {
         throw {
             blockchain: "solana",
-            message: swapDataAccount.toString() + `- -\n` + error,
+            message: sda + `- -\n` + error,
             status: "error",
         } as ErrorFeedback;
     }
