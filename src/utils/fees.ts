@@ -14,7 +14,7 @@ export async function addPriorityFee(
             writableAccounts,
             "https://rpc.hellomoon.io"
         );
-        if (estimatedFee < 50000) estimatedFee = 50000;
+        if (estimatedFee < 10000) estimatedFee = 10000;
         console.log("using getPrioritizationFee from hellomoon", estimatedFee);
     } else console.log("force fees", estimatedFee);
 

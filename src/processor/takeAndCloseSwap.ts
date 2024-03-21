@@ -1,10 +1,11 @@
 import { Cluster, Keypair, PublicKey } from "@solana/web3.js";
-import { Bid, ErrorFeedback, OptionSend, TakeSArg } from "../utils/types";
+import { Bid, CEnvOpts, EnvOpts, ErrorFeedback, OptionSend, TakeSArg } from "../utils/types";
 import { getProgram } from "../utils/getProgram.obj";
 import { AnchorProvider } from "@coral-xyz/anchor";
 import { sendBundledTransactions } from "../utils/sendBundledTransactions.function";
 
 import { createTakeAndCloseSwapInstructions } from "../programInstructions/takeAndCloseSwap.instructions";
+import { checkOptionSend, getTakeArgs } from "../utils/check";
 
 export async function takeAndCloseSwap(
     Data: OptionSend &
@@ -12,23 +13,21 @@ export async function takeAndCloseSwap(
             taker: Keypair;
         }
 ): Promise<string[]> {
-    const program = getProgram({ clusterOrUrl: Data.clusterOrUrl, signer: Data.taker });
+    let takeArgs = getTakeArgs(Data);
+    let optionSend = checkOptionSend(Data);
+
+    let { clusterOrUrl } = optionSend;
+    const program = getProgram({ clusterOrUrl, signer: Data.taker });
 
     try {
         return await sendBundledTransactions({
-            provider: program.provider as AnchorProvider,
             txsWithoutSigners: await createTakeAndCloseSwapInstructions({
-                swapDataAccount: Data.swapDataAccount,
-                taker: Data.taker.publicKey.toString(),
-                nftMintTaker: Data.nftMintTaker,
-                bid: Data.bid,
+                ...takeArgs,
+                clusterOrUrl,
                 program,
-                prioritizationFee: Data.prioritizationFee,
             }),
             signer: Data.taker,
-            clusterOrUrl: Data.clusterOrUrl,
-            skipSimulation: Data.skipSimulation,
-            skipConfirmation: Data.skipConfirmation,
+            ...optionSend,
         });
     } catch (error) {
         throw {

@@ -136,13 +136,7 @@ export async function createMakeSwapInstructions(Data: MakeSArg & EnvOpts): Prom
         if (Data.paymentMint === WRAPPED_SOL_MINT.toString()) {
             let amount = Data.bid.makerNeoswapFee + Data.bid.makerRoyalties;
             if (Data.bid.amount < 0) amount += -Data.bid.amount;
-            console.log(
-                "Wrapping ",
-                amount,
-                " ( ",
-                amount / LAMPORTS_PER_SOL,
-                " ) lamports to wSOL"
-            );
+            console.log("Wrapping", amount, "(", amount / LAMPORTS_PER_SOL, ")lamports to wSOL");
 
             instructions.push(...addWSol(Data.maker, makerTokenAta, amount));
         }
@@ -190,7 +184,7 @@ export async function createMakeSwapInstructions(Data: MakeSArg & EnvOpts): Prom
         return {
             bTx: {
                 description: DESC.makeSwap,
-                details:Data,
+                details: Data,
                 priority: 0,
                 status: "pending",
                 tx: new VersionedTransaction(tx.compileMessage()),

@@ -1,5 +1,13 @@
 import { Connection, Keypair } from "@solana/web3.js";
-import { CEnvOpts, COptionSend, EnvOpts, ErrorFeedback, MakeSArg, OptionSend } from "./types";
+import {
+    CEnvOpts,
+    COptionSend,
+    EnvOpts,
+    ErrorFeedback,
+    MakeSArg,
+    OptionSend,
+    TakeSArg,
+} from "./types";
 import { getProgram } from "./getProgram.obj";
 
 export function checkOptionSend(Data: OptionSend): COptionSend {
@@ -66,4 +74,14 @@ export function getMakeArgs(
     let { bid, endDate, maker: makerK, nftMintMaker, paymentMint } = Data;
     let maker = makerK.publicKey.toString();
     return { bid, endDate, maker, nftMintMaker, paymentMint };
+}
+
+export function getTakeArgs(
+    Data: OptionSend &
+        Omit<TakeSArg, "taker"> & {
+            taker: Keypair;
+        }
+): TakeSArg {
+    let { bid, nftMintTaker, swapDataAccount, taker } = Data;
+    return { bid, nftMintTaker, swapDataAccount, taker: taker.publicKey.toString() };
 }

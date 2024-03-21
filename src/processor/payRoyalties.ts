@@ -4,6 +4,7 @@ import { getProgram } from "../utils/getProgram.obj";
 import { AnchorProvider } from "@coral-xyz/anchor";
 import { sendSingleTransaction } from "../utils/sendSingleTransaction.function";
 import { createPayRoyaltiesInstructions } from "../programInstructions/payRoyalties.instructions";
+import { checkOptionSend } from "../utils/check";
 
 export async function payRoyalties(
     Data: OptionSend &
@@ -11,22 +12,23 @@ export async function payRoyalties(
             signer: Keypair;
         }
 ): Promise<string> {
-    const program = getProgram({ clusterOrUrl: Data.clusterOrUrl, signer: Data.signer });
+    let optionSend = checkOptionSend(Data);
+    let { clusterOrUrl } = optionSend;
+    const program = getProgram({ clusterOrUrl, signer: Data.signer });
     try {
         return await sendSingleTransaction({
-            connection: program.provider.connection,
-            tx: (
-                await createPayRoyaltiesInstructions({
-                    program,
-                    swapDataAccount: Data.swapDataAccount,
-                    signer: Data.signer.publicKey.toString(),
-                    prioritizationFee: Data.prioritizationFee,
-                })
-            ).tx,
-            signer: Data.signer,
-            clusterOrUrl: Data.clusterOrUrl,
-            skipSimulation: Data.skipSimulation,
-            skipConfirmation: Data.skipConfirmation,
+            tx: {
+                tx: (
+                    await createPayRoyaltiesInstructions({
+                        program,
+                        swapDataAccount: Data.swapDataAccount,
+                        signer: Data.signer.publicKey.toString(),
+                        prioritizationFee: Data.prioritizationFee,
+                    })
+                ).tx,
+                signers: [Data.signer],
+            },
+            ...optionSend,
         });
     } catch (error) {
         throw {
