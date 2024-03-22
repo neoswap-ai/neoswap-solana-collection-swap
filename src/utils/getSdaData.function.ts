@@ -53,25 +53,43 @@ export async function getOpenSda(Data: {
         let openSda = (
             await Data.program.provider.connection.getProgramAccounts(Data.program.programId)
         ).map((x) => x.pubkey);
-        console.log(
-            "openSda",
-            openSda.map((x) => x.toBase58())
-        );
+
         [
-            "FsJgyoFyf5UdZmVvCPBhYbYajz9ShJy8hVwZNAur93cE",
-            "DSWxzxKrDvRPKtjCgR3mEzx2ZzK7VPSammbZcVQiBXCY",
-            "AAGKWoK1WV4adSh1dQ8LWviSW97YnxXNCPmbFSyNaqTb",
-            "8RZykLrfvGNfBSDyFNQawEmXZvkUzRkLK4MuT1eqrxf",
-            "D1BQhb6FV3KSTxib8ftrYahfvGKdxBctW6Yc9JMSaUXu",
-            "8YJwoJ9VrqoHKxTmsMPcieK8oZRr3FNsytabKmSEmend",
-            "HDh5W3X1qEKnhMP8MNb2StmWEHuRhusJN5kSbbEMUr8N",
-            "9RjTFaJ5Vs8hpFPji21u5XrPV9NiqtVXHpKtYss9jYcp",
+            "AqAjqDJU9sUG4cF8AGEeTkGiJ4W5NYhJURVtxy1WKWv6",
+            "5nxc1hijiMkiiEtNUPqVQrkvjtmmtdRZCDAs4kcYwkC8",
+            "CqfdJZgtmN3Xqcm85YZrUTXSJjGm3cChyrGFk8L5WcMi",
         ]
+            .concat([
+                "FsJgyoFyf5UdZmVvCPBhYbYajz9ShJy8hVwZNAur93cE",
+                "DSWxzxKrDvRPKtjCgR3mEzx2ZzK7VPSammbZcVQiBXCY",
+                "AAGKWoK1WV4adSh1dQ8LWviSW97YnxXNCPmbFSyNaqTb",
+                "8RZykLrfvGNfBSDyFNQawEmXZvkUzRkLK4MuT1eqrxf",
+                "D1BQhb6FV3KSTxib8ftrYahfvGKdxBctW6Yc9JMSaUXu",
+                "8YJwoJ9VrqoHKxTmsMPcieK8oZRr3FNsytabKmSEmend",
+                "HDh5W3X1qEKnhMP8MNb2StmWEHuRhusJN5kSbbEMUr8N",
+                "9RjTFaJ5Vs8hpFPji21u5XrPV9NiqtVXHpKtYss9jYcp",
+            ])
             .map((x) => new PublicKey(x))
             .map((blacklist) => {
                 openSda = openSda.filter((x) => !x.equals(blacklist));
             });
-
+        console.log(
+            "openSda",
+            openSda.map((x) => x.toBase58())
+        );
+        console.log(openSda.length);
+        // let i = 0;
+        // for (const sda in openSda) {
+        //     if (Object.prototype.hasOwnProperty.call(openSda, sda)) {
+        //         const element = openSda[sda];
+        //         try {
+        //             await Data.program.account.swapData.fetch(element);
+        //         } catch (error) {
+        //             console.log(i, "error", sda);
+        //         }
+        //         i++;
+        //     }
+        // }
         const swapDatas = (
             (await Data.program.account.swapData.fetchMultiple(openSda)).map((x) =>
                 scSwapDataToSwapData(x as ScSwapData)
@@ -80,12 +98,12 @@ export async function getOpenSda(Data: {
             return { sda: openSda[i].toString(), data: x };
         });
         console.log("swapDatas", swapDatas);
+        return swapDatas;
 
-        if (!swapDatas) {
-            throw `No SwapData found ${openSda}`;
-        } else {
-            return swapDatas;
-        }
+        // if (!swapDatas) {
+        //     throw `No SwapData found ${openSda}`;
+        // } else {
+        // }
     } catch (error) {
         throw {
             blockchain: "solana",
