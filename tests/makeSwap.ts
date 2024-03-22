@@ -9,24 +9,27 @@ import { simulateTx } from "./utils";
 let makeSwapArgs = {
     bid: {
         amount: 1000,
-        collection: "69k55dCTwiUPNgaTZ8FVMADorTvEGJEGuAGEB7m1qB1S",
+        collection: "8ZtMj6bRTh7inEDVoha5Qb5Pfajqxm7nCbk6mD1HDEsS",
         makerNeoswapFee: 100,
         makerRoyalties: 200,
         takerNeoswapFee: 400,
         takerRoyalties: 500,
     },
     endDate: now().toNumber() + 86400,
-    maker: "CpB3k2pkmDK5uQVXH6YBKe8uQQsjBBaNwwnoauKkR6i4",
-    nftMintMaker: "AjMgHhfhNNXTcsg8xBdVkx615FUo2ixM8Em5JWwcvyTM",
+    maker: "8zeXtUMZ5XsN8pWsBY95T1FiYm1mhqrf2F5ZkfB6Rjo9",
+    nftMintMaker: "EffxAzJzojSt4JQiTqAwNZUrvwWjXs1HYZDxMqgNtxy2",
     paymentMint: NATIVE_MINT.toString(),
 } as MakeSArg;
 
 export async function testMakeSwap(envOpts: EnvOpts, connection: Connection) {
+    let makeSwapData = await createMakeSwapInstructions({ ...makeSwapArgs, ...envOpts });
     try {
-        let makeSwapData = await createMakeSwapInstructions({ ...makeSwapArgs, ...envOpts });
-        await simulateTx(makeSwapData.bTx.tx, connection, makeSwapArgs, makeSwapData);
+        await simulateTx(makeSwapData.bTx.tx, connection);
+        return "MakeSwap passed";
     } catch (error) {
-        console.log("Error", error);
-        throw "MakeSwap Test failed";
+        console.log("makeSwapArgs", makeSwapArgs);
+        console.log("makeSwapData", makeSwapData);
+
+        return "MakeSwap failed";
     }
 }

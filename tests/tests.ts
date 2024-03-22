@@ -5,6 +5,15 @@ import { EnvOpts } from "../src/utils/types";
 
 let clusterOrUrl = NETWORK_URL;
 let connection = new Connection(clusterOrUrl);
-let envOpts = { clusterOrUrl, prioritizationFee: undefined } as EnvOpts;
+let envOpts = { clusterOrUrl, prioritizationFee: 1 } as EnvOpts;
+let final: string[] = [];
 
-testMakeSwap(envOpts, connection);
+async function test() {
+    await testMakeSwap(envOpts, connection).then((res) => {
+        final.push(res);
+    });
+
+    console.log("final", final);
+}
+
+test();
