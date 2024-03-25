@@ -3,7 +3,7 @@
     "version": "0.1.5-Beta24",
     "repository": {
         "type": "git",
-        "url": "git+htt// Data after initializing the swapps://github.com/neoswap-ai/neo-swap-npm.git"
+        "url": "git+https://github.com/neoswap-ai/neo-swap-npm.git"
     },
     "description": "NPM package for NeoSwap test",
     "author": "NeoSwap",
