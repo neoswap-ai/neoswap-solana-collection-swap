@@ -18,7 +18,7 @@ let makeSwapArgs = {
     endDate: now().toNumber() + 86400,
     maker: "8zeXtUMZ5XsN8pWsBY95T1FiYm1mhqrf2F5ZkfB6Rjo9",
     nftMintMaker: "EffxAzJzojSt4JQiTqAwNZUrvwWjXs1HYZDxMqgNtxy2",
-    paymentMint: NATIVE_MINT.toString(),
+    mintToken: NATIVE_MINT.toString(),
 } as MakeSArg;
 
 export async function testMakeSwap(envOpts: EnvOpts, connection: Connection) {

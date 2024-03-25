@@ -42,7 +42,7 @@ export type SwapData = {
 
     royaltiesPaid: boolean;
     status: "active" | "expired" | "accepted";
-    paymentMint: string;
+    mintToken: string;
     seed: string;
 };
 
@@ -60,7 +60,7 @@ export type ScSwapData = {
 
     royaltiesPaid: boolean;
 
-    paymentMint: PublicKey;
+    mintToken: PublicKey;
     seed: string;
 };
 //
@@ -92,9 +92,15 @@ export type InitializeData = {
     tx: VersionedTransaction;
 };
 
-export type BundleTxBase = {
+export type vT = {
     tx: VersionedTransaction; // [];
-    stx?: VersionedTransaction; // [];
+    stx?: VersionedTransaction;
+};
+export type T = {
+    tx: Transaction; // [];
+    stx?: Transaction;
+};
+export type BundleTxBase = {
     blockheight?: number;
     description: string;
     priority: number;
@@ -104,16 +110,21 @@ export type BundleTxBase = {
     retries?: number;
 };
 
-export type BundleTransaction = BTMake | BTTake | BTClaim;
+export type BTMake = { details: MakeSArg };
+export type BTTake = { details: TakeSArg };
+export type BTClaim = { details: ClaimArg };
 
-export type BTMake = BundleTxBase & { details: MakeSArg };
-export type BTTake = BundleTxBase & { details: TakeSArg };
-export type BTClaim = BundleTxBase & { details: ClaimArg };
+export type BTa = (BTMake | BTTake | BTClaim) & BundleTxBase;
+
+export type BTv = BTa & vT;
+export type BTt = BTa & T;
+
+export type BundleTransaction = BTv | BTt;
 
 export type MakeSArg = {
     maker: string;
     nftMintMaker: string;
-    paymentMint: string;
+    mintToken: string;
     bid: Bid;
     endDate: number;
 };
@@ -154,6 +165,7 @@ export type COptionSend = {
 export type CEnvOpts = {
     clusterOrUrl: Cluster | string;
     program: Program;
+    connection: Connection;
     prioritizationFee?: number;
 };
 export type MakeSwapData = { bTx: BundleTransaction; swapDataAccount: string };

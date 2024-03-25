@@ -663,7 +663,7 @@ export const idlSwap: Idl = {
                         type: "bool",
                     },
                     {
-                        name: "paymentMint",
+                        name: "mintToken",
                         type: "publicKey",
                     },
                     {

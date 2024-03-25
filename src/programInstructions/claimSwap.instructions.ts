@@ -33,25 +33,18 @@ import { DESC } from "../utils/descriptions";
 import { WRAPPED_SOL_MINT } from "@metaplex-foundation/js";
 import { addPriorityFee } from "../utils/fees";
 import { closeWSol } from "../utils/wsol";
+import { checkEnvOpts, getClaimArgs, getMakeArgs } from "../utils/check";
 
 export async function createClaimSwapInstructions(
     Data: EnvOpts & ClaimArg
 ): Promise<BundleTransaction> {
     console.log(VERSION);
-    if (Data.program && Data.clusterOrUrl) {
-    } else if (!Data.program && Data.clusterOrUrl) {
-        Data.program = getProgram({ clusterOrUrl: Data.clusterOrUrl });
-    } else if (!Data.clusterOrUrl && Data.program) {
-        Data.clusterOrUrl = Data.program.provider.connection.rpcEndpoint;
-    } else {
-        throw {
-            blockchain: "solana",
-            status: "error",
-            message: "clusterOrUrl or program is required",
-        } as ErrorFeedback;
-    }
+    let cEnvOpts = checkEnvOpts(Data);
+    let { program, prioritizationFee } = cEnvOpts;
+    let claimSArg = getClaimArgs(Data);
+    let { signer, swapDataAccount } = claimSArg;
 
-    let connection = Data.program.provider.connection;
+    let connection = program.provider.connection;
 
     let instructions: TransactionInstruction[] = [
         ComputeBudgetProgram.setComputeUnitLimit({
@@ -61,11 +54,11 @@ export async function createClaimSwapInstructions(
 
     try {
         let swapDataData = await getSdaData({
-            program: Data.program,
-            swapDataAccount: Data.swapDataAccount,
+            program: program,
+            swapDataAccount: swapDataAccount,
         });
-        if (!swapDataData) throw "no swapData found at " + Data.swapDataAccount;
-        let { paymentMint, maker, nftMintMaker, taker, nftMintTaker, acceptedBid } = swapDataData;
+        if (!swapDataData) throw "no swapData found at " + swapDataAccount;
+        let { mintToken, maker, nftMintMaker, taker, nftMintTaker, acceptedBid } = swapDataData;
 
         if (!(nftMintTaker && taker && acceptedBid))
             throw "SDA doesnt have accepted bids" + JSON.stringify(swapDataData);
@@ -73,8 +66,8 @@ export async function createClaimSwapInstructions(
         let { mintAta: swapDataAccountNftAta, instruction: sdan } = await findOrCreateAta({
             connection,
             mint: nftMintMaker,
-            owner: Data.swapDataAccount,
-            signer: Data.signer,
+            owner: swapDataAccount,
+            signer: signer,
         });
         if (sdan) instructions.push(sdan);
         else console.log("swapDataAccountNftAta", swapDataAccountNftAta);
@@ -82,43 +75,43 @@ export async function createClaimSwapInstructions(
             connection,
             mint: nftMintMaker,
             owner: taker,
-            signer: Data.signer,
+            signer: signer,
         });
         if (tmn) instructions.push(tmn);
         else console.log("takerNftAta", takerNftAtaMaker);
 
         let { mintAta: takerTokenAta, instruction: tt } = await findOrCreateAta({
             connection,
-            mint: paymentMint,
+            mint: mintToken,
             owner: taker,
-            signer: Data.signer,
+            signer: signer,
         });
         if (tt) instructions.push(tt);
         else console.log("takerTokenAta", takerTokenAta);
 
         let { mintAta: nsFeeTokenAta, instruction: nst } = await findOrCreateAta({
             connection,
-            mint: paymentMint,
+            mint: mintToken,
             owner: NS_FEE,
-            signer: Data.signer,
+            signer: signer,
         });
         if (nst) instructions.push(nst);
         else console.log("nsFeeTokenAta", nsFeeTokenAta);
 
         let { mintAta: swapDataAccountTokenAta, instruction: sdat } = await findOrCreateAta({
             connection,
-            mint: paymentMint,
-            owner: Data.swapDataAccount,
-            signer: Data.signer,
+            mint: mintToken,
+            owner: swapDataAccount,
+            signer: signer,
         });
         if (sdat) instructions.push(sdat);
         else console.log("swapDataAccountTokenAta", swapDataAccountTokenAta);
 
         let { mintAta: makerTokenAta, instruction: mt } = await findOrCreateAta({
             connection,
-            mint: paymentMint,
+            mint: mintToken,
             owner: maker,
-            signer: Data.signer,
+            signer: signer,
         });
         if (mt) instructions.push(mt);
         else console.log("makerTokenAta", makerTokenAta);
@@ -160,17 +153,17 @@ export async function createClaimSwapInstructions(
             authRulesMaker = authRulesF;
         }
 
-        const initIx = await Data.program.methods
+        const initIx = await program.methods
             .claimSwap()
             .accounts({
-                swapDataAccount: Data.swapDataAccount,
+                swapDataAccount: swapDataAccount,
                 swapDataAccountNftAta,
                 swapDataAccountTokenAta,
 
                 nsFee: NS_FEE,
                 nsFeeTokenAta,
 
-                signer: Data.signer,
+                signer: signer,
                 taker: taker,
                 takerNftAtaMaker,
                 takerTokenAta,
@@ -180,7 +173,7 @@ export async function createClaimSwapInstructions(
                 makerTokenAta,
 
                 nftMintMaker,
-                mintToken: paymentMint,
+                mintToken: mintToken,
 
                 nftMetadataMaker,
                 nftMasterEditionMaker,
@@ -198,19 +191,18 @@ export async function createClaimSwapInstructions(
             .instruction();
         instructions.push(initIx);
 
-        if (swapDataData.paymentMint === WRAPPED_SOL_MINT.toString())
-            if (Data.signer === taker) instructions.push(closeWSol(taker, taker, takerTokenAta));
-            else if (Data.signer === maker)
-                instructions.push(closeWSol(maker, maker, makerTokenAta));
+        if (swapDataData.mintToken === WRAPPED_SOL_MINT.toString())
+            if (signer === taker) instructions.push(closeWSol(taker, taker, takerTokenAta));
+            else if (signer === maker) instructions.push(closeWSol(maker, maker, makerTokenAta));
         let tx = new Transaction().add(...instructions);
-        tx = await addPriorityFee(tx,Data.prioritizationFee);
-        tx.feePayer = new PublicKey(Data.signer);
+        tx = await addPriorityFee(tx, prioritizationFee);
+        tx.feePayer = new PublicKey(signer);
         tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
 
         return {
             tx: new VersionedTransaction(tx.compileMessage()),
             description: DESC.claimSwap,
-            details:Data,
+            details: Data,
             priority: 0,
             status: "pending",
         } as BundleTransaction;
@@ -221,7 +213,7 @@ export async function createClaimSwapInstructions(
             blockchain: "solana",
             status: "error",
             message: error,
-            swapDataAccount: Data.swapDataAccount,
+            swapDataAccount: swapDataAccount,
         };
     }
 }

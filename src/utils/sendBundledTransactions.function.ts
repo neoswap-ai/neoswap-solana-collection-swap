@@ -1,10 +1,21 @@
-import { Cluster, Connection, Finality, Keypair, VersionedTransaction } from "@solana/web3.js";
+import {
+    Cluster,
+    Connection,
+    Finality,
+    Keypair,
+    Transaction,
+    VersionedTransaction,
+} from "@solana/web3.js";
 import { getProgram } from "./getProgram.obj";
-import { COptionSend, ErrorFeedback, OptionSend, TxWithSigner } from "./types";
+import { BundleTransaction, COptionSend, ErrorFeedback, OptionSend, TxWithSigner } from "./types";
 import { isConfirmedTx } from "./isConfirmedTx.function";
 import { AnchorProvider } from "@coral-xyz/anchor";
-import { sendSingleTransaction } from "./sendSingleTransaction.function";
-import { checkOptionSend } from "./check";
+import {
+    sendSingleBundleTransaction,
+    sendSingleTransaction,
+} from "./sendSingleTransaction.function";
+import { checkOptionSend, isVersionedArray, isVersionedTx } from "./check";
+import { addPriorityFee } from "./fees";
 
 export async function sendBundledTransactions(
     Data: COptionSend & {
@@ -12,23 +23,25 @@ export async function sendBundledTransactions(
         signer: Keypair;
     }
 ): Promise<string[]> {
-    let { clusterOrUrl, skipSimulation } = checkOptionSend(Data);
+    let cOptionSend = checkOptionSend(Data);
+    let { clusterOrUrl, skipSimulation, connection } = cOptionSend;
+    let { txsWithoutSigners, signer, skipConfirmation } = Data;
     try {
         const provider = getProgram({
             clusterOrUrl,
-            signer: Data.signer,
+            signer,
         }).provider;
 
-        const txsWithSigners = Data.txsWithoutSigners.map((txWithSigners) => {
-            txWithSigners.signers = [Data.signer];
+        const txsWithSigners = txsWithoutSigners.map((txWithSigners) => {
+            txWithSigners.signers = [signer];
             return txWithSigners;
         });
 
         console.log(
             "User ",
-            Data.signer.publicKey.toBase58(),
+            signer.publicKey.toBase58(),
             " has found to have ",
-            Data.txsWithoutSigners.length,
+            txsWithoutSigners.length,
             " transaction(s) to send \nBroadcasting to blockchain ..."
         );
         if (!provider.sendAll) throw { message: "your provider is not an AnchorProvider type" };
@@ -38,11 +51,11 @@ export async function sendBundledTransactions(
             skipPreflight: skipSimulation,
         });
 
-        if (!Data.skipConfirmation) {
+        if (!skipConfirmation) {
             const confirmArray = await isConfirmedTx({
-                clusterOrUrl: Data.clusterOrUrl,
+                clusterOrUrl,
                 transactionHashs,
-                connection: provider.connection,
+                connection,
             });
             confirmArray.forEach((confirmTx) => {
                 console.log("validating ", confirmTx.transactionHash, " ...");
@@ -62,45 +75,62 @@ export async function sendBundledTransactions(
     }
 }
 
-export async function sendBundledTransactionsV2(Data: {
-    txsWithoutSigners: TxWithSigner[];
-    signer: Keypair;
-    clusterOrUrl: Cluster | string;
-    simulation?: boolean;
-    skipConfirmation?: boolean;
-    provider?: AnchorProvider;
-    prioritizationFee?: number;
-    retryDelay?: number;
-}): Promise<string[]> {
-    const provider = Data.provider
-        ? Data.provider
-        : getProgram({ clusterOrUrl: Data.clusterOrUrl, signer: Data.signer }).provider;
+export async function sendBundledTransactionsV2(
+    Data: OptionSend & {
+        bundleTransactions: BundleTransaction[];
+        signer?: Keypair;
+    }
+): Promise<BundleTransaction[]> {
+    let cOptionSend = checkOptionSend(Data);
+    let { clusterOrUrl, prioritizationFee, skipSimulation, retryDelay, connection } = cOptionSend;
 
-    const txsWithSigners = Data.txsWithoutSigners.map((txWithSigners) => {
-        txWithSigners.signers = [Data.signer];
-        return txWithSigners;
-    });
-    // console.log('program',program);
+    let { bundleTransactions, signer } = Data;
 
+    let recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
+
+    if (!signer)
+        bundleTransactions.map((tx) => {
+            tx.stx!.signatures.forEach((sig, i) => {
+                if (sig.toLocaleString().length === 0)
+                    throw {
+                        blockchain: "solana",
+                        status: "error",
+                        message: `signer is required for unsigned Tx`,
+                    } as ErrorFeedback;
+            });
+        });
+    else {
+        let tempSigner = signer;
+        bundleTransactions.forEach(async (BT) => {
+            if (isVersionedTx(BT.tx)) {
+                if (prioritizationFee)
+                    console.warn("prioritizationFee is not supported for VersionedTransaction");
+                BT.tx.message.recentBlockhash = recentBlockhash;
+                BT.stx = BT.tx;
+                BT.stx.sign([tempSigner]);
+            } else {
+                if (prioritizationFee) BT.tx = await addPriorityFee(BT.tx, prioritizationFee);
+
+                BT.tx.feePayer = tempSigner.publicKey;
+                BT.tx.recentBlockhash = recentBlockhash;
+                BT.stx = BT.tx;
+                BT.stx.sign(tempSigner);
+            }
+        });
+    }
     console.log(
         "User ",
-        Data.signer.publicKey.toBase58(),
+        signer ? signer.publicKey.toBase58() : "- unknown signer -",
         " has found to have ",
-        txsWithSigners.length,
+        bundleTransactions.length,
         " transaction(s) to send \nBroadcasting to blockchain ..."
     );
-    if (!Data.simulation) Data.simulation = false;
 
     let transactionHashs = [];
-
-    for (let i = 0; i < txsWithSigners.length; i++) {
-        let hash = await sendSingleTransaction({
-            tx: txsWithSigners[i],
-            connection: provider.connection,
-            skipSimulation: !Data.simulation,
-            commitment: "confirmed",
-            retryDelay: Data.retryDelay ? Data.retryDelay : 5000,
-            clusterOrUrl: Data.clusterOrUrl,
+    for (let i = 0; i < bundleTransactions.length; i++) {
+        let hash = await sendSingleBundleTransaction({
+            bt: bundleTransactions[i],
+            ...cOptionSend,
         });
         transactionHashs.push(hash);
     }

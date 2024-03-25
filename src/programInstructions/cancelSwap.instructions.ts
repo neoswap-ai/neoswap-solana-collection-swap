@@ -10,7 +10,15 @@ import {
     TransactionInstruction,
     VersionedTransaction,
 } from "@solana/web3.js";
-import { ErrorFeedback, EnvOpts, BundleTransaction, ClaimArg, BTClaim } from "../utils/types";
+import {
+    ErrorFeedback,
+    EnvOpts,
+    BundleTransaction,
+    ClaimArg,
+    BTClaim,
+    BTv,
+    vT,
+} from "../utils/types";
 import { Program } from "@coral-xyz/anchor";
 import { findOrCreateAta } from "../utils/findOrCreateAta.function";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
@@ -29,25 +37,19 @@ import {
 import { TokenStandard } from "@metaplex-foundation/mpl-token-metadata";
 import { DESC } from "../utils/descriptions";
 import { addPriorityFee } from "../utils/fees";
+import { refreshBTBlockhash } from "../utils/refreshBTBlockhash";
+import { checkEnvOpts, getClaimArgs, getMakeArgs } from "../utils/check";
 
 export async function createCancelSwapInstructions(
     Data: EnvOpts & ClaimArg
 ): Promise<BundleTransaction> {
     console.log(VERSION);
-    if (Data.program && Data.clusterOrUrl) {
-    } else if (!Data.program && Data.clusterOrUrl) {
-        Data.program = getProgram({ clusterOrUrl: Data.clusterOrUrl });
-    } else if (!Data.clusterOrUrl && Data.program) {
-        Data.clusterOrUrl = Data.program.provider.connection.rpcEndpoint;
-    } else {
-        throw {
-            blockchain: "solana",
-            status: "error",
-            message: "clusterOrUrl or program is required",
-        } as ErrorFeedback;
-    }
+    let cEnvOpts = checkEnvOpts(Data);
+    let { program, prioritizationFee } = cEnvOpts;
+    let claimSArgs = getClaimArgs(Data);
+    let { signer, swapDataAccount } = claimSArgs;
 
-    let connection = Data.program.provider.connection;
+    let connection = program.provider.connection;
 
     let instructions: TransactionInstruction[] = [
         ComputeBudgetProgram.setComputeUnitLimit({
@@ -56,18 +58,18 @@ export async function createCancelSwapInstructions(
     ];
     try {
         let swapDataData = await getSdaData({
-            program: Data.program,
-            swapDataAccount: Data.swapDataAccount,
+            program: program,
+            swapDataAccount: swapDataAccount,
         });
-        if (!swapDataData) throw "no swapData found at " + Data.swapDataAccount;
+        if (!swapDataData) throw "no swapData found at " + swapDataAccount;
 
-        const { paymentMint, maker, nftMintMaker } = swapDataData;
+        const { mintToken, maker, nftMintMaker } = swapDataData;
 
         let { mintAta: makerNftAta, instruction: mN } = await findOrCreateAta({
             connection,
             mint: nftMintMaker,
             owner: maker,
-            signer: Data.signer,
+            signer: signer,
         });
         if (mN) {
             console.log("adding );");
@@ -76,9 +78,9 @@ export async function createCancelSwapInstructions(
 
         let { mintAta: makerTokenAta, instruction: mT } = await findOrCreateAta({
             connection,
-            mint: paymentMint,
+            mint: mintToken,
             owner: maker,
-            signer: Data.signer,
+            signer: signer,
         });
         if (mT) {
             console.log("adding );");
@@ -86,9 +88,9 @@ export async function createCancelSwapInstructions(
         }
         let { mintAta: swapDataAccountTokenAta, instruction: sdaT } = await findOrCreateAta({
             connection,
-            mint: paymentMint,
-            owner: Data.swapDataAccount,
-            signer: Data.signer,
+            mint: mintToken,
+            owner: swapDataAccount,
+            signer: signer,
         });
         if (sdaT) {
             console.log("adding sdaT");
@@ -98,8 +100,8 @@ export async function createCancelSwapInstructions(
         let { mintAta: swapDataAccountNftAta, instruction: sdaN } = await findOrCreateAta({
             connection,
             mint: nftMintMaker,
-            owner: Data.swapDataAccount,
-            signer: Data.signer,
+            owner: swapDataAccount,
+            signer: signer,
         });
 
         if (sdaN) {
@@ -111,7 +113,7 @@ export async function createCancelSwapInstructions(
             connection,
             mint: nftMintMaker,
             owner: maker,
-            signer: Data.signer,
+            signer: signer,
         });
         if (tmN) {
             console.log("adding tmN");
@@ -124,10 +126,10 @@ export async function createCancelSwapInstructions(
                 mint: nftMintMaker,
             });
 
-        let nftMasterEditionMaker = Data.signer;
-        let ownerTokenRecordMaker = Data.signer;
-        let destinationTokenRecordMaker = Data.signer;
-        let authRulesMaker = Data.signer;
+        let nftMasterEditionMaker = signer;
+        let ownerTokenRecordMaker = signer;
+        let destinationTokenRecordMaker = signer;
+        let authRulesMaker = signer;
 
         if (tokenStandardMaker == TokenStandard.ProgrammableNonFungible) {
             const nftMasterEditionF = findNftMasterEdition({
@@ -154,12 +156,12 @@ export async function createCancelSwapInstructions(
             authRulesMaker = authRulesF;
         }
 
-        const cancelIx = await Data.program.methods
+        const cancelIx = await program.methods
             .cancelSwap()
             .accounts({
-                signer: Data.signer,
+                signer: signer,
 
-                swapDataAccount: Data.swapDataAccount,
+                swapDataAccount: swapDataAccount,
                 swapDataAccountNftAta,
                 swapDataAccountTokenAta,
 
@@ -168,7 +170,7 @@ export async function createCancelSwapInstructions(
                 makerTokenAta,
 
                 nftMintMaker,
-                mintToken: paymentMint,
+                mintToken: mintToken,
 
                 nftMetadataMaker,
                 nftMasterEditionMaker,
@@ -188,23 +190,25 @@ export async function createCancelSwapInstructions(
         instructions.push(cancelIx);
 
         let cancelSwapTx = new Transaction().add(...instructions);
-        cancelSwapTx = await addPriorityFee(cancelSwapTx, Data.prioritizationFee);
+        cancelSwapTx = await addPriorityFee(cancelSwapTx, prioritizationFee);
         cancelSwapTx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
-        cancelSwapTx.feePayer = new PublicKey(Data.signer);
-        return {
+        cancelSwapTx.feePayer = new PublicKey(signer);
+        let bt = {
             tx: new VersionedTransaction(cancelSwapTx.compileMessage()),
             description: DESC.cancelSwap,
             details: Data,
             priority: 0,
             blockheight: (await connection.getLatestBlockhash()).lastValidBlockHeight,
             status: "pending",
-        } as BTClaim;
+        } as BundleTransaction;
+
+        return (await refreshBTBlockhash([bt], cEnvOpts))[0];
     } catch (error: any) {
         throw {
             blockchain: "solana",
             status: "error",
             message: error,
-            swapDataAccount: Data.swapDataAccount,
+            swapDataAccount: swapDataAccount,
         };
     }
 }

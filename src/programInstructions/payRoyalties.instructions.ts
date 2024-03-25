@@ -17,6 +17,7 @@ import {
     OptionSend,
     ErrorFeedback,
     EnvOpts,
+    BTv,
 } from "../utils/types";
 import { Program } from "@coral-xyz/anchor";
 import { findOrCreateAta } from "../utils/findOrCreateAta.function";
@@ -55,7 +56,7 @@ export async function createPayRoyaltiesInstructions(
             swapDataAccount: swapDataAccount,
         });
         if (!swapDataData) throw "no swapData found at " + swapDataAccount;
-        let { paymentMint, maker, nftMintMaker, taker, nftMintTaker, acceptedBid } = swapDataData;
+        let { mintToken, maker, nftMintMaker, taker, nftMintTaker, acceptedBid } = swapDataData;
 
         if (!(nftMintTaker && taker && acceptedBid)) {
             throw "SDA doesnt have accepted bids" + JSON.stringify(swapDataData);
@@ -70,7 +71,7 @@ export async function createPayRoyaltiesInstructions(
         } = await getCreatorData({
             connection,
             nftMintMaker,
-            paymentMint,
+            mintToken,
             taker,
             signer: signer,
             nftMintTaker,
@@ -80,7 +81,7 @@ export async function createPayRoyaltiesInstructions(
 
         let { mintAta: swapDataAccountTokenAta, instruction: sdat } = await findOrCreateAta({
             connection,
-            mint: paymentMint,
+            mint: mintToken,
             owner: swapDataAccount,
             signer: signer,
         });
@@ -90,7 +91,7 @@ export async function createPayRoyaltiesInstructions(
         }
         let { mintAta: nsFeeTokenAta, instruction: nst } = await findOrCreateAta({
             connection,
-            mint: paymentMint,
+            mint: mintToken,
             owner: NS_FEE,
             signer: signer,
         });
@@ -112,7 +113,7 @@ export async function createPayRoyaltiesInstructions(
 
         let { mintAta: makerTokenAta, instruction: mt } = await findOrCreateAta({
             connection,
-            mint: paymentMint,
+            mint: mintToken,
             owner: maker,
             signer: signer,
         });
@@ -134,7 +135,7 @@ export async function createPayRoyaltiesInstructions(
 
         let { mintAta: takerTokenAta, instruction: tt } = await findOrCreateAta({
             connection,
-            mint: paymentMint,
+            mint: mintToken,
             owner: taker,
             signer: signer,
         });
@@ -164,7 +165,7 @@ export async function createPayRoyaltiesInstructions(
                 swapDataAccount: swapDataAccount,
                 swapDataAccountTokenAta,
                 signer: signer,
-                mintToken: paymentMint,
+                mintToken: mintToken,
 
                 nftMetadataTaker,
                 nftMetadataMaker,
@@ -200,7 +201,7 @@ export async function createPayRoyaltiesInstructions(
             priority: 0,
             status: "pending",
             blockheight: (await connection.getLatestBlockhash()).lastValidBlockHeight,
-        } as BTClaim;
+        } as BTv;
     } catch (error: any) {
         console.log("error init", error);
 

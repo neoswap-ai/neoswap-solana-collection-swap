@@ -8,7 +8,7 @@ export async function getCreatorData(Data: {
     nftMintTaker: string;
     nftMintMaker: string;
     connection: Connection;
-    paymentMint: string;
+    mintToken: string;
 }) {
     let instructions: TransactionInstruction[] = [];
 
@@ -26,7 +26,7 @@ export async function getCreatorData(Data: {
     let takerAta = (
         await findOrCreateAta({
             connection: Data.connection,
-            mint: Data.paymentMint,
+            mint: Data.mintToken,
             owner: Data.taker,
             signer: Data.signer,
         })
@@ -46,7 +46,7 @@ export async function getCreatorData(Data: {
             let ataData = await findOrCreateAta({
                 connection: Data.connection,
 
-                mint: Data.paymentMint,
+                mint: Data.mintToken,
                 owner: c.address.toString(),
                 signer: Data.signer,
             });
@@ -66,7 +66,7 @@ export async function getCreatorData(Data: {
             takerCreator[i] = c.address.toString();
             let ataData = await findOrCreateAta({
                 connection: Data.connection,
-                mint: Data.paymentMint,
+                mint: Data.mintToken,
                 owner: c.address.toString(),
                 signer: Data.signer,
             });
