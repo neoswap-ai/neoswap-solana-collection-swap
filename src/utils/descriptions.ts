@@ -1,5 +1,5 @@
 export const DESC = {
-    makeSwap: "Making a new swap...",
+    makeSwap: "Proposing...",
     takeSwap: "Accepting...",
     payRoyalties: "Paying royalties...",
     claimSwap: "Claiming...",
