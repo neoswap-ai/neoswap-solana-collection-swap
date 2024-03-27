@@ -160,7 +160,7 @@ export async function createMakeSwapInstructions(Data: MakeSArg & EnvOpts): Prom
                 makerTokenAta,
 
                 nftMintMaker: Data.nftMintMaker,
-                mintToken: Data.paymentMint,
+                paymentMint: Data.paymentMint,
 
                 nftMetadataMaker,
                 nftMasterEditionMaker,

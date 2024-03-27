@@ -210,7 +210,7 @@ export async function createTakeAndCloseSwapInstructions(
                     takerTokenAta,
 
                     nftMintTaker: Data.nftMintTaker,
-                    mintToken: paymentMint,
+                    paymentMint: paymentMint,
 
                     nftMetadataTaker,
                     nftMasterEditionTaker,
@@ -295,7 +295,7 @@ export async function createTakeAndCloseSwapInstructions(
                     // nsFeeTokenAta,
 
                     // nftMintTaker: Data.nftMintTaker,
-                    mintToken: paymentMint,
+                    paymentMint: paymentMint,
 
                     nftMetadataTaker,
                     nftMetadataMaker,
@@ -410,7 +410,7 @@ export async function createTakeAndCloseSwapInstructions(
                 makerTokenAta,
 
                 nftMintMaker,
-                mintToken: paymentMint,
+                paymentMint: paymentMint,
 
                 nftMetadataMaker,
                 nftMasterEditionMaker,

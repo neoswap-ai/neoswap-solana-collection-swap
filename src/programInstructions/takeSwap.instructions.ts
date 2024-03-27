@@ -204,7 +204,7 @@ export async function createTakeSwapInstructions(
                 takerTokenAta,
 
                 nftMintTaker: Data.nftMintTaker,
-                mintToken: paymentMint,
+                paymentMint: paymentMint,
 
                 nftMetadataTaker,
                 nftMasterEditionTaker,

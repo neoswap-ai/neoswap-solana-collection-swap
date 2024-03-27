@@ -179,7 +179,7 @@ export async function createPayRoyaltiesInstructions(
                 // nsFeeTokenAta,
 
                 // nftMintTaker: nftMintTaker,
-                mintToken: paymentMint,
+                paymentMint: paymentMint,
 
                 nftMetadataTaker,
                 nftMetadataMaker,
