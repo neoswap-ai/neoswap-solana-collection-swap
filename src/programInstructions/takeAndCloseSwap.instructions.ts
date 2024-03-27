@@ -6,7 +6,7 @@ import {
     TransactionInstruction,
     VersionedTransaction,
 } from "@solana/web3.js";
-import { BundleTransaction, EnvOpts, TakeSArg } from "../utils/types";
+import { BTv, BundleTransaction, EnvOpts, TakeSArg } from "../utils/types";
 import { findOrCreateAta } from "../utils/findOrCreateAta.function";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import {
@@ -55,7 +55,14 @@ export async function createTakeAndCloseSwapInstructions(
         });
         if (!swapDataData) throw "no swapData found at " + swapDataAccount;
 
-        const { paymentMint, maker, nftMintMaker, bids, acceptedBid, royaltiesPaid } = swapDataData;
+        const {
+            paymentMint: paymentMint,
+            maker,
+            nftMintMaker,
+            bids,
+            acceptedBid,
+            royaltiesPaid,
+        } = swapDataData;
 
         const foundBid = bids.find(
             (b) =>
@@ -188,7 +195,7 @@ export async function createTakeAndCloseSwapInstructions(
                     takerNftAta,
                     takerTokenAta,
 
-                    nftMintTaker: nftMintTaker,
+                    nftMintTaker,
                     paymentMint,
 
                     nftMetadataTaker,
@@ -411,20 +418,14 @@ export async function createTakeAndCloseSwapInstructions(
 
         let claimSwapTx = await ix2vTx(claimSIxs, cEnvOpts, taker);
 
-        let bTTakeAndClose: BundleTransaction[] = [];
+        let bTTakeAndClose: BTv[] = [];
         let priority = 0;
 
         if (takeSwapTx) {
             bTTakeAndClose.push({
                 tx: takeSwapTx,
                 description: DESC.takeSwap,
-                details: {
-                    bid: bid,
-                    nftMintTaker: nftMintTaker,
-                    swapDataAccount,
-                    taker,
-                    prioritizationFee: prioritizationFee,
-                },
+                details: takeArgs,
                 priority,
                 status: "pending",
                 blockheight,
@@ -437,11 +438,7 @@ export async function createTakeAndCloseSwapInstructions(
             bTTakeAndClose.push({
                 tx: payRoyaltiesTx,
                 description: DESC.payRoyalties,
-                details: {
-                    swapDataAccount,
-                    signer: taker,
-                    prioritizationFee: prioritizationFee,
-                },
+                details: takeArgs,
                 priority,
                 status: "pending",
                 blockheight,
@@ -453,15 +450,11 @@ export async function createTakeAndCloseSwapInstructions(
         bTTakeAndClose.push({
             tx: claimSwapTx,
             description: DESC.claimSwap,
-            details: {
-                swapDataAccount,
-                signer: taker,
-                prioritizationFee: prioritizationFee,
-            },
+            details: takeArgs,
             priority,
             status: "pending",
             blockheight,
-        } as BundleTransaction);
+        });
         let bh = (await connection.getLatestBlockhash()).blockhash;
         bTTakeAndClose.map((b) => (b.tx.message.recentBlockhash = bh));
         return bTTakeAndClose;

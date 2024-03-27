@@ -162,7 +162,7 @@ export async function createCancelSwapInstructions(
                 makerTokenAta,
 
                 nftMintMaker,
-                paymentMint: paymentMint,
+                paymentMint,
 
                 nftMetadataMaker,
                 nftMasterEditionMaker,

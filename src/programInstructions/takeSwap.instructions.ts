@@ -1,12 +1,9 @@
 import { getSdaData } from "../utils/getSdaData.function";
 import {
     ComputeBudgetProgram,
-    PublicKey,
     SYSVAR_INSTRUCTIONS_PUBKEY,
     SystemProgram,
-    Transaction,
     TransactionInstruction,
-    VersionedTransaction,
 } from "@solana/web3.js";
 import { BundleTransaction, EnvOpts, TakeSArg } from "../utils/types";
 import { findOrCreateAta } from "../utils/findOrCreateAta.function";
@@ -27,7 +24,6 @@ import { TokenStandard } from "@metaplex-foundation/mpl-token-metadata";
 import { bidToscBid } from "../utils/typeSwap";
 import { DESC } from "../utils/descriptions";
 import { WRAPPED_SOL_MINT } from "@metaplex-foundation/js";
-import { addPriorityFee } from "../utils/fees";
 import { addWSol } from "../utils/wsol";
 import { checkEnvOpts, checkOptionSend, getTakeArgs } from "../utils/check";
 import { ix2vTx } from "../utils/vtx";
@@ -36,7 +32,7 @@ export async function createTakeSwapInstructions(
     Data: TakeSArg & EnvOpts
 ): Promise<BundleTransaction> {
     console.log(VERSION);
-
+  
     let cOptionSend = checkOptionSend(Data);
     let cEnvOpts = checkEnvOpts(Data);
     let takeArgs = getTakeArgs(Data);
@@ -211,7 +207,7 @@ export async function createTakeSwapInstructions(
         return {
             tx: await ix2vTx(instructions, cEnvOpts, taker),
             description: DESC.takeSwap,
-            details: Data,
+            details: takeArgs,
             priority: 0,
             status: "pending",
         };

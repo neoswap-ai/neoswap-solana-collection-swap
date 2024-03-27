@@ -43,7 +43,7 @@ export const idlSwap: Idl = {
                     isSigner: false,
                 },
                 {
-                    name: "mintToken",
+                    name: "paymentMint",
                     isMut: false,
                     isSigner: false,
                 },
@@ -169,7 +169,7 @@ export const idlSwap: Idl = {
                     isSigner: false,
                 },
                 {
-                    name: "mintToken",
+                    name: "paymentMint",
                     isMut: false,
                     isSigner: false,
                 },
@@ -256,7 +256,7 @@ export const idlSwap: Idl = {
                     isSigner: false,
                 },
                 {
-                    name: "mintToken",
+                    name: "paymentMint",
                     isMut: false,
                     isSigner: false,
                 },
@@ -409,7 +409,7 @@ export const idlSwap: Idl = {
                     isSigner: false,
                 },
                 {
-                    name: "mintToken",
+                    name: "paymentMint",
                     isMut: false,
                     isSigner: false,
                 },
@@ -524,7 +524,7 @@ export const idlSwap: Idl = {
                     isSigner: false,
                 },
                 {
-                    name: "mintToken",
+                    name: "paymentMint",
                     isMut: false,
                     isSigner: false,
                 },

@@ -132,11 +132,7 @@ export async function createMakeSwapInstructions(Data: MakeSArg & EnvOpts): Prom
             let amount = bid.makerNeoswapFee + bid.makerRoyalties;
             if (bid.amount < 0) amount += -bid.amount;
             console.log(
-                "Wrapping ",
-                amount,
-                " ( ",
-                amount / LAMPORTS_PER_SOL,
-                " ) lamports to wSOL"
+                "Wrapping " + amount + " ( " + amount / LAMPORTS_PER_SOL + " ) lamports to wSOL"
             );
 
             instructions.push(...addWSol(maker, makerTokenAta, amount));
@@ -155,7 +151,7 @@ export async function createMakeSwapInstructions(Data: MakeSArg & EnvOpts): Prom
                 makerTokenAta,
 
                 nftMintMaker: nftMintMaker,
-                paymentMint: paymentMint,
+                paymentMint,
 
                 nftMetadataMaker,
                 nftMasterEditionMaker,

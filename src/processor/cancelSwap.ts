@@ -1,31 +1,29 @@
 import { Cluster, Keypair, PublicKey } from "@solana/web3.js";
-import { Bid, ClaimArg, ErrorFeedback, OptionSend } from "../utils/types";
+import { Bid, BundleTransaction, ClaimArg, ErrorFeedback, OptionSend } from "../utils/types";
 import { getProgram } from "../utils/getProgram.obj";
 import { AnchorProvider } from "@coral-xyz/anchor";
-import { sendSingleTransaction } from "../utils/sendSingleTransaction.function";
+import {
+    sendSingleBundleTransaction,
+    sendSingleTransaction,
+} from "../utils/sendSingleTransaction.function";
 import { createCancelSwapInstructions } from "../programInstructions/cancelSwap.instructions";
-import { checkEnvOpts, checkOptionSend, getClaimArgs } from "../utils/check";
+import { checkEnvOpts, checkOptionSend, getClaimArgs, getMakeArgs } from "../utils/check";
 
 export async function cancelSwap(
     Data: OptionSend &
         Omit<ClaimArg, "signer"> & {
             signer: Keypair;
         }
-): Promise<string> {
-    let cOptionSend = checkOptionSend(Data);
-    let cEnvOpts = checkEnvOpts(Data);
+): Promise<BundleTransaction> {
+    let optionSend = checkOptionSend(Data);
     let claimArgs = getClaimArgs(Data);
+    let cEnvOpts = checkEnvOpts(Data);
 
     try {
-        return await sendSingleTransaction({
-            tx: (
-                await createCancelSwapInstructions({
-                    ...claimArgs,
-                    ...cEnvOpts,
-                })
-            ).tx,
+        return await sendSingleBundleTransaction({
+            bt: await createCancelSwapInstructions({ ...claimArgs, ...cEnvOpts }),
             signer: Data.signer,
-            ...cOptionSend,
+            ...optionSend,
         });
     } catch (error) {
         throw {

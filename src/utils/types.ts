@@ -92,9 +92,15 @@ export type InitializeData = {
     tx: VersionedTransaction;
 };
 
-export type BundleTxBase = {
+export type vT = {
     tx: VersionedTransaction; // [];
-    stx?: VersionedTransaction; // [];
+    stx?: VersionedTransaction;
+};
+export type T = {
+    tx: Transaction; // [];
+    stx?: Transaction;
+};
+export type BundleTxBase = {
     blockheight?: number;
     description: string;
     priority: number;
@@ -104,9 +110,12 @@ export type BundleTxBase = {
     retries?: number;
 };
 
-export type BundleTransaction = BundleTxBase & {
-    details: MakeSArg | TakeSArg | ClaimArg | UpdateArgs;
-};
+export type BTact = BundleTxBase & { details: MakeSArg | TakeSArg | ClaimArg | UpdateArgs };
+
+export type BTv = BTact & vT;
+export type BTt = BTact & T;
+
+export type BundleTransaction = BTv | BTt;
 
 export type MakeSArg = {
     maker: string;
@@ -114,19 +123,16 @@ export type MakeSArg = {
     paymentMint: string;
     bid: Bid;
     endDate: number;
-    prioritizationFee?: number;
 };
 export type TakeSArg = {
     swapDataAccount: string;
     taker: string;
     nftMintTaker: string;
     bid: Bid;
-    prioritizationFee?: number;
 };
 export type ClaimArg = {
     swapDataAccount: string;
     signer: string;
-    prioritizationFee?: number;
 };
 export type UpdateArgs = { bid: Bid; swapDataAccount: string; maker: string };
 

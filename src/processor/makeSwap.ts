@@ -1,42 +1,44 @@
-import { Cluster, Keypair, PublicKey } from "@solana/web3.js";
-import { Bid, ErrorFeedback, MakeSArg, OptionSend } from "../utils/types";
+import { Keypair } from "@solana/web3.js";
+import { BundleTransaction, EnvOpts, ErrorFeedback, MakeSArg, OptionSend } from "../utils/types";
 import { getProgram } from "../utils/getProgram.obj";
-import { AnchorProvider } from "@coral-xyz/anchor";
 import { createMakeSwapInstructions } from "../programInstructions/makeSwap.instructions";
-import { sendSingleTransaction } from "../utils/sendSingleTransaction.function";
-import { checkOptionSend, checkEnvOpts, getMakeArgs } from "../utils/check";
+import {
+    sendSingleBundleTransaction,
+    sendSingleTransaction,
+} from "../utils/sendSingleTransaction.function";
+import { checkEnvOpts, checkOptionSend, getMakeArgs } from "../utils/check";
 
 export async function makeSwap(
     Data: OptionSend &
         Omit<MakeSArg, "maker"> & {
             maker: Keypair;
         }
-): Promise<{ hash: string; swapDataAccount: string }> {
-    let cOptionSend = checkOptionSend(Data);
-    let cEnvOpts = checkEnvOpts(Data);
+): Promise<{ bundleTransaction: BundleTransaction; swapDataAccount: string }> {
+    let optionSend = checkOptionSend(Data);
     let makeArgs = getMakeArgs(Data);
-    let swapDataAccount = "unknown swapDataAccount";
+    let cEnvOpts = checkEnvOpts(Data);
+
+    let sda = "NOSDA";
 
     try {
-        const { bTx, swapDataAccount: sda } = await createMakeSwapInstructions({
+        const { bTx, swapDataAccount } = await createMakeSwapInstructions({
             ...makeArgs,
             ...cEnvOpts,
         });
-        swapDataAccount = sda;
-        const hash = await sendSingleTransaction({
-            tx: bTx.tx,
-            signer: Data.maker,
-            ...cOptionSend,
-        });
+        sda = swapDataAccount;
 
         return {
-            hash,
-            swapDataAccount: swapDataAccount,
+            bundleTransaction: await sendSingleBundleTransaction({
+                bt: bTx,
+                ...optionSend,
+                signer: Data.maker,
+            }),
+            swapDataAccount,
         };
     } catch (error) {
         throw {
             blockchain: "solana",
-            message: swapDataAccount + `- -\n` + error,
+            message: sda + `- -\n` + error,
             status: "error",
         } as ErrorFeedback;
     }

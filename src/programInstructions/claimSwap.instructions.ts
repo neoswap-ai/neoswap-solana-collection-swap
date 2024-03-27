@@ -170,7 +170,7 @@ export async function createClaimSwapInstructions(
                 makerTokenAta,
 
                 nftMintMaker,
-                paymentMint: paymentMint,
+                paymentMint,
 
                 nftMetadataMaker,
                 nftMasterEditionMaker,

@@ -1,8 +1,19 @@
 import { Cluster, Keypair, PublicKey } from "@solana/web3.js";
-import { Bid, ErrorFeedback, OptionSend, TakeSArg } from "../utils/types";
+import {
+    Bid,
+    BundleTransaction,
+    CEnvOpts,
+    EnvOpts,
+    ErrorFeedback,
+    OptionSend,
+    TakeSArg,
+} from "../utils/types";
 import { getProgram } from "../utils/getProgram.obj";
 import { AnchorProvider } from "@coral-xyz/anchor";
-import { sendBundledTransactions } from "../utils/sendBundledTransactions.function";
+import {
+    sendBundledTransactions,
+    sendBundledTransactionsV2,
+} from "../utils/sendBundledTransactions.function";
 
 import { createTakeAndCloseSwapInstructions } from "../programInstructions/takeAndCloseSwap.instructions";
 import { checkEnvOpts, checkOptionSend, getTakeArgs } from "../utils/check";
@@ -12,19 +23,19 @@ export async function takeAndCloseSwap(
         Omit<TakeSArg, "taker"> & {
             taker: Keypair;
         }
-): Promise<string[]> {
-    let cOptionSend = checkOptionSend(Data);
-    let cEnvOpts = checkEnvOpts(Data);
+): Promise<BundleTransaction[]> {
     let takeArgs = getTakeArgs(Data);
+    let optionSend = checkOptionSend(Data);
+    let cEnvOpts = checkEnvOpts(Data);
 
     try {
-        return await sendBundledTransactions({
-            txsWithoutSigners: await createTakeAndCloseSwapInstructions({
+        return await sendBundledTransactionsV2({
+            signer: Data.taker,
+            bundleTransactions: await createTakeAndCloseSwapInstructions({
                 ...takeArgs,
                 ...cEnvOpts,
             }),
-            signer: Data.taker,
-            ...cOptionSend,
+            ...optionSend,
         });
     } catch (error) {
         throw {

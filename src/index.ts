@@ -22,7 +22,11 @@ import { getCNFTData, getCNFTOwner } from "./utils/getCNFTData.function";
 import { getProgram } from "./utils/getProgram.obj";
 import { getOpenSda, getSdaData } from "./utils/getSdaData.function";
 import { isConfirmedTx } from "./utils/isConfirmedTx.function";
-import { sendBundledTransactions } from "./utils/sendBundledTransactions.function";
+import {
+    sendBundledTransactions,
+    sendBundledTransactionsV2,
+} from "./utils/sendBundledTransactions.function";
+import { sendSingleBundleTransaction } from "./utils/sendSingleTransaction.function";
 import { bidToscBid } from "./utils/typeSwap";
 import { addWSol, closeWSol } from "./utils/wsol";
 // import { closeUserPda } from "./utils/userPdaClose";
@@ -44,6 +48,8 @@ const UTILS = {
     getSdaData,
     getOpenSda,
     sendBundledTransactions,
+    sendBundledTransactionsV2,
+    sendSingleBundleTransaction,
     isConfirmedTx,
     findOrCreateAta,
     addWSol,

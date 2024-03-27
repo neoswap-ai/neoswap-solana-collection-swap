@@ -24,7 +24,7 @@ export async function createPayRoyaltiesInstructions(
     let cOptionSend = checkOptionSend(Data);
     let cEnvOpts = checkEnvOpts(Data);
     let claimArgs = getClaimArgs(Data);
-    let { connection, prioritizationFee } = cOptionSend;
+    let { connection } = cOptionSend;
     let { program } = cEnvOpts;
     let { signer, swapDataAccount } = claimArgs;
 
@@ -149,18 +149,8 @@ export async function createPayRoyaltiesInstructions(
                 swapDataAccount,
                 swapDataAccountTokenAta,
 
-                // maker,
-                // makerNftAta,
-                // makerTokenAta,
-
                 signer,
-                // takerNftAta,
-                // takerTokenAta,
 
-                // nsFee: NS_FEE,
-                // nsFeeTokenAta,
-
-                // nftMintTaker: nftMintTaker,
                 paymentMint,
 
                 nftMetadataTaker,
@@ -168,11 +158,6 @@ export async function createPayRoyaltiesInstructions(
 
                 metadataProgram: TOKEN_METADATA_PROGRAM,
                 tokenProgram: TOKEN_PROGRAM_ID,
-
-                // systemProgram: SystemProgram.programId,
-                // sysvarInstructions: SYSVAR_INSTRUCTIONS_PUBKEY,
-                // ataProgram: SOLANA_SPL_ATA_PROGRAM_ID,
-                // authRulesProgram: METAPLEX_AUTH_RULES_PROGRAM,
 
                 makerCreator0: makerCreator[0],
                 makerCreator0TokenAta: makerCreatorTokenAta[0],
@@ -197,7 +182,7 @@ export async function createPayRoyaltiesInstructions(
             priority: 0,
             status: "pending",
             blockheight: (await connection.getLatestBlockhash()).lastValidBlockHeight,
-        } as BundleTransaction;
+        };
     } catch (error: any) {
         console.log("error init", error);
 
