@@ -1,4 +1,8 @@
-import { createAssociatedTokenAccountInstruction, TOKEN_PROGRAM_ID } from "@solana/spl-token";
+import {
+    createAssociatedTokenAccountInstruction,
+    TOKEN_2022_PROGRAM_ID,
+    TOKEN_PROGRAM_ID,
+} from "@solana/spl-token";
 import { Cluster, Connection, PublicKey, TransactionInstruction } from "@solana/web3.js";
 import {
     SOLANA_SPL_ATA_PROGRAM_ID,
@@ -27,7 +31,7 @@ export async function findOrCreateAta(Data: {
     try {
         let values: { address: PublicKey; value: number }[] = [];
         let mintAtas = (
-            await Data.connection.getTokenAccountsByOwner(new PublicKey(Data.owner), {
+            await Data.connection.getParsedTokenAccountsByOwner(new PublicKey(Data.owner), {
                 mint: new PublicKey(Data.mint),
             })
         ).value;
@@ -57,10 +61,18 @@ export async function findOrCreateAta(Data: {
             mintAta,
         };
     } catch (eee) {
+        let tokProg;
+        try {
+            tokProg = (await Data.connection.getParsedAccountInfo(new PublicKey(Data.mint))).value
+                ?.owner;
+        } catch {}
+        
+        if (!tokProg) tokProg = TOKEN_PROGRAM_ID;
+
         const mintAta = PublicKey.findProgramAddressSync(
             [
                 new PublicKey(Data.owner).toBuffer(),
-                TOKEN_PROGRAM_ID.toBuffer(),
+                tokProg.toBuffer(),
                 new PublicKey(Data.mint).toBuffer(),
             ],
             new PublicKey(SOLANA_SPL_ATA_PROGRAM_ID)
@@ -74,7 +86,8 @@ export async function findOrCreateAta(Data: {
                 new PublicKey(Data.signer),
                 new PublicKey(mintAta),
                 new PublicKey(Data.owner),
-                new PublicKey(Data.mint)
+                new PublicKey(Data.mint),
+                tokProg
             ),
         };
     }

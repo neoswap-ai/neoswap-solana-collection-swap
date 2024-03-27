@@ -65,15 +65,21 @@ export function checkEnvOpts(Data: EnvOpts): CEnvOpts {
 
     return { program, clusterOrUrl, connection: program.provider.connection };
 }
-
 export function getMakeArgs(
     Data: any &
-        Omit<MakeSArg, "maker"> & {
-            maker: Keypair;
-        }
+        (
+            | MakeSArg
+            | (Omit<MakeSArg, "maker"> & {
+                  maker: Keypair;
+              })
+        )
 ): MakeSArg {
-    let { bid, endDate, maker: makerK, nftMintMaker, mintToken } = Data;
-    let maker = makerK.publicKey.toString();
+    let { bid, endDate, maker: mmm, nftMintMaker, mintToken } = Data;
+
+    let maker = "";
+    if (typeof mmm === "string") maker = mmm;
+    else maker = mmm.publicKey.toString();
+
     return { bid, endDate, maker, nftMintMaker, mintToken };
 }
 
