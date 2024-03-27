@@ -4,6 +4,7 @@ import { getProgram } from "../utils/getProgram.obj";
 import { AnchorProvider } from "@coral-xyz/anchor";
 import { createMakeSwapInstructions } from "../programInstructions/makeSwap.instructions";
 import { sendSingleTransaction } from "../utils/sendSingleTransaction.function";
+import { checkOptionSend, checkEnvOpts, getMakeArgs } from "../utils/check";
 
 export async function makeSwap(
     Data: OptionSend &
@@ -11,35 +12,31 @@ export async function makeSwap(
             maker: Keypair;
         }
 ): Promise<{ hash: string; swapDataAccount: string }> {
-    const program = getProgram({ clusterOrUrl: Data.clusterOrUrl, signer: Data.maker });
+    let cOptionSend = checkOptionSend(Data);
+    let cEnvOpts = checkEnvOpts(Data);
+    let makeArgs = getMakeArgs(Data);
+    let swapDataAccount = "unknown swapDataAccount";
 
-    const { bTx, swapDataAccount } = await createMakeSwapInstructions({
-        program,
-        maker: Data.maker.publicKey.toString(),
-        bid: Data.bid,
-        endDate: Data.endDate,
-        nftMintMaker: Data.nftMintMaker,
-        paymentMint: Data.paymentMint,
-        prioritizationFee: Data.prioritizationFee,
-    });
     try {
+        const { bTx, swapDataAccount: sda } = await createMakeSwapInstructions({
+            ...makeArgs,
+            ...cEnvOpts,
+        });
+        swapDataAccount = sda;
         const hash = await sendSingleTransaction({
-            connection: program.provider.connection,
             tx: bTx.tx,
             signer: Data.maker,
-            clusterOrUrl: Data.clusterOrUrl,
-            skipSimulation: Data.skipSimulation,
-            skipConfirmation: Data.skipConfirmation,
+            ...cOptionSend,
         });
 
         return {
             hash,
-            swapDataAccount: swapDataAccount.toString(),
+            swapDataAccount: swapDataAccount,
         };
     } catch (error) {
         throw {
             blockchain: "solana",
-            message: swapDataAccount.toString() + `- -\n` + error,
+            message: swapDataAccount + `- -\n` + error,
             status: "error",
         } as ErrorFeedback;
     }

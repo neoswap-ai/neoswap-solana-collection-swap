@@ -42,7 +42,8 @@ export function swapDataToScSwapData(bid: SwapData): ScSwapData {
 export function scSwapDataToSwapData(scSwapData: ScSwapData): SwapData {
     let status: SwapData["status"] = "active";
     if (scSwapData.acceptedBid) status = "accepted";
-    else if (scSwapData.endTime.lt(new BN(Date.now() / 1000))) status = "expired";
+    else if (scSwapData.endTime.lt(new BN(Date.now() / 1000)) && scSwapData.endTime.toNumber() != 0)
+        status = "expired";
     return {
         bids: scSwapData.bids.map(scBidToBid),
         endTime: scSwapData.endTime.toNumber(),

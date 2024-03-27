@@ -7,6 +7,7 @@ import { takeSwap } from "./processor/takeSwap";
 import { createCancelSwapInstructions } from "./programInstructions/cancelSwap.instructions";
 import { createClaimSwapInstructions } from "./programInstructions/claimSwap.instructions";
 import { createMakeSwapInstructions } from "./programInstructions/makeSwap.instructions";
+import { createAddBidIx, createRmBidIx } from "./programInstructions/modifyAddBid.instructions";
 import { createPayRoyaltiesInstructions } from "./programInstructions/payRoyalties.instructions";
 import { createTakeAndCloseSwapInstructions } from "./programInstructions/takeAndCloseSwap.instructions";
 import { createTakeSwapInstructions } from "./programInstructions/takeSwap.instructions";
@@ -22,6 +23,7 @@ import { getProgram } from "./utils/getProgram.obj";
 import { getOpenSda, getSdaData } from "./utils/getSdaData.function";
 import { isConfirmedTx } from "./utils/isConfirmedTx.function";
 import { sendBundledTransactions } from "./utils/sendBundledTransactions.function";
+import { bidToscBid } from "./utils/typeSwap";
 import { addWSol, closeWSol } from "./utils/wsol";
 // import { closeUserPda } from "./utils/userPdaClose";
 export * as neoTypes from "./utils/types";
@@ -46,6 +48,7 @@ const UTILS = {
     findOrCreateAta,
     addWSol,
     closeWSol,
+    bidToscBid,
     // closeUserPda,
 };
 const CREATE_INSTRUCTIONS = {
@@ -55,6 +58,8 @@ const CREATE_INSTRUCTIONS = {
     createClaimSwapInstructions,
     createTakeAndCloseSwapInstructions,
     createCancelSwapInstructions,
+    createAddBidIx,
+    createRmBidIx,
 };
 
 export const neoSwap = {

@@ -5,6 +5,7 @@ import { AnchorProvider } from "@coral-xyz/anchor";
 import { sendBundledTransactions } from "../utils/sendBundledTransactions.function";
 
 import { createTakeAndCloseSwapInstructions } from "../programInstructions/takeAndCloseSwap.instructions";
+import { checkEnvOpts, checkOptionSend, getTakeArgs } from "../utils/check";
 
 export async function takeAndCloseSwap(
     Data: OptionSend &
@@ -12,28 +13,23 @@ export async function takeAndCloseSwap(
             taker: Keypair;
         }
 ): Promise<string[]> {
-    const program = getProgram({ clusterOrUrl: Data.clusterOrUrl, signer: Data.taker });
+    let cOptionSend = checkOptionSend(Data);
+    let cEnvOpts = checkEnvOpts(Data);
+    let takeArgs = getTakeArgs(Data);
 
     try {
         return await sendBundledTransactions({
-            provider: program.provider as AnchorProvider,
             txsWithoutSigners: await createTakeAndCloseSwapInstructions({
-                swapDataAccount: Data.swapDataAccount,
-                taker: Data.taker.publicKey.toString(),
-                nftMintTaker: Data.nftMintTaker,
-                bid: Data.bid,
-                program,
-                prioritizationFee: Data.prioritizationFee,
+                ...takeArgs,
+                ...cEnvOpts,
             }),
             signer: Data.taker,
-            clusterOrUrl: Data.clusterOrUrl,
-            skipSimulation: Data.skipSimulation,
-            skipConfirmation: Data.skipConfirmation,
+            ...cOptionSend,
         });
     } catch (error) {
         throw {
             blockchain: "solana",
-            message: Data.swapDataAccount.toString() + `- -\n` + error,
+            message: Data.swapDataAccount + `- -\n` + error,
             status: "error",
         } as ErrorFeedback;
     }
