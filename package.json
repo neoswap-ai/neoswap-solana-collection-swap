@@ -1,6 +1,6 @@
 {
     "name": "@neoswap/solana-collection-swap",
-    "version": "0.1.6-Beta3",
+    "version": "0.1.6-Beta4",
     "repository": {
         "type": "git",
         "url": "git+https://github.com/neoswap-ai/neo-swap-npm.git"
@@ -21,7 +21,7 @@
     },
     "dependencies": {
         "@coral-xyz/anchor": "^0.29.0",
-        "@metaplex-foundation/js": "^0.19.5",
+        "@metaplex-foundation/js": "^0.20.1",
         "@metaplex-foundation/mpl-bubblegum": "^0.8.0",
         "@metaplex-foundation/mpl-token-metadata": "^2.13.0",
         "@metaplex-foundation/mpl-toolbox": "^0.9.4",
@@ -30,6 +30,7 @@
         "@solana/web3.js": "^1.91.2"
     },
     "devDependencies": {
+        "@solana/spl-token-metadata": "^0.1.2",
         "@types/bn.js": "^5.1.5",
         "@types/debug": "^4.1.12",
         "@types/node-fetch": "^2.6.11",
