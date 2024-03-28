@@ -3,6 +3,7 @@ import { Cluster, PublicKey } from "@solana/web3.js";
 import { ErrorFeedback, ScSwapData, SwapData } from "./types";
 import { getProgram } from "./getProgram.obj";
 import { scSwapDataToSwapData } from "./typeSwap";
+import { AVOID_LIST } from "./avoidList";
 
 export async function getSdaData(Data: {
     clusterOrUrl?: Cluster | string;
@@ -54,25 +55,9 @@ export async function getOpenSda(Data: {
             await Data.program.provider.connection.getProgramAccounts(Data.program.programId)
         ).map((x) => x.pubkey);
 
-        [
-            "AqAjqDJU9sUG4cF8AGEeTkGiJ4W5NYhJURVtxy1WKWv6",
-            "5nxc1hijiMkiiEtNUPqVQrkvjtmmtdRZCDAs4kcYwkC8",
-            "CqfdJZgtmN3Xqcm85YZrUTXSJjGm3cChyrGFk8L5WcMi",
-        ]
-            .concat([
-                "FsJgyoFyf5UdZmVvCPBhYbYajz9ShJy8hVwZNAur93cE",
-                "DSWxzxKrDvRPKtjCgR3mEzx2ZzK7VPSammbZcVQiBXCY",
-                "AAGKWoK1WV4adSh1dQ8LWviSW97YnxXNCPmbFSyNaqTb",
-                "8RZykLrfvGNfBSDyFNQawEmXZvkUzRkLK4MuT1eqrxf",
-                "D1BQhb6FV3KSTxib8ftrYahfvGKdxBctW6Yc9JMSaUXu",
-                "8YJwoJ9VrqoHKxTmsMPcieK8oZRr3FNsytabKmSEmend",
-                "HDh5W3X1qEKnhMP8MNb2StmWEHuRhusJN5kSbbEMUr8N",
-                "9RjTFaJ5Vs8hpFPji21u5XrPV9NiqtVXHpKtYss9jYcp",
-            ])
-            .map((x) => new PublicKey(x))
-            .map((blacklist) => {
-                openSda = openSda.filter((x) => !x.equals(blacklist));
-            });
+        AVOID_LIST.map((x) => new PublicKey(x)).map((blacklist) => {
+            openSda = openSda.filter((x) => !x.equals(blacklist));
+        });
         console.log(
             "openSda",
             openSda.map((x) => x.toBase58())
