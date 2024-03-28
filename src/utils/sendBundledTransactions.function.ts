@@ -1,20 +1,9 @@
-import {
-    Cluster,
-    Connection,
-    Finality,
-    Keypair,
-    Transaction,
-    VersionedTransaction,
-} from "@solana/web3.js";
+import { Keypair } from "@solana/web3.js";
 import { getProgram } from "./getProgram.obj";
 import { BundleTransaction, COptionSend, ErrorFeedback, OptionSend, TxWithSigner } from "./types";
 import { isConfirmedTx } from "./isConfirmedTx.function";
-import { AnchorProvider } from "@coral-xyz/anchor";
-import {
-    sendSingleBundleTransaction,
-    sendSingleTransaction,
-} from "./sendSingleTransaction.function";
-import { checkOptionSend, isVersionedArray } from "./check";
+import { sendSingleBundleTransaction } from "./sendSingleTransaction.function";
+import { checkOptionSend } from "./check";
 import { addPriorityFee } from "./fees";
 import { isVersionedTransaction } from "@solana/wallet-adapter-base";
 
@@ -83,7 +72,7 @@ export async function sendBundledTransactionsV2(
     }
 ): Promise<BundleTransaction[]> {
     let cOptionSend = checkOptionSend(Data);
-    let { clusterOrUrl, prioritizationFee, skipSimulation, retryDelay, connection } = cOptionSend;
+    let { prioritizationFee, connection } = cOptionSend;
 
     let { bundleTransactions, signer } = Data;
 
@@ -127,13 +116,19 @@ export async function sendBundledTransactionsV2(
         " transaction(s) to send \nBroadcasting to blockchain ..."
     );
 
-    let transactionHashs = [];
-    for (let i = 0; i < bundleTransactions.length; i++) {
-        let hash = await sendSingleBundleTransaction({
-            bt: bundleTransactions[i],
-            ...cOptionSend,
-        });
-        transactionHashs.push(hash);
+    let processedBTs = [];
+    try {
+        for (let i = 0; i < bundleTransactions.length; i++) {
+            let bt = await sendSingleBundleTransaction({
+                bt: bundleTransactions[i],
+                ...cOptionSend,
+            });
+            processedBTs.push(bt);
+        }
+        return processedBTs;
+    } catch (error) {
+        console.log("bundleTransactions", bundleTransactions);
+        console.log("processedBTs", processedBTs);
+        throw { error, processedBTs, bundleTransactions };
     }
-    return transactionHashs;
 }
