@@ -10,6 +10,7 @@ import {
     TakeSArg,
 } from "./types";
 import { getProgram } from "./getProgram.obj";
+import { isVersionedTransaction } from "@solana/wallet-adapter-base";
 
 export function checkOptionSend(Data: OptionSend): COptionSend {
     let {
@@ -107,14 +108,9 @@ export function getClaimArgs(
     return { swapDataAccount, signer };
 }
 
-export function isVersionedTx(tx: Transaction | VersionedTransaction): tx is VersionedTransaction {
-    return "message" in tx;
-}
-
 export function isVersionedArray(
     txs: Transaction[] | VersionedTransaction[]
 ): txs is VersionedTransaction[] {
     if (txs.length === 0) return false;
-
-    return isVersionedTx(txs[0]);
+    return isVersionedTransaction(txs[0]);
 }

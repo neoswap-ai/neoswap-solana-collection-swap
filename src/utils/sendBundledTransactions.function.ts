@@ -14,8 +14,9 @@ import {
     sendSingleBundleTransaction,
     sendSingleTransaction,
 } from "./sendSingleTransaction.function";
-import { checkOptionSend, isVersionedArray, isVersionedTx } from "./check";
+import { checkOptionSend, isVersionedArray } from "./check";
 import { addPriorityFee } from "./fees";
+import { isVersionedTransaction } from "@solana/wallet-adapter-base";
 
 export async function sendBundledTransactions(
     Data: COptionSend & {
@@ -102,7 +103,7 @@ export async function sendBundledTransactionsV2(
     else {
         let tempSigner = signer;
         bundleTransactions.forEach(async (BT) => {
-            if (isVersionedTx(BT.tx)) {
+            if (isVersionedTransaction(BT.tx)) {
                 if (prioritizationFee)
                     console.warn("prioritizationFee is not supported for VersionedTransaction");
                 BT.tx.message.recentBlockhash = recentBlockhash;
