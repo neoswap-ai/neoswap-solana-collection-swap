@@ -1,4 +1,3 @@
-import { PublicKey } from "@solana/web3.js";
 import { idlSwap } from "./neoSwap.idl";
 // export const NEOSWAP_PROGRAM_ID =("HCg7NKnvWwWZdLXqDwZdjn9RDz9eLDYuSAcUHqeC1vmH"); // mainnet
 // export const NEOSWAP_PROGRAM_ID =("Et2RutKNHzB6XmsDXUGnDHJAGAsJ73gdHVkoKyV79BFY"); // local test
