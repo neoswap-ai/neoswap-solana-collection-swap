@@ -3,7 +3,7 @@ import { Cluster, Connection, Keypair, PublicKey, clusterApiUrl } from "@solana/
 import { idlSwap } from "./neoSwap.idl";
 import { Program, AnchorProvider } from "@coral-xyz/anchor";
 import { NEOSWAP_PROGRAM_ID, NEOSWAP_PROGRAM_ID_DEV } from "./const";
-import { Wallet } from "@coral-xyz/anchor";
+import NodeWallet from "@coral-xyz/anchor/dist/cjs/nodewallet";
 
 export function getProgram(Data: {
     clusterOrUrl: Cluster | string;
@@ -29,7 +29,8 @@ export function getProgram(Data: {
 
     const connection = new Connection(clusterUrl, "confirmed");
     if (!Data.signer) Data.signer = Keypair.generate();
-    const wallet = new Wallet(Data.signer);
+
+    let wallet = new NodeWallet(Data.signer);
 
     const provider = new AnchorProvider(connection, wallet, AnchorProvider.defaultOptions());
 

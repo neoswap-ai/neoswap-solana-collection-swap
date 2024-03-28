@@ -43,7 +43,7 @@ export async function createMakeSwapInstructions(Data: MakeSArg & EnvOpts): Prom
     let makeArgs = getMakeArgs(Data);
     let { connection, prioritizationFee } = cOptionSend;
     let { program } = cEnvOpts;
-    let { bid, endDate, maker, nftMintMaker, paymentMint } = makeArgs;
+    let { bids, endDate, maker, nftMintMaker, paymentMint } = makeArgs;
 
     let swapDataAccount = getSda(maker, nftMintMaker, program.programId.toString());
     console.log("swapDataAccount", swapDataAccount);
@@ -129,18 +129,27 @@ export async function createMakeSwapInstructions(Data: MakeSArg & EnvOpts): Prom
 
         // if wSOL
         if (paymentMint === WRAPPED_SOL_MINT.toString()) {
-            let amount = bid.makerNeoswapFee + bid.makerRoyalties;
-            if (bid.amount < 0) amount += -bid.amount;
+            let maxAmount = 0;
+            bids.map((bid) => {
+                let amount = bid.makerNeoswapFee + bid.makerRoyalties;
+                if (bid.amount < 0) amount += -bid.amount;
+                maxAmount = Math.max(maxAmount, amount);
+            });
             console.log(
-                "Wrapping " + amount + " ( " + amount / LAMPORTS_PER_SOL + " ) lamports to wSOL"
+                "Wrapping " +
+                    maxAmount +
+                    " ( " +
+                    maxAmount / LAMPORTS_PER_SOL +
+                    " ) lamports to wSOL"
             );
 
-            instructions.push(...addWSol(maker, makerTokenAta, amount));
+            instructions.push(...addWSol(maker, makerTokenAta, maxAmount));
         }
-        console.log("bid", bid);
 
+        console.log("bids", bids);
+        let oneBid = bids.pop()!;
         const initIx = await program.methods
-            .makeSwap(bidToscBid(bid), new BN(endDate))
+            .makeSwap(bidToscBid(oneBid), new BN(endDate))
             .accounts({
                 swapDataAccount,
                 swapDataAccountNftAta,
@@ -169,6 +178,7 @@ export async function createMakeSwapInstructions(Data: MakeSArg & EnvOpts): Prom
             .instruction();
         instructions.push(initIx);
 
+        if (bids.length > 0) instructions.push()
         return {
             bTx: {
                 description: DESC.makeSwap,

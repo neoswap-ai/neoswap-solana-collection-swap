@@ -10,8 +10,9 @@ import { addPriorityFee } from "./fees";
 import { CEnvOpts, EnvOpts } from "./types";
 import { checkEnvOpts } from "./check";
 
-export async function ix2vTx(ix: TransactionInstruction[], envOpts: CEnvOpts, signer: string) {
-    let { connection, prioritizationFee } = envOpts;
+export async function ix2vTx(ix: TransactionInstruction[], envOpts: EnvOpts, signer: string) {
+    let cEnvOpts = checkEnvOpts(envOpts);
+    let { connection, prioritizationFee } = cEnvOpts;
     let ttx = new Transaction().add(...ix);
     ttx.feePayer = new PublicKey(signer);
     ttx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;

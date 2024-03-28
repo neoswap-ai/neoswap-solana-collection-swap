@@ -75,10 +75,10 @@ export function getMakeArgs(
               })
         )
 ): MakeSArg {
-    let { bid, endDate, maker, nftMintMaker, paymentMint } = Data;
+    let { bids, endDate, maker, nftMintMaker, paymentMint } = Data;
     maker = typeof maker === "string" ? maker : maker.publicKey.toString();
 
-    return { bid, endDate, maker, nftMintMaker, paymentMint };
+    return { bids, endDate, maker, nftMintMaker, paymentMint };
 }
 
 export function getTakeArgs(
