@@ -74,26 +74,36 @@ export function getMakeArgs(
               })
         )
 ): MakeSArg {
-    let { bid, endDate, maker: mmm, nftMintMaker, paymentMint } = Data;
-
-    let maker = "";
-    if (typeof mmm === "string") maker = mmm;
-    else maker = mmm.publicKey.toString();
+    let { bid, endDate, maker, nftMintMaker, paymentMint } = Data;
+    maker = typeof maker === "string" ? maker : maker.publicKey.toString();
 
     return { bid, endDate, maker, nftMintMaker, paymentMint };
 }
 
 export function getTakeArgs(
     Data: any &
-        Omit<TakeSArg, "taker"> & {
-            taker: Keypair;
-        }
+        (
+            | TakeSArg
+            | (Omit<TakeSArg, "taker"> & {
+                  taker: Keypair;
+              })
+        )
 ): TakeSArg {
     let { bid, nftMintTaker, swapDataAccount, taker } = Data;
-    return { bid, nftMintTaker, swapDataAccount, taker: taker.publicKey.toString() };
+    taker = typeof taker === "string" ? taker : taker.publicKey.toString();
+    return { bid, nftMintTaker, swapDataAccount, taker };
 }
-export function getClaimArgs(Data: any & ClaimArg): ClaimArg {
+export function getClaimArgs(
+    Data: any &
+        (
+            | ClaimArg
+            | (Omit<ClaimArg, "signer"> & {
+                  signer: Keypair;
+              })
+        )
+): ClaimArg {
     let { signer, swapDataAccount } = Data;
+    signer = typeof signer === "string" ? signer : signer.publicKey.toString();
     return { swapDataAccount, signer };
 }
 
