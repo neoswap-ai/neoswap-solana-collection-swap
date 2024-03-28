@@ -42,7 +42,7 @@ export async function createTakeAndCloseSwapInstructions(
     let { connection, prioritizationFee } = cOptionSend;
     let { program } = cEnvOpts;
     let { taker, swapDataAccount, bid, nftMintTaker } = takeArgs;
-
+    let ataIxs: TransactionInstruction[] = [];
     let takeIxs: TransactionInstruction[] = [
         ComputeBudgetProgram.setComputeUnitLimit({
             units: 8500000,
@@ -83,7 +83,7 @@ export async function createTakeAndCloseSwapInstructions(
             signer: taker,
         });
         if (tn) {
-            takeIxs.push(tn);
+            ataIxs.push(tn);
             console.log("takerNftAta", takerNftAta);
         }
 
@@ -94,7 +94,7 @@ export async function createTakeAndCloseSwapInstructions(
             signer: taker,
         });
         if (tt) {
-            takeIxs.push(tt);
+            ataIxs.push(tt);
             console.log("takerTokenAta", takerTokenAta);
         }
 
@@ -105,7 +105,7 @@ export async function createTakeAndCloseSwapInstructions(
             signer: taker,
         });
         if (mn) {
-            takeIxs.push(mn);
+            ataIxs.push(mn);
             console.log("makerNftAta", makerNftAta);
         }
 
@@ -116,7 +116,7 @@ export async function createTakeAndCloseSwapInstructions(
             signer: taker,
         });
         if (mt) {
-            takeIxs.push(mt);
+            ataIxs.push(mt);
             console.log("makerTokenAta", makerTokenAta);
         }
         let { mintAta: swapDataAccountTokenAta, instruction: sdat } = await findOrCreateAta({
@@ -126,7 +126,7 @@ export async function createTakeAndCloseSwapInstructions(
             signer: taker,
         });
         if (sdat) {
-            takeIxs.push(sdat);
+            ataIxs.push(sdat);
             console.log("swapDataAccountTokenAta", swapDataAccountTokenAta);
         }
 
@@ -216,7 +216,10 @@ export async function createTakeAndCloseSwapInstructions(
         }
 
         let takeSwapTx: VersionedTransaction | undefined;
-        if (takeIxs.length > 1) takeSwapTx = await ix2vTx(takeIxs, cEnvOpts, taker);
+        if (takeIxs.length > 1) {
+            takeSwapTx = await ix2vTx(ataIxs.concat(takeIxs), cEnvOpts, taker);
+            ataIxs = [];
+        }
 
         let payRIxs: TransactionInstruction[] = [
             ComputeBudgetProgram.setComputeUnitLimit({
@@ -308,7 +311,10 @@ export async function createTakeAndCloseSwapInstructions(
         }
 
         let payRoyaltiesTx: VersionedTransaction | undefined;
-        if (payRIxs.length > 1) payRoyaltiesTx = await ix2vTx(payRIxs, cEnvOpts, taker);
+        if (payRIxs.length > 1) {
+            payRoyaltiesTx = await ix2vTx(ataIxs.concat(payRIxs), cEnvOpts, taker);
+            ataIxs = [];
+        }
 
         ///////////////////////////////////
 
@@ -416,7 +422,7 @@ export async function createTakeAndCloseSwapInstructions(
         if (swapDataData.paymentMint === WRAPPED_SOL_MINT.toString())
             claimSIxs.push(closeWSol(Data.taker, taker, takerTokenAta));
 
-        let claimSwapTx = await ix2vTx(claimSIxs, cEnvOpts, taker);
+        let claimSwapTx = await ix2vTx(ataIxs.concat(claimSIxs), cEnvOpts, taker);
 
         let bTTakeAndClose: BTv[] = [];
         let priority = 0;
