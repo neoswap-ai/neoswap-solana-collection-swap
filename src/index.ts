@@ -18,7 +18,6 @@ import {
     findUserTokenRecord,
 } from "./utils/findNftDataAndAccounts.function";
 import { findOrCreateAta } from "./utils/findOrCreateAta.function";
-import { getCNFTData, getCNFTOwner } from "./utils/getCNFTData.function";
 import { getProgram } from "./utils/getProgram.obj";
 import { getOpenSda, getSdaData } from "./utils/getSdaData.function";
 import { isConfirmedTx } from "./utils/isConfirmedTx.function";
@@ -38,8 +37,6 @@ const NFT_ACCOUNTS = {
     findNftMasterEdition,
     findRuleSet,
     findUserTokenRecord,
-    getCNFTData,
-    getCNFTOwner,
 };
 
 const UTILS = {
