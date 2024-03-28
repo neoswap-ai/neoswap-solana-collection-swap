@@ -25,12 +25,11 @@
         "@metaplex-foundation/mpl-bubblegum": "^0.8.0",
         "@metaplex-foundation/mpl-token-metadata": "^2.13.0",
         "@metaplex-foundation/mpl-toolbox": "^0.9.4",
-        "@solana/spl-token": "^0.3.7",
+        "@solana/spl-token": "^0.4.3",
         "@solana/wallet-adapter-base": "^0.9.23",
         "@solana/web3.js": "^1.91.2"
     },
     "devDependencies": {
-        "@solana/spl-token-metadata": "^0.1.2",
         "@types/bn.js": "^5.1.5",
         "@types/debug": "^4.1.12",
         "@types/node-fetch": "^2.6.11",
