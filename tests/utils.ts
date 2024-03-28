@@ -1,8 +1,9 @@
-import { Connection, VersionedTransaction } from "@solana/web3.js";
-import { MakeSArg, MakeSwapData } from "../src/utils/types";
+import { Connection, Transaction, VersionedTransaction } from "@solana/web3.js";
+import { isVersionedTransaction } from "@solana/wallet-adapter-base";
 
-export async function simulateTx(tx: VersionedTransaction, connection: Connection) {
+export async function simulateTx(tx: VersionedTransaction | Transaction, connection: Connection) {
     try {
+        if (!isVersionedTransaction(tx)) tx = new VersionedTransaction(tx.compileMessage());
         tx.message.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
         let simu = await connection.simulateTransaction(tx);
 
