@@ -166,5 +166,4 @@ export type CEnvOpts = {
     connection: Connection;
     prioritizationFee?: number;
 };
-export type MakeSwapData = { bTx: BundleTransaction; swapDataAccount: string };
-export type TakeAndCloseSwapData = { bTxs: BundleTransaction[]; swapDataAccount: string };
+export type ReturnSwapData = { bTxs: BundleTransaction[]; swapDataAccount: string };

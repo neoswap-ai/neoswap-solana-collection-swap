@@ -1,7 +1,6 @@
 import { Connection } from "@solana/web3.js";
 import { createMakeSwapInstructions } from "../src/programInstructions/makeSwap.instructions";
 import { EnvOpts, MakeSArg } from "../src/utils/types";
-import { NETWORK_URL } from "./consts";
 import { now } from "@metaplex-foundation/js";
 import { NATIVE_MINT } from "@solana/spl-token";
 import { simulateTx } from "./utils";
@@ -24,13 +23,13 @@ let makeSwapArgs = {
 } as MakeSArg;
 
 export async function testMakeSwap(envOpts: EnvOpts, connection: Connection) {
-    let makeSwapData = await createMakeSwapInstructions({ ...makeSwapArgs, ...envOpts });
+    let ReturnSwapData = await createMakeSwapInstructions({ ...makeSwapArgs, ...envOpts });
     try {
-        await simulateTx(makeSwapData.bTx.tx, connection);
+        await simulateTx(ReturnSwapData.bTxs[0].tx, connection);
         return "MakeSwap passed";
     } catch (error) {
         console.log("makeSwapArgs", makeSwapArgs);
-        console.log("makeSwapData", makeSwapData);
+        console.log("ReturnSwapData", ReturnSwapData);
 
         return "MakeSwap failed";
     }

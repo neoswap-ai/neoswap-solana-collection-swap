@@ -7,13 +7,14 @@ import {
     sendSingleTransaction,
 } from "../utils/sendSingleTransaction.function";
 import { checkEnvOpts, checkOptionSend, getMakeArgs } from "../utils/check";
+import { sendBundledTransactionsV2 } from "../utils/sendBundledTransactions.function";
 
 export async function makeSwap(
     Data: OptionSend &
         Omit<MakeSArg, "maker"> & {
             maker: Keypair;
         }
-): Promise<{ bundleTransaction: BundleTransaction; swapDataAccount: string }> {
+): Promise<{ bundleTransactions: BundleTransaction[]; swapDataAccount: string }> {
     let optionSend = checkOptionSend(Data);
     let makeArgs = getMakeArgs(Data);
     let cEnvOpts = checkEnvOpts(Data);
@@ -21,15 +22,15 @@ export async function makeSwap(
     let sda = "NOSDA";
 
     try {
-        const { bTx, swapDataAccount } = await createMakeSwapInstructions({
+        const { bTxs, swapDataAccount } = await createMakeSwapInstructions({
             ...makeArgs,
             ...cEnvOpts,
         });
         sda = swapDataAccount;
 
         return {
-            bundleTransaction: await sendSingleBundleTransaction({
-                bt: bTx,
+            bundleTransactions: await sendBundledTransactionsV2({
+                bundleTransactions: bTxs,
                 ...optionSend,
                 signer: Data.maker,
             }),

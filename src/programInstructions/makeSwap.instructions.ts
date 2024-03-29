@@ -9,7 +9,15 @@ import {
     TransactionInstruction,
     VersionedTransaction,
 } from "@solana/web3.js";
-import { EnvOpts, ErrorFeedback, MakeSArg, MakeSwapData } from "../utils/types";
+import {
+    BTv,
+    BundleTransaction,
+    EnvOpts,
+    ErrorFeedback,
+    MakeSArg,
+    ReturnSwapData,
+    UpdateArgs,
+} from "../utils/types";
 import { findOrCreateAta } from "../utils/findOrCreateAta.function";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import {
@@ -34,8 +42,11 @@ import { addPriorityFee } from "../utils/fees";
 import { addWSol } from "../utils/wsol";
 import { checkEnvOpts, checkOptionSend, getMakeArgs } from "../utils/check";
 import { ix2vTx } from "../utils/vtx";
+import { createAddBidIx } from "./modifyAddBid.instructions";
 
-export async function createMakeSwapInstructions(Data: MakeSArg & EnvOpts): Promise<MakeSwapData> {
+export async function createMakeSwapInstructions(
+    Data: MakeSArg & EnvOpts
+): Promise<ReturnSwapData> {
     console.log(VERSION);
 
     let cOptionSend = checkOptionSend(Data);
@@ -127,6 +138,13 @@ export async function createMakeSwapInstructions(Data: MakeSArg & EnvOpts): Prom
             authRulesMaker = authRulesF;
         }
 
+        bids = bids.sort((bidA, bidB) => {
+            let amountA = bidA.makerNeoswapFee + bidA.makerRoyalties;
+            if (bidA.amount < 0) amountA += -bidA.amount;
+            let amountB = bidB.makerNeoswapFee + bidB.makerRoyalties;
+            if (bidB.amount < 0) amountB += -bidB.amount;
+            return amountA - amountB;
+        });
         // if wSOL
         if (paymentMint === WRAPPED_SOL_MINT.toString()) {
             let maxAmount = 0;
@@ -178,16 +196,29 @@ export async function createMakeSwapInstructions(Data: MakeSArg & EnvOpts): Prom
             .instruction();
         instructions.push(initIx);
 
-        if (bids.length > 0) instructions.push()
-        return {
-            bTx: {
+        let bTxs: BTv[] = [
+            {
                 description: DESC.makeSwap,
                 details: Data,
                 priority: 0,
                 status: "pending",
                 tx: await ix2vTx(instructions, cEnvOpts, maker),
-                blockheight: (await connection.getLatestBlockhash()).lastValidBlockHeight,
             },
+        ];
+        if (bids.length > 0)
+            bTxs.push({
+                description: DESC.addBid,
+                details: { swapDataAccount, bids, maker } as UpdateArgs,
+                priority: 1,
+                status: "pending",
+                tx: await ix2vTx(
+                    await createAddBidIx({ swapDataAccount, bids, maker, ...cEnvOpts }),
+                    cEnvOpts,
+                    maker
+                ),
+            });
+        return {
+            bTxs,
             swapDataAccount: swapDataAccount.toString(),
         };
     } catch (error: any) {
