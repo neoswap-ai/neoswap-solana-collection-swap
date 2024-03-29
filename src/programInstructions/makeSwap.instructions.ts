@@ -203,6 +203,7 @@ export async function createMakeSwapInstructions(
             addBidIxs = await createAddBidIx({ swapDataAccount, bids, maker, ...cEnvOpts });
             if (addBidIxs.length <= 3) {
                 instructions.push(...addBidIxs);
+                addBidIxs = [];
             } else {
                 instructions.push(...addBidIxs.slice(0, 3));
                 addBidIxs = addBidIxs.slice(3);
