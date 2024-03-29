@@ -196,26 +196,34 @@ export async function createMakeSwapInstructions(
             .instruction();
         instructions.push(initIx);
 
+        let addBidIxs: TransactionInstruction[] = [];
+        let isAddBidInMakeSwap = false;
+        if (bids.length > 0) {
+            isAddBidInMakeSwap = true;
+            addBidIxs = await createAddBidIx({ swapDataAccount, bids, maker, ...cEnvOpts });
+            if (addBidIxs.length <= 3) {
+                instructions.push(...addBidIxs);
+            } else {
+                instructions.push(...addBidIxs.slice(0, 3));
+                addBidIxs = addBidIxs.slice(3);
+            }
+        }
         let bTxs: BTv[] = [
             {
-                description: DESC.makeSwap,
+                description: DESC.makeSwap + isAddBidInMakeSwap ? " and " + DESC.addBid : "",
                 details: Data,
                 priority: 0,
                 status: "pending",
                 tx: await ix2vTx(instructions, cEnvOpts, maker),
             },
         ];
-        if (bids.length > 0)
+        if (addBidIxs.length > 0)
             bTxs.push({
                 description: DESC.addBid,
                 details: { swapDataAccount, bids, maker } as UpdateArgs,
                 priority: 1,
                 status: "pending",
-                tx: await ix2vTx(
-                    await createAddBidIx({ swapDataAccount, bids, maker, ...cEnvOpts }),
-                    cEnvOpts,
-                    maker
-                ),
+                tx: await ix2vTx(addBidIxs, cEnvOpts, maker),
             });
         return {
             bTxs,
