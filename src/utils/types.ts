@@ -134,7 +134,15 @@ export type ClaimArg = {
     swapDataAccount: string;
     signer: string;
 };
-export type UpdateArgs = { bids: Bid[]; swapDataAccount: string; maker: string };
+export type UpdateArgs = {
+    bids: Bid[];
+    swapDataAccount: string;
+    maker: string;
+
+    makerTokenAta?: string;
+    swapDataAccountTokenAta?: string;
+    paymentMint?: string;
+};
 
 export type OptionSend = {
     clusterOrUrl?: Cluster | string;

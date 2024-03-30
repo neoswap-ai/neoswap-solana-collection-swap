@@ -7,7 +7,7 @@ import {
     VersionedTransaction,
 } from "@solana/web3.js";
 import { addPriorityFee } from "./fees";
-import { CEnvOpts, EnvOpts } from "./types";
+import {  EnvOpts } from "./types";
 import { checkEnvOpts } from "./check";
 
 export async function ix2vTx(ix: TransactionInstruction[], envOpts: EnvOpts, signer: string) {
