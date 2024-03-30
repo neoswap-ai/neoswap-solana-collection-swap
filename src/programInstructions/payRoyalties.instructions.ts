@@ -1,11 +1,5 @@
 import { getSdaData } from "../utils/getSdaData.function";
-import {
-    ComputeBudgetProgram,
-    PublicKey,
-    Transaction,
-    TransactionInstruction,
-    VersionedTransaction,
-} from "@solana/web3.js";
+import { ComputeBudgetProgram, TransactionInstruction } from "@solana/web3.js";
 import { BundleTransaction, ClaimArg, EnvOpts } from "../utils/types";
 import { findOrCreateAta } from "../utils/findOrCreateAta.function";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
@@ -13,19 +7,16 @@ import { NS_FEE, TOKEN_METADATA_PROGRAM, VERSION } from "../utils/const";
 import { findNftDataAndMetadataAccount } from "../utils/findNftDataAndAccounts.function";
 import { getCreatorData } from "../utils/creators";
 import { DESC } from "../utils/descriptions";
-import { addPriorityFee } from "../utils/fees";
-import { checkEnvOpts, checkOptionSend, getClaimArgs } from "../utils/check";
+import { checkEnvOpts, getClaimArgs } from "../utils/check";
 import { ix2vTx } from "../utils/vtx";
 
 export async function createPayRoyaltiesInstructions(
     Data: EnvOpts & ClaimArg
 ): Promise<BundleTransaction> {
     console.log(VERSION);
-    let cOptionSend = checkOptionSend(Data);
     let cEnvOpts = checkEnvOpts(Data);
     let claimArgs = getClaimArgs(Data);
-    let { connection } = cOptionSend;
-    let { program } = cEnvOpts;
+    let { program, connection } = cEnvOpts;
     let { signer, swapDataAccount } = claimArgs;
 
     let instructions: TransactionInstruction[] = [

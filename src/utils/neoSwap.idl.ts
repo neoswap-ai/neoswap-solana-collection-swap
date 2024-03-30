@@ -599,9 +599,24 @@ export const idlSwap: Idl = {
                     isSigner: false,
                 },
                 {
+                    name: "swapDataAccountTokenAta",
+                    isMut: true,
+                    isSigner: false,
+                },
+                {
                     name: "maker",
                     isMut: true,
                     isSigner: true,
+                },
+                {
+                    name: "makerTokenAta",
+                    isMut: true,
+                    isSigner: false,
+                },
+                {
+                    name: "tokenProgram",
+                    isMut: false,
+                    isSigner: false,
                 },
             ],
             args: [
@@ -622,9 +637,24 @@ export const idlSwap: Idl = {
                     isSigner: false,
                 },
                 {
+                    name: "swapDataAccountTokenAta",
+                    isMut: true,
+                    isSigner: false,
+                },
+                {
                     name: "maker",
                     isMut: true,
                     isSigner: true,
+                },
+                {
+                    name: "makerTokenAta",
+                    isMut: true,
+                    isSigner: false,
+                },
+                {
+                    name: "tokenProgram",
+                    isMut: false,
+                    isSigner: false,
                 },
             ],
             args: [

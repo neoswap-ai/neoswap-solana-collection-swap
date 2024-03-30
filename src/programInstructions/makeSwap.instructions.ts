@@ -1,23 +1,11 @@
-import { getProgram } from "../utils/getProgram.obj";
 import {
     ComputeBudgetProgram,
     LAMPORTS_PER_SOL,
-    PublicKey,
-    SYSVAR_INSTRUCTIONS_PUBKEY,
     SystemProgram,
-    Transaction,
     TransactionInstruction,
-    VersionedTransaction,
+    SYSVAR_INSTRUCTIONS_PUBKEY,
 } from "@solana/web3.js";
-import {
-    BTv,
-    BundleTransaction,
-    EnvOpts,
-    ErrorFeedback,
-    MakeSArg,
-    ReturnSwapData,
-    UpdateArgs,
-} from "../utils/types";
+import { BTv, EnvOpts, MakeSArg, ReturnSwapData, UpdateArgs } from "../utils/types";
 import { findOrCreateAta } from "../utils/findOrCreateAta.function";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import {
@@ -38,9 +26,8 @@ import { getSda } from "../utils/getPda";
 import { bidToscBid } from "../utils/typeSwap";
 import { DESC } from "../utils/descriptions";
 import { WRAPPED_SOL_MINT } from "@metaplex-foundation/js";
-import { addPriorityFee } from "../utils/fees";
 import { addWSol } from "../utils/wsol";
-import { checkEnvOpts, checkOptionSend, getMakeArgs } from "../utils/check";
+import { checkEnvOpts, getMakeArgs } from "../utils/check";
 import { ix2vTx } from "../utils/vtx";
 import { createAddBidIx } from "./modifyAddBid.instructions";
 
@@ -48,12 +35,9 @@ export async function createMakeSwapInstructions(
     Data: MakeSArg & EnvOpts
 ): Promise<ReturnSwapData> {
     console.log(VERSION);
-
-    let cOptionSend = checkOptionSend(Data);
     let cEnvOpts = checkEnvOpts(Data);
     let makeArgs = getMakeArgs(Data);
-    let { connection, prioritizationFee } = cOptionSend;
-    let { program } = cEnvOpts;
+    let { program, connection } = cEnvOpts;
     let { bids, endDate, maker, nftMintMaker, paymentMint } = makeArgs;
 
     let swapDataAccount = getSda(maker, nftMintMaker, program.programId.toString());
@@ -200,7 +184,17 @@ export async function createMakeSwapInstructions(
         let isAddBidInMakeSwap = false;
         if (bids.length > 0) {
             isAddBidInMakeSwap = true;
-            addBidIxs = await createAddBidIx({ swapDataAccount, bids, maker, ...cEnvOpts });
+            let bidDataIxs = await createAddBidIx({
+                swapDataAccount,
+                bids,
+                maker,
+                paymentMint,
+                makerTokenAta,
+                swapDataAccountTokenAta,
+                ...cEnvOpts,
+            });
+            instructions.push(...bidDataIxs.ataIxs);
+            addBidIxs = bidDataIxs.bidIxs;
             if (addBidIxs.length <= 3) {
                 instructions.push(...addBidIxs);
                 addBidIxs = [];

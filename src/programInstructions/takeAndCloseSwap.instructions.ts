@@ -29,18 +29,15 @@ import { DESC } from "../utils/descriptions";
 import { WRAPPED_SOL_MINT } from "@metaplex-foundation/js";
 import { addWSol, closeWSol } from "../utils/wsol";
 import { ix2vTx } from "../utils/vtx";
-import { checkEnvOpts, checkOptionSend, getTakeArgs } from "../utils/check";
+import { checkEnvOpts, getTakeArgs } from "../utils/check";
 
 export async function createTakeAndCloseSwapInstructions(
     Data: TakeSArg & EnvOpts
 ): Promise<BundleTransaction[]> {
     console.log(VERSION);
-
-    let cOptionSend = checkOptionSend(Data);
     let cEnvOpts = checkEnvOpts(Data);
     let takeArgs = getTakeArgs(Data);
-    let { connection, prioritizationFee } = cOptionSend;
-    let { program } = cEnvOpts;
+    let { program, connection } = cEnvOpts;
     let { taker, swapDataAccount, bid, nftMintTaker } = takeArgs;
     let ataIxs: TransactionInstruction[] = [];
     let takeIxs: TransactionInstruction[] = [

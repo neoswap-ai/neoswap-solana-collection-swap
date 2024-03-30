@@ -1,17 +1,11 @@
-import { getProgram } from "../utils/getProgram.obj";
 import { getSdaData } from "../utils/getSdaData.function";
 import {
-    Cluster,
     ComputeBudgetProgram,
-    PublicKey,
     SYSVAR_INSTRUCTIONS_PUBKEY,
     SystemProgram,
-    Transaction,
     TransactionInstruction,
-    VersionedTransaction,
 } from "@solana/web3.js";
-import { ErrorFeedback, EnvOpts, BundleTransaction, ClaimArg } from "../utils/types";
-import { Program } from "@coral-xyz/anchor";
+import { EnvOpts, BundleTransaction, ClaimArg } from "../utils/types";
 import { findOrCreateAta } from "../utils/findOrCreateAta.function";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import {
@@ -28,19 +22,16 @@ import {
 } from "../utils/findNftDataAndAccounts.function";
 import { TokenStandard } from "@metaplex-foundation/mpl-token-metadata";
 import { DESC } from "../utils/descriptions";
-import { addPriorityFee } from "../utils/fees";
-import { checkEnvOpts, checkOptionSend, getClaimArgs } from "../utils/check";
+import { checkEnvOpts, getClaimArgs } from "../utils/check";
 import { ix2vTx } from "../utils/vtx";
 
 export async function createCancelSwapInstructions(
     Data: EnvOpts & ClaimArg
 ): Promise<BundleTransaction> {
     console.log(VERSION);
-    let cOptionSend = checkOptionSend(Data);
     let cEnvOpts = checkEnvOpts(Data);
     let claimArgs = getClaimArgs(Data);
-    let { connection, prioritizationFee } = cOptionSend;
-    let { program } = cEnvOpts;
+    let { program, connection } = cEnvOpts;
     let { signer, swapDataAccount } = claimArgs;
 
     let instructions: TransactionInstruction[] = [
