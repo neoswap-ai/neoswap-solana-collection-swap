@@ -32,12 +32,10 @@ export async function createTakeSwapInstructions(
     Data: TakeSArg & EnvOpts
 ): Promise<BundleTransaction> {
     console.log(VERSION);
-  
-    let cOptionSend = checkOptionSend(Data);
+
     let cEnvOpts = checkEnvOpts(Data);
     let takeArgs = getTakeArgs(Data);
-    let { connection, prioritizationFee } = cOptionSend;
-    let { program } = cEnvOpts;
+    let { program, connection } = cEnvOpts;
     let { taker, swapDataAccount, bid, nftMintTaker } = takeArgs;
 
     let instructions: TransactionInstruction[] = [

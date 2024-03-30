@@ -1,12 +1,9 @@
 import { getSdaData } from "../utils/getSdaData.function";
 import {
     ComputeBudgetProgram,
-    PublicKey,
     SYSVAR_INSTRUCTIONS_PUBKEY,
     SystemProgram,
-    Transaction,
     TransactionInstruction,
-    VersionedTransaction,
 } from "@solana/web3.js";
 import { BundleTransaction, ClaimArg, EnvOpts } from "../utils/types";
 import { findOrCreateAta } from "../utils/findOrCreateAta.function";
@@ -27,20 +24,17 @@ import {
 import { TokenStandard } from "@metaplex-foundation/mpl-token-metadata";
 import { DESC } from "../utils/descriptions";
 import { WRAPPED_SOL_MINT } from "@metaplex-foundation/js";
-import { addPriorityFee } from "../utils/fees";
 import { closeWSol } from "../utils/wsol";
-import { checkEnvOpts, checkOptionSend, getClaimArgs } from "../utils/check";
+import { checkEnvOpts, getClaimArgs } from "../utils/check";
 import { ix2vTx } from "../utils/vtx";
 
 export async function createClaimSwapInstructions(
     Data: EnvOpts & ClaimArg
 ): Promise<BundleTransaction> {
     console.log(VERSION);
-    let cOptionSend = checkOptionSend(Data);
     let cEnvOpts = checkEnvOpts(Data);
     let claimArgs = getClaimArgs(Data);
-    let { connection, prioritizationFee } = cOptionSend;
-    let { program } = cEnvOpts;
+    let { program, connection } = cEnvOpts;
     let { signer, swapDataAccount } = claimArgs;
 
     let instructions: TransactionInstruction[] = [
