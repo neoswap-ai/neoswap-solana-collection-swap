@@ -35,8 +35,8 @@ export async function getCreatorData(Data: {
     let makerCreator = [Data.taker, Data.taker, Data.taker];
     let makerCreatorTokenAta = [takerAta, takerAta, takerAta];
 
-    let takerCreator = makerCreator;
-    let takerCreatorTokenAta = makerCreatorTokenAta;
+    let takerCreator = [Data.taker, Data.taker, Data.taker];
+    let takerCreatorTokenAta = [takerAta, takerAta, takerAta];
 
     let mintAtaList: string[] = [];
 
