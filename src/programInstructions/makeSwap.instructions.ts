@@ -205,7 +205,7 @@ export async function createMakeSwapInstructions(
         }
         let bTxs: BTv[] = [
             {
-                description: DESC.makeSwap + isAddBidInMakeSwap ? " and " + DESC.addBid : "",
+                description: DESC.makeSwap,
                 details: Data,
                 priority: 0,
                 status: "pending",
