@@ -43,7 +43,7 @@ export const idlSwap: Idl = {
                     isSigner: false,
                 },
                 {
-                    name: "mintToken",
+                    name: "paymentMint",
                     isMut: false,
                     isSigner: false,
                 },
@@ -169,7 +169,7 @@ export const idlSwap: Idl = {
                     isSigner: false,
                 },
                 {
-                    name: "mintToken",
+                    name: "paymentMint",
                     isMut: false,
                     isSigner: false,
                 },
@@ -256,7 +256,7 @@ export const idlSwap: Idl = {
                     isSigner: false,
                 },
                 {
-                    name: "mintToken",
+                    name: "paymentMint",
                     isMut: false,
                     isSigner: false,
                 },
@@ -409,7 +409,7 @@ export const idlSwap: Idl = {
                     isSigner: false,
                 },
                 {
-                    name: "mintToken",
+                    name: "paymentMint",
                     isMut: false,
                     isSigner: false,
                 },
@@ -524,7 +524,7 @@ export const idlSwap: Idl = {
                     isSigner: false,
                 },
                 {
-                    name: "mintToken",
+                    name: "paymentMint",
                     isMut: false,
                     isSigner: false,
                 },
@@ -589,6 +589,82 @@ export const idlSwap: Idl = {
                 },
             ],
             args: [],
+        },
+        {
+            name: "addBid",
+            accounts: [
+                {
+                    name: "swapDataAccount",
+                    isMut: true,
+                    isSigner: false,
+                },
+                {
+                    name: "swapDataAccountTokenAta",
+                    isMut: true,
+                    isSigner: false,
+                },
+                {
+                    name: "maker",
+                    isMut: true,
+                    isSigner: true,
+                },
+                {
+                    name: "makerTokenAta",
+                    isMut: true,
+                    isSigner: false,
+                },
+                {
+                    name: "tokenProgram",
+                    isMut: false,
+                    isSigner: false,
+                },
+            ],
+            args: [
+                {
+                    name: "newBid",
+                    type: {
+                        defined: "Bid",
+                    },
+                },
+            ],
+        },
+        {
+            name: "removeBid",
+            accounts: [
+                {
+                    name: "swapDataAccount",
+                    isMut: true,
+                    isSigner: false,
+                },
+                {
+                    name: "swapDataAccountTokenAta",
+                    isMut: true,
+                    isSigner: false,
+                },
+                {
+                    name: "maker",
+                    isMut: true,
+                    isSigner: true,
+                },
+                {
+                    name: "makerTokenAta",
+                    isMut: true,
+                    isSigner: false,
+                },
+                {
+                    name: "tokenProgram",
+                    isMut: false,
+                    isSigner: false,
+                },
+            ],
+            args: [
+                {
+                    name: "removeBid",
+                    type: {
+                        defined: "Bid",
+                    },
+                },
+            ],
         },
         {
             name: "overrideTime",
@@ -716,106 +792,111 @@ export const idlSwap: Idl = {
         },
         {
             code: 6001,
+            name: "BidAlreadyExists",
+            msg: "Bid already exists",
+        },
+        {
+            code: 6002,
             name: "MintIncorrect",
             msg: "Incorrect Mint",
         },
         {
-            code: 6002,
+            code: 6003,
             name: "SeedLengthIncorrect",
             msg: "Given seed length is Incorrect",
         },
         {
-            code: 6003,
+            code: 6004,
             name: "UnexpectedState",
             msg: "The status given is not correct",
         },
         {
-            code: 6004,
+            code: 6005,
             name: "IncorrectFeeAccount",
             msg: "Fee Account is not correct",
         },
         {
-            code: 6005,
+            code: 6006,
             name: "IncorrectDate",
             msg: "Date given is incorrect",
         },
         {
-            code: 6006,
+            code: 6007,
             name: "NotMaker",
             msg: "wrong signer, only maker can perform this action",
         },
         {
-            code: 6007,
+            code: 6008,
             name: "NotTaker",
             msg: "wrong address for Taker",
         },
         {
-            code: 6008,
+            code: 6009,
             name: "IncorrectOwner",
             msg: "Owner Given is incorrect",
         },
         {
-            code: 6009,
+            code: 6010,
             name: "UnVerifiedCollection",
             msg: "Collection is unverified",
         },
         {
-            code: 6010,
+            code: 6011,
             name: "IncorrectCollection",
             msg: "Collection doesnt't match givent mint collection",
         },
         {
-            code: 6011,
+            code: 6012,
             name: "UnVerifiedCreator",
             msg: "Creator is unverified",
         },
         {
-            code: 6012,
+            code: 6013,
             name: "AlreadyExist",
             msg: "The item you're trying to add already exists in the SDA",
         },
         {
-            code: 6013,
+            code: 6014,
             name: "CannotFindAccount",
             msg: "Cannot find the account",
         },
         {
-            code: 6014,
+            code: 6015,
             name: "IncorrectState",
             msg: "Swap is not in the adequate state to perform this action",
         },
         {
-            code: 6015,
+            code: 6016,
             name: "CollectionNotFound",
             msg: "Cannot find the given collection in the SDA",
         },
         {
-            code: 6016,
+            code: 6017,
             name: "AlreadyTaken",
             msg: "Swap already accepted",
         },
         {
-            code: 6017,
+            code: 6018,
             name: "BidNotFound",
             msg: "Bid not found in the list of bids",
         },
         {
-            code: 6018,
+            code: 6019,
             name: "FeeNotPaid",
             msg: "Fees are not paid, please pay the fees before claiming the swap",
         },
         {
-            code: 6019,
+            code: 6020,
             name: "RoyaltiesAlreadyPaid",
             msg: "Royalties already paied",
         },
         {
-            code: 6020,
+            code: 6021,
             name: "TooLate",
             msg: "the Swap you tried to accept is expired",
         },
         {
-            code: 6021,
+            code: 6022,
             name: "TooEarly",
             msg: "Too early to perform this action",
         },

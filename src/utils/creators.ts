@@ -32,10 +32,11 @@ export async function getCreatorData(Data: {
         })
     ).mintAta;
 
-    let makerCreator = [Data.taker, Data.taker, Data.taker];
+    let makerCreator = [Data.signer, Data.signer, Data.signer];
     let makerCreatorTokenAta = [takerAta, takerAta, takerAta];
 
-    let takerCreator = [Data.taker, Data.taker, Data.taker];
+    
+    let takerCreator = [Data.signer, Data.signer, Data.signer];
     let takerCreatorTokenAta = [takerAta, takerAta, takerAta];
 
     let mintAtaList: string[] = [];

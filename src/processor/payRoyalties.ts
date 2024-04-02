@@ -1,32 +1,27 @@
-import { Cluster, Keypair, PublicKey } from "@solana/web3.js";
-import { ClaimArg, ErrorFeedback, OptionSend } from "../utils/types";
-import { getProgram } from "../utils/getProgram.obj";
-import { AnchorProvider } from "@coral-xyz/anchor";
-import { sendSingleTransaction } from "../utils/sendSingleTransaction.function";
+import { Keypair } from "@solana/web3.js";
+import { BundleTransaction, ClaimArg, ErrorFeedback, OptionSend } from "../utils/types";
+import { sendSingleBundleTransaction } from "../utils/sendSingleTransaction.function";
 import { createPayRoyaltiesInstructions } from "../programInstructions/payRoyalties.instructions";
+import { checkEnvOpts, checkOptionSend, getClaimArgs } from "../utils/check";
 
 export async function payRoyalties(
     Data: OptionSend &
         Omit<ClaimArg, "signer"> & {
             signer: Keypair;
         }
-): Promise<string> {
-    const program = getProgram({ clusterOrUrl: Data.clusterOrUrl, signer: Data.signer });
+): Promise<BundleTransaction> {
+    let cOptionSend = checkOptionSend(Data);
+    let cEnvOpts = checkEnvOpts(Data);
+    let claimArgs = getClaimArgs(Data);
+
     try {
-        return await sendSingleTransaction({
-            connection: program.provider.connection,
-            tx: (
-                await createPayRoyaltiesInstructions({
-                    program,
-                    swapDataAccount: Data.swapDataAccount,
-                    signer: Data.signer.publicKey.toString(),
-                    prioritizationFee: Data.prioritizationFee,
-                })
-            ).tx,
+        return await sendSingleBundleTransaction({
+            ...cOptionSend,
             signer: Data.signer,
-            clusterOrUrl: Data.clusterOrUrl,
-            skipSimulation: Data.skipSimulation,
-            skipConfirmation: Data.skipConfirmation,
+            bt: await createPayRoyaltiesInstructions({
+                ...cEnvOpts,
+                ...claimArgs,
+            }),
         });
     } catch (error) {
         throw {

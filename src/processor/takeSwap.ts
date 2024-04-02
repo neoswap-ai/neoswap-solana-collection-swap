@@ -1,40 +1,37 @@
-import { Cluster, Keypair, PublicKey } from "@solana/web3.js";
-import { Bid, ErrorFeedback, OptionSend, TakeSArg } from "../utils/types";
+import { Cluster, Connection, Keypair, PublicKey } from "@solana/web3.js";
+import { Bid, BundleTransaction, ErrorFeedback, OptionSend, TakeSArg } from "../utils/types";
 import { getProgram } from "../utils/getProgram.obj";
 import { AnchorProvider } from "@coral-xyz/anchor";
-import { sendSingleTransaction } from "../utils/sendSingleTransaction.function";
+import {
+    sendSingleBundleTransaction,
+    sendSingleTransaction,
+} from "../utils/sendSingleTransaction.function";
 import { createTakeSwapInstructions } from "../programInstructions/takeSwap.instructions";
+import { checkEnvOpts, checkOptionSend, getClaimArgs, getTakeArgs } from "../utils/check";
 
 export async function takeSwap(
     Data: OptionSend &
         Omit<TakeSArg, "taker"> & {
             taker: Keypair;
         }
-): Promise<string> {
-    const program = getProgram({ clusterOrUrl: Data.clusterOrUrl, signer: Data.taker });
+): Promise<BundleTransaction> {
+    let cOptionSend = checkOptionSend(Data);
+    let cEnvOpts = checkEnvOpts(Data);
+    let takeArgs = getTakeArgs(Data);
 
     try {
-        return await sendSingleTransaction({
-            connection: program.provider.connection,
-            tx: (
-                await createTakeSwapInstructions({
-                    program,
-                    taker: Data.taker.publicKey.toString(),
-                    bid: Data.bid,
-                    swapDataAccount: Data.swapDataAccount,
-                    nftMintTaker: Data.nftMintTaker,
-                    prioritizationFee: Data.prioritizationFee,
-                })
-            ).tx,
+        return await sendSingleBundleTransaction({
+            ...cOptionSend,
             signer: Data.taker,
-            clusterOrUrl: Data.clusterOrUrl,
-            skipSimulation: Data.skipSimulation,
-            skipConfirmation: Data.skipConfirmation,
+            bt: await createTakeSwapInstructions({
+                ...cEnvOpts,
+                ...takeArgs,
+            }),
         });
     } catch (error) {
         throw {
             blockchain: "solana",
-            message: Data.swapDataAccount.toString() + `- -\n` + error,
+            message: Data.swapDataAccount + `- -\n` + error,
             status: "error",
         } as ErrorFeedback;
     }

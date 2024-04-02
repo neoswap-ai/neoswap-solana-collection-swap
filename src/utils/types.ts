@@ -1,6 +1,8 @@
 import { Program } from "@coral-xyz/anchor";
 import {
     Cluster,
+    Connection,
+    Finality,
     Keypair,
     PublicKey,
     Signer,
@@ -90,9 +92,15 @@ export type InitializeData = {
     tx: VersionedTransaction;
 };
 
-export type BundleTxBase = {
+export type vT = {
     tx: VersionedTransaction; // [];
-    stx?: VersionedTransaction; // [];
+    stx?: VersionedTransaction;
+};
+export type T = {
+    tx: Transaction; // [];
+    stx?: Transaction;
+};
+export type BundleTxBase = {
     blockheight?: number;
     description: string;
     priority: number;
@@ -102,40 +110,68 @@ export type BundleTxBase = {
     retries?: number;
 };
 
-export type BundleTransaction = BTMake | BTTake | BTClaim;
+export type BTact = BundleTxBase & { details: MakeSArg | TakeSArg | ClaimArg | UpdateArgs | any };
 
-export type BTMake = BundleTxBase & { details: MakeSArg };
-export type BTTake = BundleTxBase & { details: TakeSArg };
-export type BTClaim = BundleTxBase & { details: ClaimArg };
+export type BTv = BTact & vT;
+export type BTt = BTact & T;
+
+export type BundleTransaction = BTv | BTt;
 
 export type MakeSArg = {
     maker: string;
     nftMintMaker: string;
     paymentMint: string;
-    bid: Bid;
+    bids: Bid[];
     endDate: number;
-    prioritizationFee?: number;
 };
 export type TakeSArg = {
     swapDataAccount: string;
     taker: string;
     nftMintTaker: string;
     bid: Bid;
-    prioritizationFee?: number;
 };
 export type ClaimArg = {
     swapDataAccount: string;
     signer: string;
-    prioritizationFee?: number;
 };
+export type UpdateArgs = {
+    bids: Bid[];
+    swapDataAccount: string;
+    maker: string;
+
+    makerTokenAta?: string;
+    swapDataAccountTokenAta?: string;
+    paymentMint?: string;
+};
+
 export type OptionSend = {
-    clusterOrUrl: Cluster | string;
+    clusterOrUrl?: Cluster | string;
     skipSimulation?: boolean;
     skipConfirmation?: boolean;
+    commitment?: Finality;
+    connection?: Connection;
+    retryDelay?: number;
+    prioritizationFee?: number;
 };
 export type EnvOpts = {
     clusterOrUrl?: Cluster | string;
     program?: Program;
+    prioritizationFee?: number;
 };
-export type MakeSwapData = { bTx: BundleTransaction; swapDataAccount: string };
-export type TakeAndCloseSwapData = { bTxs: BundleTransaction[]; swapDataAccount: string };
+
+export type COptionSend = {
+    clusterOrUrl: Cluster | string;
+    skipSimulation: boolean;
+    skipConfirmation: boolean;
+    commitment: Finality;
+    connection: Connection;
+    retryDelay: number;
+    prioritizationFee?: number;
+};
+export type CEnvOpts = {
+    clusterOrUrl: Cluster | string;
+    program: Program;
+    connection: Connection;
+    prioritizationFee?: number;
+};
+export type ReturnSwapData = { bTxs: BundleTransaction[]; swapDataAccount: string };

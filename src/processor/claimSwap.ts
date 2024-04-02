@@ -1,37 +1,38 @@
 import { Cluster, Keypair, PublicKey } from "@solana/web3.js";
-import { ClaimArg, ErrorFeedback, OptionSend } from "../utils/types";
+import { BundleTransaction, ClaimArg, ErrorFeedback, OptionSend } from "../utils/types";
 import { getProgram } from "../utils/getProgram.obj";
 import { AnchorProvider } from "@coral-xyz/anchor";
-import { sendSingleTransaction } from "../utils/sendSingleTransaction.function";
+import {
+    sendSingleBundleTransaction,
+    sendSingleTransaction,
+} from "../utils/sendSingleTransaction.function";
 import { createClaimSwapInstructions } from "../programInstructions/claimSwap.instructions";
+import { checkOptionSend, getTakeArgs, checkEnvOpts, getClaimArgs } from "../utils/check";
 
 export async function claimSwap(
     Data: OptionSend &
         Omit<ClaimArg, "signer"> & {
             signer: Keypair;
         }
-): Promise<string> {
-    const program = getProgram({ clusterOrUrl: Data.clusterOrUrl, signer: Data.signer });
+): Promise<BundleTransaction> {
+    let claimArgs = getClaimArgs(Data);
+    let optionSend = checkOptionSend(Data);
+    let cEnvOpts = checkEnvOpts(Data);
+    let { swapDataAccount } = claimArgs;
+
     try {
-        return await sendSingleTransaction({
-            connection: program.provider.connection,
-            tx: (
-                await createClaimSwapInstructions({
-                    program,
-                    swapDataAccount: Data.swapDataAccount,
-                    signer: Data.signer.publicKey.toBase58(),
-                    prioritizationFee: Data.prioritizationFee,
-                })
-            ).tx,
+        return await sendSingleBundleTransaction({
+            bt: await createClaimSwapInstructions({
+                ...claimArgs,
+                ...cEnvOpts,
+            }),
             signer: Data.signer,
-            clusterOrUrl: Data.clusterOrUrl,
-            skipSimulation: Data.skipSimulation,
-            skipConfirmation: Data.skipConfirmation,
+            ...optionSend,
         });
     } catch (error) {
         throw {
             blockchain: "solana",
-            message: Data.swapDataAccount.toString() + `- -\n` + error,
+            message: swapDataAccount.toString() + `- -\n` + error,
             status: "error",
         } as ErrorFeedback;
     }

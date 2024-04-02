@@ -29,7 +29,8 @@ export function getProgram(Data: {
 
     const connection = new Connection(clusterUrl, "confirmed");
     if (!Data.signer) Data.signer = Keypair.generate();
-    const wallet = new NodeWallet(Data.signer);
+
+    let wallet = new NodeWallet(Data.signer);
 
     const provider = new AnchorProvider(connection, wallet, AnchorProvider.defaultOptions());
 

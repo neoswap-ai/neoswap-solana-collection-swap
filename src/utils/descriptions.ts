@@ -4,4 +4,6 @@ export const DESC = {
     payRoyalties: "Paying royalties...",
     claimSwap: "Claiming...",
     cancelSwap: "Canceling...",
+    addBid: "Adding Bid...",
+    removeBid: "Removing Bid...",
 };

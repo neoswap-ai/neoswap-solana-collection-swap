@@ -1,50 +1,23 @@
-import { getProgram } from "../utils/getProgram.obj";
 import { getSdaData } from "../utils/getSdaData.function";
-import {
-    Cluster,
-    ComputeBudgetProgram,
-    PublicKey,
-    SYSVAR_INSTRUCTIONS_PUBKEY,
-    SystemProgram,
-    Transaction,
-    TransactionInstruction,
-    VersionedTransaction,
-} from "@solana/web3.js";
-import { BTClaim, BundleTransaction, ClaimArg, EnvOpts, ErrorFeedback } from "../utils/types";
-import { Program } from "@coral-xyz/anchor";
+import { ComputeBudgetProgram, TransactionInstruction } from "@solana/web3.js";
+import { BundleTransaction, ClaimArg, EnvOpts } from "../utils/types";
 import { findOrCreateAta } from "../utils/findOrCreateAta.function";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
-import {
-    METAPLEX_AUTH_RULES_PROGRAM,
-    NS_FEE,
-    SOLANA_SPL_ATA_PROGRAM_ID,
-    TOKEN_METADATA_PROGRAM,
-    VERSION,
-} from "../utils/const";
+import { NS_FEE, TOKEN_METADATA_PROGRAM, VERSION } from "../utils/const";
 import { findNftDataAndMetadataAccount } from "../utils/findNftDataAndAccounts.function";
 import { getCreatorData } from "../utils/creators";
 import { DESC } from "../utils/descriptions";
-import { Version } from "@metaplex-foundation/mpl-bubblegum";
-import { addPriorityFee } from "../utils/fees";
+import { checkEnvOpts, getClaimArgs } from "../utils/check";
+import { ix2vTx } from "../utils/vtx";
 
 export async function createPayRoyaltiesInstructions(
     Data: EnvOpts & ClaimArg
 ): Promise<BundleTransaction> {
     console.log(VERSION);
-    if (Data.program && Data.clusterOrUrl) {
-    } else if (!Data.program && Data.clusterOrUrl) {
-        Data.program = getProgram({ clusterOrUrl: Data.clusterOrUrl });
-    } else if (!Data.clusterOrUrl && Data.program) {
-        Data.clusterOrUrl = Data.program.provider.connection.rpcEndpoint;
-    } else {
-        throw {
-            blockchain: "solana",
-            status: "error",
-            message: "clusterOrUrl or program is required",
-        } as ErrorFeedback;
-    }
-
-    let connection = Data.program.provider.connection;
+    let cEnvOpts = checkEnvOpts(Data);
+    let claimArgs = getClaimArgs(Data);
+    let { program, connection } = cEnvOpts;
+    let { signer, swapDataAccount } = claimArgs;
 
     let instructions: TransactionInstruction[] = [
         ComputeBudgetProgram.setComputeUnitLimit({
@@ -54,10 +27,10 @@ export async function createPayRoyaltiesInstructions(
 
     try {
         let swapDataData = await getSdaData({
-            program: Data.program,
-            swapDataAccount: Data.swapDataAccount,
+            program: program,
+            swapDataAccount: swapDataAccount,
         });
-        if (!swapDataData) throw "no swapData found at " + Data.swapDataAccount;
+        if (!swapDataData) throw "no swapData found at " + swapDataAccount;
         let { paymentMint, maker, nftMintMaker, taker, nftMintTaker, acceptedBid } = swapDataData;
 
         if (!(nftMintTaker && taker && acceptedBid)) {
@@ -75,7 +48,7 @@ export async function createPayRoyaltiesInstructions(
             nftMintMaker,
             paymentMint,
             taker,
-            signer: Data.signer,
+            signer: signer,
             nftMintTaker,
         });
 
@@ -84,8 +57,8 @@ export async function createPayRoyaltiesInstructions(
         let { mintAta: swapDataAccountTokenAta, instruction: sdat } = await findOrCreateAta({
             connection,
             mint: paymentMint,
-            owner: Data.swapDataAccount,
-            signer: Data.signer,
+            owner: swapDataAccount,
+            signer: signer,
         });
         if (sdat) {
             instructions.push(sdat);
@@ -95,7 +68,7 @@ export async function createPayRoyaltiesInstructions(
             connection,
             mint: paymentMint,
             owner: NS_FEE,
-            signer: Data.signer,
+            signer: signer,
         });
         if (nst) {
             instructions.push(nst);
@@ -106,7 +79,7 @@ export async function createPayRoyaltiesInstructions(
             connection,
             mint: nftMintTaker,
             owner: maker,
-            signer: Data.signer,
+            signer: signer,
         });
         if (mn) {
             instructions.push(mn);
@@ -117,7 +90,7 @@ export async function createPayRoyaltiesInstructions(
             connection,
             mint: paymentMint,
             owner: maker,
-            signer: Data.signer,
+            signer: signer,
         });
         if (mt) {
             instructions.push(mt);
@@ -128,7 +101,7 @@ export async function createPayRoyaltiesInstructions(
             connection,
             mint: nftMintTaker,
             owner: taker,
-            signer: Data.signer,
+            signer: signer,
         });
         if (tn) {
             instructions.push(tn);
@@ -139,7 +112,7 @@ export async function createPayRoyaltiesInstructions(
             connection,
             mint: paymentMint,
             owner: taker,
-            signer: Data.signer,
+            signer: signer,
         });
         if (tt) {
             instructions.push(tt);
@@ -161,36 +134,21 @@ export async function createPayRoyaltiesInstructions(
             });
         console.log("nftMetadataTaker", nftMetadataTaker);
 
-        const payRIx = await Data.program.methods
+        const payRIx = await program.methods
             .payRoyalties()
             .accounts({
-                swapDataAccount: Data.swapDataAccount,
+                swapDataAccount,
                 swapDataAccountTokenAta,
 
-                // maker,
-                // makerNftAta,
-                // makerTokenAta,
+                signer,
 
-                signer: Data.signer,
-                // takerNftAta,
-                // takerTokenAta,
-
-                // nsFee: NS_FEE,
-                // nsFeeTokenAta,
-
-                // nftMintTaker: nftMintTaker,
-                mintToken: paymentMint,
+                paymentMint,
 
                 nftMetadataTaker,
                 nftMetadataMaker,
 
                 metadataProgram: TOKEN_METADATA_PROGRAM,
                 tokenProgram: TOKEN_PROGRAM_ID,
-
-                // systemProgram: SystemProgram.programId,
-                // sysvarInstructions: SYSVAR_INSTRUCTIONS_PUBKEY,
-                // ataProgram: SOLANA_SPL_ATA_PROGRAM_ID,
-                // authRulesProgram: METAPLEX_AUTH_RULES_PROGRAM,
 
                 makerCreator0: makerCreator[0],
                 makerCreator0TokenAta: makerCreatorTokenAta[0],
@@ -208,23 +166,14 @@ export async function createPayRoyaltiesInstructions(
             .instruction();
         instructions.push(payRIx);
 
-        let tx = new Transaction().add(...instructions);
-        tx = await addPriorityFee(tx, Data.prioritizationFee);
-        tx.feePayer = new PublicKey(Data.signer);
-        tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
-        // // let simu = await connection.simulateTransaction(tx);
-        // // console.log("simu", simu.value);
-        // const txSig = await connection.sendTransaction(tx, [maker]);
-        // console.log("txSig", txSig);
-
         return {
-            tx: new VersionedTransaction(tx.compileMessage()),
+            tx: await ix2vTx(instructions, cEnvOpts, signer),
             description: DESC.payRoyalties,
             details: Data,
             priority: 0,
             status: "pending",
             blockheight: (await connection.getLatestBlockhash()).lastValidBlockHeight,
-        } as BTClaim;
+        };
     } catch (error: any) {
         console.log("error init", error);
 
@@ -232,7 +181,7 @@ export async function createPayRoyaltiesInstructions(
             blockchain: "solana",
             status: "error",
             message: error,
-            swapDataAccount: Data.swapDataAccount,
+            swapDataAccount: swapDataAccount,
         };
     }
 }
