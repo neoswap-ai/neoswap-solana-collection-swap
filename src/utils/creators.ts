@@ -35,6 +35,7 @@ export async function getCreatorData(Data: {
     let makerCreator = [Data.signer, Data.signer, Data.signer];
     let makerCreatorTokenAta = [takerAta, takerAta, takerAta];
 
+    
     let takerCreator = [Data.signer, Data.signer, Data.signer];
     let takerCreatorTokenAta = [takerAta, takerAta, takerAta];
 
