@@ -49,7 +49,7 @@ export function checkOptionSend(Data: OptionSend): COptionSend {
 }
 
 export function checkEnvOpts(Data: EnvOpts): CEnvOpts {
-    let { clusterOrUrl, program } = Data;
+    let { clusterOrUrl, program, prioritizationFee } = Data;
 
     if (program && clusterOrUrl) {
     } else if (!program && clusterOrUrl) {
@@ -64,7 +64,7 @@ export function checkEnvOpts(Data: EnvOpts): CEnvOpts {
         } as ErrorFeedback;
     }
 
-    return { program, clusterOrUrl, connection: program.provider.connection };
+    return { program, clusterOrUrl, connection: program.provider.connection, prioritizationFee };
 }
 export function getMakeArgs(
     Data: any &
