@@ -127,7 +127,7 @@ export async function createMakeSwapInstructions(
             if (bidA.amount < 0) amountA += -bidA.amount;
             let amountB = bidB.makerNeoswapFee + bidB.makerRoyalties;
             if (bidB.amount < 0) amountB += -bidB.amount;
-            return amountA - amountB;
+            return amountB - amountA;
         });
         // if wSOL
         if (paymentMint === WRAPPED_SOL_MINT.toString()) {
@@ -149,7 +149,8 @@ export async function createMakeSwapInstructions(
         }
 
         console.log("bids", bids);
-        let oneBid = bids.pop()!;
+        let oneBid = bids[0];
+        let leftBids = bids.slice(1);
         const initIx = await program.methods
             .makeSwap(bidToscBid(oneBid), new BN(endDate))
             .accounts({
@@ -182,11 +183,11 @@ export async function createMakeSwapInstructions(
 
         let addBidIxs: TransactionInstruction[] = [];
         let isAddBidInMakeSwap = false;
-        if (bids.length > 0) {
+        if (leftBids.length > 0) {
             isAddBidInMakeSwap = true;
             let bidDataIxs = await createAddBidIx({
                 swapDataAccount,
-                bids,
+                bids: leftBids,
                 maker,
                 paymentMint,
                 makerTokenAta,
