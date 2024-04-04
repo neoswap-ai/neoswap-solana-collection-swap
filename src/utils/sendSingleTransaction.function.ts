@@ -91,22 +91,29 @@ export async function sendSingleBundleTransaction(
     let keepChecking = true;
 
     while (keepChecking) {
-        let check = await checkTransaction({
-            connection: connection,
-            hash: bt.hash,
-            blockheight: recentBlockhash.lastValidBlockHeight,
-            commitment,
-            tx,
-        });
+        try {
+            let check = await checkTransaction({
+                connection: connection,
+                hash: bt.hash,
+                blockheight: recentBlockhash.lastValidBlockHeight,
+                commitment,
+                tx,
+            });
 
-        if (check === true) {
-            keepChecking = false;
-            bt.status = "success";
-            console.log("Transaction confirmed: ", bt.hash);
-        } else if (check === null) await delay(retryDelay);
-        else {
-            bt.status = "failed";
-            throw new Error("Transaction failed");
+            if (check === true) {
+                keepChecking = false;
+                bt.status = "success";
+                console.log("Transaction confirmed: ", bt.hash);
+            } else if (check === null) await delay(retryDelay);
+            else {
+                bt.status = "failed";
+                throw new Error("Transaction failed");
+            }
+        } catch (error) {
+            if (String(error).includes("Could not find transaction after 151 blocks")) {
+                bt.status = "Timeout";
+            }
+            throw error;
         }
     }
 

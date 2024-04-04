@@ -104,7 +104,7 @@ export type BundleTxBase = {
     blockheight?: number;
     description: string;
     priority: number;
-    status: "pending" | "broadcast" | "success" | "failed" ;
+    status: "pending" | "broadcast" | "success" | "failed" | "Timeout";
     hash?: string;
     failedReason?: string;
     retries?: number;
