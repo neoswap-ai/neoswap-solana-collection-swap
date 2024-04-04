@@ -1,9 +1,12 @@
 export const AVOID_LIST = [
-    //dev reliquat
-    "EATQUN48qM87aNEWg7owWruLvaqkq5D2L1j4K1nDNtv5",
-    "AXy6qTDKhpuQUqA3dQBAZdDSdwivAxr8YfxL16aiQyXW",
-    "6nTTuktkuTsBu8YFDLrgNG9WCtkTPpCLoq3L3Y5vCZAn", // dev Idl
+    "G7AVeXMK6e4NFZ6D8EYRwxs7juD7rTaeJnPBRw8jdyGX", // NSWP IDL
 ]
+    .concat([
+        //dev reliquat
+        "EATQUN48qM87aNEWg7owWruLvaqkq5D2L1j4K1nDNtv5",
+        "AXy6qTDKhpuQUqA3dQBAZdDSdwivAxr8YfxL16aiQyXW",
+        "6nTTuktkuTsBu8YFDLrgNG9WCtkTPpCLoq3L3Y5vCZAn", // dev Idl
+    ])
     .concat([
         // OldPdas
         "8EaF2jHQ8ytow2S5oqQqbkuvP9NQTU4HYoBDzboE9xKA",
