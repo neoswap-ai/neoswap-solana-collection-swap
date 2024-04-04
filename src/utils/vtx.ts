@@ -7,11 +7,11 @@ import {
     VersionedTransaction,
 } from "@solana/web3.js";
 import { addPriorityFee } from "./fees";
-import {  EnvOpts } from "./types";
+import { EnvOpts } from "./types";
 import { checkEnvOpts } from "./check";
 
 export async function ix2vTx(ix: TransactionInstruction[], envOpts: EnvOpts, signer: string) {
-    let cEnvOpts = checkEnvOpts(envOpts);
+    let cEnvOpts = await checkEnvOpts(envOpts);
     let { connection, prioritizationFee } = cEnvOpts;
     let ttx = new Transaction().add(...ix);
     ttx.feePayer = new PublicKey(signer);

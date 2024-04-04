@@ -8,8 +8,6 @@ import {
     OptionSend,
     TakeSArg,
 } from "../utils/types";
-import { getProgram } from "../utils/getProgram.obj";
-import { AnchorProvider } from "@coral-xyz/anchor";
 import {
     sendBundledTransactions,
     sendBundledTransactionsV2,
@@ -26,7 +24,7 @@ export async function takeAndCloseSwap(
 ): Promise<BundleTransaction[]> {
     let takeArgs = getTakeArgs(Data);
     let optionSend = checkOptionSend(Data);
-    let cEnvOpts = checkEnvOpts(Data);
+    let cEnvOpts = await checkEnvOpts(Data);
 
     try {
         return await sendBundledTransactionsV2({

@@ -1,7 +1,5 @@
 import { Cluster, Keypair, PublicKey } from "@solana/web3.js";
 import { BundleTransaction, ClaimArg, ErrorFeedback, OptionSend } from "../utils/types";
-import { getProgram } from "../utils/getProgram.obj";
-import { AnchorProvider } from "@coral-xyz/anchor";
 import {
     sendSingleBundleTransaction,
     sendSingleTransaction,
@@ -17,7 +15,7 @@ export async function claimSwap(
 ): Promise<BundleTransaction> {
     let claimArgs = getClaimArgs(Data);
     let optionSend = checkOptionSend(Data);
-    let cEnvOpts = checkEnvOpts(Data);
+    let cEnvOpts = await checkEnvOpts(Data);
     let { swapDataAccount } = claimArgs;
 
     try {

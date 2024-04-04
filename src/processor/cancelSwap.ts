@@ -1,7 +1,5 @@
 import { Cluster, Keypair, PublicKey } from "@solana/web3.js";
 import { Bid, BundleTransaction, ClaimArg, ErrorFeedback, OptionSend } from "../utils/types";
-import { getProgram } from "../utils/getProgram.obj";
-import { AnchorProvider } from "@coral-xyz/anchor";
 import {
     sendSingleBundleTransaction,
     sendSingleTransaction,
@@ -17,7 +15,7 @@ export async function cancelSwap(
 ): Promise<BundleTransaction> {
     let optionSend = checkOptionSend(Data);
     let claimArgs = getClaimArgs(Data);
-    let cEnvOpts = checkEnvOpts(Data);
+    let cEnvOpts = await checkEnvOpts(Data);
 
     try {
         return await sendSingleBundleTransaction({

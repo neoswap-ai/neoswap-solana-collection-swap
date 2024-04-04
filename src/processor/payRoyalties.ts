@@ -11,7 +11,7 @@ export async function payRoyalties(
         }
 ): Promise<BundleTransaction> {
     let cOptionSend = checkOptionSend(Data);
-    let cEnvOpts = checkEnvOpts(Data);
+    let cEnvOpts = await checkEnvOpts(Data);
     let claimArgs = getClaimArgs(Data);
 
     try {

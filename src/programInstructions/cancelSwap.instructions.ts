@@ -29,7 +29,7 @@ export async function createCancelSwapInstructions(
     Data: EnvOpts & ClaimArg
 ): Promise<BundleTransaction> {
     console.log(VERSION);
-    let cEnvOpts = checkEnvOpts(Data);
+    let cEnvOpts = await checkEnvOpts(Data);
     let claimArgs = getClaimArgs(Data);
     let { program, connection } = cEnvOpts;
     let { signer, swapDataAccount } = claimArgs;

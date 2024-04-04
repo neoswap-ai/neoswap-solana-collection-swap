@@ -13,7 +13,7 @@ export async function createAddBidIx(
 ): Promise<{ bidIxs: TransactionInstruction[]; ataIxs: TransactionInstruction[] }> {
     let { bids, swapDataAccount, maker, paymentMint, makerTokenAta, swapDataAccountTokenAta } =
         Data;
-    let cEnvOpts = checkEnvOpts(Data);
+    let cEnvOpts = await checkEnvOpts(Data);
     let { program, connection, clusterOrUrl } = cEnvOpts;
     let ataIxs: TransactionInstruction[] = [];
     // let paymentMint: string;
@@ -69,7 +69,7 @@ export async function createAddBidBt(Data: EnvOpts & UpdateArgs): Promise<Bundle
     ixs.push(...bidIxs.bidIxs);
     return {
         description: DESC.addBid,
-        tx: await ix2vTx(ixs, checkEnvOpts(Data), Data.maker),
+        tx: await ix2vTx(ixs, await checkEnvOpts(Data), Data.maker),
         details: Data,
         priority: 0,
         status: "pending",
@@ -78,7 +78,7 @@ export async function createAddBidBt(Data: EnvOpts & UpdateArgs): Promise<Bundle
 
 export async function createRmBidIx(Data: EnvOpts & UpdateArgs): Promise<TransactionInstruction[]> {
     let { bids, swapDataAccount, maker } = Data;
-    let cEnvOpts = checkEnvOpts(Data);
+    let cEnvOpts = await checkEnvOpts(Data);
     let { program } = cEnvOpts;
     return await Promise.all(
         bids.map(
@@ -97,7 +97,7 @@ export async function createRmBidIx(Data: EnvOpts & UpdateArgs): Promise<Transac
 export async function createRmBidBt(Data: EnvOpts & UpdateArgs): Promise<BundleTransaction> {
     return {
         description: DESC.removeBid,
-        tx: await ix2vTx(await createRmBidIx(Data), checkEnvOpts(Data), Data.maker),
+        tx: await ix2vTx(await createRmBidIx(Data), await checkEnvOpts(Data), Data.maker),
         details: Data,
         priority: 0,
         status: "pending",

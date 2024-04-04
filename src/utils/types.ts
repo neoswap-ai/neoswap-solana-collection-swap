@@ -1,4 +1,4 @@
-import { Program } from "@coral-xyz/anchor";
+import { Idl, Program } from "@coral-xyz/anchor";
 import {
     Cluster,
     Connection,
@@ -104,16 +104,17 @@ export type BundleTxBase = {
     blockheight?: number;
     description: string;
     priority: number;
-    status: "pending" | "broadcast" | "success" | "failed";
+    status: "pending" | "broadcast" | "success" | "failed" ;
     hash?: string;
     failedReason?: string;
     retries?: number;
 };
+export type Act = MakeSArg | TakeSArg | ClaimArg | UpdateArgs;
 
-export type BTact = BundleTxBase & { details: MakeSArg | TakeSArg | ClaimArg | UpdateArgs | any };
+export type BTAct = BundleTxBase & { details: Act | any };
 
-export type BTv = BTact & vT;
-export type BTt = BTact & T;
+export type BTv = BTAct & vT;
+export type BTt = BTAct & T;
 
 export type BundleTransaction = BTv | BTt;
 
@@ -156,6 +157,8 @@ export type OptionSend = {
 export type EnvOpts = {
     clusterOrUrl?: Cluster | string;
     program?: Program;
+    programId?: string;
+    idl?: Idl | true;
     prioritizationFee?: number;
 };
 
@@ -172,6 +175,8 @@ export type CEnvOpts = {
     clusterOrUrl: Cluster | string;
     program: Program;
     connection: Connection;
+    programId: string;
+    idl: Idl;
     prioritizationFee?: number;
 };
 export type ReturnSwapData = { bTxs: BundleTransaction[]; swapDataAccount: string };

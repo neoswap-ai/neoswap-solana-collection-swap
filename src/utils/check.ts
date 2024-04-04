@@ -48,12 +48,12 @@ export function checkOptionSend(Data: OptionSend): COptionSend {
     };
 }
 
-export function checkEnvOpts(Data: EnvOpts): CEnvOpts {
-    let { clusterOrUrl, program, prioritizationFee } = Data;
+export async function checkEnvOpts(Data: EnvOpts): Promise<CEnvOpts> {
+    let { clusterOrUrl, program, prioritizationFee, programId, idl } = Data;
 
     if (program && clusterOrUrl) {
     } else if (!program && clusterOrUrl) {
-        program = getProgram({ clusterOrUrl: clusterOrUrl });
+        program = await getProgram({ clusterOrUrl: clusterOrUrl, programId, idl });
     } else if (!clusterOrUrl && program) {
         clusterOrUrl = program.provider.connection.rpcEndpoint;
     } else {
@@ -63,8 +63,18 @@ export function checkEnvOpts(Data: EnvOpts): CEnvOpts {
             message: "clusterOrUrl or program is required",
         } as ErrorFeedback;
     }
+    console.log(programId, " VS ", program.programId.toString());
 
-    return { program, clusterOrUrl, connection: program.provider.connection, prioritizationFee };
+    programId = program.programId.toString();
+
+    return {
+        program,
+        clusterOrUrl,
+        connection: program.provider.connection,
+        prioritizationFee,
+        programId,
+        idl: program.idl,
+    };
 }
 export function getMakeArgs(
     Data: any &

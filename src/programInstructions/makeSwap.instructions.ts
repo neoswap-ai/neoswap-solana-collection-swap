@@ -35,7 +35,7 @@ export async function createMakeSwapInstructions(
     Data: MakeSArg & EnvOpts
 ): Promise<ReturnSwapData> {
     console.log(VERSION);
-    let cEnvOpts = checkEnvOpts(Data);
+    let cEnvOpts = await checkEnvOpts(Data);
     let makeArgs = getMakeArgs(Data);
     let { program, connection } = cEnvOpts;
     let { bids, endDate, maker, nftMintMaker, paymentMint } = makeArgs;
