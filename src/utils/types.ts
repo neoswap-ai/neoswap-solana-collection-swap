@@ -109,7 +109,7 @@ export type BundleTxBase = {
     failedReason?: string;
     retries?: number;
 };
-export type Act = MakeSArg | TakeSArg | ClaimArg | UpdateArgs;
+export type Act = MakeSArg | TakeSArg | ClaimSArg | UpdateSArgs;
 
 export type BTAct = BundleTxBase & { details: Act | any };
 
@@ -131,11 +131,11 @@ export type TakeSArg = {
     nftMintTaker: string;
     bid: Bid;
 };
-export type ClaimArg = {
+export type ClaimSArg = {
     swapDataAccount: string;
     signer: string;
 };
-export type UpdateArgs = {
+export type UpdateSArgs = {
     bids: Bid[];
     swapDataAccount: string;
     maker: string;

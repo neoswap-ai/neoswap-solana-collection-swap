@@ -5,7 +5,7 @@ import {
     sendSingleTransaction,
 } from "../utils/sendSingleTransaction.function";
 import { createTakeSwapInstructions } from "../programInstructions/takeSwap.instructions";
-import { checkEnvOpts, checkOptionSend, getClaimArgs, getTakeArgs } from "../utils/check";
+import { checkEnvOpts, checkOptionSend, getClaimSArgs, getTakeArgs } from "../utils/check";
 
 export async function takeSwap(
     Data: OptionSend &

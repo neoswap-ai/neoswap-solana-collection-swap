@@ -1,27 +1,27 @@
 import { Cluster, Keypair, PublicKey } from "@solana/web3.js";
-import { BundleTransaction, ClaimArg, ErrorFeedback, OptionSend } from "../utils/types";
+import { BundleTransaction, ClaimSArg, ErrorFeedback, OptionSend } from "../utils/types";
 import {
     sendSingleBundleTransaction,
     sendSingleTransaction,
 } from "../utils/sendSingleTransaction.function";
 import { createClaimSwapInstructions } from "../programInstructions/claimSwap.instructions";
-import { checkOptionSend, getTakeArgs, checkEnvOpts, getClaimArgs } from "../utils/check";
+import { checkOptionSend, getTakeArgs, checkEnvOpts, getClaimSArgs } from "../utils/check";
 
 export async function claimSwap(
     Data: OptionSend &
-        Omit<ClaimArg, "signer"> & {
+        Omit<ClaimSArg, "signer"> & {
             signer: Keypair;
         }
 ): Promise<BundleTransaction> {
-    let claimArgs = getClaimArgs(Data);
+    let ClaimSArgs = getClaimSArgs(Data);
     let optionSend = checkOptionSend(Data);
     let cEnvOpts = await checkEnvOpts(Data);
-    let { swapDataAccount } = claimArgs;
+    let { swapDataAccount } = ClaimSArgs;
 
     try {
         return await sendSingleBundleTransaction({
             bt: await createClaimSwapInstructions({
-                ...claimArgs,
+                ...ClaimSArgs,
                 ...cEnvOpts,
             }),
             signer: Data.signer,
