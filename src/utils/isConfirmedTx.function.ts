@@ -6,9 +6,7 @@ export async function isConfirmedTx(Data: {
     clusterOrUrl: Cluster | string;
     connection?: Connection;
 }) {
-    const connection = Data.connection
-        ? Data.connection
-        : getProgram({ clusterOrUrl: Data.clusterOrUrl }).provider.connection;
+    const connection = Data.connection ? Data.connection : new Connection(Data.clusterOrUrl);
     const blockHashData = await connection.getLatestBlockhash();
     let confirmArray: {
         transactionHash: string;

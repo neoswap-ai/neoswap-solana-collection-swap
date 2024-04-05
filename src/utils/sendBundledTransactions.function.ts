@@ -17,10 +17,12 @@ export async function sendBundledTransactions(
     let { clusterOrUrl, skipSimulation, connection } = cOptionSend;
     let { txsWithoutSigners, signer, skipConfirmation } = Data;
     try {
-        const provider = getProgram({
-            clusterOrUrl,
-            signer,
-        }).provider;
+        const provider = (
+            await getProgram({
+                clusterOrUrl,
+                signer,
+            })
+        ).provider;
 
         const txsWithSigners = txsWithoutSigners.map((txWithSigners) => {
             txWithSigners.signers = [signer];

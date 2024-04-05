@@ -10,7 +10,7 @@ export async function getSdaData(
     }
 ): Promise<SwapData | undefined> {
     let { swapDataAccount } = Data;
-    let { program } = checkEnvOpts(Data);
+    let { program } = await checkEnvOpts(Data);
 
     try {
         const swapData = (await program.account.swapData.fetch(swapDataAccount)) as ScSwapData;
@@ -30,23 +30,30 @@ export async function getSdaData(
     }
 }
 
-export async function getOpenSda(Data: EnvOpts): Promise<{ sda: string; data: SwapData }[]> {
-    let { program } = checkEnvOpts(Data);
+export async function getOpenSda(
+    Data: EnvOpts & {
+        ignoreList?: string[];
+    }
+): Promise<{ sda: string; data: SwapData }[]> {
+    let { program } = await checkEnvOpts(Data);
     try {
         console.log("Program Id", program.programId.toString());
 
         let openSda = (await program.provider.connection.getProgramAccounts(program.programId)).map(
             (x) => x.pubkey
         );
+        let ignoreList = Data.ignoreList || [];
 
-        AVOID_LIST.map((x) => new PublicKey(x)).map((blacklist) => {
-            openSda = openSda.filter((x) => !x.equals(blacklist));
-        });
+        AVOID_LIST.concat(ignoreList)
+            .map((x) => new PublicKey(x))
+            .map((blacklist) => {
+                openSda = openSda.filter((x) => !x.equals(blacklist));
+            });
         console.log(
             "openSda",
             openSda.map((x) => x.toBase58())
         );
-        console.log(openSda.length);
+        console.log("openSda len :", openSda.length);
         // let i = 0;
         // for (const sda in openSda) {
         //     if (Object.prototype.hasOwnProperty.call(openSda, sda)) {

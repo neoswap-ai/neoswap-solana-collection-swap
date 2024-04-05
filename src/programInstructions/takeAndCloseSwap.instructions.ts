@@ -35,7 +35,7 @@ export async function createTakeAndCloseSwapInstructions(
     Data: TakeSArg & EnvOpts
 ): Promise<BundleTransaction[]> {
     console.log(VERSION);
-    let cEnvOpts = checkEnvOpts(Data);
+    let cEnvOpts = await checkEnvOpts(Data);
     let takeArgs = getTakeArgs(Data);
     let { program, connection } = cEnvOpts;
     let { taker, swapDataAccount, bid, nftMintTaker } = takeArgs;

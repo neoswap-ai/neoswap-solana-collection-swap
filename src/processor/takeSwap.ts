@@ -1,13 +1,11 @@
 import { Cluster, Connection, Keypair, PublicKey } from "@solana/web3.js";
 import { Bid, BundleTransaction, ErrorFeedback, OptionSend, TakeSArg } from "../utils/types";
-import { getProgram } from "../utils/getProgram.obj";
-import { AnchorProvider } from "@coral-xyz/anchor";
 import {
     sendSingleBundleTransaction,
     sendSingleTransaction,
 } from "../utils/sendSingleTransaction.function";
 import { createTakeSwapInstructions } from "../programInstructions/takeSwap.instructions";
-import { checkEnvOpts, checkOptionSend, getClaimArgs, getTakeArgs } from "../utils/check";
+import { checkEnvOpts, checkOptionSend, getClaimSArgs, getTakeArgs } from "../utils/check";
 
 export async function takeSwap(
     Data: OptionSend &
@@ -16,7 +14,7 @@ export async function takeSwap(
         }
 ): Promise<BundleTransaction> {
     let cOptionSend = checkOptionSend(Data);
-    let cEnvOpts = checkEnvOpts(Data);
+    let cEnvOpts = await checkEnvOpts(Data);
     let takeArgs = getTakeArgs(Data);
 
     try {

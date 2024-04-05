@@ -1,13 +1,15 @@
 import { Connection, Keypair, Transaction, VersionedTransaction } from "@solana/web3.js";
 import {
+    Act,
     CEnvOpts,
     COptionSend,
-    ClaimArg,
+    ClaimSArg,
     EnvOpts,
     ErrorFeedback,
     MakeSArg,
     OptionSend,
     TakeSArg,
+    UpdateSArgs,
 } from "./types";
 import { getProgram } from "./getProgram.obj";
 import { isVersionedTransaction } from "@solana/wallet-adapter-base";
@@ -48,12 +50,12 @@ export function checkOptionSend(Data: OptionSend): COptionSend {
     };
 }
 
-export function checkEnvOpts(Data: EnvOpts): CEnvOpts {
-    let { clusterOrUrl, program, prioritizationFee } = Data;
+export async function checkEnvOpts(Data: EnvOpts): Promise<CEnvOpts> {
+    let { clusterOrUrl, program, prioritizationFee, programId, idl } = Data;
 
     if (program && clusterOrUrl) {
     } else if (!program && clusterOrUrl) {
-        program = getProgram({ clusterOrUrl: clusterOrUrl });
+        program = await getProgram({ clusterOrUrl: clusterOrUrl, programId, idl });
     } else if (!clusterOrUrl && program) {
         clusterOrUrl = program.provider.connection.rpcEndpoint;
     } else {
@@ -63,8 +65,18 @@ export function checkEnvOpts(Data: EnvOpts): CEnvOpts {
             message: "clusterOrUrl or program is required",
         } as ErrorFeedback;
     }
+    console.log(programId, " VS ", program.programId.toString());
 
-    return { program, clusterOrUrl, connection: program.provider.connection, prioritizationFee };
+    programId = program.programId.toString();
+
+    return {
+        program,
+        clusterOrUrl,
+        connection: program.provider.connection,
+        prioritizationFee,
+        programId,
+        idl: program.idl,
+    };
 }
 export function getMakeArgs(
     Data: any &
@@ -94,15 +106,15 @@ export function getTakeArgs(
     taker = typeof taker === "string" ? taker : taker.publicKey.toString();
     return { bid, nftMintTaker, swapDataAccount, taker };
 }
-export function getClaimArgs(
+export function getClaimSArgs(
     Data: any &
         (
-            | ClaimArg
-            | (Omit<ClaimArg, "signer"> & {
+            | ClaimSArg
+            | (Omit<ClaimSArg, "signer"> & {
                   signer: Keypair;
               })
         )
-): ClaimArg {
+): ClaimSArg {
     let { signer, swapDataAccount } = Data;
     signer = typeof signer === "string" ? signer : signer.publicKey.toString();
     return { swapDataAccount, signer };
@@ -113,4 +125,51 @@ export function isVersionedArray(
 ): txs is VersionedTransaction[] {
     if (txs.length === 0) return false;
     return isVersionedTransaction(txs[0]);
+}
+
+export function isMakeSArg(Data: Act): Data is MakeSArg {
+    if (
+        "endDate" in Data &&
+        "maker" in Data &&
+        "nftMintMaker" in Data &&
+        "paymentMint" in Data &&
+        "bids" in Data
+    ) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+export function isTakeSArg(Data: Act): Data is TakeSArg {
+    if ("taker" in Data && "bid" in Data && "nftMintTaker" in Data && "swapDataAccount" in Data) {
+        return true;
+    } else {
+        return false;
+    }
+}
+export function isClaimSArg(Data: Act): Data is ClaimSArg {
+    if ("swapDataAccount" in Data && "signer" in Data) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+export function isUpdateSArg(Data: Act): Data is UpdateSArgs {
+    if ("bids" in Data && "swapDataAccount" in Data && "maker" in Data) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+export function whatIs(
+    Data: Act
+): "MakeSArg" | "TakeSArg" | "ClaimSArg" | "UpdateSArgs" | "unknown" {
+    if (isMakeSArg(Data)) return "MakeSArg";
+    if (isTakeSArg(Data)) return "TakeSArg";
+    if (isClaimSArg(Data)) return "ClaimSArg";
+    if (isUpdateSArg(Data)) return "UpdateSArgs";
+    return "unknown";
 }

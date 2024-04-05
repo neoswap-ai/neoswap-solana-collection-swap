@@ -1,18 +1,18 @@
 import { Keypair } from "@solana/web3.js";
-import { BundleTransaction, ClaimArg, ErrorFeedback, OptionSend } from "../utils/types";
+import { BundleTransaction, ClaimSArg, ErrorFeedback, OptionSend } from "../utils/types";
 import { sendSingleBundleTransaction } from "../utils/sendSingleTransaction.function";
 import { createPayRoyaltiesInstructions } from "../programInstructions/payRoyalties.instructions";
-import { checkEnvOpts, checkOptionSend, getClaimArgs } from "../utils/check";
+import { checkEnvOpts, checkOptionSend, getClaimSArgs } from "../utils/check";
 
 export async function payRoyalties(
     Data: OptionSend &
-        Omit<ClaimArg, "signer"> & {
+        Omit<ClaimSArg, "signer"> & {
             signer: Keypair;
         }
 ): Promise<BundleTransaction> {
     let cOptionSend = checkOptionSend(Data);
-    let cEnvOpts = checkEnvOpts(Data);
-    let claimArgs = getClaimArgs(Data);
+    let cEnvOpts = await checkEnvOpts(Data);
+    let ClaimSArgs = getClaimSArgs(Data);
 
     try {
         return await sendSingleBundleTransaction({
@@ -20,7 +20,7 @@ export async function payRoyalties(
             signer: Data.signer,
             bt: await createPayRoyaltiesInstructions({
                 ...cEnvOpts,
-                ...claimArgs,
+                ...ClaimSArgs,
             }),
         });
     } catch (error) {

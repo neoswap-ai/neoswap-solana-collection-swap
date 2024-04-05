@@ -6,7 +6,7 @@ export async function refreshBTBlockhash(
     bts: BundleTransaction[],
     envOpts: EnvOpts
 ): Promise<BundleTransaction[]> {
-    let { connection } = checkEnvOpts(envOpts);
+    let { connection } = await checkEnvOpts(envOpts);
     let recentBch = (await connection.getLatestBlockhash()).blockhash;
     bts.forEach((bt) => {
         if (isVersionedTransaction(bt.tx)) bt.tx.message.recentBlockhash = recentBch;

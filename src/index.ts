@@ -11,7 +11,15 @@ import { createAddBidBt, createRmBidBt } from "./programInstructions/modifyAddBi
 import { createPayRoyaltiesInstructions } from "./programInstructions/payRoyalties.instructions";
 import { createTakeAndCloseSwapInstructions } from "./programInstructions/takeAndCloseSwap.instructions";
 import { createTakeSwapInstructions } from "./programInstructions/takeSwap.instructions";
-import { checkEnvOpts, checkOptionSend } from "./utils/check";
+import {
+    checkEnvOpts,
+    checkOptionSend,
+    isClaimSArg,
+    isMakeSArg,
+    isTakeSArg,
+    isUpdateSArg,
+    whatIs,
+} from "./utils/check";
 import {
     findNftDataAndMetadataAccount,
     findNftMasterEdition,
@@ -30,18 +38,29 @@ import { sendSingleBundleTransaction } from "./utils/sendSingleTransaction.funct
 import { bidToscBid } from "./utils/typeSwap";
 import { addWSol, closeWSol } from "./utils/wsol";
 // import { closeUserPda } from "./utils/userPdaClose";
-export * as neoTypes from "./utils/types";
-export * as neoConst from "./utils/const";
+export * from "./utils/types";
+export * from "./utils/const";
 
-const NFT_ACCOUNTS = {
+export * as neoColTypes from "./utils/types";
+export * as neoColConst from "./utils/const";
+
+export const NFT_ACCOUNTS = {
     findNftDataAndMetadataAccount,
     findNftMasterEdition,
     findRuleSet,
     findUserTokenRecord,
 };
+export const TYPES = {
+    whatIs,
+    isUpdateSArg,
+    isClaimSArg,
+    isTakeSArg,
+    isMakeSArg,
+};
 
-const UTILS = {
+export const UTILS = {
     NFT_ACCOUNTS,
+    TYPES,
     getProgram,
     getSdaData,
     getOpenSda,
@@ -57,7 +76,7 @@ const UTILS = {
     checkOptionSend,
     // closeUserPda,
 };
-const CREATE_INSTRUCTIONS = {
+export const CREATE_INSTRUCTIONS = {
     createMakeSwapInstructions,
     createTakeSwapInstructions,
     createPayRoyaltiesInstructions,
@@ -68,7 +87,7 @@ const CREATE_INSTRUCTIONS = {
     createRmBidBt,
 };
 
-export const neoSwap = {
+export const neoColSwap = {
     makeSwap,
     takeSwap,
     takeAndCloseSwap,
@@ -77,4 +96,6 @@ export const neoSwap = {
     cancelSwap,
     UTILS,
     CREATE_INSTRUCTIONS,
+    NFT_ACCOUNTS,
+    TYPES,
 };

@@ -5,7 +5,7 @@ import {
     TransactionInstruction,
     SYSVAR_INSTRUCTIONS_PUBKEY,
 } from "@solana/web3.js";
-import { BTv, EnvOpts, MakeSArg, ReturnSwapData, UpdateArgs } from "../utils/types";
+import { BTv, EnvOpts, MakeSArg, ReturnSwapData, UpdateSArgs } from "../utils/types";
 import { findOrCreateAta } from "../utils/findOrCreateAta.function";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import {
@@ -35,7 +35,7 @@ export async function createMakeSwapInstructions(
     Data: MakeSArg & EnvOpts
 ): Promise<ReturnSwapData> {
     console.log(VERSION);
-    let cEnvOpts = checkEnvOpts(Data);
+    let cEnvOpts = await checkEnvOpts(Data);
     let makeArgs = getMakeArgs(Data);
     let { program, connection } = cEnvOpts;
     let { bids, endDate, maker, nftMintMaker, paymentMint } = makeArgs;
@@ -216,7 +216,7 @@ export async function createMakeSwapInstructions(
         if (addBidIxs.length > 0)
             bTxs.push({
                 description: DESC.addBid,
-                details: { swapDataAccount, bids, maker } as UpdateArgs,
+                details: { swapDataAccount, bids, maker } as UpdateSArgs,
                 priority: 1,
                 status: "pending",
                 tx: await ix2vTx(addBidIxs, cEnvOpts, maker),

@@ -1,23 +1,23 @@
 import { getSdaData } from "../utils/getSdaData.function";
 import { ComputeBudgetProgram, TransactionInstruction } from "@solana/web3.js";
-import { BundleTransaction, ClaimArg, EnvOpts } from "../utils/types";
+import { BundleTransaction, ClaimSArg, EnvOpts } from "../utils/types";
 import { findOrCreateAta } from "../utils/findOrCreateAta.function";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { NS_FEE, TOKEN_METADATA_PROGRAM, VERSION } from "../utils/const";
 import { findNftDataAndMetadataAccount } from "../utils/findNftDataAndAccounts.function";
 import { getCreatorData } from "../utils/creators";
 import { DESC } from "../utils/descriptions";
-import { checkEnvOpts, getClaimArgs } from "../utils/check";
+import { checkEnvOpts, getClaimSArgs } from "../utils/check";
 import { ix2vTx } from "../utils/vtx";
 
 export async function createPayRoyaltiesInstructions(
-    Data: EnvOpts & ClaimArg
+    Data: EnvOpts & ClaimSArg
 ): Promise<BundleTransaction> {
     console.log(VERSION);
-    let cEnvOpts = checkEnvOpts(Data);
-    let claimArgs = getClaimArgs(Data);
+    let cEnvOpts = await checkEnvOpts(Data);
+    let ClaimSArgs = getClaimSArgs(Data);
     let { program, connection } = cEnvOpts;
-    let { signer, swapDataAccount } = claimArgs;
+    let { signer, swapDataAccount } = ClaimSArgs;
 
     let instructions: TransactionInstruction[] = [
         ComputeBudgetProgram.setComputeUnitLimit({

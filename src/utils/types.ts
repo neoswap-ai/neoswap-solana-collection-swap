@@ -1,4 +1,4 @@
-import { Program } from "@coral-xyz/anchor";
+import { Idl, Program } from "@coral-xyz/anchor";
 import {
     Cluster,
     Connection,
@@ -109,11 +109,12 @@ export type BundleTxBase = {
     failedReason?: string;
     retries?: number;
 };
+export type Act = MakeSArg | TakeSArg | ClaimSArg | UpdateSArgs;
 
-export type BTact = BundleTxBase & { details: MakeSArg | TakeSArg | ClaimArg | UpdateArgs | any };
+export type BTAct = BundleTxBase & { details: Act | any };
 
-export type BTv = BTact & vT;
-export type BTt = BTact & T;
+export type BTv = BTAct & vT;
+export type BTt = BTAct & T;
 
 export type BundleTransaction = BTv | BTt;
 
@@ -130,11 +131,11 @@ export type TakeSArg = {
     nftMintTaker: string;
     bid: Bid;
 };
-export type ClaimArg = {
+export type ClaimSArg = {
     swapDataAccount: string;
     signer: string;
 };
-export type UpdateArgs = {
+export type UpdateSArgs = {
     bids: Bid[];
     swapDataAccount: string;
     maker: string;
@@ -156,6 +157,8 @@ export type OptionSend = {
 export type EnvOpts = {
     clusterOrUrl?: Cluster | string;
     program?: Program;
+    programId?: string;
+    idl?: Idl | true;
     prioritizationFee?: number;
 };
 
@@ -172,6 +175,8 @@ export type CEnvOpts = {
     clusterOrUrl: Cluster | string;
     program: Program;
     connection: Connection;
+    programId: string;
+    idl: Idl;
     prioritizationFee?: number;
 };
 export type ReturnSwapData = { bTxs: BundleTransaction[]; swapDataAccount: string };

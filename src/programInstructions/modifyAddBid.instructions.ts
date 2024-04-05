@@ -1,7 +1,7 @@
 import { TransactionInstruction } from "@solana/web3.js";
 import { checkEnvOpts } from "../utils/check";
 import { bidToscBid } from "../utils/typeSwap";
-import { BundleTransaction, EnvOpts, UpdateArgs } from "../utils/types";
+import { BundleTransaction, EnvOpts, UpdateSArgs } from "../utils/types";
 import { DESC } from "../utils/descriptions";
 import { ix2vTx } from "../utils/vtx";
 import { getSdaData } from "../utils/getSdaData.function";
@@ -9,11 +9,11 @@ import { findOrCreateAta } from "../utils/findOrCreateAta.function";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 
 export async function createAddBidIx(
-    Data: EnvOpts & UpdateArgs
+    Data: EnvOpts & UpdateSArgs
 ): Promise<{ bidIxs: TransactionInstruction[]; ataIxs: TransactionInstruction[] }> {
     let { bids, swapDataAccount, maker, paymentMint, makerTokenAta, swapDataAccountTokenAta } =
         Data;
-    let cEnvOpts = checkEnvOpts(Data);
+    let cEnvOpts = await checkEnvOpts(Data);
     let { program, connection, clusterOrUrl } = cEnvOpts;
     let ataIxs: TransactionInstruction[] = [];
     // let paymentMint: string;
@@ -62,23 +62,23 @@ export async function createAddBidIx(
     };
 }
 
-export async function createAddBidBt(Data: EnvOpts & UpdateArgs): Promise<BundleTransaction> {
+export async function createAddBidBt(Data: EnvOpts & UpdateSArgs): Promise<BundleTransaction> {
     let bidIxs = await createAddBidIx(Data);
     let ixs = [];
     if (bidIxs.ataIxs) ixs.push(...bidIxs.ataIxs);
     ixs.push(...bidIxs.bidIxs);
     return {
         description: DESC.addBid,
-        tx: await ix2vTx(ixs, checkEnvOpts(Data), Data.maker),
+        tx: await ix2vTx(ixs, await checkEnvOpts(Data), Data.maker),
         details: Data,
         priority: 0,
         status: "pending",
     };
 }
 
-export async function createRmBidIx(Data: EnvOpts & UpdateArgs): Promise<TransactionInstruction[]> {
+export async function createRmBidIx(Data: EnvOpts & UpdateSArgs): Promise<TransactionInstruction[]> {
     let { bids, swapDataAccount, maker } = Data;
-    let cEnvOpts = checkEnvOpts(Data);
+    let cEnvOpts = await checkEnvOpts(Data);
     let { program } = cEnvOpts;
     return await Promise.all(
         bids.map(
@@ -94,10 +94,10 @@ export async function createRmBidIx(Data: EnvOpts & UpdateArgs): Promise<Transac
     );
 }
 
-export async function createRmBidBt(Data: EnvOpts & UpdateArgs): Promise<BundleTransaction> {
+export async function createRmBidBt(Data: EnvOpts & UpdateSArgs): Promise<BundleTransaction> {
     return {
         description: DESC.removeBid,
-        tx: await ix2vTx(await createRmBidIx(Data), checkEnvOpts(Data), Data.maker),
+        tx: await ix2vTx(await createRmBidIx(Data), await checkEnvOpts(Data), Data.maker),
         details: Data,
         priority: 0,
         status: "pending",
