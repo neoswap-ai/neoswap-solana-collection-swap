@@ -30,7 +30,7 @@ export async function findOrCreateAta(Data: {
 
     try {
         let values: { address: PublicKey; value: number }[] = [];
-        let programId = (await Data.connection.getAccountInfo(Data.mint))?.owner;
+        let programId = (await Data.connection.getAccountInfo(new PublicKey(Data.mint)))?.owner;
         let mintAtas = (
             await Data.connection.getParsedTokenAccountsByOwner(new PublicKey(Data.owner), {
                 mint: new PublicKey(Data.mint),
@@ -67,7 +67,7 @@ export async function findOrCreateAta(Data: {
             tokProg = (await Data.connection.getParsedAccountInfo(new PublicKey(Data.mint))).value
                 ?.owner;
         } catch {}
-        
+
         if (!tokProg) tokProg = TOKEN_PROGRAM_ID;
 
         const mintAta = PublicKey.findProgramAddressSync(
