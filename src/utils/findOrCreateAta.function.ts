@@ -1,22 +1,25 @@
-import { createAssociatedTokenAccountInstruction, TOKEN_PROGRAM_ID } from "@solana/spl-token";
+import {
+    createAssociatedTokenAccountInstruction,
+    TOKEN_2022_PROGRAM_ID,
+    TOKEN_PROGRAM_ID,
+} from "@solana/spl-token";
 import { Cluster, Connection, PublicKey, TransactionInstruction } from "@solana/web3.js";
-import { SOLANA_SPL_ATA_PROGRAM_ID, SWAP_PROGRAM_ID, SWAP_PROGRAM_ID_DEV } from "../utils/const";
-import { Program } from "@coral-xyz/anchor";
-import { CreateAssociatedTokenAccountInstructionData } from "./types";
+import {
+    SOLANA_SPL_ATA_PROGRAM_ID,
+    NEOSWAP_PROGRAM_ID,
+    NEOSWAP_PROGRAM_ID_DEV,
+} from "../utils/const";
 import { delay } from "./delay";
-import { getProgram } from "./getProgram.obj";
 
 export async function findOrCreateAta(Data: {
     clusterOrUrl?: Cluster | string;
     connection?: Connection;
-    owner: PublicKey;
-    mint: PublicKey;
-    signer: PublicKey;
-    prepareInstructions?: boolean;
+    owner: string;
+    mint: string;
+    signer: string;
 }): Promise<{
-    mintAta: PublicKey;
+    mintAta: string;
     instruction?: TransactionInstruction;
-    prepareInstruction?: CreateAssociatedTokenAccountInstructionData;
 }> {
     if (!!Data.clusterOrUrl && !!Data.connection) {
     } else if (!!Data.clusterOrUrl) {
@@ -29,12 +32,11 @@ export async function findOrCreateAta(Data: {
         let values: { address: PublicKey; value: number }[] = [];
         let programId = (await Data.connection.getAccountInfo(Data.mint))?.owner;
         let mintAtas = (
-            await Data.connection.getTokenAccountsByOwner(Data.owner, {
-                mint: Data.mint,
-                programId,
+            await Data.connection.getParsedTokenAccountsByOwner(new PublicKey(Data.owner), {
+                mint: new PublicKey(Data.mint),
             })
         ).value;
-        let mintAta = mintAtas[0].pubkey;
+        let mintAta = mintAtas[0].pubkey.toString();
         // console.log("mintAtas", mintAtas);
 
         if (mintAtas.length > 1) {
@@ -52,7 +54,7 @@ export async function findOrCreateAta(Data: {
             // );
 
             values.sort((a, b) => b.value - a.value);
-            mintAta = values[0].address;
+            mintAta = values[0].address.toString();
         }
         // console.log("users ATAs:"), values;
 
@@ -60,40 +62,34 @@ export async function findOrCreateAta(Data: {
             mintAta,
         };
     } catch (eee) {
-        console.log("no ata found, creating one");
+        let tokProg;
+        try {
+            tokProg = (await Data.connection.getParsedAccountInfo(new PublicKey(Data.mint))).value
+                ?.owner;
+        } catch {}
+        
+        if (!tokProg) tokProg = TOKEN_PROGRAM_ID;
 
         const mintAta = PublicKey.findProgramAddressSync(
-            [Data.owner.toBuffer(), TOKEN_PROGRAM_ID.toBuffer(), Data.mint.toBuffer()],
-            SOLANA_SPL_ATA_PROGRAM_ID
-        )[0];
+            [
+                new PublicKey(Data.owner).toBuffer(),
+                tokProg.toBuffer(),
+                new PublicKey(Data.mint).toBuffer(),
+            ],
+            new PublicKey(SOLANA_SPL_ATA_PROGRAM_ID)
+        )[0].toString();
 
-        if (Data.prepareInstructions) {
-            return {
-                mintAta,
-                prepareInstruction: {
-                    type: "createAssociatedTokenAccountInstruction",
-                    programId: (Data.clusterOrUrl.includes("mainnet")
-                        ? SWAP_PROGRAM_ID_DEV
-                        : SWAP_PROGRAM_ID
-                    ).toBase58(),
-                    data: {
-                        payer: Data.signer.toString(),
-                        associatedToken: mintAta.toString(),
-                        owner: Data.owner.toString(),
-                        mint: Data.mint.toString(),
-                    },
-                },
-            };
-        } else {
-            return {
-                mintAta,
-                instruction: createAssociatedTokenAccountInstruction(
-                    Data.signer,
-                    mintAta,
-                    Data.owner,
-                    Data.mint
-                ),
-            };
-        }
+        console.log("no ata found, creating ", mintAta, " from ", Data.owner, "mint", Data.mint);
+
+        return {
+            mintAta,
+            instruction: createAssociatedTokenAccountInstruction(
+                new PublicKey(Data.signer),
+                new PublicKey(mintAta),
+                new PublicKey(Data.owner),
+                new PublicKey(Data.mint),
+                tokProg
+            ),
+        };
     }
 }

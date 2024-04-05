@@ -114,7 +114,7 @@ let swapDataAccount = allInitData.initializeData.swapIdentity.swapDataAccount_pu
 console.log("initialized", allInitData);
 
 /// CHECK SWAP DATA
-const swapdaata = await neoSwap.UTILS.getSwapDataAccountFromPublicKey({
+const swapdaata = await neoSwap.UTILS.getSdaData({
     program: neoSwap.UTILS.getProgram({ clusterOrUrl }),
     swapDataAccount_publicKey: swapDataAccount,
 });

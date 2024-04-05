@@ -1,152 +1,191 @@
-import { getProgram } from "../utils/getProgram.obj";
-import { getSwapDataAccountFromPublicKey } from "../utils/getSwapDataAccountFromPublicKey.function";
-import { getCancelNftInstructions } from "./subFunction/cancel.nft.instructions";
-import { getSwapIdentityFromData } from "../utils/getSwapIdentityFromData.function";
-import { getCancelSolInstructions } from "./subFunction/cancel.sol.instructions";
-import { Cluster, PublicKey, Transaction } from "@solana/web3.js";
-import { ErrorFeedback, ItemStatus, TradeStatus, TxWithSigner } from "../utils/types";
-import { getCancelCNftInstructions } from "./subFunction/cancel.cnft.instructions";
-import { Program } from "@coral-xyz/anchor";
+import { getSdaData } from "../utils/getSdaData.function";
+import {
+    ComputeBudgetProgram,
+    SYSVAR_INSTRUCTIONS_PUBKEY,
+    SystemProgram,
+    TransactionInstruction,
+} from "@solana/web3.js";
+import { EnvOpts, BundleTransaction, ClaimSArg } from "../utils/types";
+import { findOrCreateAta } from "../utils/findOrCreateAta.function";
+import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
+import {
+    METAPLEX_AUTH_RULES_PROGRAM,
+    SOLANA_SPL_ATA_PROGRAM_ID,
+    TOKEN_METADATA_PROGRAM,
+    VERSION,
+} from "../utils/const";
+import {
+    findNftDataAndMetadataAccount,
+    findNftMasterEdition,
+    findRuleSet,
+    findUserTokenRecord,
+} from "../utils/findNftDataAndAccounts.function";
+import { TokenStandard } from "@metaplex-foundation/mpl-token-metadata";
+import { DESC } from "../utils/descriptions";
+import { checkEnvOpts, getClaimSArgs } from "../utils/check";
+import { ix2vTx } from "../utils/vtx";
 
-export async function createCancelSwapInstructions(Data: {
-    swapDataAccount: PublicKey;
-    signer: PublicKey;
-    clusterOrUrl: Cluster | string;
-    skipFinalize?: boolean;
-    program?: Program;
-}): Promise<TxWithSigner[] | undefined> {
-    const program = Data.program ? Data.program : getProgram({ clusterOrUrl: Data.clusterOrUrl });
+export async function createCancelSwapInstructions(
+    Data: EnvOpts & ClaimSArg
+): Promise<BundleTransaction> {
+    console.log(VERSION);
+    let cEnvOpts = await checkEnvOpts(Data);
+    let ClaimSArgs = getClaimSArgs(Data);
+    let { program, connection } = cEnvOpts;
+    let { signer, swapDataAccount } = ClaimSArgs;
 
-    const swapData = await getSwapDataAccountFromPublicKey({
-        program,
-        swapDataAccount_publicKey: Data.swapDataAccount,
-    });
-    if (!swapData) {
-        throw {
-            blockchain: "solana",
-            status: "error",
-            message: "Swap initialization in progress or not initialized. Please try again later.",
-        } as ErrorFeedback;
-    } else if (
-        !(
-            swapData.status === TradeStatus.Canceling ||
-            swapData.status === TradeStatus.WaitingToDeposit
-        )
-    ) {
-        throw {
-            blockchain: "solana",
-            status: "error",
-            message: "Swap is't in the adequate status for Validate Cancel.",
-            swapStatus: swapData.status,
-        } as ErrorFeedback;
-    }
-    let init = false;
-    let userPartOfTrade = swapData.initializer.equals(Data.signer) ? true : false;
-    if (swapData.initializer.equals(Data.signer) || !Data.skipFinalize) {
-        init = true;
-        console.log("initializer");
-    }
+    let instructions: TransactionInstruction[] = [
+        ComputeBudgetProgram.setComputeUnitLimit({
+            units: 800000,
+        }),
+    ];
+    try {
+        let swapDataData = await getSdaData({
+            program,
+            swapDataAccount,
+        });
+        if (!swapDataData) throw "no swapData found at " + swapDataAccount;
 
-    const swapIdentity = getSwapIdentityFromData({
-        swapData,
-        clusterOrUrl: Data.clusterOrUrl,
-    });
-    // swapIdentity.swapDataAccount_publicKey=new PublicKey('GnzPof4D1hwbifZaCtEbLbmmWvsyLfqd8gbYhvR1iXY6')
-    let cancelTransactionInstruction: TxWithSigner[] = [];
-    let ataList: PublicKey[] = [];
-    let toBeCancelledItems = swapData.items.filter(
-        (item) => item.status === ItemStatus.NFTDeposited || item.status === ItemStatus.SolDeposited
-    );
-    if (!init)
-        toBeCancelledItems = toBeCancelledItems.filter((item) => item.owner.equals(Data.signer));
+        const { paymentMint, maker, nftMintMaker } = swapDataData;
 
-    for (const swapDataItem of toBeCancelledItems) {
-        if (!userPartOfTrade && swapDataItem.owner.equals(Data.signer)) userPartOfTrade = true;
-        if (swapDataItem.isNft) {
-            if (swapDataItem.isCompressed) {
-                console.log(
-                    "XXX - cancel CNFT item with TokenId ",
-                    swapDataItem.mint.toBase58(),
-                    " from ",
-                    swapDataItem.owner.toBase58(),
-                    " - XXX"
-                );
-                const cancelNftData = await getCancelCNftInstructions({
-                    program,
-                    tokenId: swapDataItem.mint,
-                    user: swapDataItem.owner,
-                    // mint: swapDataItem.mint,
-                    signer: Data.signer,
-                    swapIdentity,
-                    clusterOrUrl: Data.clusterOrUrl,
-                    // ataList,
-                });
-                cancelTransactionInstruction.push({
-                    tx: new Transaction().add(cancelNftData),
-                });
-            } else {
-                console.log(
-                    "XXX - cancel NFT item with mint ",
-                    swapDataItem.mint.toBase58(),
-                    " from ",
-                    swapDataItem.owner.toBase58(),
-                    " - XXX"
-                );
-                const cancelNftData = await getCancelNftInstructions({
-                    program,
-                    owner: swapDataItem.owner,
-                    mint: swapDataItem.mint,
-                    signer: Data.signer,
-                    swapIdentity,
-                    ataList,
-                });
-                cancelTransactionInstruction.push({
-                    tx: new Transaction().add(...cancelNftData.instructions),
-                });
-                ataList.push(...cancelNftData.newAtas);
-            }
-        } else {
-            console.log(
-                "XXX - cancel Sol item mint ",
-                swapDataItem.mint.toBase58(),
-                "to ",
-                swapDataItem.owner.toBase58(),
-                " - XXX"
-            );
-            const cancelSolData = await getCancelSolInstructions({
-                program: program,
-                user: swapDataItem.owner,
-                signer: Data.signer,
-                swapIdentity,
-                ataList,
-                mint: swapDataItem.mint,
-            });
-            cancelTransactionInstruction.push({
-                tx: new Transaction().add(...cancelSolData.instructions),
-            });
-            ataList.push(...cancelSolData.newAtas);
+        let { mintAta: makerNftAta, instruction: mN } = await findOrCreateAta({
+            connection,
+            mint: nftMintMaker,
+            owner: maker,
+            signer,
+        });
+        if (mN) {
+            console.log("adding makerNftAta", makerNftAta.toString());
+            instructions.push(mN);
         }
-        if (swapData.status === TradeStatus.WaitingToDeposit && !userPartOfTrade) {
-            throw {
-                blockchain: "solana",
-                status: "error",
-                message:
-                    "Signer isn't authorized to cancel the trade because he is not part of it and status === WaitingToDeposit",
-            } as ErrorFeedback;
-        }
-    }
 
-    if (cancelTransactionInstruction.length === 0 && init) {
-        console.log("no items found to cancel but signer is proceeding to validate cancel");
-        return;
-    } else if (cancelTransactionInstruction.length > 0) {
-        console.log("found ", cancelTransactionInstruction.length, " items to cancel");
-        return cancelTransactionInstruction;
-    } else {
+        let { mintAta: makerTokenAta, instruction: mT } = await findOrCreateAta({
+            connection,
+            mint: paymentMint,
+            owner: maker,
+            signer,
+        });
+        if (mT) {
+            console.log("adding makerTokenAta", makerTokenAta.toString());
+            instructions.push(mT);
+        }
+        let { mintAta: swapDataAccountTokenAta, instruction: sdaT } = await findOrCreateAta({
+            connection,
+            mint: paymentMint,
+            owner: swapDataAccount,
+            signer,
+        });
+        if (sdaT) {
+            console.log("adding swapDataAccountTokenAta", swapDataAccountTokenAta.toString());
+            instructions.push(sdaT);
+        }
+
+        let { mintAta: swapDataAccountNftAta, instruction: sdaN } = await findOrCreateAta({
+            connection,
+            mint: nftMintMaker,
+            owner: swapDataAccount,
+            signer,
+        });
+
+        if (sdaN) {
+            console.log("adding swapDataAccountNftAta", swapDataAccountNftAta.toString());
+            instructions.push(sdaN);
+        }
+
+        let { mintAta: takerNftAtaMaker, instruction: tmN } = await findOrCreateAta({
+            connection,
+            mint: nftMintMaker,
+            owner: maker,
+            signer,
+        });
+        if (tmN) {
+            console.log("adding takerNftAtaMaker", takerNftAtaMaker.toString());
+            instructions.push(tmN);
+        }
+
+        const { metadataAddress: nftMetadataMaker, tokenStandard: tokenStandardMaker } =
+            await findNftDataAndMetadataAccount({
+                connection,
+                mint: nftMintMaker,
+            });
+
+        let nftMasterEditionMaker = signer;
+        let ownerTokenRecordMaker = signer;
+        let destinationTokenRecordMaker = signer;
+        let authRulesMaker = signer;
+
+        if (tokenStandardMaker == TokenStandard.ProgrammableNonFungible) {
+            const nftMasterEditionF = findNftMasterEdition({
+                mint: nftMintMaker,
+            });
+
+            const ownerTokenRecordF = findUserTokenRecord({
+                mint: nftMintMaker,
+                userMintAta: swapDataAccountNftAta,
+            });
+
+            const destinationTokenRecordF = findUserTokenRecord({
+                mint: nftMintMaker,
+                userMintAta: takerNftAtaMaker,
+            });
+
+            const authRulesF = await findRuleSet({
+                connection,
+                mint: nftMintMaker,
+            });
+            nftMasterEditionMaker = nftMasterEditionF;
+            ownerTokenRecordMaker = ownerTokenRecordF;
+            destinationTokenRecordMaker = destinationTokenRecordF;
+            authRulesMaker = authRulesF;
+        }
+
+        const cancelIx = await program.methods
+            .cancelSwap()
+            .accounts({
+                signer,
+
+                swapDataAccount,
+                swapDataAccountNftAta,
+                swapDataAccountTokenAta,
+
+                maker,
+                makerNftAta,
+                makerTokenAta,
+
+                nftMintMaker,
+                paymentMint,
+
+                nftMetadataMaker,
+                nftMasterEditionMaker,
+                ownerTokenRecordMaker,
+                destinationTokenRecordMaker,
+                authRulesMaker,
+
+                systemProgram: SystemProgram.programId,
+                metadataProgram: TOKEN_METADATA_PROGRAM,
+                sysvarInstructions: SYSVAR_INSTRUCTIONS_PUBKEY,
+                tokenProgram: TOKEN_PROGRAM_ID,
+                ataProgram: SOLANA_SPL_ATA_PROGRAM_ID,
+                authRulesProgram: METAPLEX_AUTH_RULES_PROGRAM,
+            })
+            .instruction();
+        console.log("adding cancelIx");
+        instructions.push(cancelIx);
+
+        return {
+            tx: await ix2vTx(instructions, cEnvOpts, signer),
+            description: DESC.cancelSwap,
+            details: Data,
+            priority: 0,
+            blockheight: (await connection.getLatestBlockhash()).lastValidBlockHeight,
+            status: "pending",
+        } as BundleTransaction;
+    } catch (error: any) {
         throw {
             blockchain: "solana",
             status: "error",
-            message: "found nothing to cancel and signer is not initializer",
-        } as ErrorFeedback;
+            message: error,
+            swapDataAccount,
+        };
     }
 }

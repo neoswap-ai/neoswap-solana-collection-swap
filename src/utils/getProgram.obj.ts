@@ -1,23 +1,28 @@
 import { Cluster, Connection, Keypair, PublicKey, clusterApiUrl } from "@solana/web3.js";
 
 import { idlSwap } from "./neoSwap.idl";
-import { Program, AnchorProvider } from "@coral-xyz/anchor";
-import { SWAP_PROGRAM_ID, SWAP_PROGRAM_ID_DEV } from "./const";
+import { Program, AnchorProvider, Idl } from "@coral-xyz/anchor";
+import { NEOSWAP_PROGRAM_ID, NEOSWAP_PROGRAM_ID_DEV } from "./const";
 import NodeWallet from "@coral-xyz/anchor/dist/cjs/nodewallet";
 
-export function getProgram(Data: {
+export async function getProgram(Data: {
     clusterOrUrl: Cluster | string;
-    programId?: PublicKey;
+    programId?: PublicKey | string;
     signer?: Keypair;
+    idl?: Idl | true;
 }) {
     let clusterUrl;
-    let programId_ = new PublicKey(SWAP_PROGRAM_ID);
+    let programId_ = new PublicKey(NEOSWAP_PROGRAM_ID);
 
-    if (Data.clusterOrUrl === "mainnet-beta" || Data.clusterOrUrl === "testnet") {
+    if (
+        Data.clusterOrUrl === "mainnet-beta" ||
+        Data.clusterOrUrl === "testnet" ||
+        Data.clusterOrUrl === "devnet"
+    ) {
         clusterUrl = clusterApiUrl(Data.clusterOrUrl);
     } else {
-        if (String(Data.clusterOrUrl).toLowerCase().includes("devnet")) {
-            programId_ = new PublicKey(SWAP_PROGRAM_ID_DEV);
+        if (String(Data.clusterOrUrl).toLowerCase().includes("devnet") && !!!Data.programId) {
+            programId_ = new PublicKey(NEOSWAP_PROGRAM_ID_DEV);
         }
         clusterUrl = Data.clusterOrUrl;
     }
@@ -25,13 +30,20 @@ export function getProgram(Data: {
 
     const connection = new Connection(clusterUrl, "confirmed");
     if (!Data.signer) Data.signer = Keypair.generate();
-    const wallet = new NodeWallet(Data.signer);
+
+    let wallet = new NodeWallet(Data.signer);
 
     const provider = new AnchorProvider(connection, wallet, AnchorProvider.defaultOptions());
 
-    let idl_ = idlSwap;
-
     if (Data.programId) programId_ = new PublicKey(Data.programId);
+    let idl_ = idlSwap;
+    if (Data.idl === true) {
+        let tempIdl = await Program.fetchIdl(programId_, provider);
+        if (tempIdl) {
+            console.log("Idl found at ", programId_);
+            idl_ = tempIdl;
+        } else console.log("Idl not found at ", programId_);
+    } else if (Data.idl) idl_ = Data.idl;
 
     const program = new Program(idl_, programId_, provider);
 

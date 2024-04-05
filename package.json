@@ -1,9 +1,9 @@
 {
-    "name": "@neoswap/solana",
-    "version": "0.3.11",
+    "name": "@neoswap/solana-collection-swap",
+    "version": "0.3.0-Beta4",
     "repository": {
         "type": "git",
-        "url": "git+htt// Data after initializing the swapps://github.com/neoswap-ai/neo-swap-npm.git"
+        "url": "git+https://github.com/neoswap-ai/neo-swap-npm.git"
     },
     "description": "NPM package for NeoSwap test",
     "author": "NeoSwap",
@@ -20,20 +20,22 @@
         "compile": "rm -rf dist/lib && tsc && tsc --build tsconfig.es5.json"
     },
     "dependencies": {
-        "@coral-xyz/anchor": "^0.28.0",
-        "@metaplex-foundation/beet": "^0.7.1",
-        "@metaplex-foundation/js": "^0.19.5",
+        "@coral-xyz/anchor": "^0.29.0",
+        "@metaplex-foundation/js": "^0.20.1",
         "@metaplex-foundation/mpl-bubblegum": "^0.8.0",
-        "@metaplex-foundation/mpl-token-metadata": "^2.11.1",
-        "@metaplex-foundation/mpl-toolbox": "^0.9.1",
-        "@project-serum/anchor": "^0.26.0",
-        "@solana/spl-token": "^0.3.7",
-        "@solana/web3.js": "^1.66.2",
-        "@types/bn.js": "^5.1.1",
-        "@types/debug": "^4.1.8",
-        "@types/node-fetch": "^2.6.4",
+        "@metaplex-foundation/mpl-token-metadata": "^2.13.0",
+        "@metaplex-foundation/mpl-toolbox": "^0.9.4",
+        "@solana/spl-token": "0.3.7",
+        "@solana/wallet-adapter-base": "^0.9.23",
+        "@solana/web3.js": "^1.91.2"
+    },
+    "devDependencies": {
+        "@types/bn.js": "^5.1.5",
+        "@types/debug": "^4.1.12",
+        "@types/node-fetch": "^2.6.11",
         "bs58": "^5.0.0",
-        "parcel": "^2.5.0",
-        "typescript": "^4.6.3"
+        "parcel": "^2.12.0",
+        "tsx": "^4.7.1",
+        "typescript": "^5.4.3"
     }
 }

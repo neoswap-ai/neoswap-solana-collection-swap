@@ -1,154 +1,206 @@
-import { Cluster, PublicKey, Transaction } from "@solana/web3.js";
-import { getProgram } from "../utils/getProgram.obj";
-import { getSwapDataAccountFromPublicKey } from "../utils/getSwapDataAccountFromPublicKey.function";
-import { getSwapIdentityFromData } from "../utils/getSwapIdentityFromData.function";
-import { getClaimNftInstructions } from "./subFunction/claim.nft.instructions";
-import { getClaimSolInstructions } from "./subFunction/claim.sol.instructions";
-import { ErrorFeedback, ItemStatus, TradeStatus, TxWithSigner } from "../utils/types";
-import { getClaimCNftInstruction } from "./subFunction/claim.cnft.instructions";
-import { Program } from "@coral-xyz/anchor";
+import { getSdaData } from "../utils/getSdaData.function";
+import {
+    ComputeBudgetProgram,
+    SYSVAR_INSTRUCTIONS_PUBKEY,
+    SystemProgram,
+    TransactionInstruction,
+} from "@solana/web3.js";
+import { BundleTransaction, ClaimSArg, EnvOpts } from "../utils/types";
+import { findOrCreateAta } from "../utils/findOrCreateAta.function";
+import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
+import {
+    METAPLEX_AUTH_RULES_PROGRAM,
+    NS_FEE,
+    SOLANA_SPL_ATA_PROGRAM_ID,
+    TOKEN_METADATA_PROGRAM,
+    VERSION,
+} from "../utils/const";
+import {
+    findNftDataAndMetadataAccount,
+    findNftMasterEdition,
+    findRuleSet,
+    findUserTokenRecord,
+} from "../utils/findNftDataAndAccounts.function";
+import { TokenStandard } from "@metaplex-foundation/mpl-token-metadata";
+import { DESC } from "../utils/descriptions";
+import { WRAPPED_SOL_MINT } from "@metaplex-foundation/js";
+import { closeWSol } from "../utils/wsol";
+import { checkEnvOpts, getClaimSArgs } from "../utils/check";
+import { ix2vTx } from "../utils/vtx";
 
-export async function createClaimSwapInstructions(Data: {
-    swapDataAccount: PublicKey;
-    signer: PublicKey;
-    clusterOrUrl: Cluster | string;
-    skipFinalize?: boolean;
-    program?: Program;
-}): Promise<TxWithSigner[] | undefined> {
-    const program = Data.program ? Data.program : getProgram({ clusterOrUrl: Data.clusterOrUrl });
+export async function createClaimSwapInstructions(
+    Data: EnvOpts & ClaimSArg
+): Promise<BundleTransaction> {
+    console.log(VERSION);
+    let cEnvOpts = await checkEnvOpts(Data);
+    let ClaimSArgs = getClaimSArgs(Data);
+    let { program, connection } = cEnvOpts;
+    let { signer, swapDataAccount } = ClaimSArgs;
 
-    const swapData = await getSwapDataAccountFromPublicKey({
-        program,
-        swapDataAccount_publicKey: Data.swapDataAccount,
-    });
-    if (!swapData) {
-        throw {
-            blockchain: "solana",
-            status: "error",
-            message: "Swap initialization in progress or not initialized. Please try again later.",
-        } as ErrorFeedback;
-    } else if (
-        !(
-            swapData.status === TradeStatus.WaitingToClaim ||
-            swapData.status === TradeStatus.WaitingToDeposit
-        )
-    ) {
-        throw {
-            blockchain: "solana",
-            status: "error",
-            message: "Swap is't in the adequate status for Validate Claim.",
-            swapStatus: swapData.status,
-        } as ErrorFeedback;
-    }
-    let init = false;
-    if (swapData.initializer.equals(Data.signer) || !Data.skipFinalize) {
-        init = true;
-    }
-    // else if (swapData.status !== TradeStatus.WaitingToClaim) {
-    //     throw {
-    //         blockchain: "solana",
-    //         status: "error",
-    //         message:
-    //             "Swap is't in the adequate status for Claiming an item & you're not Initializer",
-    //         swapStatus: swapData.status,
-    //     } as ErrorFeedback;
-    // }
-    const swapIdentity = getSwapIdentityFromData({
-        swapData,
-        clusterOrUrl: Data.clusterOrUrl,
-    });
+    let instructions: TransactionInstruction[] = [
+        ComputeBudgetProgram.setComputeUnitLimit({
+            units: 800000,
+        }),
+    ];
 
-    let claimTransactionInstruction: TxWithSigner[] = [];
-    let ataList: PublicKey[] = [];
+    try {
+        let swapDataData = await getSdaData({
+            program,
+            swapDataAccount,
+        });
+        if (!swapDataData) throw "no swapData found at " + swapDataAccount;
+        let { paymentMint, maker, nftMintMaker, taker, nftMintTaker, acceptedBid } = swapDataData;
 
-    let swapDataItems = swapData.items.filter(
-        (swapDataItem) =>
-            swapDataItem.status === ItemStatus.NFTDeposited ||
-            swapDataItem.status === ItemStatus.SolToClaim
-    );
+        if (!(nftMintTaker && taker && acceptedBid))
+            throw "SDA doesnt have accepted bids" + JSON.stringify(swapDataData);
 
-    if (!init) swapDataItems = swapDataItems.filter((item) => item.destinary.equals(Data.signer));
+        let { mintAta: swapDataAccountNftAta, instruction: sdan } = await findOrCreateAta({
+            connection,
+            mint: nftMintMaker,
+            owner: swapDataAccount,
+            signer,
+        });
+        if (sdan) instructions.push(sdan);
+        else console.log("swapDataAccountNftAta", swapDataAccountNftAta);
+        let { mintAta: takerNftAtaMaker, instruction: tmn } = await findOrCreateAta({
+            connection,
+            mint: nftMintMaker,
+            owner: taker,
+            signer,
+        });
+        if (tmn) instructions.push(tmn);
+        else console.log("takerNftAta", takerNftAtaMaker);
 
-    for (const swapDataItem of swapDataItems) {
-        if (init === true || swapDataItem.destinary.equals(Data.signer)) {
-            if (swapDataItem.isNft) {
-                if (swapDataItem.status === ItemStatus.NFTDeposited) {
-                    if (swapDataItem.isCompressed) {
-                        console.log(
-                            "XXX - Claim CNFT swapDataItem with TokenId ",
-                            swapDataItem.mint.toBase58(),
-                            " to ",
-                            swapDataItem.destinary.toBase58(),
-                            " - XXX"
-                        );
+        let { mintAta: takerTokenAta, instruction: tt } = await findOrCreateAta({
+            connection,
+            mint: paymentMint,
+            owner: taker,
+            signer,
+        });
+        if (tt) instructions.push(tt);
+        else console.log("takerTokenAta", takerTokenAta);
 
-                        const claimNftData = await getClaimCNftInstruction({
-                            program,
-                            user: swapDataItem.destinary,
-                            tokenId: swapDataItem.mint,
-                            signer: Data.signer,
-                            swapIdentity,
-                            clusterOrUrl: Data.clusterOrUrl,
-                            // ataList,
-                        });
-                        claimTransactionInstruction.push({
-                            tx: new Transaction().add(claimNftData),
-                        });
-                    } else {
-                        console.log(
-                            "XXX - Claim NFT swapDataItem with mint ",
-                            swapDataItem.mint.toBase58(),
-                            " to ",
-                            swapDataItem.destinary.toBase58(),
-                            " - XXX"
-                        );
-                        const claimNftData = await getClaimNftInstructions({
-                            program,
-                            destinary: swapDataItem.destinary,
-                            mint: swapDataItem.mint,
-                            signer: Data.signer,
-                            swapIdentity,
-                            ataList,
-                        });
+        let { mintAta: nsFeeTokenAta, instruction: nst } = await findOrCreateAta({
+            connection,
+            mint: paymentMint,
+            owner: NS_FEE,
+            signer,
+        });
+        if (nst) instructions.push(nst);
+        else console.log("nsFeeTokenAta", nsFeeTokenAta);
 
-                        claimTransactionInstruction.push({
-                            tx: new Transaction().add(...claimNftData.instruction),
-                        });
-                        claimNftData.newAtas.forEach((ata) => {
-                            if (!ataList.includes(ata)) ataList.push(ata);
-                        });
-                    }
-                }
-            } else {
-                console.log(
-                    "XXX - Claim Sol item mint ",
-                    swapDataItem.mint.toBase58(),
-                    "to ",
-                    swapDataItem.owner.toBase58(),
-                    " - XXX"
-                );
-                const claimSolData = await getClaimSolInstructions({
-                    program: program,
-                    user: swapDataItem.owner,
-                    signer: Data.signer,
-                    swapIdentity,
-                    ataList,
-                    mint: swapDataItem.mint,
-                });
+        let { mintAta: swapDataAccountTokenAta, instruction: sdat } = await findOrCreateAta({
+            connection,
+            mint: paymentMint,
+            owner: swapDataAccount,
+            signer,
+        });
+        if (sdat) instructions.push(sdat);
+        else console.log("swapDataAccountTokenAta", swapDataAccountTokenAta);
 
-                claimTransactionInstruction.push({
-                    tx: new Transaction().add(...claimSolData.instructions),
-                });
-                claimSolData.newAtas.forEach((ata) => {
-                    if (!ataList.includes(ata)) ataList.push(ata);
-                });
-            }
+        let { mintAta: makerTokenAta, instruction: mt } = await findOrCreateAta({
+            connection,
+            mint: paymentMint,
+            owner: maker,
+            signer,
+        });
+        if (mt) instructions.push(mt);
+        else console.log("makerTokenAta", makerTokenAta);
+
+        const { metadataAddress: nftMetadataMaker, tokenStandard: tokenStandardMaker } =
+            await findNftDataAndMetadataAccount({
+                connection,
+                mint: nftMintMaker,
+            });
+
+        console.log("nftMetadataMaker", nftMetadataMaker);
+
+        let nftMasterEditionMaker = taker;
+        let ownerTokenRecordMaker = taker;
+        let destinationTokenRecordMaker = taker;
+        let authRulesMaker = taker;
+
+        if (tokenStandardMaker == TokenStandard.ProgrammableNonFungible) {
+            const nftMasterEditionF = findNftMasterEdition({
+                mint: nftMintMaker,
+            });
+
+            const ownerTokenRecordF = findUserTokenRecord({
+                mint: nftMintMaker,
+                userMintAta: swapDataAccountNftAta,
+            });
+
+            const destinationTokenRecordF = findUserTokenRecord({
+                mint: nftMintMaker,
+                userMintAta: takerNftAtaMaker,
+            });
+
+            const authRulesF = await findRuleSet({
+                connection,
+                mint: nftMintMaker,
+            });
+            nftMasterEditionMaker = nftMasterEditionF;
+            ownerTokenRecordMaker = ownerTokenRecordF;
+            destinationTokenRecordMaker = destinationTokenRecordF;
+            authRulesMaker = authRulesF;
         }
-    }
-    if (claimTransactionInstruction.length > 0) {
-        console.log("found ", claimTransactionInstruction.length, " items to claim");
-        return claimTransactionInstruction;
-    } else {
-        return undefined;
+
+        const initIx = await program.methods
+            .claimSwap()
+            .accounts({
+                swapDataAccount,
+                swapDataAccountNftAta,
+                swapDataAccountTokenAta,
+
+                nsFee: NS_FEE,
+                nsFeeTokenAta,
+
+                signer,
+                taker,
+                takerNftAtaMaker,
+                takerTokenAta,
+
+                maker,
+                makerTokenAta,
+
+                nftMintMaker,
+                paymentMint,
+
+                nftMetadataMaker,
+                nftMasterEditionMaker,
+                ownerTokenRecordMaker,
+                destinationTokenRecordMaker,
+                authRulesMaker,
+
+                systemProgram: SystemProgram.programId,
+                metadataProgram: TOKEN_METADATA_PROGRAM,
+                sysvarInstructions: SYSVAR_INSTRUCTIONS_PUBKEY,
+                tokenProgram: TOKEN_PROGRAM_ID,
+                ataProgram: SOLANA_SPL_ATA_PROGRAM_ID,
+                authRulesProgram: METAPLEX_AUTH_RULES_PROGRAM,
+            })
+            .instruction();
+        instructions.push(initIx);
+
+        if (swapDataData.paymentMint === WRAPPED_SOL_MINT.toString())
+            if (signer === taker) instructions.push(closeWSol(taker, taker, takerTokenAta));
+            else if (signer === maker) instructions.push(closeWSol(maker, maker, makerTokenAta));
+
+        return {
+            tx: await ix2vTx(instructions, cEnvOpts, signer),
+            description: DESC.claimSwap,
+            details: Data,
+            priority: 0,
+            status: "pending",
+        } as BundleTransaction;
+    } catch (error: any) {
+        console.log("error init", error);
+
+        throw {
+            blockchain: "solana",
+            status: "error",
+            message: error,
+            swapDataAccount: swapDataAccount,
+        };
     }
 }
