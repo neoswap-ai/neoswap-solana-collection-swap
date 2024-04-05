@@ -24,6 +24,8 @@ import { TokenStandard } from "@metaplex-foundation/mpl-token-metadata";
 import { DESC } from "../utils/descriptions";
 import { checkEnvOpts, getClaimSArgs } from "../utils/check";
 import { ix2vTx } from "../utils/vtx";
+import { closeWSol } from "../utils/wsol";
+import { WRAPPED_SOL_MINT } from "@metaplex-foundation/js";
 
 export async function createCancelSwapInstructions(
     Data: EnvOpts & ClaimSArg
@@ -171,6 +173,8 @@ export async function createCancelSwapInstructions(
             .instruction();
         console.log("adding cancelIx");
         instructions.push(cancelIx);
+        if (swapDataData.paymentMint === WRAPPED_SOL_MINT.toString() && signer == maker)
+            instructions.push(closeWSol(maker, maker, makerTokenAta));
 
         return {
             tx: await ix2vTx(instructions, cEnvOpts, signer),
