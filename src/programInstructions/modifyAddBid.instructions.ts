@@ -96,7 +96,7 @@ export async function createRmBidIx(Data: EnvOpts & UpdateSArgs): Promise<Transa
 
 export async function createRmBidBt(Data: EnvOpts & UpdateSArgs): Promise<BundleTransaction> {
     return {
-        description: DESC.removeBid,
+        description: DESC.rmBid,
         tx: await ix2vTx(await createRmBidIx(Data), await checkEnvOpts(Data), Data.maker),
         details: Data,
         priority: 0,

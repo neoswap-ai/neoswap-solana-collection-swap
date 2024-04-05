@@ -1,8 +1,8 @@
 import { Idl } from "@coral-xyz/anchor";
 export const idlSwap: Idl = {
     version: "0.1.0",
-    name: "neo_swap",
-    docs: ["@title List of function to manage NeoSwap's multi-items swaps"],
+    name: "neo_swap_collection",
+    docs: ["@title List of function to manage NeoSwap's collection swaps"],
     instructions: [
         {
             name: "makeSwap",
