@@ -16,5 +16,5 @@ export const DESC = {
     cancelSwap: "Canceling...",
     addBid: "Adding Bid...",
     rmBid: "Removing Bid...",
-    setTime: "setting new end date...",
+    setTime: "Setting new end time..",
 };
