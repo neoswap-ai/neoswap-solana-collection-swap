@@ -206,7 +206,7 @@ export async function createMakeSwapInstructions(
         }
         let bTxs: BTv[] = [
             {
-                description: DESC.makeSwap,
+                type: DESC.makeSwap,
                 details: Data,
                 priority: 0,
                 status: "pending",
@@ -215,7 +215,7 @@ export async function createMakeSwapInstructions(
         ];
         if (addBidIxs.length > 0)
             bTxs.push({
-                description: DESC.addBid,
+                type: DESC.addBid,
                 details: { swapDataAccount, bids, maker } as UpdateSArgs,
                 priority: 1,
                 status: "pending",

@@ -204,7 +204,7 @@ export async function createTakeSwapInstructions(
 
         return {
             tx: await ix2vTx(instructions, cEnvOpts, taker),
-            description: DESC.takeSwap,
+            type: DESC.takeSwap,
             details: takeArgs,
             priority: 0,
             status: "pending",

@@ -102,7 +102,7 @@ export type T = {
 };
 export type BundleTxBase = {
     blockheight?: number;
-    description: string;
+    type: string;
     priority: number;
     status: "pending" | "broadcast" | "success" | "failed" | "Timeout";
     hash?: string;
@@ -110,7 +110,13 @@ export type BundleTxBase = {
     retries?: number;
 };
 export type Act = MakeSArg | TakeSArg | ClaimSArg | UpdateSArgs | RmBidArgs | SetNewTime;
-
+export type ActStr =
+    | "MakeSArg"
+    | "TakeSArg"
+    | "ClaimSArg"
+    | "UpdateSArgs"
+    | "SetNewTime"
+    | "RmBidArgs";
 export type BTAct = BundleTxBase & { details: Act | any };
 
 export type BTv = BTAct & vT;

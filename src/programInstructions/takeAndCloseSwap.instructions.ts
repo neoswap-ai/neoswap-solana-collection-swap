@@ -427,7 +427,7 @@ export async function createTakeAndCloseSwapInstructions(
         if (takeSwapTx) {
             bTTakeAndClose.push({
                 tx: takeSwapTx,
-                description: DESC.takeSwap,
+                type: DESC.takeSwap,
                 details: takeArgs,
                 priority,
                 status: "pending",
@@ -440,7 +440,7 @@ export async function createTakeAndCloseSwapInstructions(
         if (payRoyaltiesTx) {
             bTTakeAndClose.push({
                 tx: payRoyaltiesTx,
-                description: DESC.payRoyalties,
+                type: DESC.payRoyalties,
                 details: takeArgs,
                 priority,
                 status: "pending",
@@ -452,7 +452,7 @@ export async function createTakeAndCloseSwapInstructions(
 
         bTTakeAndClose.push({
             tx: claimSwapTx,
-            description: DESC.claimSwap,
+            type: DESC.claimSwap,
             details: takeArgs,
             priority,
             status: "pending",

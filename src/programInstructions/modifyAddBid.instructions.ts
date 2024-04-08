@@ -68,7 +68,7 @@ export async function createAddBidBt(Data: EnvOpts & UpdateSArgs): Promise<Bundl
     if (bidIxs.ataIxs) ixs.push(...bidIxs.ataIxs);
     ixs.push(...bidIxs.bidIxs);
     return {
-        description: DESC.addBid,
+        type: DESC.addBid,
         tx: await ix2vTx(ixs, await checkEnvOpts(Data), Data.maker),
         details: Data,
         priority: 0,
@@ -96,7 +96,7 @@ export async function createRmBidIx(Data: EnvOpts & RmBidArgs): Promise<Transact
 
 export async function createRmBidBt(Data: EnvOpts & RmBidArgs): Promise<BundleTransaction> {
     return {
-        description: DESC.rmBid,
+        type: DESC.rmBid,
         tx: await ix2vTx(await createRmBidIx(Data), await checkEnvOpts(Data), Data.maker),
         details: Data,
         priority: 0,

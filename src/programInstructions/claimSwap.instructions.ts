@@ -188,7 +188,7 @@ export async function createClaimSwapInstructions(
 
         return {
             tx: await ix2vTx(instructions, cEnvOpts, signer),
-            description: DESC.claimSwap,
+            type: DESC.claimSwap,
             details: Data,
             priority: 0,
             status: "pending",

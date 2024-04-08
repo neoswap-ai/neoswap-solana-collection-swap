@@ -22,7 +22,7 @@ export async function createSetNewTime(Data: EnvOpts & SetNewTime): Promise<Bund
 
     return {
         tx: new VersionedTransaction(tx.compileMessage()),
-        description: DESC.setTime,
+        type: DESC.setTime,
         details: { swapDataAccount, maker, newTime } as SetNewTime,
         priority: 0,
         status: "pending",

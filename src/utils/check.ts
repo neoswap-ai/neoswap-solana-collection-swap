@@ -1,6 +1,7 @@
 import { Connection, Keypair, Transaction, VersionedTransaction } from "@solana/web3.js";
 import {
     Act,
+    ActStr,
     CEnvOpts,
     COptionSend,
     ClaimSArg,
@@ -180,9 +181,7 @@ export function isRmBidsArgs(Data: Act): Data is RmBidArgs {
     }
 }
 
-export function whatIs(
-    Data: Act
-): "MakeSArg" | "TakeSArg" | "ClaimSArg" | "UpdateSArgs" | "SetNewTime" | "RmBidArgs" | "unknown" {
+export function whatIs(Data: Act): ActStr | "unknown" {
     if (isMakeSArg(Data)) return "MakeSArg";
     if (isTakeSArg(Data)) return "TakeSArg";
     if (isClaimSArg(Data)) return "ClaimSArg";

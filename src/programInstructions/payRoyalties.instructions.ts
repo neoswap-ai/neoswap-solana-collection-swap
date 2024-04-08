@@ -168,7 +168,7 @@ export async function createPayRoyaltiesInstructions(
 
         return {
             tx: await ix2vTx(instructions, cEnvOpts, signer),
-            description: DESC.payRoyalties,
+            type: DESC.payRoyalties,
             details: Data,
             priority: 0,
             status: "pending",

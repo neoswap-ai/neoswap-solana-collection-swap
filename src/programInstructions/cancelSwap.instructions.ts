@@ -178,7 +178,7 @@ export async function createCancelSwapInstructions(
 
         return {
             tx: await ix2vTx(instructions, cEnvOpts, signer),
-            description: DESC.cancelSwap,
+            type: DESC.cancelSwap,
             details: Data,
             priority: 0,
             blockheight: (await connection.getLatestBlockhash()).lastValidBlockHeight,
