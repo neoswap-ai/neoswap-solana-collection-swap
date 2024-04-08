@@ -8,6 +8,7 @@ import {
     ErrorFeedback,
     MakeSArg,
     OptionSend,
+    RmBidArgs,
     SetNewTime,
     TakeSArg,
     UpdateSArgs,
@@ -171,14 +172,22 @@ export function isSetNewTime(Data: Act): Data is SetNewTime {
         return false;
     }
 }
+export function isRmBids(Data: Act): Data is RmBidArgs {
+    if ("rmBids" in Data && "swapDataAccount" in Data && "maker" in Data) {
+        return true;
+    } else {
+        return false;
+    }
+}
 
 export function whatIs(
     Data: Act
-): "MakeSArg" | "TakeSArg" | "ClaimSArg" | "UpdateSArgs" | "SetNewTime" | "unknown" {
+): "MakeSArg" | "TakeSArg" | "ClaimSArg" | "UpdateSArgs" | "SetNewTime" | "RmBidArgs" | "unknown" {
     if (isMakeSArg(Data)) return "MakeSArg";
     if (isTakeSArg(Data)) return "TakeSArg";
     if (isClaimSArg(Data)) return "ClaimSArg";
     if (isUpdateSArg(Data)) return "UpdateSArgs";
     if (isSetNewTime(Data)) return "SetNewTime";
+    if (isRmBids(Data)) return "RmBidArgs";
     return "unknown";
 }

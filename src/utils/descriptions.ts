@@ -15,5 +15,6 @@ export const DESC = {
     claimSwap: "Claiming...",
     cancelSwap: "Canceling...",
     addBid: "Adding Bid...",
-    removeBid: "Removing Bid...",
+    rmBid: "Removing Bid...",
+    setTime: "setting new end date...",
 };

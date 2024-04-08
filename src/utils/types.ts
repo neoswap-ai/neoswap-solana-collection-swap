@@ -109,7 +109,7 @@ export type BundleTxBase = {
     failedReason?: string;
     retries?: number;
 };
-export type Act = MakeSArg | TakeSArg | ClaimSArg | UpdateSArgs | SetNewTime;
+export type Act = MakeSArg | TakeSArg | ClaimSArg | UpdateSArgs | RmBidArgs | SetNewTime;
 
 export type BTAct = BundleTxBase & { details: Act | any };
 
@@ -144,7 +144,11 @@ export type UpdateSArgs = {
     swapDataAccountTokenAta?: string;
     paymentMint?: string;
 };
-
+export type RmBidArgs = {
+    rmBids: Bid[];
+    swapDataAccount: string;
+    maker: string;
+};
 export type SetNewTime = {
     swapDataAccount: string;
     newTime: number;

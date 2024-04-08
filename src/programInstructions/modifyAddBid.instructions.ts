@@ -1,7 +1,7 @@
 import { TransactionInstruction } from "@solana/web3.js";
 import { checkEnvOpts } from "../utils/check";
 import { bidToscBid } from "../utils/typeSwap";
-import { BundleTransaction, EnvOpts, UpdateSArgs } from "../utils/types";
+import { BundleTransaction, EnvOpts, RmBidArgs, UpdateSArgs } from "../utils/types";
 import { DESC } from "../utils/descriptions";
 import { ix2vTx } from "../utils/vtx";
 import { getSdaData } from "../utils/getSdaData.function";
@@ -76,12 +76,12 @@ export async function createAddBidBt(Data: EnvOpts & UpdateSArgs): Promise<Bundl
     };
 }
 
-export async function createRmBidIx(Data: EnvOpts & UpdateSArgs): Promise<TransactionInstruction[]> {
-    let { bids, swapDataAccount, maker } = Data;
+export async function createRmBidIx(Data: EnvOpts & RmBidArgs): Promise<TransactionInstruction[]> {
+    let { rmBids, swapDataAccount, maker } = Data;
     let cEnvOpts = await checkEnvOpts(Data);
     let { program } = cEnvOpts;
     return await Promise.all(
-        bids.map(
+        rmBids.map(
             async (bid) =>
                 await program.methods
                     .removeBid(bidToscBid(bid))
@@ -94,7 +94,7 @@ export async function createRmBidIx(Data: EnvOpts & UpdateSArgs): Promise<Transa
     );
 }
 
-export async function createRmBidBt(Data: EnvOpts & UpdateSArgs): Promise<BundleTransaction> {
+export async function createRmBidBt(Data: EnvOpts & RmBidArgs): Promise<BundleTransaction> {
     return {
         description: DESC.rmBid,
         tx: await ix2vTx(await createRmBidIx(Data), await checkEnvOpts(Data), Data.maker),
