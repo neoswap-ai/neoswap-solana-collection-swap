@@ -172,7 +172,7 @@ export function isSetNewTime(Data: Act): Data is SetNewTime {
         return false;
     }
 }
-export function isRmBids(Data: Act): Data is RmBidArgs {
+export function isRmBidsArgs(Data: Act): Data is RmBidArgs {
     if ("rmBids" in Data && "swapDataAccount" in Data && "maker" in Data) {
         return true;
     } else {
@@ -188,6 +188,6 @@ export function whatIs(
     if (isClaimSArg(Data)) return "ClaimSArg";
     if (isUpdateSArg(Data)) return "UpdateSArgs";
     if (isSetNewTime(Data)) return "SetNewTime";
-    if (isRmBids(Data)) return "RmBidArgs";
+    if (isRmBidsArgs(Data)) return "RmBidArgs";
     return "unknown";
 }

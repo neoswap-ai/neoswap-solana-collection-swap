@@ -17,6 +17,7 @@ import {
     checkOptionSend,
     isClaimSArg,
     isMakeSArg,
+    isRmBidsArgs,
     isTakeSArg,
     isUpdateSArg,
     whatIs,
@@ -57,6 +58,7 @@ export const TYPES = {
     isClaimSArg,
     isTakeSArg,
     isMakeSArg,
+    isRmBidsArgs
 };
 
 export const UTILS = {
