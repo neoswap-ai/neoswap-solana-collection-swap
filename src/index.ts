@@ -9,6 +9,7 @@ import { createClaimSwapInstructions } from "./programInstructions/claimSwap.ins
 import { createMakeSwapInstructions } from "./programInstructions/makeSwap.instructions";
 import { createAddBidBt, createRmBidBt } from "./programInstructions/modifyAddBid.instructions";
 import { createPayRoyaltiesInstructions } from "./programInstructions/payRoyalties.instructions";
+import { createSetNewTime } from "./programInstructions/setNewTime.instructions";
 import { createTakeAndCloseSwapInstructions } from "./programInstructions/takeAndCloseSwap.instructions";
 import { createTakeSwapInstructions } from "./programInstructions/takeSwap.instructions";
 import {
@@ -16,6 +17,7 @@ import {
     checkOptionSend,
     isClaimSArg,
     isMakeSArg,
+    isRmBidsArgs,
     isTakeSArg,
     isUpdateSArg,
     whatIs,
@@ -56,6 +58,7 @@ export const TYPES = {
     isClaimSArg,
     isTakeSArg,
     isMakeSArg,
+    isRmBidsArgs
 };
 
 export const UTILS = {
@@ -85,6 +88,7 @@ export const CREATE_INSTRUCTIONS = {
     createCancelSwapInstructions,
     createAddBidBt,
     createRmBidBt,
+    createSetNewTime,
 };
 
 export const neoColSwap = {
