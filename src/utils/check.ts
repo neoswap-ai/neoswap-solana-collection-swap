@@ -67,7 +67,7 @@ export async function checkEnvOpts(Data: EnvOpts): Promise<CEnvOpts> {
             message: "clusterOrUrl or program is required",
         } as ErrorFeedback;
     }
-    console.log(programId, " VS ", program.programId.toString());
+    // console.log(programId, " VS ", program.programId.toString());
 
     programId = program.programId.toString();
 

@@ -2,7 +2,7 @@ import { Idl } from "@coral-xyz/anchor";
 export const idlSwap: Idl = {
     version: "0.1.0",
     name: "collection_swap",
-    docs: ["@title Program to manage NeoSwap's Collection swaps"],
+    docs: ["@title List of function to manage NeoSwap's multi-items swaps"],
     instructions: [
         {
             name: "makeSwap",
@@ -93,6 +93,11 @@ export const idlSwap: Idl = {
                 },
                 {
                     name: "tokenProgram",
+                    isMut: false,
+                    isSigner: false,
+                },
+                {
+                    name: "tokenProgram22",
                     isMut: false,
                     isSigner: false,
                 },
@@ -219,6 +224,11 @@ export const idlSwap: Idl = {
                 },
                 {
                     name: "tokenProgram",
+                    isMut: false,
+                    isSigner: false,
+                },
+                {
+                    name: "tokenProgram22",
                     isMut: false,
                     isSigner: false,
                 },
@@ -468,6 +478,11 @@ export const idlSwap: Idl = {
                     isSigner: false,
                 },
                 {
+                    name: "tokenProgram22",
+                    isMut: false,
+                    isSigner: false,
+                },
+                {
                     name: "ataProgram",
                     isMut: false,
                     isSigner: false,
@@ -574,6 +589,11 @@ export const idlSwap: Idl = {
                 },
                 {
                     name: "tokenProgram",
+                    isMut: false,
+                    isSigner: false,
+                },
+                {
+                    name: "tokenProgram22",
                     isMut: false,
                     isSigner: false,
                 },
@@ -821,87 +841,87 @@ export const idlSwap: Idl = {
             msg: "Date given is incorrect",
         },
         {
-            code: 6100,
+            code: 6007,
             name: "NotMaker",
             msg: "wrong signer, only maker can perform this action",
         },
         {
-            code: 6101,
+            code: 6008,
             name: "NotTaker",
             msg: "wrong address for Taker",
         },
         {
-            code: 6102,
+            code: 6009,
             name: "IncorrectOwner",
             msg: "Owner Given is incorrect",
         },
         {
-            code: 6200,
+            code: 6010,
             name: "UnVerifiedCollection",
             msg: "Collection is unverified",
         },
         {
-            code: 6201,
+            code: 6011,
             name: "IncorrectCollection",
             msg: "Collection doesnt't match givent mint collection",
         },
         {
-            code: 6202,
+            code: 6012,
             name: "UnVerifiedCreator",
             msg: "Creator is unverified",
         },
         {
-            code: 6203,
+            code: 6013,
             name: "IncorrectCreator",
             msg: "Creator passed is incorrect",
         },
         {
-            code: 6300,
+            code: 6014,
             name: "AlreadyExist",
             msg: "The item you're trying to add already exists in the SDA",
         },
         {
-            code: 6301,
+            code: 6015,
             name: "CannotFindAccount",
             msg: "Cannot find the account",
         },
         {
-            code: 6302,
+            code: 6016,
             name: "IncorrectState",
             msg: "Swap is not in the adequate state to perform this action",
         },
         {
-            code: 6303,
+            code: 6017,
             name: "CollectionNotFound",
             msg: "Cannot find the given collection in the SDA",
         },
         {
-            code: 6304,
+            code: 6018,
             name: "AlreadyTaken",
             msg: "Swap already accepted",
         },
         {
-            code: 6305,
+            code: 6019,
             name: "BidNotFound",
             msg: "Bid not found in the list of bids",
         },
         {
-            code: 6306,
+            code: 6020,
             name: "FeeNotPaid",
             msg: "Fees are not paid, please pay the fees before claiming the swap",
         },
         {
-            code: 6307,
+            code: 6021,
             name: "RoyaltiesAlreadyPaid",
             msg: "Royalties already paied",
         },
         {
-            code: 6308,
+            code: 6022,
             name: "TooLate",
             msg: "the Swap you tried to accept is expired",
         },
         {
-            code: 6309,
+            code: 6023,
             name: "TooEarly",
             msg: "Too early to perform this action",
         },
@@ -919,6 +939,11 @@ export const idlSwap: Idl = {
             code: 6902,
             name: "IncorrectSplAta",
             msg: "Incorrect Token ATA Program",
+        },
+        {
+            code: 6903,
+            name: "IncorrectTokenProgram",
+            msg: "Incorrect Token Program",
         },
     ],
 };

@@ -43,6 +43,7 @@ export async function createPayRoyaltiesInstructions(
             takerCreator,
             takerCreatorTokenAta,
             instructions: creatorIxs,
+            tokenProgram: makerProg,
         } = await getCreatorData({
             connection,
             nftMintMaker,
@@ -75,7 +76,11 @@ export async function createPayRoyaltiesInstructions(
             console.log("nsFeeTokenAta", nsFeeTokenAta);
         }
 
-        let { mintAta: makerNftAta, instruction: mn } = await findOrCreateAta({
+        let {
+            mintAta: makerNftAta,
+            instruction: mn,
+            tokenProgram: takerProg,
+        } = await findOrCreateAta({
             connection,
             mint: nftMintTaker,
             owner: maker,
@@ -119,20 +124,26 @@ export async function createPayRoyaltiesInstructions(
             console.log("takerTokenAta", takerTokenAta);
         }
 
-        const { metadataAddress: nftMetadataMaker, tokenStandard: tokenStandardMaker } =
-            await findNftDataAndMetadataAccount({
-                connection,
-                mint: nftMintMaker,
-            });
+        let nftMetadataTaker = taker;
+        let nftMetadataMaker = taker;
 
-        console.log("nftMetadataMaker", nftMetadataMaker);
+        if (makerProg === TOKEN_PROGRAM_ID.toString())
+            nftMetadataMaker = (
+                await findNftDataAndMetadataAccount({
+                    connection,
+                    mint: nftMintMaker,
+                })
+            ).metadataAddress;
+        // console.log("nftMetadataMaker", nftMetadataMaker);
 
-        const { metadataAddress: nftMetadataTaker, tokenStandard: tokenStandardTaker } =
-            await findNftDataAndMetadataAccount({
-                connection,
-                mint: nftMintTaker,
-            });
-        console.log("nftMetadataTaker", nftMetadataTaker);
+        if (takerProg === TOKEN_PROGRAM_ID.toString())
+            nftMetadataTaker = (
+                await findNftDataAndMetadataAccount({
+                    connection,
+                    mint: nftMintTaker,
+                })
+            ).metadataAddress;
+        // console.log("nftMetadataTaker", nftMetadataTaker);
 
         const payRIx = await program.methods
             .payRoyalties()
