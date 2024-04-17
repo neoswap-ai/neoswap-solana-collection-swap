@@ -1,14 +1,18 @@
 export const AVOID_LIST = [
     "G7AVeXMK6e4NFZ6D8EYRwxs7juD7rTaeJnPBRw8jdyGX", // NSWP IDL
-    "EKB76z2Z8jp8UGxNANEFLLrepT8y3Mr8j8BuCv4rF6YN",
-    "3Sv4msea1QWyfJZzbZjvcUEdfduLjGCsmdqQPNkP1LUi",
-    "7nkLbkxAKqMWS3AWo2vYrJCUKB9KvADZX5nQi94QUZKz",
+    "EKB76z2Z8jp8UGxNANEFLLrepT8y3Mr8j8BuCv4rF6YN", // NSWP IDL
+    "3Sv4msea1QWyfJZzbZjvcUEdfduLjGCsmdqQPNkP1LUi", // NSWP IDL
+    "7nkLbkxAKqMWS3AWo2vYrJCUKB9KvADZX5nQi94QUZKz", // NSWP IDL
 ]
     .concat([
         //dev reliquat
         "EATQUN48qM87aNEWg7owWruLvaqkq5D2L1j4K1nDNtv5",
         "AXy6qTDKhpuQUqA3dQBAZdDSdwivAxr8YfxL16aiQyXW",
         "6nTTuktkuTsBu8YFDLrgNG9WCtkTPpCLoq3L3Y5vCZAn", // dev Idl
+        "4xNpWxHgfwjAfmdSmdtFSapuk72ABnJzh6RCe7ZtwwfU", // dev Idl
+        "7wikREetTqhwi8uzTTS6DFNv7Az2opvzGQ3KX7DgaG4G", // dev Idl
+        "2BDCLkhNyVvgYU6XVviFkxxRSeWxCWrb8asMNSyehKpA", // dev Idl
+        "2Z52JTBgVevh5yNHcnmtfJc4ndKHmeDFyQgTJy6b2uqz", // dev Idl
     ])
     .concat([
         // OldPdas
