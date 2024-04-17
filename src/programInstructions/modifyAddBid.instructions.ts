@@ -77,9 +77,36 @@ export async function createAddBidBt(Data: EnvOpts & UpdateSArgs): Promise<Bundl
 }
 
 export async function createRmBidIx(Data: EnvOpts & RmBidArgs): Promise<TransactionInstruction[]> {
-    let { rmBids, swapDataAccount, maker } = Data;
+    let { rmBids, swapDataAccount, maker, paymentMint, makerTokenAta, swapDataAccountTokenAta } =
+        Data;
     let cEnvOpts = await checkEnvOpts(Data);
-    let { program } = cEnvOpts;
+    let { program, connection, clusterOrUrl } = cEnvOpts;
+    let ataIxs: TransactionInstruction[] = [];
+    // let paymentMint: string;
+    if (!(paymentMint && makerTokenAta && swapDataAccountTokenAta)) {
+        let sdaData = await getSdaData({ clusterOrUrl, swapDataAccount });
+        if (sdaData?.paymentMint) paymentMint = sdaData.paymentMint;
+        else throw "paymentMint not found";
+
+        let { mintAta: pmakerTokenAta, instruction: mt } = await findOrCreateAta({
+            connection,
+            mint: paymentMint,
+            owner: maker,
+            signer: maker,
+        });
+        if (mt) ataIxs.push(mt);
+        else console.log("pmakerTokenAta", pmakerTokenAta);
+        makerTokenAta = pmakerTokenAta;
+        let { mintAta: pswapDataAccountTokenAta, instruction: sdat } = await findOrCreateAta({
+            connection,
+            mint: paymentMint,
+            owner: swapDataAccount,
+            signer: maker,
+        });
+        if (sdat) ataIxs.push(sdat);
+        else console.log("pswapDataAccountTokenAta", pswapDataAccountTokenAta);
+        swapDataAccountTokenAta = pswapDataAccountTokenAta;
+    }
     return await Promise.all(
         rmBids.map(
             async (bid) =>
@@ -88,6 +115,9 @@ export async function createRmBidIx(Data: EnvOpts & RmBidArgs): Promise<Transact
                     .accounts({
                         swapDataAccount,
                         maker,
+                        swapDataAccountTokenAta,
+                        makerTokenAta,
+                        tokenProgram: TOKEN_PROGRAM_ID,
                     })
                     .instruction()
         )

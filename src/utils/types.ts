@@ -148,6 +148,10 @@ export type RmBidArgs = {
     rmBids: Bid[];
     swapDataAccount: string;
     maker: string;
+
+    makerTokenAta?: string;
+    swapDataAccountTokenAta?: string;
+    paymentMint?: string;
 };
 export type SetNewTime = {
     swapDataAccount: string;
