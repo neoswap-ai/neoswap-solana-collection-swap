@@ -1,5 +1,6 @@
 import {
     createAssociatedTokenAccountInstruction,
+    createAssociatedTokenAccountIdempotentInstruction,
     TOKEN_2022_PROGRAM_ID,
     TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
@@ -73,7 +74,7 @@ export async function findOrCreateAta(Data: {
 
             return {
                 mintAta,
-                instruction: createAssociatedTokenAccountInstruction(
+                instruction: createAssociatedTokenAccountIdempotentInstruction(
                     new PublicKey(Data.signer),
                     new PublicKey(mintAta),
                     new PublicKey(Data.owner),

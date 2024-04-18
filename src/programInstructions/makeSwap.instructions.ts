@@ -98,7 +98,7 @@ export async function createMakeSwapInstructions(
         let nftMetadataMaker = maker;
 
         if (tokenProgram === TOKEN_PROGRAM_ID.toString()) {
-            console.log("tokenProgram", tokenProgram);
+            console.log("native tokenProgram", tokenProgram);
 
             const { metadataAddress: nftMetadataMakerF, tokenStandard } =
                 await findNftDataAndMetadataAccount({
@@ -162,7 +162,11 @@ export async function createMakeSwapInstructions(
 
             instructions.push(...addWSol(maker, makerTokenAta, maxAmount));
         }
-        console.log("tokenProgram", tokenProgram);
+        console.log(
+            "tokenProgram",
+            tokenProgram == TOKEN_2022_PROGRAM_ID.toString() ? "2022" : "native"
+        );
+        console.log("ataProgram: ", SOLANA_SPL_ATA_PROGRAM_ID);
 
         console.log("bids", bids);
         let oneBid = bids[0];
@@ -174,11 +178,11 @@ export async function createMakeSwapInstructions(
                 swapDataAccountNftAta,
                 swapDataAccountTokenAta,
 
-                maker: maker,
+                maker,
                 makerNftAta,
                 makerTokenAta,
 
-                nftMintMaker: nftMintMaker,
+                nftMintMaker,
                 paymentMint,
 
                 nftMetadataMaker,

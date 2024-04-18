@@ -1,5 +1,5 @@
 import { Connection } from "@solana/web3.js";
-import { createMakeSwapInstructions } from "../src/programInstructions/makeSwap.instructions";
+import { CREATE_INSTRUCTIONS } from "../src/index";
 import { EnvOpts, MakeSArg } from "../src/utils/types";
 import { now } from "@metaplex-foundation/js";
 import { NATIVE_MINT } from "@solana/spl-token";
@@ -18,12 +18,15 @@ let makeSwapArgs = {
     ],
     endDate: now().toNumber() + 86400,
     maker: "8zeXtUMZ5XsN8pWsBY95T1FiYm1mhqrf2F5ZkfB6Rjo9",
-    nftMintMaker: "EffxAzJzojSt4JQiTqAwNZUrvwWjXs1HYZDxMqgNtxy2",
+    nftMintMaker: "FYudtsYj1GyaaUurdXCAQzWDY1Dk8drsMm4TybA6LhVi",
     paymentMint: NATIVE_MINT.toString(),
 } as MakeSArg;
 
 export async function testMakeSwap(envOpts: EnvOpts, connection: Connection) {
-    let ReturnSwapData = await createMakeSwapInstructions({ ...makeSwapArgs, ...envOpts });
+    let ReturnSwapData = await CREATE_INSTRUCTIONS.createMakeSwapInstructions({
+        ...makeSwapArgs,
+        ...envOpts,
+    });
     try {
         await simulateTx(ReturnSwapData.bTxs[0].tx, connection);
         return "MakeSwap passed";

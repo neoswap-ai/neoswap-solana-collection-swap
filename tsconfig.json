@@ -1,7 +1,7 @@
 {
     "compilerOptions": {
         "module": "ESNext",
-        "target": "ES5",
+        "target": "ESNext",
         "lib": ["ES2020", "DOM"],
         "declaration": true,
         "outDir": "./dist/lib/es6",
@@ -11,6 +11,12 @@
         "esModuleInterop": true,
         "strictFunctionTypes": true,
         "skipLibCheck": true
+    },
+    "ts-node": {
+        "esm": false,
+        "compilerOptions": {
+            "module": "NodeNext"
+        }
     },
     "include": ["src/**/*"],
     "exclude": ["node_modules", "**/*.test.ts"]
