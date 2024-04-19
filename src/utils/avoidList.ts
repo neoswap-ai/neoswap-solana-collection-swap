@@ -13,6 +13,8 @@ export const AVOID_LIST = [
         "7wikREetTqhwi8uzTTS6DFNv7Az2opvzGQ3KX7DgaG4G", // dev Idl
         "2BDCLkhNyVvgYU6XVviFkxxRSeWxCWrb8asMNSyehKpA", // dev Idl
         "2Z52JTBgVevh5yNHcnmtfJc4ndKHmeDFyQgTJy6b2uqz", // dev Idl
+        'BJoPv5QHA6ayCkX9xpptv8BFsZTEiFHapA4MmsqL3TV8',
+        'GixH9AqqVQQUzM2ymyK2XFKSUqb6srBT4X3DowMxsuVn'
     ])
     .concat([
         // OldPdas

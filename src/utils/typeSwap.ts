@@ -24,18 +24,21 @@ export function scBidToBid(bid: ScBid): Bid {
     };
 }
 
-export function swapDataToScSwapData(bid: SwapData): ScSwapData {
+export function swapDataToScSwapData(sda: SwapData): ScSwapData {
     return {
-        bids: bid.bids.map(bidToscBid),
-        endTime: new BN(bid.endTime),
-        maker: new PublicKey(bid.maker),
-        nftMintMaker: new PublicKey(bid.nftMintMaker),
-        paymentMint: new PublicKey(bid.paymentMint),
-        royaltiesPaid: bid.royaltiesPaid,
-        seed: bid.seed,
-        acceptedBid: bid.acceptedBid ? bidToscBid(bid.acceptedBid) : undefined,
-        taker: bid.taker ? new PublicKey(bid.taker) : undefined,
-        nftMintTaker: bid.nftMintTaker ? new PublicKey(bid.nftMintTaker) : undefined,
+        bids: sda.bids.map(bidToscBid),
+        endTime: new BN(sda.endTime),
+        maker: new PublicKey(sda.maker),
+        nftMintMaker: new PublicKey(sda.nftMintMaker),
+        paymentMint: new PublicKey(sda.paymentMint),
+        royaltiesPaidMaker: sda.royaltiesPaidMaker,
+        royaltiesPaidTaker: sda.royaltiesPaidTaker,
+        seed: sda.seed,
+        refererMaker: sda.refererMaker ? new PublicKey(sda.refererMaker) : undefined,
+        refererTaker: sda.refererTaker ? new PublicKey(sda.refererTaker) : undefined,
+        acceptedBid: sda.acceptedBid ? bidToscBid(sda.acceptedBid) : undefined,
+        taker: sda.taker ? new PublicKey(sda.taker) : undefined,
+        nftMintTaker: sda.nftMintTaker ? new PublicKey(sda.nftMintTaker) : undefined,
     };
 }
 
@@ -50,8 +53,11 @@ export function scSwapDataToSwapData(scSwapData: ScSwapData): SwapData {
         maker: scSwapData.maker.toString(),
         nftMintMaker: scSwapData.nftMintMaker.toString(),
         paymentMint: scSwapData.paymentMint.toString(),
-        royaltiesPaid: scSwapData.royaltiesPaid,
+        royaltiesPaidMaker: scSwapData.royaltiesPaidMaker,
+        royaltiesPaidTaker: scSwapData.royaltiesPaidTaker,
         seed: scSwapData.seed,
+        refererMaker: scSwapData.refererMaker ? scSwapData.refererMaker.toString() : undefined,
+        refererTaker: scSwapData.refererTaker ? scSwapData.refererTaker.toString() : undefined,
         acceptedBid: scSwapData.acceptedBid ? scBidToBid(scSwapData.acceptedBid) : undefined,
         nftMintTaker: scSwapData.nftMintTaker ? scSwapData.nftMintTaker.toString() : undefined,
         taker: scSwapData.taker ? scSwapData.taker.toString() : undefined,
