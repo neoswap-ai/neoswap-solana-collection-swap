@@ -1,8 +1,8 @@
 import { Idl } from "@coral-xyz/anchor";
 export const idlSwap: Idl = {
-    version: "0.1.0",
+    version: "0.1.1",
     name: "collection_swap",
-    docs: ["@title List of function to manage NeoSwap's multi-items swaps"],
+    docs: ["@title Program to manage NeoSwap's Collection swaps"],
     instructions: [
         {
             name: "makeSwap",
@@ -97,17 +97,94 @@ export const idlSwap: Idl = {
                     isSigner: false,
                 },
                 {
-                    name: "tokenProgram22",
-                    isMut: false,
-                    isSigner: false,
-                },
-                {
                     name: "ataProgram",
                     isMut: false,
                     isSigner: false,
                 },
                 {
                     name: "authRulesProgram",
+                    isMut: false,
+                    isSigner: false,
+                },
+            ],
+            args: [
+                {
+                    name: "bidToAdd",
+                    type: {
+                        defined: "Bid",
+                    },
+                },
+                {
+                    name: "endDate",
+                    type: "i64",
+                },
+            ],
+        },
+        {
+            name: "makeSwap22",
+            accounts: [
+                {
+                    name: "swapDataAccount",
+                    isMut: true,
+                    isSigner: false,
+                },
+                {
+                    name: "swapDataAccountNftAta",
+                    isMut: true,
+                    isSigner: false,
+                },
+                {
+                    name: "swapDataAccountTokenAta",
+                    isMut: true,
+                    isSigner: false,
+                },
+                {
+                    name: "maker",
+                    isMut: true,
+                    isSigner: true,
+                },
+                {
+                    name: "makerNftAta",
+                    isMut: true,
+                    isSigner: false,
+                },
+                {
+                    name: "makerTokenAta",
+                    isMut: true,
+                    isSigner: false,
+                },
+                {
+                    name: "nftMintMaker",
+                    isMut: false,
+                    isSigner: false,
+                },
+                {
+                    name: "paymentMint",
+                    isMut: false,
+                    isSigner: false,
+                },
+                {
+                    name: "systemProgram",
+                    isMut: false,
+                    isSigner: false,
+                },
+                {
+                    name: "sysvarInstructions",
+                    isMut: false,
+                    isSigner: false,
+                },
+                {
+                    name: "tokenProgram",
+                    isMut: false,
+                    isSigner: false,
+                },
+                {
+                    name: "tokenProgram22",
+                    isMut: false,
+                    isSigner: false,
+                },
+                {
+                    name: "ataProgram",
                     isMut: false,
                     isSigner: false,
                 },
@@ -228,17 +305,100 @@ export const idlSwap: Idl = {
                     isSigner: false,
                 },
                 {
-                    name: "tokenProgram22",
-                    isMut: false,
-                    isSigner: false,
-                },
-                {
                     name: "ataProgram",
                     isMut: false,
                     isSigner: false,
                 },
                 {
                     name: "authRulesProgram",
+                    isMut: false,
+                    isSigner: false,
+                },
+            ],
+            args: [
+                {
+                    name: "bidToAccept",
+                    type: {
+                        defined: "Bid",
+                    },
+                },
+            ],
+        },
+        {
+            name: "takeSwap22",
+            accounts: [
+                {
+                    name: "swapDataAccount",
+                    isMut: true,
+                    isSigner: false,
+                },
+                {
+                    name: "swapDataAccountTokenAta",
+                    isMut: true,
+                    isSigner: false,
+                },
+                {
+                    name: "maker",
+                    isMut: false,
+                    isSigner: false,
+                },
+                {
+                    name: "makerNftAta",
+                    isMut: true,
+                    isSigner: false,
+                },
+                {
+                    name: "makerTokenAta",
+                    isMut: true,
+                    isSigner: false,
+                },
+                {
+                    name: "taker",
+                    isMut: true,
+                    isSigner: true,
+                },
+                {
+                    name: "takerNftAta",
+                    isMut: true,
+                    isSigner: false,
+                },
+                {
+                    name: "takerTokenAta",
+                    isMut: true,
+                    isSigner: false,
+                },
+                {
+                    name: "nftMintTaker",
+                    isMut: false,
+                    isSigner: false,
+                },
+                {
+                    name: "paymentMint",
+                    isMut: false,
+                    isSigner: false,
+                },
+                {
+                    name: "hashlistMarker",
+                    isMut: false,
+                    isSigner: false,
+                },
+                {
+                    name: "systemProgram",
+                    isMut: false,
+                    isSigner: false,
+                },
+                {
+                    name: "tokenProgram",
+                    isMut: false,
+                    isSigner: false,
+                },
+                {
+                    name: "tokenProgram22",
+                    isMut: false,
+                    isSigner: false,
+                },
+                {
+                    name: "ataProgram",
                     isMut: false,
                     isSigner: false,
                 },
@@ -353,6 +513,42 @@ export const idlSwap: Idl = {
                 {
                     name: "takerCreator2TokenAta",
                     isMut: true,
+                    isSigner: false,
+                },
+            ],
+            args: [],
+        },
+        {
+            name: "payRoyalties22",
+            accounts: [
+                {
+                    name: "swapDataAccount",
+                    isMut: true,
+                    isSigner: false,
+                },
+                {
+                    name: "swapDataAccountTokenAta",
+                    isMut: true,
+                    isSigner: false,
+                },
+                {
+                    name: "paymentMint",
+                    isMut: false,
+                    isSigner: false,
+                },
+                {
+                    name: "signer",
+                    isMut: false,
+                    isSigner: true,
+                },
+                {
+                    name: "metadataProgram",
+                    isMut: false,
+                    isSigner: false,
+                },
+                {
+                    name: "tokenProgram",
+                    isMut: false,
                     isSigner: false,
                 },
             ],
@@ -478,17 +674,110 @@ export const idlSwap: Idl = {
                     isSigner: false,
                 },
                 {
-                    name: "tokenProgram22",
-                    isMut: false,
-                    isSigner: false,
-                },
-                {
                     name: "ataProgram",
                     isMut: false,
                     isSigner: false,
                 },
                 {
                     name: "authRulesProgram",
+                    isMut: false,
+                    isSigner: false,
+                },
+            ],
+            args: [],
+        },
+        {
+            name: "claimSwap22",
+            accounts: [
+                {
+                    name: "swapDataAccount",
+                    isMut: true,
+                    isSigner: false,
+                },
+                {
+                    name: "swapDataAccountNftAta",
+                    isMut: true,
+                    isSigner: false,
+                },
+                {
+                    name: "swapDataAccountTokenAta",
+                    isMut: true,
+                    isSigner: false,
+                },
+                {
+                    name: "nsFee",
+                    isMut: true,
+                    isSigner: false,
+                    docs: ["CHECK : in constraints"],
+                },
+                {
+                    name: "nsFeeTokenAta",
+                    isMut: true,
+                    isSigner: false,
+                },
+                {
+                    name: "taker",
+                    isMut: true,
+                    isSigner: false,
+                    docs: ["CHECK : in constraints"],
+                },
+                {
+                    name: "takerNftAtaMaker",
+                    isMut: true,
+                    isSigner: false,
+                },
+                {
+                    name: "takerTokenAta",
+                    isMut: true,
+                    isSigner: false,
+                },
+                {
+                    name: "maker",
+                    isMut: true,
+                    isSigner: false,
+                },
+                {
+                    name: "makerTokenAta",
+                    isMut: true,
+                    isSigner: false,
+                },
+                {
+                    name: "nftMintMaker",
+                    isMut: false,
+                    isSigner: false,
+                },
+                {
+                    name: "paymentMint",
+                    isMut: false,
+                    isSigner: false,
+                },
+                {
+                    name: "signer",
+                    isMut: false,
+                    isSigner: true,
+                },
+                {
+                    name: "systemProgram",
+                    isMut: false,
+                    isSigner: false,
+                },
+                {
+                    name: "sysvarInstructions",
+                    isMut: false,
+                    isSigner: false,
+                },
+                {
+                    name: "tokenProgram",
+                    isMut: false,
+                    isSigner: false,
+                },
+                {
+                    name: "tokenProgram22",
+                    isMut: false,
+                    isSigner: false,
+                },
+                {
+                    name: "ataProgram",
                     isMut: false,
                     isSigner: false,
                 },
@@ -593,17 +882,83 @@ export const idlSwap: Idl = {
                     isSigner: false,
                 },
                 {
-                    name: "tokenProgram22",
-                    isMut: false,
-                    isSigner: false,
-                },
-                {
                     name: "ataProgram",
                     isMut: false,
                     isSigner: false,
                 },
                 {
                     name: "authRulesProgram",
+                    isMut: false,
+                    isSigner: false,
+                },
+            ],
+            args: [],
+        },
+        {
+            name: "cancelSwap22",
+            accounts: [
+                {
+                    name: "swapDataAccount",
+                    isMut: true,
+                    isSigner: false,
+                },
+                {
+                    name: "swapDataAccountNftAta",
+                    isMut: true,
+                    isSigner: false,
+                },
+                {
+                    name: "swapDataAccountTokenAta",
+                    isMut: true,
+                    isSigner: false,
+                },
+                {
+                    name: "maker",
+                    isMut: true,
+                    isSigner: false,
+                },
+                {
+                    name: "signer",
+                    isMut: false,
+                    isSigner: true,
+                },
+                {
+                    name: "makerNftAta",
+                    isMut: true,
+                    isSigner: false,
+                },
+                {
+                    name: "makerTokenAta",
+                    isMut: true,
+                    isSigner: false,
+                },
+                {
+                    name: "nftMintMaker",
+                    isMut: false,
+                    isSigner: false,
+                },
+                {
+                    name: "paymentMint",
+                    isMut: false,
+                    isSigner: false,
+                },
+                {
+                    name: "systemProgram",
+                    isMut: false,
+                    isSigner: false,
+                },
+                {
+                    name: "tokenProgram",
+                    isMut: false,
+                    isSigner: false,
+                },
+                {
+                    name: "tokenProgram22",
+                    isMut: false,
+                    isSigner: false,
+                },
+                {
+                    name: "ataProgram",
                     isMut: false,
                     isSigner: false,
                 },
@@ -751,11 +1106,27 @@ export const idlSwap: Idl = {
                         },
                     },
                     {
+                        name: "refererMaker",
+                        type: {
+                            option: "publicKey",
+                        },
+                    },
+                    {
+                        name: "refererTaker",
+                        type: {
+                            option: "publicKey",
+                        },
+                    },
+                    {
                         name: "endTime",
                         type: "i64",
                     },
                     {
-                        name: "royaltiesPaid",
+                        name: "royaltiesPaidTaker",
+                        type: "bool",
+                    },
+                    {
+                        name: "royaltiesPaidMaker",
                         type: "bool",
                     },
                     {
@@ -765,6 +1136,22 @@ export const idlSwap: Idl = {
                     {
                         name: "seed",
                         type: "string",
+                    },
+                ],
+            },
+        },
+        {
+            name: "HashlistMarker",
+            type: {
+                kind: "struct",
+                fields: [
+                    {
+                        name: "editionsDeployment",
+                        type: "publicKey",
+                    },
+                    {
+                        name: "mint",
+                        type: "publicKey",
                     },
                 ],
             },
@@ -841,87 +1228,87 @@ export const idlSwap: Idl = {
             msg: "Date given is incorrect",
         },
         {
-            code: 6007,
+            code: 6100,
             name: "NotMaker",
             msg: "wrong signer, only maker can perform this action",
         },
         {
-            code: 6008,
+            code: 6101,
             name: "NotTaker",
             msg: "wrong address for Taker",
         },
         {
-            code: 6009,
+            code: 6102,
             name: "IncorrectOwner",
             msg: "Owner Given is incorrect",
         },
         {
-            code: 6010,
+            code: 6200,
             name: "UnVerifiedCollection",
             msg: "Collection is unverified",
         },
         {
-            code: 6011,
+            code: 6201,
             name: "IncorrectCollection",
             msg: "Collection doesnt't match givent mint collection",
         },
         {
-            code: 6012,
+            code: 6202,
             name: "UnVerifiedCreator",
             msg: "Creator is unverified",
         },
         {
-            code: 6013,
+            code: 6203,
             name: "IncorrectCreator",
             msg: "Creator passed is incorrect",
         },
         {
-            code: 6014,
+            code: 6300,
             name: "AlreadyExist",
             msg: "The item you're trying to add already exists in the SDA",
         },
         {
-            code: 6015,
+            code: 6301,
             name: "CannotFindAccount",
             msg: "Cannot find the account",
         },
         {
-            code: 6016,
+            code: 6302,
             name: "IncorrectState",
             msg: "Swap is not in the adequate state to perform this action",
         },
         {
-            code: 6017,
+            code: 6303,
             name: "CollectionNotFound",
             msg: "Cannot find the given collection in the SDA",
         },
         {
-            code: 6018,
+            code: 6304,
             name: "AlreadyTaken",
             msg: "Swap already accepted",
         },
         {
-            code: 6019,
+            code: 6305,
             name: "BidNotFound",
             msg: "Bid not found in the list of bids",
         },
         {
-            code: 6020,
+            code: 6306,
             name: "FeeNotPaid",
             msg: "Fees are not paid, please pay the fees before claiming the swap",
         },
         {
-            code: 6021,
+            code: 6307,
             name: "RoyaltiesAlreadyPaid",
             msg: "Royalties already paied",
         },
         {
-            code: 6022,
+            code: 6308,
             name: "TooLate",
             msg: "the Swap you tried to accept is expired",
         },
         {
-            code: 6023,
+            code: 6309,
             name: "TooEarly",
             msg: "Too early to perform this action",
         },

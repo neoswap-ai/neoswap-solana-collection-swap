@@ -58,3 +58,40 @@ export function scSwapDataToSwapData(scSwapData: ScSwapData): SwapData {
         status,
     };
 }
+
+// export function scSwapDataToSwapData(scSwapData: ScSwapData): SwapData {
+//     let {
+//         bids,
+//         endTime,
+//         maker,
+//         nftMintMaker,
+//         paymentMint,
+//         royaltiesPaidMaker,
+//         royaltiesPaidTaker,
+//         seed,
+//         acceptedBid,
+//         nftMintTaker,
+//         refererMaker,
+//         refererTaker,
+//         taker,
+//     } = scSwapData;
+//     let status: SwapData["status"] = "active";
+//     if (acceptedBid) status = "accepted";
+//     else if (endTime.lt(new BN(Date.now() / 1000)) && endTime.toNumber() != 0) status = "expired";
+//     return {
+//         bids: bids.map(scBidToBid),
+//         endTime: endTime.toNumber(),
+//         maker: maker.toString(),
+//         nftMintMaker: nftMintMaker.toString(),
+//         paymentMint: paymentMint.toString(),
+//         royaltiesPaidMaker,
+//         royaltiesPaidTaker,
+//         seed,
+//         refererMaker: refererMaker ? refererMaker.toString() : undefined,
+//         refererTaker: refererTaker ? refererTaker.toString() : undefined,
+//         acceptedBid: acceptedBid ? scBidToBid(acceptedBid) : undefined,
+//         nftMintTaker: nftMintTaker ? nftMintTaker.toString() : undefined,
+//         taker: taker ? taker.toString() : undefined,
+//         status,
+//     };
+// }
