@@ -2,7 +2,7 @@ import { Idl } from "@coral-xyz/anchor";
 export const idlSwap: Idl = {
     version: "0.1.1",
     name: "collection_swap",
-    docs: ["@title Program to manage NeoSwap's Collection swaps"],
+    docs: ["Program to manage NeoSwap's Collection swaps"],
     instructions: [
         {
             name: "makeSwap",

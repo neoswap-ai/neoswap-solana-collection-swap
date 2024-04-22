@@ -9,7 +9,7 @@
 //     setTime: "setTime",
 // };
 export const DESC = {
-    makeSwap: "Proposing...",
+    makeSwap: "Creating...",
     takeSwap: "Accepting...",
     payRoyalties: "Paying royalties...",
     claimSwap: "Claiming...",

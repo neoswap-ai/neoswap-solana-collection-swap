@@ -38,9 +38,14 @@ export type SwapData = {
     nftMintTaker?: string;
     acceptedBid?: Bid;
 
+    refererMaker?: string;
+    refererTaker?: string;
+
     endTime: number;
 
-    royaltiesPaid: boolean;
+    royaltiesPaidMaker: boolean;
+    royaltiesPaidTaker: boolean;
+
     status: "active" | "expired" | "accepted";
     paymentMint: string;
     seed: string;
@@ -56,9 +61,13 @@ export type ScSwapData = {
     nftMintTaker?: PublicKey;
     acceptedBid?: ScBid;
 
+    refererMaker?: PublicKey;
+    refererTaker?: PublicKey;
+
     endTime: BN;
 
-    royaltiesPaid: boolean;
+    royaltiesPaidMaker: boolean;
+    royaltiesPaidTaker: boolean;
 
     paymentMint: PublicKey;
     seed: string;
@@ -148,6 +157,10 @@ export type RmBidArgs = {
     rmBids: Bid[];
     swapDataAccount: string;
     maker: string;
+
+    makerTokenAta?: string;
+    swapDataAccountTokenAta?: string;
+    paymentMint?: string;
 };
 export type SetNewTime = {
     swapDataAccount: string;

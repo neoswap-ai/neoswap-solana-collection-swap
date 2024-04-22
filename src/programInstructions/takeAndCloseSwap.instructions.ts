@@ -59,7 +59,7 @@ export async function createTakeAndCloseSwapInstructions(
             nftMintMaker,
             bids,
             acceptedBid,
-            royaltiesPaid,
+            royaltiesPaidMaker,
         } = swapDataData;
 
         const foundBid = bids.find(
@@ -369,7 +369,14 @@ export async function createTakeAndCloseSwapInstructions(
             console.log("nsFeeTokenAta", nsFeeTokenAta);
         }
 
-        if (!royaltiesPaid) {
+        // const { metadataAddress: nftMetadataMaker, tokenStandard: tokenStandardMaker } =
+        //     await findNftDataAndMetadataAccount({
+        //         connection,
+        //         mint: nftMintMaker,
+        //     });
+        // console.log("nftMetadataMaker", nftMetadataMaker);
+
+        if (!royaltiesPaidMaker) {
             const payRIx = await program.methods
                 .payRoyalties()
                 .accounts({
