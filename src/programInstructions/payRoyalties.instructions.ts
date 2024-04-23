@@ -123,59 +123,72 @@ export async function createPayRoyaltiesInstructions(
             instructions.push(tt);
             console.log("takerTokenAta", takerTokenAta);
         }
+        console.log("makerProg", makerProg === TOKEN_PROGRAM_ID.toString() ? "Native" : "2022");
 
-        let nftMetadataTaker = taker;
-        let nftMetadataMaker = taker;
-
-        if (makerProg === TOKEN_PROGRAM_ID.toString())
-            nftMetadataMaker = (
+        if (makerProg === TOKEN_PROGRAM_ID.toString()) {
+            let nftMetadataMaker = (
                 await findNftDataAndMetadataAccount({
                     connection,
                     mint: nftMintMaker,
                 })
             ).metadataAddress;
-        // console.log("nftMetadataMaker", nftMetadataMaker);
+            // console.log("nftMetadataMaker", nftMetadataMaker);
 
-        if (takerProg === TOKEN_PROGRAM_ID.toString())
-            nftMetadataTaker = (
+            let nftMetadataTaker = (
                 await findNftDataAndMetadataAccount({
                     connection,
                     mint: nftMintTaker,
                 })
             ).metadataAddress;
-        // console.log("nftMetadataTaker", nftMetadataTaker);
 
-        const payRIx = await program.methods
-            .payRoyalties()
-            .accounts({
-                swapDataAccount,
-                swapDataAccountTokenAta,
+            const payRIx = await program.methods
+                .payRoyalties()
+                .accounts({
+                    swapDataAccount,
+                    swapDataAccountTokenAta,
 
-                signer,
+                    signer,
 
-                paymentMint,
+                    paymentMint,
 
-                nftMetadataTaker,
-                nftMetadataMaker,
+                    nftMetadataTaker,
+                    nftMetadataMaker,
 
-                metadataProgram: TOKEN_METADATA_PROGRAM,
-                tokenProgram: TOKEN_PROGRAM_ID,
+                    metadataProgram: TOKEN_METADATA_PROGRAM,
+                    tokenProgram: TOKEN_PROGRAM_ID,
 
-                makerCreator0: makerCreator[0],
-                makerCreator0TokenAta: makerCreatorTokenAta[0],
-                makerCreator1: makerCreator[1],
-                makerCreator1TokenAta: makerCreatorTokenAta[1],
-                makerCreator2: makerCreator[2],
-                makerCreator2TokenAta: makerCreatorTokenAta[2],
-                takerCreator0: takerCreator[0],
-                takerCreator0TokenAta: takerCreatorTokenAta[0],
-                takerCreator1: takerCreator[1],
-                takerCreator1TokenAta: takerCreatorTokenAta[1],
-                takerCreator2: takerCreator[2],
-                takerCreator2TokenAta: takerCreatorTokenAta[2],
-            })
-            .instruction();
-        instructions.push(payRIx);
+                    makerCreator0: makerCreator[0],
+                    makerCreator0TokenAta: makerCreatorTokenAta[0],
+                    makerCreator1: makerCreator[1],
+                    makerCreator1TokenAta: makerCreatorTokenAta[1],
+                    makerCreator2: makerCreator[2],
+                    makerCreator2TokenAta: makerCreatorTokenAta[2],
+                    takerCreator0: takerCreator[0],
+                    takerCreator0TokenAta: takerCreatorTokenAta[0],
+                    takerCreator1: takerCreator[1],
+                    takerCreator1TokenAta: takerCreatorTokenAta[1],
+                    takerCreator2: takerCreator[2],
+                    takerCreator2TokenAta: takerCreatorTokenAta[2],
+                })
+                .instruction();
+            instructions.push(payRIx);
+        } else {
+            const payRIx = await program.methods
+                .payRoyalties22()
+                .accounts({
+                    swapDataAccount,
+                    swapDataAccountTokenAta,
+
+                    paymentMint,
+
+                    signer,
+
+                    metadataProgram: TOKEN_METADATA_PROGRAM,
+                    tokenProgram: TOKEN_PROGRAM_ID,
+                })
+                .instruction();
+            instructions.push(payRIx);
+        }
 
         return {
             tx: await ix2vTx(instructions, cEnvOpts, signer),

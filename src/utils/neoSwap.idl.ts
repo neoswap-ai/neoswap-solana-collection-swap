@@ -2,7 +2,7 @@ import { Idl } from "@coral-xyz/anchor";
 export const idlSwap: Idl = {
     version: "0.1.1",
     name: "collection_swap",
-    docs: ["Program to manage NeoSwap's Collection swaps"],
+    docs: ["@title Program to manage NeoSwap's Collection swaps"],
     instructions: [
         {
             name: "makeSwap",
@@ -527,12 +527,12 @@ export const idlSwap: Idl = {
                     isSigner: false,
                 },
                 {
-                    name: "swapDataAccountTokenAta",
-                    isMut: true,
+                    name: "nftMintTaker",
+                    isMut: false,
                     isSigner: false,
                 },
                 {
-                    name: "paymentMint",
+                    name: "nftMintMaker",
                     isMut: false,
                     isSigner: false,
                 },
@@ -542,12 +542,7 @@ export const idlSwap: Idl = {
                     isSigner: true,
                 },
                 {
-                    name: "metadataProgram",
-                    isMut: false,
-                    isSigner: false,
-                },
-                {
-                    name: "tokenProgram",
+                    name: "tokenProgram22",
                     isMut: false,
                     isSigner: false,
                 },
@@ -1226,6 +1221,11 @@ export const idlSwap: Idl = {
             code: 6006,
             name: "IncorrectDate",
             msg: "Date given is incorrect",
+        },
+        {
+            code: 6007,
+            name: "IncorrectAmount",
+            msg: "Amount given is incorrect",
         },
         {
             code: 6100,

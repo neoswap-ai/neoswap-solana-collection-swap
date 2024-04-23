@@ -11,6 +11,7 @@ import { BTv, BundleTransaction, EnvOpts, TakeSArg } from "../utils/types";
 import { findOrCreateAta } from "../utils/findOrCreateAta.function";
 import { TOKEN_2022_PROGRAM_ID, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import {
+    FAIR_LAUNCH_PROGRAM_ID,
     METAPLEX_AUTH_RULES_PROGRAM,
     NS_FEE,
     SOLANA_SPL_ATA_PROGRAM_ID,
@@ -284,39 +285,80 @@ export async function createTakeAndCloseSwapInstructions(
 
                 takeIxs.push(...addWSol(Data.taker, takerTokenAta, amount));
             }
-            const takeIx = await program.methods
-                .takeSwap(bidToscBid(Data.bid))
-                .accounts({
-                    swapDataAccount,
-                    swapDataAccountTokenAta,
+            if (takerTokenProg === TOKEN_PROGRAM_ID.toString()) {
+                const takeIx = await program.methods
+                    .takeSwap(bidToscBid(Data.bid))
+                    .accounts({
+                        swapDataAccount,
+                        swapDataAccountTokenAta,
 
-                    maker,
-                    makerNftAta,
-                    makerTokenAta,
+                        maker,
+                        makerNftAta,
+                        makerTokenAta,
 
-                    taker,
-                    takerNftAta,
-                    takerTokenAta,
+                        taker,
+                        takerNftAta,
+                        takerTokenAta,
 
-                    nftMintTaker,
-                    paymentMint,
+                        nftMintTaker,
+                        paymentMint,
 
-                    nftMetadataTaker,
-                    nftMasterEditionTaker,
-                    ownerTokenRecordTaker,
-                    destinationTokenRecordTaker,
-                    authRulesTaker,
+                        nftMetadataTaker,
+                        nftMasterEditionTaker,
+                        ownerTokenRecordTaker,
+                        destinationTokenRecordTaker,
+                        authRulesTaker,
 
-                    systemProgram: SystemProgram.programId,
-                    metadataProgram: TOKEN_METADATA_PROGRAM,
-                    sysvarInstructions: SYSVAR_INSTRUCTIONS_PUBKEY,
-                    tokenProgram: TOKEN_PROGRAM_ID,
-                    tokenProgram22: TOKEN_2022_PROGRAM_ID,
-                    ataProgram: SOLANA_SPL_ATA_PROGRAM_ID,
-                    authRulesProgram: METAPLEX_AUTH_RULES_PROGRAM,
-                })
-                .instruction();
-            takeIxs.push(takeIx);
+                        systemProgram: SystemProgram.programId,
+                        metadataProgram: TOKEN_METADATA_PROGRAM,
+                        sysvarInstructions: SYSVAR_INSTRUCTIONS_PUBKEY,
+                        tokenProgram: TOKEN_PROGRAM_ID,
+                        ataProgram: SOLANA_SPL_ATA_PROGRAM_ID,
+                        authRulesProgram: METAPLEX_AUTH_RULES_PROGRAM,
+                    })
+                    .instruction();
+                takeIxs.push(takeIx);
+            } else {
+                let hashlistMarker = PublicKey.findProgramAddressSync(
+                    [
+                        Buffer.from("hashlist_marker"),
+                        new PublicKey(bid.collection).toBuffer(),
+                        new PublicKey(nftMintTaker).toBuffer(),
+                    ],
+                    new PublicKey(FAIR_LAUNCH_PROGRAM_ID)
+                )[0].toString();
+                console.log("hashlistMarker", hashlistMarker);
+
+                const takeIx = await program.methods
+                    .takeSwap22(bidToscBid(Data.bid))
+                    .accounts({
+                        swapDataAccount,
+                        swapDataAccountTokenAta,
+
+                        maker,
+                        makerNftAta,
+                        makerTokenAta,
+
+                        taker,
+                        takerNftAta,
+                        takerTokenAta,
+
+                        nftMintTaker,
+                        paymentMint,
+
+                        hashlistMarker,
+
+                        systemProgram: SystemProgram.programId,
+                        // metadataProgram: TOKEN_METADATA_PROGRAM,
+                        // sysvarInstructions: SYSVAR_INSTRUCTIONS_PUBKEY,
+                        tokenProgram: TOKEN_PROGRAM_ID,
+                        tokenProgram22: TOKEN_2022_PROGRAM_ID,
+                        ataProgram: SOLANA_SPL_ATA_PROGRAM_ID,
+                        // authRulesProgram: METAPLEX_AUTH_RULES_PROGRAM,
+                    })
+                    .instruction();
+                takeIxs.push(takeIx);
+            }
         }
 
         let takeSwapTx: VersionedTransaction | undefined;
@@ -377,37 +419,69 @@ export async function createTakeAndCloseSwapInstructions(
         // console.log("nftMetadataMaker", nftMetadataMaker);
 
         if (!royaltiesPaidMaker) {
-            const payRIx = await program.methods
-                .payRoyalties()
-                .accounts({
-                    swapDataAccount,
-                    swapDataAccountTokenAta,
+            if (takerTokenProg === TOKEN_PROGRAM_ID.toString()) {
+                let nftMetadataMaker = (
+                    await findNftDataAndMetadataAccount({
+                        connection,
+                        mint: nftMintMaker,
+                    })
+                ).metadataAddress;
+                // console.log("nftMetadataMaker", nftMetadataMaker);
 
-                    signer: taker,
+                let nftMetadataTaker = (
+                    await findNftDataAndMetadataAccount({
+                        connection,
+                        mint: nftMintTaker,
+                    })
+                ).metadataAddress;
 
-                    paymentMint,
+                const payRIx = await program.methods
+                    .payRoyalties()
+                    .accounts({
+                        swapDataAccount,
+                        swapDataAccountTokenAta,
 
-                    nftMetadataTaker,
-                    nftMetadataMaker,
+                        signer: taker,
 
-                    metadataProgram: TOKEN_METADATA_PROGRAM,
-                    tokenProgram: TOKEN_PROGRAM_ID,
+                        paymentMint,
 
-                    makerCreator0: makerCreator[0],
-                    makerCreator0TokenAta: makerCreatorTokenAta[0],
-                    makerCreator1: makerCreator[1],
-                    makerCreator1TokenAta: makerCreatorTokenAta[1],
-                    makerCreator2: makerCreator[2],
-                    makerCreator2TokenAta: makerCreatorTokenAta[2],
-                    takerCreator0: takerCreator[0],
-                    takerCreator0TokenAta: takerCreatorTokenAta[0],
-                    takerCreator1: takerCreator[1],
-                    takerCreator1TokenAta: takerCreatorTokenAta[1],
-                    takerCreator2: takerCreator[2],
-                    takerCreator2TokenAta: takerCreatorTokenAta[2],
-                })
-                .instruction();
-            payRIxs.push(payRIx);
+                        nftMetadataTaker,
+                        nftMetadataMaker,
+
+                        metadataProgram: TOKEN_METADATA_PROGRAM,
+                        tokenProgram: TOKEN_PROGRAM_ID,
+
+                        makerCreator0: makerCreator[0],
+                        makerCreator0TokenAta: makerCreatorTokenAta[0],
+                        makerCreator1: makerCreator[1],
+                        makerCreator1TokenAta: makerCreatorTokenAta[1],
+                        makerCreator2: makerCreator[2],
+                        makerCreator2TokenAta: makerCreatorTokenAta[2],
+                        takerCreator0: takerCreator[0],
+                        takerCreator0TokenAta: takerCreatorTokenAta[0],
+                        takerCreator1: takerCreator[1],
+                        takerCreator1TokenAta: takerCreatorTokenAta[1],
+                        takerCreator2: takerCreator[2],
+                        takerCreator2TokenAta: takerCreatorTokenAta[2],
+                    })
+                    .instruction();
+                payRIxs.push(payRIx);
+            } else {
+                const payRIx = await program.methods
+                    .payRoyalties22()
+                    .accounts({
+                        swapDataAccount,
+                        nftMintTaker,
+                        nftMintMaker,
+
+                        signer: taker,
+
+                        metadataProgram: TOKEN_METADATA_PROGRAM,
+                        tokenProgram22: TOKEN_2022_PROGRAM_ID,
+                    })
+                    .instruction();
+                payRIxs.push(payRIx);
+            }
         }
 
         let payRoyaltiesTx: VersionedTransaction | undefined;
@@ -440,45 +514,79 @@ export async function createTakeAndCloseSwapInstructions(
             console.log("takerNftAta", takerNftAtaMaker);
         }
 
-        const initIx = await program.methods
-            .claimSwap()
-            .accounts({
-                swapDataAccount,
-                swapDataAccountNftAta,
-                swapDataAccountTokenAta,
+        if (takerTokenProg === TOKEN_PROGRAM_ID.toString()) {
+            const initIx = await program.methods
+                .claimSwap()
+                .accounts({
+                    swapDataAccount,
+                    swapDataAccountNftAta,
+                    swapDataAccountTokenAta,
 
-                nsFee: NS_FEE,
-                nsFeeTokenAta,
+                    nsFee: NS_FEE,
+                    nsFeeTokenAta,
 
-                signer: taker,
-                taker,
-                takerNftAtaMaker,
-                takerTokenAta,
+                    signer: taker,
+                    taker,
+                    takerNftAtaMaker,
+                    takerTokenAta,
 
-                maker,
-                // makerNftAta,
-                makerTokenAta,
+                    maker,
+                    // makerNftAta,
+                    makerTokenAta,
 
-                nftMintMaker,
-                paymentMint,
+                    nftMintMaker,
+                    paymentMint,
 
-                nftMetadataMaker,
-                nftMasterEditionMaker,
-                ownerTokenRecordMaker,
-                destinationTokenRecordMaker,
-                authRulesMaker,
+                    nftMetadataMaker,
+                    nftMasterEditionMaker,
+                    ownerTokenRecordMaker,
+                    destinationTokenRecordMaker,
+                    authRulesMaker,
 
-                systemProgram: SystemProgram.programId,
-                metadataProgram: TOKEN_METADATA_PROGRAM,
-                sysvarInstructions: SYSVAR_INSTRUCTIONS_PUBKEY,
-                tokenProgram: TOKEN_PROGRAM_ID,
-                tokenProgram22: TOKEN_2022_PROGRAM_ID,
-                ataProgram: SOLANA_SPL_ATA_PROGRAM_ID,
-                authRulesProgram: METAPLEX_AUTH_RULES_PROGRAM,
-            })
-            .instruction();
+                    systemProgram: SystemProgram.programId,
+                    metadataProgram: TOKEN_METADATA_PROGRAM,
+                    sysvarInstructions: SYSVAR_INSTRUCTIONS_PUBKEY,
+                    tokenProgram: TOKEN_PROGRAM_ID,
+                    tokenProgram22: TOKEN_2022_PROGRAM_ID,
+                    ataProgram: SOLANA_SPL_ATA_PROGRAM_ID,
+                    authRulesProgram: METAPLEX_AUTH_RULES_PROGRAM,
+                })
+                .instruction();
 
-        claimSIxs.push(initIx);
+            claimSIxs.push(initIx);
+        } else {
+            const initIx = await program.methods
+                .claimSwap22()
+                .accounts({
+                    swapDataAccount,
+                    swapDataAccountNftAta,
+                    swapDataAccountTokenAta,
+
+                    nsFee: NS_FEE,
+                    nsFeeTokenAta,
+
+                    signer: taker,
+                    taker,
+                    takerNftAtaMaker,
+                    takerTokenAta,
+
+                    maker,
+                    // makerNftAta,
+                    makerTokenAta,
+
+                    nftMintMaker,
+                    paymentMint,
+
+                    systemProgram: SystemProgram.programId,
+                    sysvarInstructions: SYSVAR_INSTRUCTIONS_PUBKEY,
+                    tokenProgram: TOKEN_PROGRAM_ID,
+                    tokenProgram22: TOKEN_2022_PROGRAM_ID,
+                    ataProgram: SOLANA_SPL_ATA_PROGRAM_ID,
+                })
+                .instruction();
+
+            claimSIxs.push(initIx);
+        }
 
         let { lastValidBlockHeight: blockheight, blockhash } =
             await connection.getLatestBlockhash();

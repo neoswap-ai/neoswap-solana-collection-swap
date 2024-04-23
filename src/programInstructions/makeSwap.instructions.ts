@@ -166,37 +166,72 @@ export async function createMakeSwapInstructions(
 
         console.log("bids", bids);
         let oneBid = bids[0];
-        let leftBids = bids.slice(1);
-        const initIx = await program.methods
-            .makeSwap(bidToscBid(oneBid), new BN(endDate))
-            .accounts({
-                swapDataAccount,
-                swapDataAccountNftAta,
-                swapDataAccountTokenAta,
+        let leftBids = bids.slice(1).length > 0 ? bids.slice(1) : [];
 
-                maker: maker,
-                makerNftAta,
-                makerTokenAta,
+        if (tokenProgram === TOKEN_PROGRAM_ID.toString()) {
+            // console.log("tokenProgram createIX", program);
+            const initIx = await program.methods
+                .makeSwap(bidToscBid(oneBid), new BN(endDate))
+                .accounts({
+                    swapDataAccount,
+                    swapDataAccountNftAta,
+                    swapDataAccountTokenAta,
 
-                nftMintMaker: nftMintMaker,
-                paymentMint,
+                    maker: maker,
+                    makerNftAta,
+                    makerTokenAta,
 
-                nftMetadataMaker,
-                nftMasterEditionMaker,
-                ownerTokenRecordMaker,
-                destinationTokenRecordMaker,
-                authRulesMaker,
+                    nftMintMaker: nftMintMaker,
+                    paymentMint,
 
-                systemProgram: SystemProgram.programId,
-                metadataProgram: TOKEN_METADATA_PROGRAM,
-                sysvarInstructions: SYSVAR_INSTRUCTIONS_PUBKEY,
-                tokenProgram: TOKEN_PROGRAM_ID,
-                tokenProgram22: TOKEN_2022_PROGRAM_ID,
-                ataProgram: SOLANA_SPL_ATA_PROGRAM_ID,
-                authRulesProgram: METAPLEX_AUTH_RULES_PROGRAM,
-            })
-            .instruction();
-        instructions.push(initIx);
+                    nftMetadataMaker,
+                    nftMasterEditionMaker,
+                    ownerTokenRecordMaker,
+                    destinationTokenRecordMaker,
+                    authRulesMaker,
+
+                    systemProgram: SystemProgram.programId,
+                    metadataProgram: TOKEN_METADATA_PROGRAM,
+                    sysvarInstructions: SYSVAR_INSTRUCTIONS_PUBKEY,
+                    tokenProgram: TOKEN_PROGRAM_ID,
+                    tokenProgram22: TOKEN_2022_PROGRAM_ID,
+                    ataProgram: SOLANA_SPL_ATA_PROGRAM_ID,
+                    authRulesProgram: METAPLEX_AUTH_RULES_PROGRAM,
+                })
+                .instruction();
+            instructions.push(initIx);
+        } else if (tokenProgram === TOKEN_2022_PROGRAM_ID.toString()) {
+            // console.log("token22Program createIX", idlSwap, program);
+
+            const initIx = await program.methods
+                .makeSwap22(bidToscBid(oneBid), new BN(endDate))
+                .accounts({
+                    swapDataAccount,
+                    swapDataAccountNftAta,
+                    swapDataAccountTokenAta,
+
+                    maker: maker,
+                    makerNftAta,
+                    makerTokenAta,
+
+                    nftMintMaker: nftMintMaker,
+                    paymentMint,
+
+                    // nftMetadataMaker,
+                    // nftMasterEditionMaker,
+                    // ownerTokenRecordMaker,
+                    // destinationTokenRecordMaker,
+                    // authRulesMaker,
+
+                    systemProgram: SystemProgram.programId,
+                    sysvarInstructions: SYSVAR_INSTRUCTIONS_PUBKEY,
+                    tokenProgram: TOKEN_PROGRAM_ID,
+                    tokenProgram22: TOKEN_2022_PROGRAM_ID,
+                    ataProgram: SOLANA_SPL_ATA_PROGRAM_ID,
+                })
+                .instruction();
+            instructions.push(initIx);
+        }
 
         let addBidIxs: TransactionInstruction[] = [];
         if (leftBids.length > 0) {
@@ -219,6 +254,7 @@ export async function createMakeSwapInstructions(
                 addBidIxs = addBidIxs.slice(3);
             }
         }
+
         let bTxs: BTv[] = [
             {
                 description: DESC.makeSwap,
@@ -228,6 +264,8 @@ export async function createMakeSwapInstructions(
                 tx: await ix2vTx(instructions, cEnvOpts, maker),
             },
         ];
+        console.log("addBidIxs", addBidIxs.length);
+
         if (addBidIxs.length > 0)
             bTxs.push({
                 description: DESC.addBid,

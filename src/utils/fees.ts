@@ -12,7 +12,7 @@ export async function addPriorityFee(
     if (estimatedFee === 0) {
         estimatedFee = await getRecentPrioritizationFeesHM(
             writableAccounts,
-            "https://rpc.hellomoon.io"
+            "https://rpc.hellomoon.io/13bb514b-0e38-4ff2-a167-6383ef88aa10"
         );
         if (estimatedFee < 10000) estimatedFee = 10000;
         console.log("using getPrioritizationFee from hellomoon", estimatedFee);
@@ -49,7 +49,10 @@ const getRecentPrioritizationFeesHM = async (
             },
         }),
     });
-    const data = (await response.json()).result.percentileToFee;
+    let jsonData = await response.json();
+    // console.log("getPrioritizationFee:", jsonData);
+
+    const data = jsonData.result.percentileToFee;
     console.log("getPrioritizationFee:", data);
     return data["90"];
 };

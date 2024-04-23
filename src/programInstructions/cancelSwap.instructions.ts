@@ -113,13 +113,12 @@ export async function createCancelSwapInstructions(
         //     instructions.push(tmN);
         // }
 
-        let nftMasterEditionMaker = signer;
-        let ownerTokenRecordMaker = signer;
-        let destinationTokenRecordMaker = signer;
-        let authRulesMaker = signer;
-        let nftMetadataMaker = signer;
-
         if (tokenProgram === TOKEN_PROGRAM_ID.toString()) {
+            let nftMasterEditionMaker = signer;
+            let ownerTokenRecordMaker = signer;
+            let destinationTokenRecordMaker = signer;
+            let authRulesMaker = signer;
+
             console.log(
                 nftMintMaker,
                 "makerTokenProg findNftDataAndMetadataAccount",
@@ -127,12 +126,11 @@ export async function createCancelSwapInstructions(
             );
             // console.log(makerTokenProg, "nftMintTaker findNftDataAndMetadataAccount", nftMintTaker);
 
-            const { metadataAddress: nftMetadataMaker2, tokenStandard: tokenStandardMaker } =
+            const { metadataAddress: nftMetadataMaker, tokenStandard: tokenStandardMaker } =
                 await findNftDataAndMetadataAccount({
                     connection,
                     mint: nftMintMaker,
                 });
-            nftMetadataMaker = nftMetadataMaker2;
             console.log("nftMetadataMaker", nftMetadataMaker);
 
             if (tokenStandardMaker == TokenStandard.ProgrammableNonFungible) {
@@ -164,41 +162,66 @@ export async function createCancelSwapInstructions(
                 destinationTokenRecordMaker = destinationTokenRecordF;
                 authRulesMaker = authRulesF;
             }
+
+            const cancelIx = await program.methods
+                .cancelSwap()
+                .accounts({
+                    signer,
+
+                    swapDataAccount,
+                    swapDataAccountNftAta,
+                    swapDataAccountTokenAta,
+
+                    maker,
+                    makerNftAta,
+                    makerTokenAta,
+
+                    nftMintMaker,
+                    paymentMint,
+
+                    nftMetadataMaker,
+                    nftMasterEditionMaker,
+                    ownerTokenRecordMaker,
+                    destinationTokenRecordMaker,
+                    authRulesMaker,
+
+                    systemProgram: SystemProgram.programId,
+                    metadataProgram: TOKEN_METADATA_PROGRAM,
+                    sysvarInstructions: SYSVAR_INSTRUCTIONS_PUBKEY,
+                    tokenProgram: TOKEN_PROGRAM_ID,
+                    tokenProgram22: TOKEN_2022_PROGRAM_ID,
+                    ataProgram: SOLANA_SPL_ATA_PROGRAM_ID,
+                    authRulesProgram: METAPLEX_AUTH_RULES_PROGRAM,
+                })
+                .instruction();
+            console.log("adding cancelIx");
+            instructions.push(cancelIx);
+        } else {
+            const cancelIx = await program.methods
+                .cancelSwap22()
+                .accounts({
+                    signer,
+
+                    swapDataAccount,
+                    swapDataAccountNftAta,
+                    swapDataAccountTokenAta,
+
+                    maker,
+                    makerNftAta,
+                    makerTokenAta,
+
+                    nftMintMaker,
+                    paymentMint,
+
+                    systemProgram: SystemProgram.programId,
+                    tokenProgram: TOKEN_PROGRAM_ID,
+                    tokenProgram22: TOKEN_2022_PROGRAM_ID,
+                    ataProgram: SOLANA_SPL_ATA_PROGRAM_ID,
+                })
+                .instruction();
+            console.log("adding cancelIx");
+            instructions.push(cancelIx);
         }
-
-        const cancelIx = await program.methods
-            .cancelSwap()
-            .accounts({
-                signer,
-
-                swapDataAccount,
-                swapDataAccountNftAta,
-                swapDataAccountTokenAta,
-
-                maker,
-                makerNftAta,
-                makerTokenAta,
-
-                nftMintMaker,
-                paymentMint,
-
-                nftMetadataMaker,
-                nftMasterEditionMaker,
-                ownerTokenRecordMaker,
-                destinationTokenRecordMaker,
-                authRulesMaker,
-
-                systemProgram: SystemProgram.programId,
-                metadataProgram: TOKEN_METADATA_PROGRAM,
-                sysvarInstructions: SYSVAR_INSTRUCTIONS_PUBKEY,
-                tokenProgram: TOKEN_PROGRAM_ID,
-                tokenProgram22: TOKEN_2022_PROGRAM_ID,
-                ataProgram: SOLANA_SPL_ATA_PROGRAM_ID,
-                authRulesProgram: METAPLEX_AUTH_RULES_PROGRAM,
-            })
-            .instruction();
-        console.log("adding cancelIx");
-        instructions.push(cancelIx);
         if (swapDataData.paymentMint === WRAPPED_SOL_MINT.toString() && signer == maker)
             instructions.push(closeWSol(maker, maker, makerTokenAta));
 
