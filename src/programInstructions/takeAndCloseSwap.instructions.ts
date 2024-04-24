@@ -38,7 +38,7 @@ export async function createTakeAndCloseSwapInstructions(
     let cEnvOpts = await checkEnvOpts(Data);
     let takeArgs = getTakeArgs(Data);
     let { program, connection } = cEnvOpts;
-    let { taker, swapDataAccount, bid, nftMintTaker } = takeArgs;
+    let { taker, swapDataAccount, bid, nftMintTaker, verifyTaker } = takeArgs;
     let ataIxs: TransactionInstruction[] = [];
     let takeIxs: TransactionInstruction[] = [
         ComputeBudgetProgram.setComputeUnitLimit({
@@ -59,7 +59,11 @@ export async function createTakeAndCloseSwapInstructions(
             bids,
             acceptedBid,
             royaltiesPaidMaker,
+            // taker,
         } = swapDataData;
+
+        if (verifyTaker && swapDataData.taker && swapDataData.taker !== taker)
+            throw "taker not found in swapData";
 
         const foundBid = bids.find(
             (b) =>

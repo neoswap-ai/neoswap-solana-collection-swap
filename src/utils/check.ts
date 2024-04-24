@@ -104,9 +104,9 @@ export function getTakeArgs(
               })
         )
 ): TakeSArg {
-    let { bid, nftMintTaker, swapDataAccount, taker } = Data;
+    let { bid, nftMintTaker, swapDataAccount, taker, verifyTaker } = Data;
     taker = typeof taker === "string" ? taker : taker.publicKey.toString();
-    return { bid, nftMintTaker, swapDataAccount, taker };
+    return { bid, nftMintTaker, swapDataAccount, taker, verifyTaker };
 }
 export function getClaimSArgs(
     Data: any &
