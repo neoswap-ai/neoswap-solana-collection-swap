@@ -58,7 +58,7 @@ export async function createTakeAndCloseSwapInstructions(
             nftMintMaker,
             bids,
             acceptedBid,
-            royaltiesPaid,
+            royaltiesPaidMaker,
         } = swapDataData;
 
         const foundBid = bids.find(
@@ -258,7 +258,7 @@ export async function createTakeAndCloseSwapInstructions(
             });
         console.log("nftMetadataMaker", nftMetadataMaker);
 
-        if (!royaltiesPaid) {
+        if (!royaltiesPaidMaker) {
             const payRIx = await program.methods
                 .payRoyalties()
                 .accounts({
