@@ -20,7 +20,6 @@ import {
     findNftMasterEdition,
     findRuleSet,
     findUserTokenRecord,
-    getMetaFromSpl,
 } from "../utils/findNftDataAndAccounts.function";
 import { TokenStandard } from "@metaplex-foundation/mpl-token-metadata";
 import { getSda } from "../utils/getPda";
@@ -134,8 +133,6 @@ export async function createMakeSwapInstructions(
         } else if (tokenProgram === TOKEN_2022_PROGRAM_ID.toString()) {
             tokenProgram = TOKEN_2022_PROGRAM_ID.toString();
             console.log("token22Program", tokenProgram);
-
-            // let nft = await getMetaFromSpl({ connection, mint: nftMintMaker });
         }
         bids = bids.sort((bidA, bidB) => {
             let amountA = bidA.makerNeoswapFee + bidA.makerRoyalties;

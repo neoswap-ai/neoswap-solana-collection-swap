@@ -1,20 +1,15 @@
 import { Connection, PublicKey } from "@solana/web3.js";
 import { TOKEN_METADATA_PROGRAM, METAPLEX_AUTH_RULES } from "./const";
 import { ErrorFeedback } from "./types";
-import { Metaplex, Nft, Sft } from "@metaplex-foundation/js";
-import { TOKEN_2022_PROGRAM_ID, getTokenMetadata } from "@solana/spl-token";
-import { TokenMetadata } from "@solana/spl-token-metadata";
-import { DigitalAsset, fetchDigitalAsset } from "@metaplex-foundation/mpl-token-metadata";
-import { PublicKey as PPublicKey } from "@metaplex-foundation/umi-public-keys/dist/types/common";
-import { createUmi } from "@metaplex-foundation/umi-bundle-defaults";
-import { Umi } from "@metaplex-foundation/umi";
+import { Metaplex } from "@metaplex-foundation/js";
+// import { TOKEN_2022_PROGRAM_ID, getTokenMetadata } from "@solana/spl-token";
+// import { TokenMetadata } from "@solana/spl-token`-metadata";
+// import { DigitalAsset, fetchDigitalAsset } from "@metaplex-foundation/mpl-token-metadata";
+// import { PublicKey as PPublicKey } from "@metaplex-foundation/umi-public-keys/dist/types/common";
+// import { createUmi } from "@metaplex-foundation/umi-bundle-defaults";
+// import { Umi } from "@metaplex-foundation/umi";
+// import { TOKEN_2022_PROGRAM_ID } from "@solana/spl-token";
 
-export async function findNft22DataAndMetadataAccount(Data: {
-    connection: Connection;
-    mint: string;
-}): Promise<TokenMetadata> {
-    return await getMetaFromSpl(Data);
-}
 export async function findNftDataAndMetadataAccount(Data: {
     connection: Connection;
     mint: string;
@@ -96,22 +91,8 @@ export async function findRuleSet(Data: { connection: Connection; mint: string }
     }
 }
 
-export async function getMetaFromSpl(Data: { connection: Connection; mint: string }) {
-    let { connection, mint } = Data;
-    return (await getTokenMetadata(connection, new PublicKey(mint)))!;
-    // const rawTokenData =
-
-    // if (rawTokenData) {
-    //     if (rawTokenData.additionalMetadata.length > 0)
-    //         returnData.metadata = rawTokenData.additionalMetadata;
-    //     returnData.symbol = rawTokenData.symbol;
-    //     returnData.name = rawTokenData.name;
-    // }
-    // return returnData;
-}
-
-async function getMetaFromMetaplex(Data: { mint: string; umi?: Umi; connection: Connection }) {
-    let { mint, umi } = Data;
+async function getMetaFromMetaplex(Data: { mint: string; connection: Connection }) {
+    let { mint } = Data;
     const metaplex = new Metaplex(Data.connection);
 
     return await metaplex.nfts().findByMint({ mintAddress: new PublicKey(mint) });

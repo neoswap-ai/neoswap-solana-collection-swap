@@ -22,14 +22,12 @@
     "dependencies": {
         "@coral-xyz/anchor": "^0.29.0",
         "@metaplex-foundation/js": "^0.20.1",
-        "@metaplex-foundation/mpl-bubblegum": "^0.8.0",
+        "@metaplex-foundation/mpl-bubblegum": "0.8.0",
+        "@metaplex-foundation/mpl-token-metadata": "^2.13.0",
         "@metaplex-foundation/mpl-toolbox": "^0.9.4",
-        "@solana/spl-token": "^0.4.3",
+        "@solana/spl-token": "0.3.7",
         "@solana/wallet-adapter-base": "^0.9.23",
-        "@solana/web3.js": "^1.91.2",
-        "@metaplex-foundation/mpl-token-metadata": "^3.2.1",
-        "@metaplex-foundation/umi": "^0.9.1",
-        "@metaplex-foundation/umi-bundle-defaults": "^0.9.1"
+        "@solana/web3.js": "^1.91.2"
     },
     "devDependencies": {
         "@types/bn.js": "^5.1.5",
