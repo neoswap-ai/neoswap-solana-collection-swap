@@ -54,28 +54,31 @@ export async function getOpenSda(
             openSda.map((x) => x.toBase58())
         );
         console.log("openSda len :", openSda.length);
-        let i = 0;
-        for (const sda in openSda) {
-            if (Object.prototype.hasOwnProperty.call(openSda, sda)) {
-                const element = openSda[sda];
-                try {
-                    await program.account.swapData.fetch(element);
-                } catch (error) {
-                    console.log(i, "error", sda);
+        try {
+            const swapDatas = (
+                (await program.account.swapData.fetchMultiple(openSda)).map((x) =>
+                    scSwapDataToSwapData(x as ScSwapData)
+                ) as SwapData[]
+            ).map((x, i) => {
+                return { sda: openSda[i].toString(), data: x };
+            });
+            console.log("swapDatas", swapDatas);
+            return swapDatas;
+        } catch {
+            let i = 0;
+            for (const sda in openSda) {
+                if (Object.prototype.hasOwnProperty.call(openSda, sda)) {
+                    const element = openSda[sda];
+                    try {
+                        await program.account.swapData.fetch(element);
+                    } catch (error) {
+                        console.log(i, "error", openSda[sda].toString());
+                    }
+                    i++;
                 }
-                i++;
             }
+            throw "Error fetching swapDatas";
         }
-        const swapDatas = (
-            (await program.account.swapData.fetchMultiple(openSda)).map((x) =>
-                scSwapDataToSwapData(x as ScSwapData)
-            ) as SwapData[]
-        ).map((x, i) => {
-            return { sda: openSda[i].toString(), data: x };
-        });
-        console.log("swapDatas", swapDatas);
-        return swapDatas;
-
         // if (!swapDatas) {
         //     throw `No SwapData found ${openSda}`;
         // } else {

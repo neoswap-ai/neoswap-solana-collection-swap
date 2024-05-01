@@ -7,6 +7,8 @@ export const AVOID_LIST = [
     "4e3c7GTzhUfmKEgApw9DfMzBKSY6THXDpqcQ6HhFqCa2", // NSWP IDL
     "GTamMjTQ8dYWmAcY54kAD3jCneppenLhEEqT1bVn7pKH", // NSWP IDL
     "DTQdhG9KvGMLnBbQyK5CNbiBGsj3r2bZmUHFLhxMdEUU", // NSWP IDL
+
+    "9kD49WvaMbBMG4x8uYt7CFSkGMWUmXUMSQBAQcKU5WAw", // NSWP IDL
 ]
     .concat([
         //dev reliquat
