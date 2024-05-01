@@ -141,7 +141,7 @@ export async function createCancelSwapInstructions(
 
                 const ownerTokenRecordF = findUserTokenRecord({
                     mint: nftMintMaker,
-                    userMintAta: makerNftAta,
+                    userMintAta: swapDataAccountNftAta,
                 });
                 console.log("ownerTokenRecordF", ownerTokenRecordF);
 
