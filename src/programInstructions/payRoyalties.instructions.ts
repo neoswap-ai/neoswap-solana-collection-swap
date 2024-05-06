@@ -38,22 +38,33 @@ export async function createPayRoyaltiesInstructions(
         }
 
         let {
-            makerCreator,
-            makerCreatorTokenAta,
-            takerCreator,
-            takerCreatorTokenAta,
-            instructions: creatorIxs,
+            creators: takerCreator,
+            creatorTokenAta: takerCreatorTokenAta,
+            instructions: takerCreatorIxs,
+            tokenProgram: takerProg,
+        } = await getCreatorData({
+            connection,
+            nftMint: nftMintTaker,
+            paymentMint,
+            owner: taker,
+            signer: signer,
+        });
+        if (takerCreatorIxs) instructions.push(...takerCreatorIxs);
+
+        let {
+            creators: makerCreator,
+            creatorTokenAta: makerCreatorTokenAta,
+            instructions: makerCreatorIxs,
             tokenProgram: makerProg,
         } = await getCreatorData({
             connection,
-            nftMintMaker,
+            nftMint: nftMintMaker,
             paymentMint,
-            taker,
+            owner: maker,
             signer: signer,
-            nftMintTaker,
         });
 
-        if (creatorIxs) instructions.push(...creatorIxs);
+        if (makerCreatorIxs) instructions.push(...makerCreatorIxs);
 
         let { mintAta: swapDataAccountTokenAta, instruction: sdat } = await findOrCreateAta({
             connection,
@@ -79,7 +90,7 @@ export async function createPayRoyaltiesInstructions(
         let {
             mintAta: makerNftAta,
             instruction: mn,
-            tokenProgram: takerProg,
+            // tokenProgram: takerProg,
         } = await findOrCreateAta({
             connection,
             mint: nftMintTaker,

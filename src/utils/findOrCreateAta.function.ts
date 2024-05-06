@@ -30,32 +30,25 @@ export async function findOrCreateAta(Data: {
     } else throw "there should be a Program or a Cluster";
     // let { mint, owner, signer } = Data;
     // console.log("mint", mint, "owner", owner, "signer", signer);
+    let tokenProg = (
+        await Data.connection.getAccountInfo(new PublicKey(Data.mint))
+    )?.owner.toString();
+    if (!tokenProg) tokenProg = TOKEN_PROGRAM_ID.toString();
 
     try {
         let values: { address: PublicKey; value: number }[] = [];
         let mintAtas = (
             await Data.connection.getParsedTokenAccountsByOwner(new PublicKey(Data.owner), {
                 mint: new PublicKey(Data.mint),
+                programId: new PublicKey(tokenProg),
             })
         ).value;
-        // console.log("mintAtas", mintAtas);
+        console.log("mintAtas", mintAtas);
         if (mintAtas.length === 0) {
-            let tokProgdt = await Data.connection.getAccountInfo(new PublicKey(Data.mint));
-
-            let tokProg = TOKEN_PROGRAM_ID.toString();
-            if (tokProgdt) tokProg = tokProgdt.owner.toString();
-            // console.log(Data.mint, "tokProgdt", tokProgdt.value?.data);
-
-            // console.log(
-            //     Data.mint,
-            //     "tokProgggg",
-            //     tokProg.toString() === TOKEN_2022_PROGRAM_ID.toString() ? "2022" : "native"
-            // );
-
             const mintAta = PublicKey.findProgramAddressSync(
                 [
                     new PublicKey(Data.owner).toBuffer(),
-                    new PublicKey(tokProg).toBuffer(),
+                    new PublicKey(tokenProg).toBuffer(),
                     new PublicKey(Data.mint).toBuffer(),
                 ],
                 new PublicKey(SOLANA_SPL_ATA_PROGRAM_ID)
@@ -67,8 +60,11 @@ export async function findOrCreateAta(Data: {
                 Data.owner,
                 "mint",
                 Data.mint,
-                tokProg,
-                tokProgdt?.owner.toString()
+                tokenProg == TOKEN_PROGRAM_ID.toString()
+                    ? "native"
+                    : tokenProg == TOKEN_2022_PROGRAM_ID.toString()
+                    ? "2022"
+                    : "inknown"
             );
 
             return {
@@ -78,9 +74,9 @@ export async function findOrCreateAta(Data: {
                     new PublicKey(mintAta),
                     new PublicKey(Data.owner),
                     new PublicKey(Data.mint),
-                    new PublicKey(tokProg)
+                    new PublicKey(tokenProg)
                 ),
-                tokenProgram: tokProg,
+                // tokenProgram: tokProg,
             };
         }
         let mintAta = mintAtas[0].pubkey.toString();
@@ -94,44 +90,34 @@ export async function findOrCreateAta(Data: {
                 if (balance.value.uiAmount || balance.value.uiAmount === 0)
                     values.push({ value: balance.value.uiAmount, address: ata.pubkey });
             }
-            // await Promise.all(
-            //     mintAtas.map(async (ata) => {
-            //     })
-            // );
 
             values.sort((a, b) => b.value - a.value);
             mintAta = values[0].address.toString();
         }
-        // console.log(mintAtas, "users ATAs:", values);
-        console.log("mintAta", mintAta, Data.owner, "tokenProgram", tokenProgram);
+
+        console.log(
+            "mintAta",
+            mintAta,
+            Data.owner,
+            "tokenProgram",
+            tokenProgram == TOKEN_PROGRAM_ID.toString()
+                ? "native"
+                : tokenProg == TOKEN_PROGRAM_ID.toString()
+                ? "native"
+                : tokenProg == TOKEN_2022_PROGRAM_ID.toString()
+                ? "2022"
+                : "inknown" 
+        );
 
         return {
             mintAta,
-            tokenProgram,
+            tokenProgram: tokenProg,
         };
     } catch (eee) {
-        console.log("eeee", eee);
-        let tokProg;
-        try {
-            console.log("trying to get token program", Data.mint);
-
-            tokProg = (await Data.connection.getParsedAccountInfo(new PublicKey(Data.mint))).value
-                ?.owner;
-        } catch (ee) {
-            console.log("failed to get token program", ee);
-        }
-
-        if (!tokProg) tokProg = TOKEN_PROGRAM_ID;
-
-        console.log(
-            "tokProg",
-            tokProg.toString() === TOKEN_2022_PROGRAM_ID.toString() ? "2022" : "native"
-        );
-
         const mintAta = PublicKey.findProgramAddressSync(
             [
                 new PublicKey(Data.owner).toBuffer(),
-                tokProg.toBuffer(),
+                new PublicKey(tokenProg).toBuffer(),
                 new PublicKey(Data.mint).toBuffer(),
             ],
             new PublicKey(SOLANA_SPL_ATA_PROGRAM_ID)
@@ -146,9 +132,9 @@ export async function findOrCreateAta(Data: {
                 new PublicKey(mintAta),
                 new PublicKey(Data.owner),
                 new PublicKey(Data.mint),
-                tokProg
+                new PublicKey(tokenProg)
             ),
-            tokenProgram: tokProg.toString(),
+            tokenProgram: tokenProg.toString(),
         };
     }
 }

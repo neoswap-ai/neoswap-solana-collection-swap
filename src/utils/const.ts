@@ -16,4 +16,4 @@ export const FAIR_LAUNCH_PROGRAM_ID = "8bvPnYE5Pvz2Z9dE6RAqWr1rzLknTndZ9hwvRE6kP
 export const NEOSWAP_IDL = idlSwap;
 export const NS_FEE = "FjecsBcSXQh4rjPSksh2eBiXUswcMpAwU25ykcr842j8";
 
-export const VERSION = "0.5.1-Alpha1";
+export const VERSION = "0.5.2-Alpha0";

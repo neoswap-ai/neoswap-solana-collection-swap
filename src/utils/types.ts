@@ -137,6 +137,7 @@ export type MakeSArg = {
 export type TakeSArg = {
     swapDataAccount: string;
     taker: string;
+    signer?: string;
     nftMintTaker: string;
     bid: Bid;
     verifyTaker?: boolean;

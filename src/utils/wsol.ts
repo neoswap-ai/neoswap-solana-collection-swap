@@ -13,6 +13,7 @@ export function addWSol(owner: string, ownerAta: string, lamports: number) {
 }
 
 export function closeWSol(owner: string, destinary: string, ownerAta: string) {
+    console.log("closeWSol", owner);
     return createCloseAccountInstruction(
         new PublicKey(ownerAta),
         new PublicKey(destinary),
