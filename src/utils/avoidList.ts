@@ -9,6 +9,8 @@ export const AVOID_LIST = [
     "DTQdhG9KvGMLnBbQyK5CNbiBGsj3r2bZmUHFLhxMdEUU", // NSWP IDL
 
     "9kD49WvaMbBMG4x8uYt7CFSkGMWUmXUMSQBAQcKU5WAw", // NSWP IDL
+    "9C9SMQkBDkWvrwXiWTsjqtC7yjM1hSiah4ruQHzFxkCh", // NSWP IDL
+    
 ]
     .concat([
         //dev reliquat
