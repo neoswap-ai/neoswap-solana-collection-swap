@@ -12,15 +12,15 @@ export async function getCreatorData(Data: {
 }) {
     let instructions: TransactionInstruction[] = [];
     let { connection, nftMint, owner, paymentMint, signer } = Data;
-    let { mintAta: takerAta, tokenProgram } = await findOrCreateAta({
+    let { mintAta: ownerAta, tokenProgram } = await findOrCreateAta({
         connection,
-        mint: nftMint,
+        mint: paymentMint,
         owner,
         signer,
     });
 
     let creators = [signer, signer, signer];
-    let creatorTokenAta = [takerAta, takerAta, takerAta];
+    let creatorTokenAta = [ownerAta, ownerAta, ownerAta];
 
     if (tokenProgram && tokenProgram === TOKEN_2022_PROGRAM_ID.toString()) {
         console.log(

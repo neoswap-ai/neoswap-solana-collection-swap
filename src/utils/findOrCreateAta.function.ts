@@ -43,7 +43,7 @@ export async function findOrCreateAta(Data: {
                 programId: new PublicKey(tokenProg),
             })
         ).value;
-        console.log("mintAtas", mintAtas);
+        // console.log("mintAtas", mintAtas);
         if (mintAtas.length === 0) {
             const mintAta = PublicKey.findProgramAddressSync(
                 [

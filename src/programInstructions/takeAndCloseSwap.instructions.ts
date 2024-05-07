@@ -41,7 +41,11 @@ export async function createTakeAndCloseSwapInstructions(
     let takeArgs = getTakeArgs(Data);
     let { program, connection } = cEnvOpts;
     let { taker, swapDataAccount, bid, nftMintTaker, verifyTaker, signer } = takeArgs;
-    if (!signer) signer = taker;
+
+    if (!signer) {
+        console.log("no signer");
+        signer = taker;
+    }
 
     let takeSwapTx: VersionedTransaction | undefined;
     let payRoyaltiesTx: VersionedTransaction | undefined;
@@ -50,6 +54,16 @@ export async function createTakeAndCloseSwapInstructions(
     let takeIxs: TransactionInstruction[] = [
         ComputeBudgetProgram.setComputeUnitLimit({
             units: 8500000,
+        }),
+    ];
+    let payRIxs: TransactionInstruction[] = [
+        ComputeBudgetProgram.setComputeUnitLimit({
+            units: 800000,
+        }),
+    ];
+    let claimSIxs: TransactionInstruction[] = [
+        ComputeBudgetProgram.setComputeUnitLimit({
+            units: 900000,
         }),
     ];
 
@@ -72,7 +86,7 @@ export async function createTakeAndCloseSwapInstructions(
         } = swapDataData;
 
         if (verifyTaker && swapDataData.taker && swapDataData.taker !== taker)
-            throw "taker not found in swapData";
+            throw "signer is not the taker of this swap";
 
         const foundBid = bids.find(
             (b) =>
@@ -303,14 +317,8 @@ export async function createTakeAndCloseSwapInstructions(
                     .instruction();
                 takeIxs.push(takeIx);
             }
-            takeSwapTx = await ix2vTx(takeIxs, cEnvOpts, taker);
+            takeSwapTx = await ix2vTx(takeIxs, cEnvOpts, signer);
         }
-
-        let payRIxs: TransactionInstruction[] = [
-            ComputeBudgetProgram.setComputeUnitLimit({
-                units: 800000,
-            }),
-        ];
 
         let { mintAta: swapDataAccountNftAta, instruction: sdan } = await findOrCreateAta({
             connection,
@@ -366,16 +374,18 @@ export async function createTakeAndCloseSwapInstructions(
                 authRulesMaker = authRulesF;
             }
         }
+
+        console.log("royaltiesPaidTaker", royaltiesPaidTaker);
         if (!royaltiesPaidTaker) {
+            console.log(
+                "royaltiesPaidTaker - makerTokenProg",
+                makerTokenProg == TOKEN_PROGRAM_ID.toString()
+                    ? "native"
+                    : makerTokenProg == TOKEN_2022_PROGRAM_ID.toString()
+                    ? "2022"
+                    : "inknown"
+            );
             if (makerTokenProg === TOKEN_PROGRAM_ID.toString()) {
-                console.log(
-                    "makerTokenProg",
-                    makerTokenProg == TOKEN_PROGRAM_ID.toString()
-                        ? "native"
-                        : makerTokenProg == TOKEN_2022_PROGRAM_ID.toString()
-                        ? "2022"
-                        : "inknown"
-                );
                 let {
                     creators: makerCreator,
                     creatorTokenAta: makerCreatorTokenAta,
@@ -389,14 +399,10 @@ export async function createTakeAndCloseSwapInstructions(
                     signer,
                 });
 
-                if (creatorIxs) payRIxs.push(...creatorIxs);
-
-                // let nftMetadataMaker = (
-                //     await findNftDataAndMetadataAccount({
-                //         connection,
-                //         mint: nftMintMaker,
-                //     })
-                // ).metadataAddress;
+                if (creatorIxs.length > 0) {
+                    console.log("creatorIxs", creatorIxs.length);
+                    payRIxs.push(...creatorIxs);
+                }
 
                 const payRIx = await program.methods
                     .payTakerRoyalties()
@@ -422,6 +428,7 @@ export async function createTakeAndCloseSwapInstructions(
                     })
                     .instruction();
                 payRIxs.push(payRIx);
+                console.log("payRIx", payRIx);
             } else {
                 const payRIx = await program.methods
                     .payTakerRoyalties22()
@@ -438,6 +445,8 @@ export async function createTakeAndCloseSwapInstructions(
                 payRIxs.push(payRIx);
             }
         }
+
+        console.log("royaltiesPaidMaker", royaltiesPaidMaker);
         if (!royaltiesPaidMaker) {
             if (takerTokenProg === TOKEN_PROGRAM_ID.toString()) {
                 console.log(
@@ -456,7 +465,7 @@ export async function createTakeAndCloseSwapInstructions(
                 } = await getCreatorData({
                     connection,
                     paymentMint,
-                    owner: taker,
+                    owner: swapDataAccount,
                     signer,
                     nftMint: nftMintTaker,
                 });
@@ -495,6 +504,8 @@ export async function createTakeAndCloseSwapInstructions(
                     .instruction();
                 payRIxs.push(payRIx);
             } else {
+                console.log("payMakerRoyalties22 signer,", signer);
+
                 const payRIx = await program.methods
                     .payMakerRoyalties22()
                     .accounts({
@@ -508,22 +519,18 @@ export async function createTakeAndCloseSwapInstructions(
             }
         }
 
-        if (payRIxs.length > 1) payRoyaltiesTx = await ix2vTx(payRIxs, cEnvOpts, taker);
+        if (payRIxs.length > 0) payRoyaltiesTx = await ix2vTx(payRIxs, cEnvOpts, signer);
 
         ///////////////////////////////////
-
-        let claimSIxs: TransactionInstruction[] = [
-            ComputeBudgetProgram.setComputeUnitLimit({
-                units: 900000,
-            }),
-        ];
 
         if (sdan) claimSIxs.push(sdan);
         else console.log("swapDataAccountNftAta", swapDataAccountNftAta);
 
         if (tmn) claimSIxs.push(tmn);
         else console.log("takerNftAta", takerNftAtaMaker);
-
+        if (mt && !!acceptedBid) {
+            claimSIxs.push(mt);
+        }
         let { mintAta: nsFeeTokenAta, instruction: nst } = await findOrCreateAta({
             connection,
             mint: paymentMint,
@@ -620,7 +627,7 @@ export async function createTakeAndCloseSwapInstructions(
         if (swapDataData.paymentMint === WRAPPED_SOL_MINT.toString() && signer == taker)
             claimSIxs.push(closeWSol(Data.taker, taker, takerTokenAta));
 
-        claimSwapTx = await ix2vTx(claimSIxs, cEnvOpts, taker);
+        claimSwapTx = await ix2vTx(claimSIxs, cEnvOpts, signer);
 
         let bTTakeAndClose: BTv[] = [];
         let priority = 0;

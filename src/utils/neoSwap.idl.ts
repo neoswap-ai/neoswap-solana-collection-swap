@@ -437,7 +437,7 @@ export const idlSwap: Idl = {
                 },
                 {
                     name: "nftMetadataTaker",
-                    isMut: true,
+                    isMut: false,
                     isSigner: false,
                 },
                 {
@@ -508,7 +508,7 @@ export const idlSwap: Idl = {
                 },
                 {
                     name: "nftMetadataMaker",
-                    isMut: true,
+                    isMut: false,
                     isSigner: false,
                 },
                 {
@@ -1253,6 +1253,11 @@ export const idlSwap: Idl = {
             code: 6007,
             name: "IncorrectAmount",
             msg: "Amount given is incorrect",
+        },
+        {
+            code: 6008,
+            name: "IncorrectPayment",
+            msg: "Incorrect Payment Mint",
         },
         {
             code: 6100,
