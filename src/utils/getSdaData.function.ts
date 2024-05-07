@@ -3,12 +3,14 @@ import { EnvOpts, ErrorFeedback, ScSwapData, SwapData } from "./types";
 import { scSwapDataToSwapData } from "./typeSwap";
 import { AVOID_LIST } from "./avoidList";
 import { checkEnvOpts } from "./check";
+import { VERSION } from "./const";
 
 export async function getSdaData(
     Data: EnvOpts & {
         swapDataAccount: string;
     }
 ): Promise<SwapData | undefined> {
+    console.log("getSdaData", VERSION);
     let { swapDataAccount } = Data;
     let { program } = await checkEnvOpts(Data);
 
@@ -35,6 +37,8 @@ export async function getOpenSda(
         ignoreList?: string[];
     }
 ): Promise<{ sda: string; data: SwapData }[]> {
+    console.log("getOpenSda", VERSION);
+
     let { program } = await checkEnvOpts(Data);
     try {
         console.log("Program Id", program.programId.toString());
