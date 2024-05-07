@@ -1,6 +1,6 @@
 {
     "name": "@neoswap/solana-collection-swap",
-    "version": "0.5.1-Alpha1",
+    "version": "0.5.2-Alpha0",
     "repository": {
         "type": "git",
         "url": "git+https://github.com/neoswap-ai/neo-swap-npm.git"
