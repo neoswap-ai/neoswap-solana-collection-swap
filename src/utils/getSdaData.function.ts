@@ -59,29 +59,37 @@ export async function getOpenSda(
         );
         console.log("openSda len :", openSda.length);
         try {
-            const swapDatas = (
-                (await program.account.swapData.fetchMultiple(openSda)).map((x) =>
-                    scSwapDataToSwapData(x as ScSwapData)
-                ) as SwapData[]
-            ).map((x, i) => {
-                return { sda: openSda[i].toString(), data: x };
-            });
+            let batchSize = 20;
+            let swapDatas: {
+                sda: string;
+                data: SwapData;
+            }[] = [];
+            for (let i = 0; i < openSda.length; i += batchSize) {
+                const batch = openSda.slice(i, i + batchSize);
+
+                let fetchSDAs1 = await program.account.swapData.fetchMultiple(batch);
+                let fetchedDatas = fetchSDAs1.map((x, i) => {
+                    return {
+                        sda: batch[i].toString(),
+                        data: scSwapDataToSwapData(x as ScSwapData) as SwapData,
+                    };
+                });
+                swapDatas.push(...fetchedDatas);
+            }
             console.log("swapDatas", swapDatas);
             return swapDatas;
         } catch (error) {
             let i = 0;
             let issue = false;
             for (const sda in openSda) {
-                if (Object.prototype.hasOwnProperty.call(openSda, sda)) {
-                    const element = openSda[sda];
-                    try {
-                        await program.account.swapData.fetch(element);
-                    } catch (error) {
-                        console.log(i, "error", openSda[sda].toString(), error);
-                        issue = true;
-                    }
-                    i++;
+                const element = openSda[sda];
+                try {
+                    await program.account.swapData.fetch(element);
+                } catch (error) {
+                    console.log(i, "error", openSda[sda].toString(), error);
+                    issue = true;
                 }
+                i++;
             }
             if (issue) throw "Error fetching swapDatas";
             else throw error;
