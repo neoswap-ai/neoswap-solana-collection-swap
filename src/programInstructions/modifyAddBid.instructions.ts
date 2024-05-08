@@ -52,25 +52,28 @@ export async function createAddBidIx(
         swapDataAccountTokenAta = pswapDataAccountTokenAta;
     }
     if (paymentMint == WRAPPED_SOL_MINT.toString()) {
-        let paymentSdaTokens = Number(
-            (await connection.getTokenAccountBalance(new PublicKey(swapDataAccountTokenAta))).value
-                .amount
-        );
+        try {
+            let paymentSdaTokens = Number(
+                (await connection.getTokenAccountBalance(new PublicKey(swapDataAccountTokenAta)))
+                    .value.amount
+            );
 
-        let highestBid = 0;
-        bids.forEach((bid) => {
-            let bidAmount = bid.makerNeoswapFee + bid.makerRoyalties + Math.max(-bid.amount, 0);
-            console.log("Math.max(-bid.amount, 0)", Math.max(-bid.amount, 0));
+            let highestBid = 0;
+            bids.forEach((bid) => {
+                let bidAmount = bid.makerNeoswapFee + bid.makerRoyalties + Math.max(-bid.amount, 0);
+                console.log("Math.max(-bid.amount, 0)", Math.max(-bid.amount, 0));
 
-            if (bidAmount > highestBid) {
-                highestBid = bidAmount;
+                if (bidAmount > highestBid) {
+                    highestBid = bidAmount;
+                }
+            });
+            if (highestBid > paymentSdaTokens) {
+                let amountToWrap = highestBid - paymentSdaTokens;
+                console.log("amountToWrap", amountToWrap);
+                ataIxs.push(...addWSol(maker, makerTokenAta, amountToWrap));
             }
-        });
-        if (highestBid > paymentSdaTokens) {
-            let amountToWrap = highestBid - paymentSdaTokens;
-            console.log("amountToWrap", amountToWrap);
-            ataIxs.push(...addWSol(maker, makerTokenAta, amountToWrap));
-            
+        } catch (error) {
+            if (!String(error).includes("could not find account")) throw error;
         }
     }
     return {

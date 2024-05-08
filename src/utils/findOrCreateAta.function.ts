@@ -76,7 +76,7 @@ export async function findOrCreateAta(Data: {
                     new PublicKey(Data.mint),
                     new PublicKey(tokenProg)
                 ),
-                // tokenProgram: tokProg,
+                tokenProgram: tokenProg,
             };
         }
         let mintAta = mintAtas[0].pubkey.toString();
@@ -106,7 +106,7 @@ export async function findOrCreateAta(Data: {
                 ? "native"
                 : tokenProg == TOKEN_2022_PROGRAM_ID.toString()
                 ? "2022"
-                : "inknown" 
+                : "inknown"
         );
 
         return {
