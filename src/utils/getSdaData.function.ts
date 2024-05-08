@@ -59,7 +59,7 @@ export async function getOpenSda(
         );
         console.log("openSda len :", openSda.length);
         try {
-            let batchSize = 20;
+            let batchSize = 15;
             let swapDatas: {
                 sda: string;
                 data: SwapData;
