@@ -68,8 +68,9 @@ export async function getOpenSda(
             });
             console.log("swapDatas", swapDatas);
             return swapDatas;
-        } catch {
+        } catch (error) {
             let i = 0;
+            let issue = false;
             for (const sda in openSda) {
                 if (Object.prototype.hasOwnProperty.call(openSda, sda)) {
                     const element = openSda[sda];
@@ -77,11 +78,13 @@ export async function getOpenSda(
                         await program.account.swapData.fetch(element);
                     } catch (error) {
                         console.log(i, "error", openSda[sda].toString());
+                        issue = true;
                     }
                     i++;
                 }
             }
-            throw "Error fetching swapDatas";
+            if (issue) throw "Error fetching swapDatas";
+            else throw error;
         }
         // if (!swapDatas) {
         //     throw `No SwapData found ${openSda}`;
