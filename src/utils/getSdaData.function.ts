@@ -77,7 +77,7 @@ export async function getOpenSda(
                     try {
                         await program.account.swapData.fetch(element);
                     } catch (error) {
-                        console.log(i, "error", openSda[sda].toString());
+                        console.log(i, "error", openSda[sda].toString(), error);
                         issue = true;
                     }
                     i++;
