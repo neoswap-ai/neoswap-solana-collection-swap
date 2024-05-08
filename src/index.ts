@@ -81,9 +81,9 @@ export const UTILS = {
 };
 export const CREATE_INSTRUCTIONS = {
     createMakeSwapInstructions,
-    createTakeSwapInstructions,
-    createPayRoyaltiesInstructions,
-    createClaimSwapInstructions,
+    // createTakeSwapInstructions,
+    // createPayRoyaltiesInstructions,
+    // createClaimSwapInstructions,
     createTakeAndCloseSwapInstructions,
     createCancelSwapInstructions,
     createAddBidBt,

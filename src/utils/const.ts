@@ -11,7 +11,9 @@ export const TOKEN_METADATA_PROGRAM = "metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x
 export const METAPLEX_AUTH_RULES = "eBJLFYPxJmMGKuFwpDWkzxZeUrad92kZRC5BJLpzyT9";
 export const METAPLEX_AUTH_RULES_PROGRAM = "auth9SigNpDKz4sJJ1DfCTuZrZNSAgh9sFD3rboVmgg";
 
+export const FAIR_LAUNCH_PROGRAM_ID = "8bvPnYE5Pvz2Z9dE6RAqWr1rzLknTndZ9hwvRE6kPDXP";
+
 export const NEOSWAP_IDL = idlSwap;
 export const NS_FEE = "FjecsBcSXQh4rjPSksh2eBiXUswcMpAwU25ykcr842j8";
 
-export const VERSION = "0.4.1";
+export const VERSION = "0.5.4";

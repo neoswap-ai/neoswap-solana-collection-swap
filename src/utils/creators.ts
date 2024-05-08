@@ -1,84 +1,70 @@
 import { Connection, PublicKey, TransactionInstruction } from "@solana/web3.js";
 import { findOrCreateAta } from "./findOrCreateAta.function";
 import { Metaplex } from "@metaplex-foundation/js";
+import { NATIVE_MINT, TOKEN_2022_PROGRAM_ID, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 
 export async function getCreatorData(Data: {
-    taker: string;
+    owner: string;
     signer: string;
-    nftMintTaker: string;
-    nftMintMaker: string;
+    nftMint: string;
     connection: Connection;
     paymentMint: string;
 }) {
     let instructions: TransactionInstruction[] = [];
+    let { connection, nftMint, owner, paymentMint, signer } = Data;
+    let { mintAta: ownerAta, tokenProgram } = await findOrCreateAta({
+        connection,
+        mint: paymentMint,
+        owner,
+        signer,
+    });
 
-    const metaplex = new Metaplex(Data.connection);
-    const nftMaker = await metaplex
-        .nfts()
-        .findByMint({ mintAddress: new PublicKey(Data.nftMintMaker) });
-    console.log("nftMaker", nftMaker.creators);
+    let creators = [signer, signer, signer];
+    let creatorTokenAta = [ownerAta, ownerAta, ownerAta];
 
-    const nftTaker = await metaplex
-        .nfts()
-        .findByMint({ mintAddress: new PublicKey(Data.nftMintTaker) });
-    console.log("nftTaker", nftTaker.creators);
+    if (tokenProgram && tokenProgram === TOKEN_2022_PROGRAM_ID.toString()) {
+        console.log(
+            tokenProgram,
+            "tokenProgramtokenProgramtokenProgram",
+            tokenProgram == TOKEN_PROGRAM_ID.toString()
+                ? "native"
+                : tokenProgram == TOKEN_2022_PROGRAM_ID.toString()
+                ? "2022"
+                : "inknown"
+        );
+        console.log("nftMint", nftMint);
 
-    let takerAta = (
-        await findOrCreateAta({
-            connection: Data.connection,
-            mint: Data.paymentMint,
-            owner: Data.taker,
-            signer: Data.signer,
-        })
-    ).mintAta;
+        throw "tokenProgram not TOKEN_PROGRAM_ID in getCreatorData";
+    }
 
-    let makerCreator = [Data.signer, Data.signer, Data.signer];
-    let makerCreatorTokenAta = [takerAta, takerAta, takerAta];
-
-    
-    let takerCreator = [Data.signer, Data.signer, Data.signer];
-    let takerCreatorTokenAta = [takerAta, takerAta, takerAta];
+    const metaplex = new Metaplex(connection);
+    const nftData = await metaplex.nfts().findByMint({ mintAddress: new PublicKey(nftMint) });
+    console.log("nftMaker", nftData.creators);
 
     let mintAtaList: string[] = [];
 
     await Promise.all(
-        nftMaker.creators.map(async (c, i) => {
-            makerCreator[i] = c.address.toString();
+        nftData.creators.map(async (c, i) => {
+            creators[i] = c.address.toString();
             let ataData = await findOrCreateAta({
-                connection: Data.connection,
-
-                mint: Data.paymentMint,
+                connection,
+                mint: paymentMint,
                 owner: c.address.toString(),
-                signer: Data.signer,
+                signer,
             });
             if (ataData.instruction && !mintAtaList.includes(ataData.mintAta.toString())) {
                 instructions.push(ataData.instruction);
                 mintAtaList.push(ataData.mintAta.toString());
             }
-            makerCreatorTokenAta[i] = ataData.mintAta;
+            creatorTokenAta[i] = ataData.mintAta;
         })
     );
-    console.log("makerCreator", makerCreator);
-    console.log("makerCreatorTokenAta", makerCreatorTokenAta);
-
-    // let takerI = 0;
-    await Promise.all(
-        nftTaker.creators.map(async (c, i) => {
-            takerCreator[i] = c.address.toString();
-            let ataData = await findOrCreateAta({
-                connection: Data.connection,
-                mint: Data.paymentMint,
-                owner: c.address.toString(),
-                signer: Data.signer,
-            });
-            takerCreatorTokenAta[i] = ataData.mintAta;
-            if (ataData.instruction && !mintAtaList.includes(ataData.mintAta.toString())) {
-                instructions.push(ataData.instruction);
-                mintAtaList.push(ataData.mintAta.toString());
-            }
-        })
-    );
-    console.log("takerCreator", takerCreator);
-    console.log("takerCreatorTokenAta", takerCreatorTokenAta);
-    return { instructions, makerCreator, takerCreator, makerCreatorTokenAta, takerCreatorTokenAta };
+    console.log("creators", creators);
+    console.log("creatorTokenAta", creatorTokenAta);
+    return {
+        instructions,
+        creators,
+        creatorTokenAta,
+        tokenProgram,
+    };
 }

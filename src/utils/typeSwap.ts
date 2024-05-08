@@ -25,42 +25,89 @@ export function scBidToBid(bid: ScBid): Bid {
 }
 
 export function swapDataToScSwapData(sda: SwapData): ScSwapData {
+    let {
+        bids,
+        endTime,
+        maker,
+        nftMintMaker,
+        paymentMint,
+        royaltiesPaidMaker,
+        royaltiesPaidTaker,
+        seed,
+        // status,
+        acceptedBid,
+        nftMintTaker,
+        refererMaker,
+        refererTaker,
+        taker,
+    } = sda;
+    console.log({
+        bids,
+        endTime,
+        maker,
+        nftMintMaker,
+        paymentMint,
+        royaltiesPaidMaker,
+        royaltiesPaidTaker,
+        seed,
+        // status,
+        acceptedBid,
+        nftMintTaker,
+        refererMaker,
+        refererTaker,
+        taker,
+    });
+
     return {
-        bids: sda.bids.map(bidToscBid),
-        endTime: new BN(sda.endTime),
-        maker: new PublicKey(sda.maker),
-        nftMintMaker: new PublicKey(sda.nftMintMaker),
-        paymentMint: new PublicKey(sda.paymentMint),
-        royaltiesPaidMaker: sda.royaltiesPaidMaker,
-        royaltiesPaidTaker: sda.royaltiesPaidTaker,
-        seed: sda.seed,
-        refererMaker: sda.refererMaker ? new PublicKey(sda.refererMaker) : undefined,
-        refererTaker: sda.refererTaker ? new PublicKey(sda.refererTaker) : undefined,
-        acceptedBid: sda.acceptedBid ? bidToscBid(sda.acceptedBid) : undefined,
-        taker: sda.taker ? new PublicKey(sda.taker) : undefined,
-        nftMintTaker: sda.nftMintTaker ? new PublicKey(sda.nftMintTaker) : undefined,
+        bids: bids.map(bidToscBid),
+        endTime: new BN(endTime),
+        maker: new PublicKey(maker),
+        nftMintMaker: new PublicKey(nftMintMaker),
+        paymentMint: new PublicKey(paymentMint),
+        royaltiesPaidMaker: royaltiesPaidMaker,
+        royaltiesPaidTaker: royaltiesPaidTaker,
+        seed: seed,
+        refererMaker: refererMaker ? new PublicKey(refererMaker) : undefined,
+        refererTaker: refererTaker ? new PublicKey(refererTaker) : undefined,
+        acceptedBid: acceptedBid ? bidToscBid(acceptedBid) : undefined,
+        taker: taker ? new PublicKey(taker) : undefined,
+        nftMintTaker: nftMintTaker ? new PublicKey(nftMintTaker) : undefined,
     };
 }
 
 export function scSwapDataToSwapData(scSwapData: ScSwapData): SwapData {
+    let {
+        bids,
+        endTime,
+        maker,
+        nftMintMaker,
+        paymentMint,
+        royaltiesPaidMaker,
+        royaltiesPaidTaker,
+        seed,
+        acceptedBid,
+        nftMintTaker,
+        refererMaker,
+        refererTaker,
+        taker,
+    } = scSwapData;
     let status: SwapData["status"] = "active";
-    if (scSwapData.acceptedBid) status = "accepted";
-    else if (scSwapData.endTime.lt(new BN(Date.now() / 1000)) && scSwapData.endTime.toNumber() != 0)
-        status = "expired";
+    if (acceptedBid) status = "accepted";
+    else if (endTime.lt(new BN(Date.now() / 1000)) && endTime.toNumber() != 0) status = "expired";
     return {
-        bids: scSwapData.bids.map(scBidToBid),
-        endTime: scSwapData.endTime.toNumber(),
-        maker: scSwapData.maker.toString(),
-        nftMintMaker: scSwapData.nftMintMaker.toString(),
-        paymentMint: scSwapData.paymentMint.toString(),
-        royaltiesPaidMaker: scSwapData.royaltiesPaidMaker,
-        royaltiesPaidTaker: scSwapData.royaltiesPaidTaker,
-        seed: scSwapData.seed,
-        refererMaker: scSwapData.refererMaker ? scSwapData.refererMaker.toString() : undefined,
-        refererTaker: scSwapData.refererTaker ? scSwapData.refererTaker.toString() : undefined,
-        acceptedBid: scSwapData.acceptedBid ? scBidToBid(scSwapData.acceptedBid) : undefined,
-        nftMintTaker: scSwapData.nftMintTaker ? scSwapData.nftMintTaker.toString() : undefined,
-        taker: scSwapData.taker ? scSwapData.taker.toString() : undefined,
+        bids: bids.map(scBidToBid),
+        endTime: endTime.toNumber(),
+        maker: maker.toString(),
+        nftMintMaker: nftMintMaker.toString(),
+        paymentMint: paymentMint.toString(),
+        royaltiesPaidMaker,
+        royaltiesPaidTaker,
+        seed,
+        refererMaker: refererMaker ? refererMaker.toString() : undefined,
+        refererTaker: refererTaker ? refererTaker.toString() : undefined,
+        acceptedBid: acceptedBid ? scBidToBid(acceptedBid) : undefined,
+        nftMintTaker: nftMintTaker ? nftMintTaker.toString() : undefined,
+        taker: taker ? taker.toString() : undefined,
         status,
     };
 }

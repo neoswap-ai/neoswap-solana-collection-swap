@@ -64,7 +64,11 @@ export async function createTakeSwapInstructions(
         );
         if (!foundBid) throw `bid ${JSON.stringify(bid)} not found in ${JSON.stringify(bids)} `;
 
-        let { mintAta: takerNftAta, instruction: tn } = await findOrCreateAta({
+        let {
+            mintAta: takerNftAta,
+            instruction: tn,
+            tokenProgram,
+        } = await findOrCreateAta({
             connection,
             mint: nftMintTaker,
             owner: taker,
@@ -118,46 +122,49 @@ export async function createTakeSwapInstructions(
             console.log("swapDataAccountTokenAta", swapDataAccountTokenAta);
         }
 
-        const { metadataAddress: nftMetadataTaker, tokenStandard: tokenStandardTaker } =
-            await findNftDataAndMetadataAccount({
-                connection,
-                mint: nftMintTaker,
-            });
-        console.log("nftMetadataTaker", nftMetadataTaker);
-
         let nftMasterEditionTaker = taker;
         let ownerTokenRecordTaker = taker;
         let destinationTokenRecordTaker = taker;
         let authRulesTaker = taker;
+        let nftMetadataTaker = taker;
+        if (tokenProgram == TOKEN_PROGRAM_ID.toString()) {
+            const { metadataAddress: nftMetadataTaker2, tokenStandard: tokenStandardTaker } =
+                await findNftDataAndMetadataAccount({
+                    connection,
+                    mint: nftMintTaker,
+                });
+            nftMetadataTaker = nftMetadataTaker2;
+            console.log("nftMetadataTaker", nftMetadataTaker);
 
-        if (tokenStandardTaker == TokenStandard.ProgrammableNonFungible) {
-            const nftMasterEditionF = findNftMasterEdition({
-                mint: nftMintTaker,
-            });
-            console.log("nftMasterEditionF", nftMasterEditionF);
+            if (tokenStandardTaker == TokenStandard.ProgrammableNonFungible) {
+                const nftMasterEditionF = findNftMasterEdition({
+                    mint: nftMintTaker,
+                });
+                console.log("nftMasterEditionF", nftMasterEditionF);
 
-            const ownerTokenRecordF = findUserTokenRecord({
-                mint: nftMintTaker,
-                userMintAta: takerNftAta,
-            });
-            console.log("ownerTokenRecordF", ownerTokenRecordF);
+                const ownerTokenRecordF = findUserTokenRecord({
+                    mint: nftMintTaker,
+                    userMintAta: takerNftAta,
+                });
+                console.log("ownerTokenRecordF", ownerTokenRecordF);
 
-            const destinationTokenRecordF = findUserTokenRecord({
-                mint: nftMintTaker,
-                userMintAta: makerNftAta,
-            });
-            console.log("destinationTokenRecordF", destinationTokenRecordF);
+                const destinationTokenRecordF = findUserTokenRecord({
+                    mint: nftMintTaker,
+                    userMintAta: makerNftAta,
+                });
+                console.log("destinationTokenRecordF", destinationTokenRecordF);
 
-            const authRulesF = await findRuleSet({
-                connection,
-                mint: nftMintTaker,
-            });
-            console.log("authRulesF", authRulesF);
+                const authRulesF = await findRuleSet({
+                    connection,
+                    mint: nftMintTaker,
+                });
+                console.log("authRulesF", authRulesF);
 
-            nftMasterEditionTaker = nftMasterEditionF;
-            ownerTokenRecordTaker = ownerTokenRecordF;
-            destinationTokenRecordTaker = destinationTokenRecordF;
-            authRulesTaker = authRulesF;
+                nftMasterEditionTaker = nftMasterEditionF;
+                ownerTokenRecordTaker = ownerTokenRecordF;
+                destinationTokenRecordTaker = destinationTokenRecordF;
+                authRulesTaker = authRulesF;
+            }
         }
         console.log("bid", bidToscBid(bid));
 

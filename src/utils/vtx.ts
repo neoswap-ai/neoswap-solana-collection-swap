@@ -12,6 +12,7 @@ import { checkEnvOpts } from "./check";
 
 export async function ix2vTx(ix: TransactionInstruction[], envOpts: EnvOpts, signer: string) {
     let cEnvOpts = await checkEnvOpts(envOpts);
+    
     let { connection, prioritizationFee } = cEnvOpts;
     let ttx = new Transaction().add(...ix);
     ttx.feePayer = new PublicKey(signer);

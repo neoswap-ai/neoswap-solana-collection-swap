@@ -7,7 +7,7 @@ import {
 } from "@solana/web3.js";
 import { BTv, EnvOpts, MakeSArg, ReturnSwapData, UpdateSArgs } from "../utils/types";
 import { findOrCreateAta } from "../utils/findOrCreateAta.function";
-import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
+import { TOKEN_2022_PROGRAM_ID, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import {
     METAPLEX_AUTH_RULES_PROGRAM,
     SOLANA_SPL_ATA_PROGRAM_ID,
@@ -68,7 +68,11 @@ export async function createMakeSwapInstructions(
         if (st) instructions.push(st);
         else console.log("swapDataAccountTokenAta", swapDataAccountTokenAta);
 
-        let { mintAta: makerNftAta, instruction: mn } = await findOrCreateAta({
+        let {
+            mintAta: makerNftAta,
+            instruction: mn,
+            tokenProgram,
+        } = await findOrCreateAta({
             connection,
             mint: nftMintMaker,
             owner: maker,
@@ -86,42 +90,50 @@ export async function createMakeSwapInstructions(
         if (mt) instructions.push(mt);
         else console.log("makerTokenAta", makerTokenAta);
 
-        const { metadataAddress: nftMetadataMaker, tokenStandard } =
-            await findNftDataAndMetadataAccount({
-                connection: program.provider.connection,
-                mint: nftMintMaker,
-            });
-
         let nftMasterEditionMaker = maker;
         let ownerTokenRecordMaker = maker;
         let destinationTokenRecordMaker = maker;
         let authRulesMaker = maker;
+        let nftMetadataMaker = maker;
 
-        if (tokenStandard == TokenStandard.ProgrammableNonFungible) {
-            const nftMasterEditionF = findNftMasterEdition({
-                mint: nftMintMaker,
-            });
+        if (tokenProgram === TOKEN_PROGRAM_ID.toString()) {
+            console.log("tokenProgram", tokenProgram);
 
-            const ownerTokenRecordF = findUserTokenRecord({
-                mint: nftMintMaker,
-                userMintAta: makerNftAta,
-            });
+            const { metadataAddress: nftMetadataMakerF, tokenStandard } =
+                await findNftDataAndMetadataAccount({
+                    connection: program.provider.connection,
+                    mint: nftMintMaker,
+                });
+            nftMetadataMaker = nftMetadataMakerF;
+            if (tokenStandard == TokenStandard.ProgrammableNonFungible) {
+                const nftMasterEditionF = findNftMasterEdition({
+                    mint: nftMintMaker,
+                });
 
-            const destinationTokenRecordF = findUserTokenRecord({
-                mint: nftMintMaker,
-                userMintAta: swapDataAccountNftAta,
-            });
+                const ownerTokenRecordF = findUserTokenRecord({
+                    mint: nftMintMaker,
+                    userMintAta: makerNftAta,
+                });
 
-            const authRulesF = await findRuleSet({
-                connection,
-                mint: nftMintMaker,
-            });
-            nftMasterEditionMaker = nftMasterEditionF;
-            ownerTokenRecordMaker = ownerTokenRecordF;
-            destinationTokenRecordMaker = destinationTokenRecordF;
-            authRulesMaker = authRulesF;
+                const destinationTokenRecordF = findUserTokenRecord({
+                    mint: nftMintMaker,
+                    userMintAta: swapDataAccountNftAta,
+                });
+
+                const authRulesF = await findRuleSet({
+                    connection,
+                    mint: nftMintMaker,
+                });
+                nftMasterEditionMaker = nftMasterEditionF;
+                ownerTokenRecordMaker = ownerTokenRecordF;
+                destinationTokenRecordMaker = destinationTokenRecordF;
+                authRulesMaker = authRulesF;
+                nftMetadataMaker = nftMetadataMakerF;
+            }
+        } else if (tokenProgram === TOKEN_2022_PROGRAM_ID.toString()) {
+            tokenProgram = TOKEN_2022_PROGRAM_ID.toString();
+            console.log("token22Program", tokenProgram);
         }
-
         bids = bids.sort((bidA, bidB) => {
             let amountA = bidA.makerNeoswapFee + bidA.makerRoyalties;
             if (bidA.amount < 0) amountA += -bidA.amount;
@@ -147,44 +159,79 @@ export async function createMakeSwapInstructions(
 
             instructions.push(...addWSol(maker, makerTokenAta, maxAmount));
         }
+        console.log("tokenProgram", tokenProgram);
 
         console.log("bids", bids);
         let oneBid = bids[0];
-        let leftBids = bids.slice(1);
-        const initIx = await program.methods
-            .makeSwap(bidToscBid(oneBid), new BN(endDate))
-            .accounts({
-                swapDataAccount,
-                swapDataAccountNftAta,
-                swapDataAccountTokenAta,
+        let leftBids = bids.slice(1).length > 0 ? bids.slice(1) : [];
 
-                maker: maker,
-                makerNftAta,
-                makerTokenAta,
+        if (tokenProgram === TOKEN_PROGRAM_ID.toString()) {
+            // console.log("tokenProgram createIX", program);
+            const initIx = await program.methods
+                .makeSwap(bidToscBid(oneBid), new BN(endDate))
+                .accounts({
+                    swapDataAccount,
+                    swapDataAccountNftAta,
+                    swapDataAccountTokenAta,
 
-                nftMintMaker: nftMintMaker,
-                paymentMint,
+                    maker: maker,
+                    makerNftAta,
+                    makerTokenAta,
 
-                nftMetadataMaker,
-                nftMasterEditionMaker,
-                ownerTokenRecordMaker,
-                destinationTokenRecordMaker,
-                authRulesMaker,
+                    nftMintMaker: nftMintMaker,
+                    paymentMint,
 
-                systemProgram: SystemProgram.programId,
-                metadataProgram: TOKEN_METADATA_PROGRAM,
-                sysvarInstructions: SYSVAR_INSTRUCTIONS_PUBKEY,
-                tokenProgram: TOKEN_PROGRAM_ID,
-                ataProgram: SOLANA_SPL_ATA_PROGRAM_ID,
-                authRulesProgram: METAPLEX_AUTH_RULES_PROGRAM,
-            })
-            .instruction();
-        instructions.push(initIx);
+                    nftMetadataMaker,
+                    nftMasterEditionMaker,
+                    ownerTokenRecordMaker,
+                    destinationTokenRecordMaker,
+                    authRulesMaker,
+
+                    systemProgram: SystemProgram.programId,
+                    metadataProgram: TOKEN_METADATA_PROGRAM,
+                    sysvarInstructions: SYSVAR_INSTRUCTIONS_PUBKEY,
+                    tokenProgram: TOKEN_PROGRAM_ID,
+                    tokenProgram22: TOKEN_2022_PROGRAM_ID,
+                    ataProgram: SOLANA_SPL_ATA_PROGRAM_ID,
+                    authRulesProgram: METAPLEX_AUTH_RULES_PROGRAM,
+                })
+                .instruction();
+            instructions.push(initIx);
+        } else if (tokenProgram === TOKEN_2022_PROGRAM_ID.toString()) {
+            // console.log("token22Program createIX", idlSwap, program);
+
+            const initIx = await program.methods
+                .makeSwap22(bidToscBid(oneBid), new BN(endDate))
+                .accounts({
+                    swapDataAccount,
+                    swapDataAccountNftAta,
+                    swapDataAccountTokenAta,
+
+                    maker: maker,
+                    makerNftAta,
+                    makerTokenAta,
+
+                    nftMintMaker: nftMintMaker,
+                    paymentMint,
+
+                    // nftMetadataMaker,
+                    // nftMasterEditionMaker,
+                    // ownerTokenRecordMaker,
+                    // destinationTokenRecordMaker,
+                    // authRulesMaker,
+
+                    systemProgram: SystemProgram.programId,
+                    sysvarInstructions: SYSVAR_INSTRUCTIONS_PUBKEY,
+                    tokenProgram: TOKEN_PROGRAM_ID,
+                    tokenProgram22: TOKEN_2022_PROGRAM_ID,
+                    ataProgram: SOLANA_SPL_ATA_PROGRAM_ID,
+                })
+                .instruction();
+            instructions.push(initIx);
+        }
 
         let addBidIxs: TransactionInstruction[] = [];
-        let isAddBidInMakeSwap = false;
         if (leftBids.length > 0) {
-            isAddBidInMakeSwap = true;
             let bidDataIxs = await createAddBidIx({
                 swapDataAccount,
                 bids: leftBids,
@@ -204,6 +251,7 @@ export async function createMakeSwapInstructions(
                 addBidIxs = addBidIxs.slice(3);
             }
         }
+
         let bTxs: BTv[] = [
             {
                 description: DESC.makeSwap,
@@ -213,6 +261,8 @@ export async function createMakeSwapInstructions(
                 tx: await ix2vTx(instructions, cEnvOpts, maker),
             },
         ];
+        console.log("addBidIxs", addBidIxs.length);
+
         if (addBidIxs.length > 0)
             bTxs.push({
                 description: DESC.addBid,

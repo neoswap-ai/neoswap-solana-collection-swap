@@ -7,7 +7,7 @@ import {
 } from "@solana/web3.js";
 import { BundleTransaction, ClaimSArg, EnvOpts } from "../utils/types";
 import { findOrCreateAta } from "../utils/findOrCreateAta.function";
-import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
+import { TOKEN_2022_PROGRAM_ID, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import {
     METAPLEX_AUTH_RULES_PROGRAM,
     NS_FEE,
@@ -62,7 +62,11 @@ export async function createClaimSwapInstructions(
         });
         if (sdan) instructions.push(sdan);
         else console.log("swapDataAccountNftAta", swapDataAccountNftAta);
-        let { mintAta: takerNftAtaMaker, instruction: tmn } = await findOrCreateAta({
+        let {
+            mintAta: takerNftAtaMaker,
+            instruction: tmn,
+            tokenProgram,
+        } = await findOrCreateAta({
             connection,
             mint: nftMintMaker,
             owner: taker,
@@ -107,42 +111,46 @@ export async function createClaimSwapInstructions(
         if (mt) instructions.push(mt);
         else console.log("makerTokenAta", makerTokenAta);
 
-        const { metadataAddress: nftMetadataMaker, tokenStandard: tokenStandardMaker } =
-            await findNftDataAndMetadataAccount({
-                connection,
-                mint: nftMintMaker,
-            });
-
-        console.log("nftMetadataMaker", nftMetadataMaker);
-
         let nftMasterEditionMaker = taker;
         let ownerTokenRecordMaker = taker;
         let destinationTokenRecordMaker = taker;
         let authRulesMaker = taker;
+        let nftMetadataMaker = taker;
 
-        if (tokenStandardMaker == TokenStandard.ProgrammableNonFungible) {
-            const nftMasterEditionF = findNftMasterEdition({
-                mint: nftMintMaker,
-            });
+        if (!tokenProgram) tokenProgram = TOKEN_PROGRAM_ID.toString();
+        if (tokenProgram == TOKEN_PROGRAM_ID.toString()) {
+            const { metadataAddress: nftMetadataMaker2, tokenStandard: tokenStandardMaker } =
+                await findNftDataAndMetadataAccount({
+                    connection,
+                    mint: nftMintMaker,
+                });
+            nftMetadataMaker = nftMetadataMaker2;
+            console.log("nftMetadataMaker", nftMetadataMaker);
 
-            const ownerTokenRecordF = findUserTokenRecord({
-                mint: nftMintMaker,
-                userMintAta: swapDataAccountNftAta,
-            });
+            if (tokenStandardMaker == TokenStandard.ProgrammableNonFungible) {
+                const nftMasterEditionF = findNftMasterEdition({
+                    mint: nftMintMaker,
+                });
 
-            const destinationTokenRecordF = findUserTokenRecord({
-                mint: nftMintMaker,
-                userMintAta: takerNftAtaMaker,
-            });
+                const ownerTokenRecordF = findUserTokenRecord({
+                    mint: nftMintMaker,
+                    userMintAta: swapDataAccountNftAta,
+                });
 
-            const authRulesF = await findRuleSet({
-                connection,
-                mint: nftMintMaker,
-            });
-            nftMasterEditionMaker = nftMasterEditionF;
-            ownerTokenRecordMaker = ownerTokenRecordF;
-            destinationTokenRecordMaker = destinationTokenRecordF;
-            authRulesMaker = authRulesF;
+                const destinationTokenRecordF = findUserTokenRecord({
+                    mint: nftMintMaker,
+                    userMintAta: takerNftAtaMaker,
+                });
+
+                const authRulesF = await findRuleSet({
+                    connection,
+                    mint: nftMintMaker,
+                });
+                nftMasterEditionMaker = nftMasterEditionF;
+                ownerTokenRecordMaker = ownerTokenRecordF;
+                destinationTokenRecordMaker = destinationTokenRecordF;
+                authRulesMaker = authRulesF;
+            }
         }
 
         const initIx = await program.methods
@@ -176,6 +184,7 @@ export async function createClaimSwapInstructions(
                 metadataProgram: TOKEN_METADATA_PROGRAM,
                 sysvarInstructions: SYSVAR_INSTRUCTIONS_PUBKEY,
                 tokenProgram: TOKEN_PROGRAM_ID,
+                tokenProgram22: TOKEN_2022_PROGRAM_ID,
                 ataProgram: SOLANA_SPL_ATA_PROGRAM_ID,
                 authRulesProgram: METAPLEX_AUTH_RULES_PROGRAM,
             })
