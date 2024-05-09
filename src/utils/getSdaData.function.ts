@@ -42,62 +42,27 @@ export async function getOpenSda(
     let { program } = await checkEnvOpts(Data);
     try {
         console.log("Program Id", program.programId.toString());
-
-        let openSda = (await program.provider.connection.getProgramAccounts(program.programId)).map(
-            (x) => x.pubkey
-        );
-        let ignoreList = Data.ignoreList || [];
-
-        AVOID_LIST.concat(ignoreList)
-            .map((x) => new PublicKey(x))
-            .map((blacklist) => {
-                openSda = openSda.filter((x) => !x.equals(blacklist));
-            });
-        console.log(
-            "openSda",
-            openSda.map((x) => x.toBase58())
-        );
+        let openSda = await program.account.swapData.all();
         console.log("openSda len :", openSda.length);
-        try {
-            let batchSize = 10;
-            let swapDatas: {
-                sda: string;
-                data: SwapData;
-            }[] = [];
-            for (let i = 0; i < openSda.length; i += batchSize) {
-                const batch = openSda.slice(i, i + batchSize);
 
-                let fetchSDAs1 = await program.account.swapData.fetchMultiple(batch);
-                let fetchedDatas = fetchSDAs1.map((x, i) => {
-                    return {
-                        sda: batch[i].toString(),
-                        data: scSwapDataToSwapData(x as ScSwapData) as SwapData,
-                    };
+        let swapDatas: {
+            data: SwapData;
+            sda: string;
+        }[] = [];
+        openSda.map((x) => {
+            let sda = x.publicKey.toString();
+            try {
+                swapDatas.push({
+                    data: scSwapDataToSwapData(x.account as ScSwapData) as SwapData,
+                    sda,
                 });
-                swapDatas.push(...fetchedDatas);
+            } catch (error) {
+                console.log(sda, "error feching ", error, x.account);
             }
-            console.log("swapDatas", swapDatas);
-            return swapDatas;
-        } catch (error) {
-            let i = 0;
-            let issue = false;
-            for (const sda in openSda) {
-                const element = openSda[sda];
-                try {
-                    await program.account.swapData.fetch(element);
-                } catch (error) {
-                    console.log(i, "error", openSda[sda].toString(), error);
-                    issue = true;
-                }
-                i++;
-            }
-            if (issue) throw "Error fetching swapDatas";
-            else throw error;
-        }
-        // if (!swapDatas) {
-        //     throw `No SwapData found ${openSda}`;
-        // } else {
-        // }
+        });
+        console.log("swapDatas", swapDatas.length);
+
+        return swapDatas;
     } catch (error) {
         throw {
             blockchain: "solana",
