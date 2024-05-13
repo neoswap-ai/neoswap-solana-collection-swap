@@ -425,6 +425,10 @@ export async function createTakeAndCloseSwapInstructions(
                         makerCreator1TokenAta: makerCreatorTokenAta[1],
                         makerCreator2: makerCreator[2],
                         makerCreator2TokenAta: makerCreatorTokenAta[2],
+                        makerCreator3: makerCreator[3],
+                        makerCreator3TokenAta: makerCreatorTokenAta[3],
+                        makerCreator4: makerCreator[4],
+                        makerCreator4TokenAta: makerCreatorTokenAta[4],
                     })
                     .instruction();
                 payRIxs.push(payRIx);
@@ -500,6 +504,10 @@ export async function createTakeAndCloseSwapInstructions(
                         takerCreator1TokenAta: takerCreatorTokenAta[1],
                         takerCreator2: takerCreator[2],
                         takerCreator2TokenAta: takerCreatorTokenAta[2],
+                        takerCreator3: takerCreator[3],
+                        takerCreator3TokenAta: takerCreatorTokenAta[3],
+                        takerCreator4: takerCreator[4],
+                        takerCreator4TokenAta: takerCreatorTokenAta[4],
                     })
                     .instruction();
                 payRIxs.push(payRIx);
@@ -528,9 +536,17 @@ export async function createTakeAndCloseSwapInstructions(
 
         if (tmn) claimSIxs.push(tmn);
         else console.log("takerNftAta", takerNftAtaMaker);
-        if (mt && !!acceptedBid) {
-            claimSIxs.push(mt);
+
+        if (!!acceptedBid 
+            // && !!royaltiesPaidMaker && !!royaltiesPaidTaker
+        ) {
+            // if (mt) claimSIxs.push(mt);
+            // else console.log("makerTokenAta", makerTokenAta);
+
+            if (tt) claimSIxs.push(tt);
+            else console.log("takerTokenAta", takerTokenAta);
         }
+
         let { mintAta: nsFeeTokenAta, instruction: nst } = await findOrCreateAta({
             connection,
             mint: paymentMint,

@@ -19,8 +19,8 @@ export async function getCreatorData(Data: {
         signer,
     });
 
-    let creators = [signer, signer, signer];
-    let creatorTokenAta = [ownerAta, ownerAta, ownerAta];
+    let creators = [signer, signer, signer, signer, signer];
+    let creatorTokenAta = [ownerAta, ownerAta, ownerAta, ownerAta, ownerAta];
 
     if (tokenProgram && tokenProgram === TOKEN_2022_PROGRAM_ID.toString()) {
         console.log(
@@ -61,6 +61,7 @@ export async function getCreatorData(Data: {
     );
     console.log("creators", creators);
     console.log("creatorTokenAta", creatorTokenAta);
+    console.log("instructions", instructions.length);
     return {
         instructions,
         creators,

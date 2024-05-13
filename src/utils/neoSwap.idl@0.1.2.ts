@@ -1,6 +1,6 @@
 import { Idl } from "@coral-xyz/anchor";
 export const idlSwap: Idl = {
-    version: "0.1.3",
+    version: "0.1.2",
     name: "collection_swap",
     docs: ["Program to manage NeoSwap's Collection swaps"],
     instructions: [
@@ -480,26 +480,6 @@ export const idlSwap: Idl = {
                     isMut: true,
                     isSigner: false,
                 },
-                {
-                    name: "takerCreator3",
-                    isMut: false,
-                    isSigner: false,
-                },
-                {
-                    name: "takerCreator3TokenAta",
-                    isMut: true,
-                    isSigner: false,
-                },
-                {
-                    name: "takerCreator4",
-                    isMut: false,
-                    isSigner: false,
-                },
-                {
-                    name: "takerCreator4TokenAta",
-                    isMut: true,
-                    isSigner: false,
-                },
             ],
             args: [],
         },
@@ -568,26 +548,6 @@ export const idlSwap: Idl = {
                 },
                 {
                     name: "makerCreator2TokenAta",
-                    isMut: true,
-                    isSigner: false,
-                },
-                {
-                    name: "makerCreator3",
-                    isMut: false,
-                    isSigner: false,
-                },
-                {
-                    name: "makerCreator3TokenAta",
-                    isMut: true,
-                    isSigner: false,
-                },
-                {
-                    name: "makerCreator4",
-                    isMut: false,
-                    isSigner: false,
-                },
-                {
-                    name: "makerCreator4TokenAta",
                     isMut: true,
                     isSigner: false,
                 },
