@@ -1266,7 +1266,7 @@ export const idlSwap: Idl = {
         },
         {
             code: 6002,
-            name: "MintIncorrect",
+            name: "IncorrectMint",
             msg: "Incorrect Mint",
         },
         {

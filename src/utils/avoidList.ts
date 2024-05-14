@@ -10,7 +10,6 @@ export const AVOID_LIST = [
 
     "9kD49WvaMbBMG4x8uYt7CFSkGMWUmXUMSQBAQcKU5WAw", // NSWP IDL
     "9C9SMQkBDkWvrwXiWTsjqtC7yjM1hSiah4ruQHzFxkCh", // NSWP IDL
-    
 ]
     .concat([
         //dev reliquat
@@ -24,6 +23,8 @@ export const AVOID_LIST = [
         "BJoPv5QHA6ayCkX9xpptv8BFsZTEiFHapA4MmsqL3TV8",
         "GixH9AqqVQQUzM2ymyK2XFKSUqb6srBT4X3DowMxsuVn",
         "B3mEhXi2vguN9y5TXCiuhY2udAwc7em6c7SnPFSXP3rC", // DEv Idl
+        "Jd7ppnazZPxf77QXJ6PPG4tq1hYCGe1xFjUVi9ktgbz", // dev Idl
+        "HGx1BfyXnzMV1TpEafKZW4gBRDVXo3TpRwzzfDzMeiTq", // dev Idl
     ])
     .concat([
         // OldPdas
