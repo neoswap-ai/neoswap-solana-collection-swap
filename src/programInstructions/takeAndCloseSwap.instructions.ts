@@ -527,7 +527,8 @@ export async function createTakeAndCloseSwapInstructions(
             }
         }
 
-        if (payRIxs.length > 0) payRoyaltiesTx = await ix2vTx(payRIxs, cEnvOpts, signer);
+        if (!royaltiesPaidMaker || !royaltiesPaidTaker)
+            payRoyaltiesTx = await ix2vTx(payRIxs, cEnvOpts, signer);
 
         ///////////////////////////////////
 
@@ -537,7 +538,8 @@ export async function createTakeAndCloseSwapInstructions(
         if (tmn) claimSIxs.push(tmn);
         else console.log("takerNftAta", takerNftAtaMaker);
 
-        if (!!acceptedBid 
+        if (
+            !!acceptedBid
             // && !!royaltiesPaidMaker && !!royaltiesPaidTaker
         ) {
             // if (mt) claimSIxs.push(mt);
