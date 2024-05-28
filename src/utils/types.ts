@@ -48,7 +48,6 @@ export type SwapData = {
 
     status: "active" | "expired" | "accepted";
     paymentMint: string;
-    seed: string;
 };
 
 export type ScSwapData = {
@@ -70,7 +69,6 @@ export type ScSwapData = {
     royaltiesPaidTaker: boolean;
 
     paymentMint: PublicKey;
-    seed: string;
 };
 //
 //
