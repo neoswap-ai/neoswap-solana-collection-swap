@@ -1,6 +1,6 @@
 {
     "name": "@neoswap/solana-collection-swap",
-    "version": "0.5.12",
+    "version": "0.5.13",
     "repository": {
         "type": "git",
         "url": "git+https://github.com/neoswap-ai/neo-swap-npm.git"
@@ -34,7 +34,6 @@
         "@types/debug": "^4.1.12",
         "@types/node-fetch": "^2.6.11",
         "bs58": "^5.0.0",
-        "parcel": "^2.12.0",
         "tsx": "^4.7.1",
         "typescript": "^5.4.3"
     }
