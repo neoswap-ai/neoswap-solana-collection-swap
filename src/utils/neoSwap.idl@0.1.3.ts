@@ -1,6 +1,6 @@
 import { Idl } from "@coral-xyz/anchor";
 export const idlSwap: Idl = {
-    version: "0.2.0",
+    version: "0.1.3",
     name: "collection_swap",
     docs: ["Program to manage NeoSwap's Collection swaps"],
     instructions: [
@@ -1058,53 +1058,6 @@ export const idlSwap: Idl = {
             args: [],
         },
         {
-            name: "closeSwap",
-            accounts: [
-                {
-                    name: "swapDataAccount",
-                    isMut: true,
-                    isSigner: false,
-                },
-                {
-                    name: "swapDataAccountTokenAta",
-                    isMut: true,
-                    isSigner: false,
-                },
-                {
-                    name: "maker",
-                    isMut: true,
-                    isSigner: false,
-                    docs: ["CHECK : in constraints", "CHECK : in constraints"],
-                },
-                {
-                    name: "makerTokenAta",
-                    isMut: true,
-                    isSigner: false,
-                },
-                {
-                    name: "paymentMint",
-                    isMut: false,
-                    isSigner: false,
-                },
-                {
-                    name: "signer",
-                    isMut: false,
-                    isSigner: true,
-                },
-                {
-                    name: "systemProgram",
-                    isMut: false,
-                    isSigner: false,
-                },
-                {
-                    name: "tokenProgram",
-                    isMut: false,
-                    isSigner: false,
-                },
-            ],
-            args: [],
-        },
-        {
             name: "addBid",
             accounts: [
                 {
@@ -1257,6 +1210,10 @@ export const idlSwap: Idl = {
                     {
                         name: "paymentMint",
                         type: "publicKey",
+                    },
+                    {
+                        name: "seed",
+                        type: "string",
                     },
                 ],
             },

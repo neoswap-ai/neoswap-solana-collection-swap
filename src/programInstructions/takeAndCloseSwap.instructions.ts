@@ -47,26 +47,30 @@ export async function createTakeAndCloseSwapInstructions(
         signer = taker;
     }
 
-    let takeSwapTx: VersionedTransaction | undefined;
-    let payRoyaltiesTx: VersionedTransaction | undefined;
-    let claimSwapTx: VersionedTransaction | undefined;
+    let takeAndClaimTx: VersionedTransaction | undefined;
+    let payRAndCloseSTx: VersionedTransaction | undefined;
+    // let claimSwapTx: VersionedTransaction | undefined;
 
-    let takeIxs: TransactionInstruction[] = [
+    let takeAndClaimIxs: TransactionInstruction[] = [
         ComputeBudgetProgram.setComputeUnitLimit({
-            units: 8500000,
+            units: 8_500_000,
         }),
     ];
-    let payRIxs: TransactionInstruction[] = [
+    // let payRAndCloseSIxs: TransactionInstruction[] = [
+    //     ComputeBudgetProgram.setComputeUnitLimit({
+    //         units: 800_000,
+    //     }),
+    // ];
+    // let takeAndClaimIxs: TransactionInstruction[] = [
+    //     ComputeBudgetProgram.setComputeUnitLimit({
+    //         units: 900_000,
+    //     }),
+    // ];
+    let payRAndCloseSIxs: TransactionInstruction[] = [
         ComputeBudgetProgram.setComputeUnitLimit({
-            units: 800000,
+            units: 8_500_000,
         }),
     ];
-    let claimSIxs: TransactionInstruction[] = [
-        ComputeBudgetProgram.setComputeUnitLimit({
-            units: 900000,
-        }),
-    ];
-
     try {
         let swapDataData = await getSdaData({
             program,
@@ -148,7 +152,7 @@ export async function createTakeAndCloseSwapInstructions(
         );
 
         if (tn) {
-            takeIxs.push(tn);
+            takeAndClaimIxs.push(tn);
         } else console.log("takerNftAta", takerNftAta);
 
         let { mintAta: takerTokenAta, instruction: tt } = await findOrCreateAta({
@@ -158,7 +162,7 @@ export async function createTakeAndCloseSwapInstructions(
             signer,
         });
         if (tt) {
-            takeIxs.push(tt);
+            takeAndClaimIxs.push(tt);
         } else console.log("takerTokenAta", takerTokenAta);
 
         let { mintAta: makerNftAta, instruction: mn } = await findOrCreateAta({
@@ -168,7 +172,7 @@ export async function createTakeAndCloseSwapInstructions(
             signer,
         });
         if (mn) {
-            takeIxs.push(mn);
+            takeAndClaimIxs.push(mn);
         } else console.log("makerNftAta", makerNftAta);
 
         let { mintAta: makerTokenAta, instruction: mt } = await findOrCreateAta({
@@ -178,7 +182,7 @@ export async function createTakeAndCloseSwapInstructions(
             signer,
         });
         if (mt) {
-            takeIxs.push(mt);
+            takeAndClaimIxs.push(mt);
         } else console.log("makerTokenAta", makerTokenAta);
 
         let { mintAta: swapDataAccountTokenAta, instruction: sdat } = await findOrCreateAta({
@@ -188,7 +192,7 @@ export async function createTakeAndCloseSwapInstructions(
             signer,
         });
         if (sdat) {
-            takeIxs.push(sdat);
+            takeAndClaimIxs.push(sdat);
         } else console.log("swapDataAccountTokenAta", swapDataAccountTokenAta);
 
         if (takerTokenProg === TOKEN_PROGRAM_ID.toString()) {
@@ -241,7 +245,7 @@ export async function createTakeAndCloseSwapInstructions(
                 if (bid.amount > 0) amount += bid.amount;
                 console.log("Wrapping " + amount + " lamports to wSOL");
 
-                takeIxs.push(...addWSol(taker, takerTokenAta, amount));
+                takeAndClaimIxs.push(...addWSol(taker, takerTokenAta, amount));
             }
             if (takerTokenProg === TOKEN_PROGRAM_ID.toString()) {
                 const takeIx = await program.methods
@@ -275,7 +279,7 @@ export async function createTakeAndCloseSwapInstructions(
                         authRulesProgram: METAPLEX_AUTH_RULES_PROGRAM,
                     })
                     .instruction();
-                takeIxs.push(takeIx);
+                takeAndClaimIxs.push(takeIx);
             } else {
                 let hashlistMarker = PublicKey.findProgramAddressSync(
                     [
@@ -315,9 +319,8 @@ export async function createTakeAndCloseSwapInstructions(
                         // authRulesProgram: METAPLEX_AUTH_RULES_PROGRAM,
                     })
                     .instruction();
-                takeIxs.push(takeIx);
+                takeAndClaimIxs.push(takeIx);
             }
-            takeSwapTx = await ix2vTx(takeIxs, cEnvOpts, signer);
         }
 
         let { mintAta: swapDataAccountNftAta, instruction: sdan } = await findOrCreateAta({
@@ -401,7 +404,7 @@ export async function createTakeAndCloseSwapInstructions(
 
                 if (creatorIxs.length > 0) {
                     console.log("creatorIxs", creatorIxs.length);
-                    payRIxs.push(...creatorIxs);
+                    payRAndCloseSIxs.push(...creatorIxs);
                 }
 
                 const payRIx = await program.methods
@@ -431,7 +434,7 @@ export async function createTakeAndCloseSwapInstructions(
                         makerCreator4TokenAta: makerCreatorTokenAta[4],
                     })
                     .instruction();
-                payRIxs.push(payRIx);
+                payRAndCloseSIxs.push(payRIx);
                 console.log("payRIx", payRIx);
             } else {
                 const payRIx = await program.methods
@@ -446,7 +449,7 @@ export async function createTakeAndCloseSwapInstructions(
                         tokenProgram22: TOKEN_2022_PROGRAM_ID,
                     })
                     .instruction();
-                payRIxs.push(payRIx);
+                payRAndCloseSIxs.push(payRIx);
             }
         }
 
@@ -474,7 +477,7 @@ export async function createTakeAndCloseSwapInstructions(
                     nftMint: nftMintTaker,
                 });
 
-                if (creatorIxs) payRIxs.push(...creatorIxs);
+                if (creatorIxs) payRAndCloseSIxs.push(...creatorIxs);
 
                 // let nftMetadataTaker = (
                 //     await findNftDataAndMetadataAccount({
@@ -510,7 +513,7 @@ export async function createTakeAndCloseSwapInstructions(
                         takerCreator4TokenAta: takerCreatorTokenAta[4],
                     })
                     .instruction();
-                payRIxs.push(payRIx);
+                payRAndCloseSIxs.push(payRIx);
             } else {
                 console.log("payMakerRoyalties22 signer,", signer);
 
@@ -523,29 +526,26 @@ export async function createTakeAndCloseSwapInstructions(
                         tokenProgram22: TOKEN_2022_PROGRAM_ID,
                     })
                     .instruction();
-                payRIxs.push(payRIx);
+                payRAndCloseSIxs.push(payRIx);
             }
         }
 
-        if (!royaltiesPaidMaker || !royaltiesPaidTaker)
-            payRoyaltiesTx = await ix2vTx(payRIxs, cEnvOpts, signer);
-
         ///////////////////////////////////
 
-        if (sdan) claimSIxs.push(sdan);
+        if (sdan) takeAndClaimIxs.push(sdan);
         else console.log("swapDataAccountNftAta", swapDataAccountNftAta);
 
-        if (tmn) claimSIxs.push(tmn);
+        if (tmn) takeAndClaimIxs.push(tmn);
         else console.log("takerNftAta", takerNftAtaMaker);
 
         if (
             !!acceptedBid
             // && !!royaltiesPaidMaker && !!royaltiesPaidTaker
         ) {
-            // if (mt) claimSIxs.push(mt);
+            // if (mt) takeAndClaimIxs.push(mt);
             // else console.log("makerTokenAta", makerTokenAta);
 
-            if (tt) claimSIxs.push(tt);
+            if (tt) takeAndClaimIxs.push(tt);
             else console.log("takerTokenAta", takerTokenAta);
         }
 
@@ -555,13 +555,13 @@ export async function createTakeAndCloseSwapInstructions(
             owner: NS_FEE,
             signer,
         });
-        if (nst) claimSIxs.push(nst);
+        if (nst) takeAndClaimIxs.push(nst);
         else console.log("nsFeeTokenAta", nsFeeTokenAta);
 
         if (makerTokenProg === TOKEN_PROGRAM_ID.toString()) {
             console.log();
 
-            const initIx = await program.methods
+            const claimIx = await program.methods
                 .claimSwap()
                 .accounts({
                     swapDataAccount,
@@ -600,12 +600,12 @@ export async function createTakeAndCloseSwapInstructions(
                 })
                 .instruction();
 
-            claimSIxs.push(initIx);
+            takeAndClaimIxs.push(claimIx);
         } else {
             console.log("signer", signer);
             console.log("taker", taker);
 
-            const initIx = await program.methods
+            const claimIx = await program.methods
                 .claimSwap22()
                 .accounts({
                     swapDataAccount,
@@ -636,23 +636,46 @@ export async function createTakeAndCloseSwapInstructions(
                 })
                 .instruction();
 
-            claimSIxs.push(initIx);
+            takeAndClaimIxs.push(claimIx);
         }
+
+        const closeIx = await program.methods
+            .closeSwap()
+            .accounts({
+                swapDataAccount,
+                swapDataAccountTokenAta,
+
+                maker,
+                makerTokenAta,
+
+                paymentMint,
+                signer,
+
+                systemProgram: SystemProgram.programId,
+                tokenProgram: TOKEN_PROGRAM_ID,
+            })
+            .instruction();
+        payRAndCloseSIxs.push(closeIx);
+
+        if (swapDataData.paymentMint === WRAPPED_SOL_MINT.toString())
+            if (signer === taker) payRAndCloseSIxs.push(closeWSol(taker, taker, takerTokenAta));
+            else if (signer === maker)
+                payRAndCloseSIxs.push(closeWSol(maker, maker, makerTokenAta));
 
         let { lastValidBlockHeight: blockheight, blockhash } =
             await connection.getLatestBlockhash();
 
-        if (swapDataData.paymentMint === WRAPPED_SOL_MINT.toString() && signer == taker)
-            claimSIxs.push(closeWSol(Data.taker, taker, takerTokenAta));
+        // if (swapDataData.paymentMint === WRAPPED_SOL_MINT.toString() && signer == taker)
+        //     closeSIxs.push(closeWSol(Data.taker, taker, takerTokenAta));
 
-        claimSwapTx = await ix2vTx(claimSIxs, cEnvOpts, signer);
+        takeAndClaimTx = await ix2vTx(takeAndClaimIxs, cEnvOpts, signer);
 
         let bTTakeAndClose: BTv[] = [];
         let priority = 0;
 
-        if (takeSwapTx) {
+        if (takeAndClaimTx) {
             bTTakeAndClose.push({
-                tx: takeSwapTx,
+                tx: takeAndClaimTx,
                 description: DESC.takeSwap,
                 details: takeArgs,
                 priority,
@@ -663,9 +686,11 @@ export async function createTakeAndCloseSwapInstructions(
             priority++;
         } else console.log("no takeSwapTx");
 
-        if (payRoyaltiesTx) {
+        payRAndCloseSTx = await ix2vTx(payRAndCloseSIxs, cEnvOpts, signer);
+
+        if (payRAndCloseSTx) {
             bTTakeAndClose.push({
-                tx: payRoyaltiesTx,
+                tx: payRAndCloseSTx,
                 description: DESC.payRoyalties,
                 details: takeArgs,
                 priority,
@@ -676,14 +701,6 @@ export async function createTakeAndCloseSwapInstructions(
             priority++;
         } else console.log("no payRoyaltiesTx");
 
-        bTTakeAndClose.push({
-            tx: claimSwapTx,
-            description: DESC.claimSwap,
-            details: takeArgs,
-            priority,
-            status: "pending",
-            blockheight,
-        });
         let bh = (await connection.getLatestBlockhash()).blockhash;
         bTTakeAndClose.map((b) => (b.tx.message.recentBlockhash = bh));
         return bTTakeAndClose;
