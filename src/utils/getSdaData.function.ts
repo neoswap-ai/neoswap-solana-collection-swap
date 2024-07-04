@@ -17,7 +17,6 @@ export async function getSdaData(
 
     try {
         const swapData = (await program.account.swapData.fetch(swapDataAccount)) as ScSwapData;
-        console.log(swapDataAccount, swapData.seed);
 
         if (!swapData) {
             throw `No SwapData found ${swapDataAccount}`;
