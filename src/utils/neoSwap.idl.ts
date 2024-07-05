@@ -1,6 +1,6 @@
 import { Idl } from "@coral-xyz/anchor";
 export const idlSwap: Idl = {
-    version: "0.2.0",
+    version: "0.3.0",
     name: "collection_swap",
     docs: ["Program to manage NeoSwap's Collection swaps"],
     instructions: [
@@ -1074,7 +1074,6 @@ export const idlSwap: Idl = {
                     name: "maker",
                     isMut: true,
                     isSigner: false,
-                    docs: ["CHECK : in constraints", "CHECK : in constraints"],
                 },
                 {
                     name: "makerTokenAta",
@@ -1255,6 +1254,10 @@ export const idlSwap: Idl = {
                         type: "bool",
                     },
                     {
+                        name: "claimed",
+                        type: "bool",
+                    },
+                    {
                         name: "paymentMint",
                         type: "publicKey",
                     },
@@ -1341,6 +1344,16 @@ export const idlSwap: Idl = {
             code: 6008,
             name: "IncorrectPayment",
             msg: "Incorrect Payment Mint",
+        },
+        {
+            code: 6009,
+            name: "NoAcceptedBidFound",
+            msg: "You need to take swap before claimimg it",
+        },
+        {
+            code: 6010,
+            name: "NotClaimed",
+            msg: "You need to claim swap before closing it",
         },
         {
             code: 6100,

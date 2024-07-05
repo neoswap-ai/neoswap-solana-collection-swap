@@ -45,6 +45,7 @@ export type SwapData = {
 
     royaltiesPaidMaker: boolean;
     royaltiesPaidTaker: boolean;
+    claimed: boolean;
 
     status: "active" | "expired" | "accepted";
     paymentMint: string;
@@ -67,6 +68,7 @@ export type ScSwapData = {
 
     royaltiesPaidMaker: boolean;
     royaltiesPaidTaker: boolean;
+    claimed: boolean;
 
     paymentMint: PublicKey;
 };
