@@ -1,19 +1,19 @@
 export const idlSwap: CollectionSwap = {
     address: "NSWPpfskKcHo93mxZSgdinqpnFkcdWPsSxBB9Q26Qbq",
     metadata: {
-        name: "collection_swap",
+        name: "collectionSwap",
         version: "0.4.0",
         spec: "0.1.0",
-        description: "collection_swap",
+        description: "collectionSwap",
     },
     docs: ["Program to manage NeoSwap's Collection swaps"],
     instructions: [
         {
-            name: "add_bid",
+            name: "addBid",
             discriminator: [175, 182, 241, 211, 34, 34, 119, 234],
             accounts: [
                 {
-                    name: "swap_data_account",
+                    name: "swapDataAccount",
                     writable: true,
                     pda: {
                         seeds: [
@@ -24,18 +24,18 @@ export const idlSwap: CollectionSwap = {
                             {
                                 kind: "account",
                                 path: "swap_data_account.maker",
-                                account: "SwapData",
+                                account: "swapData",
                             },
                             {
                                 kind: "account",
                                 path: "swap_data_account.nft_mint_maker",
-                                account: "SwapData",
+                                account: "swapData",
                             },
                         ],
                     },
                 },
                 {
-                    name: "swap_data_account_token_ata",
+                    name: "swapDataAccountTokenAta",
                     writable: true,
                 },
                 {
@@ -44,31 +44,31 @@ export const idlSwap: CollectionSwap = {
                     signer: true,
                 },
                 {
-                    name: "maker_token_ata",
+                    name: "makerTokenAta",
                     writable: true,
                     optional: true,
                 },
                 {
-                    name: "token_program",
+                    name: "tokenProgram",
                 },
             ],
             args: [
                 {
-                    name: "new_bid",
+                    name: "newBid",
                     type: {
                         defined: {
-                            name: "Bid",
+                            name: "bid",
                         },
                     },
                 },
             ],
         },
         {
-            name: "cancel_swap",
+            name: "cancelSwap",
             discriminator: [88, 174, 98, 148, 24, 252, 93, 89],
             accounts: [
                 {
-                    name: "swap_data_account",
+                    name: "swapDataAccount",
                     writable: true,
                     pda: {
                         seeds: [
@@ -79,22 +79,22 @@ export const idlSwap: CollectionSwap = {
                             {
                                 kind: "account",
                                 path: "swap_data_account.maker",
-                                account: "SwapData",
+                                account: "swapData",
                             },
                             {
                                 kind: "account",
                                 path: "swap_data_account.nft_mint_maker",
-                                account: "SwapData",
+                                account: "swapData",
                             },
                         ],
                     },
                 },
                 {
-                    name: "swap_data_account_nft_ata",
+                    name: "swapDataAccountNftAta",
                     writable: true,
                 },
                 {
-                    name: "swap_data_account_token_ata",
+                    name: "swapDataAccountTokenAta",
                     writable: true,
                 },
                 {
@@ -106,21 +106,21 @@ export const idlSwap: CollectionSwap = {
                     signer: true,
                 },
                 {
-                    name: "maker_nft_ata",
+                    name: "makerNftAta",
                     writable: true,
                 },
                 {
-                    name: "maker_token_ata",
+                    name: "makerTokenAta",
                     writable: true,
                 },
                 {
-                    name: "nft_mint_maker",
+                    name: "nftMintMaker",
                 },
                 {
-                    name: "payment_mint",
+                    name: "paymentMint",
                 },
                 {
-                    name: "nft_metadata_maker",
+                    name: "nftMetadataMaker",
                     writable: true,
                     pda: {
                         seeds: [
@@ -130,65 +130,65 @@ export const idlSwap: CollectionSwap = {
                             },
                             {
                                 kind: "account",
-                                path: "metadata_program",
+                                path: "metadataProgram",
                             },
                             {
                                 kind: "account",
-                                path: "nft_mint_maker",
+                                path: "nftMintMaker",
                             },
                         ],
                         program: {
                             kind: "account",
-                            path: "metadata_program",
+                            path: "metadataProgram",
                         },
                     },
                 },
                 {
-                    name: "nft_master_edition_maker",
+                    name: "nftMasterEditionMaker",
                     optional: true,
                 },
                 {
-                    name: "owner_token_record_maker",
+                    name: "ownerTokenRecordMaker",
                     writable: true,
                     optional: true,
                 },
                 {
-                    name: "destination_token_record_maker",
+                    name: "destinationTokenRecordMaker",
                     writable: true,
                     optional: true,
                 },
                 {
-                    name: "auth_rules_maker",
+                    name: "authRulesMaker",
                     optional: true,
                 },
                 {
-                    name: "system_program",
+                    name: "systemProgram",
                     address: "11111111111111111111111111111111",
                 },
                 {
-                    name: "metadata_program",
+                    name: "metadataProgram",
                 },
                 {
-                    name: "sysvar_instructions",
+                    name: "sysvarInstructions",
                 },
                 {
-                    name: "token_program",
+                    name: "tokenProgram",
                 },
                 {
-                    name: "ata_program",
+                    name: "ataProgram",
                 },
                 {
-                    name: "auth_rules_program",
+                    name: "authRulesProgram",
                 },
             ],
             args: [],
         },
         {
-            name: "cancel_swap22",
+            name: "cancelSwap22",
             discriminator: [208, 205, 79, 181, 249, 202, 156, 126],
             accounts: [
                 {
-                    name: "swap_data_account",
+                    name: "swapDataAccount",
                     writable: true,
                     pda: {
                         seeds: [
@@ -199,22 +199,22 @@ export const idlSwap: CollectionSwap = {
                             {
                                 kind: "account",
                                 path: "swap_data_account.maker",
-                                account: "SwapData",
+                                account: "swapData",
                             },
                             {
                                 kind: "account",
                                 path: "swap_data_account.nft_mint_maker",
-                                account: "SwapData",
+                                account: "swapData",
                             },
                         ],
                     },
                 },
                 {
-                    name: "swap_data_account_nft_ata",
+                    name: "swapDataAccountNftAta",
                     writable: true,
                 },
                 {
-                    name: "swap_data_account_token_ata",
+                    name: "swapDataAccountTokenAta",
                     writable: true,
                 },
                 {
@@ -226,41 +226,41 @@ export const idlSwap: CollectionSwap = {
                     signer: true,
                 },
                 {
-                    name: "maker_nft_ata",
+                    name: "makerNftAta",
                     writable: true,
                 },
                 {
-                    name: "maker_token_ata",
+                    name: "makerTokenAta",
                     writable: true,
                 },
                 {
-                    name: "nft_mint_maker",
+                    name: "nftMintMaker",
                 },
                 {
-                    name: "payment_mint",
+                    name: "paymentMint",
                 },
                 {
-                    name: "system_program",
+                    name: "systemProgram",
                     address: "11111111111111111111111111111111",
                 },
                 {
-                    name: "token_program",
+                    name: "tokenProgram",
                 },
                 {
-                    name: "token_program22",
+                    name: "tokenProgram22",
                 },
                 {
-                    name: "ata_program",
+                    name: "ataProgram",
                 },
             ],
             args: [],
         },
         {
-            name: "cancel_swap_core",
+            name: "cancelSwapCore",
             discriminator: [187, 175, 250, 223, 120, 39, 22, 136],
             accounts: [
                 {
-                    name: "swap_data_account",
+                    name: "swapDataAccount",
                     writable: true,
                     pda: {
                         seeds: [
@@ -271,18 +271,18 @@ export const idlSwap: CollectionSwap = {
                             {
                                 kind: "account",
                                 path: "swap_data_account.maker",
-                                account: "SwapData",
+                                account: "swapData",
                             },
                             {
                                 kind: "account",
                                 path: "swap_data_account.nft_mint_maker",
-                                account: "SwapData",
+                                account: "swapData",
                             },
                         ],
                     },
                 },
                 {
-                    name: "swap_data_account_token_ata",
+                    name: "swapDataAccountTokenAta",
                     writable: true,
                 },
                 {
@@ -294,38 +294,38 @@ export const idlSwap: CollectionSwap = {
                     signer: true,
                 },
                 {
-                    name: "maker_token_ata",
+                    name: "makerTokenAta",
                     writable: true,
                 },
                 {
-                    name: "nft_mint_maker",
+                    name: "nftMintMaker",
                     writable: true,
                 },
                 {
                     name: "collection",
                 },
                 {
-                    name: "payment_mint",
+                    name: "paymentMint",
                 },
                 {
-                    name: "system_program",
+                    name: "systemProgram",
                     address: "11111111111111111111111111111111",
                 },
                 {
-                    name: "token_program",
+                    name: "tokenProgram",
                 },
                 {
-                    name: "core_program",
+                    name: "coreProgram",
                 },
             ],
             args: [],
         },
         {
-            name: "claim_swap",
+            name: "claimSwap",
             discriminator: [57, 101, 146, 206, 102, 117, 112, 113],
             accounts: [
                 {
-                    name: "swap_data_account",
+                    name: "swapDataAccount",
                     writable: true,
                     pda: {
                         seeds: [
@@ -336,30 +336,30 @@ export const idlSwap: CollectionSwap = {
                             {
                                 kind: "account",
                                 path: "swap_data_account.maker",
-                                account: "SwapData",
+                                account: "swapData",
                             },
                             {
                                 kind: "account",
                                 path: "swap_data_account.nft_mint_maker",
-                                account: "SwapData",
+                                account: "swapData",
                             },
                         ],
                     },
                 },
                 {
-                    name: "swap_data_account_nft_ata",
+                    name: "swapDataAccountNftAta",
                     writable: true,
                 },
                 {
-                    name: "swap_data_account_token_ata",
+                    name: "swapDataAccountTokenAta",
                     writable: true,
                 },
                 {
-                    name: "ns_fee",
+                    name: "nsFee",
                     docs: ["CHECK : in constraints"],
                 },
                 {
-                    name: "ns_fee_token_ata",
+                    name: "nsFeeTokenAta",
                     writable: true,
                 },
                 {
@@ -367,11 +367,11 @@ export const idlSwap: CollectionSwap = {
                     docs: ["CHECK : in constraints"],
                 },
                 {
-                    name: "taker_nft_ata_maker",
+                    name: "takerNftAtaMaker",
                     writable: true,
                 },
                 {
-                    name: "taker_token_ata",
+                    name: "takerTokenAta",
                     writable: true,
                 },
                 {
@@ -379,21 +379,21 @@ export const idlSwap: CollectionSwap = {
                     writable: true,
                 },
                 {
-                    name: "maker_token_ata",
+                    name: "makerTokenAta",
                     writable: true,
                 },
                 {
-                    name: "nft_mint_maker",
+                    name: "nftMintMaker",
                 },
                 {
-                    name: "payment_mint",
+                    name: "paymentMint",
                 },
                 {
                     name: "signer",
                     signer: true,
                 },
                 {
-                    name: "nft_metadata_maker",
+                    name: "nftMetadataMaker",
                     writable: true,
                     pda: {
                         seeds: [
@@ -403,65 +403,65 @@ export const idlSwap: CollectionSwap = {
                             },
                             {
                                 kind: "account",
-                                path: "metadata_program",
+                                path: "metadataProgram",
                             },
                             {
                                 kind: "account",
-                                path: "nft_mint_maker",
+                                path: "nftMintMaker",
                             },
                         ],
                         program: {
                             kind: "account",
-                            path: "metadata_program",
+                            path: "metadataProgram",
                         },
                     },
                 },
                 {
-                    name: "nft_master_edition_maker",
+                    name: "nftMasterEditionMaker",
                     optional: true,
                 },
                 {
-                    name: "owner_token_record_maker",
+                    name: "ownerTokenRecordMaker",
                     writable: true,
                     optional: true,
                 },
                 {
-                    name: "destination_token_record_maker",
+                    name: "destinationTokenRecordMaker",
                     writable: true,
                     optional: true,
                 },
                 {
-                    name: "auth_rules_maker",
+                    name: "authRulesMaker",
                     optional: true,
                 },
                 {
-                    name: "system_program",
+                    name: "systemProgram",
                     address: "11111111111111111111111111111111",
                 },
                 {
-                    name: "metadata_program",
+                    name: "metadataProgram",
                 },
                 {
-                    name: "sysvar_instructions",
+                    name: "sysvarInstructions",
                 },
                 {
-                    name: "token_program",
+                    name: "tokenProgram",
                 },
                 {
-                    name: "ata_program",
+                    name: "ataProgram",
                 },
                 {
-                    name: "auth_rules_program",
+                    name: "authRulesProgram",
                 },
             ],
             args: [],
         },
         {
-            name: "claim_swap22",
+            name: "claimSwap22",
             discriminator: [2, 71, 161, 68, 27, 160, 38, 199],
             accounts: [
                 {
-                    name: "swap_data_account",
+                    name: "swapDataAccount",
                     writable: true,
                     pda: {
                         seeds: [
@@ -472,31 +472,31 @@ export const idlSwap: CollectionSwap = {
                             {
                                 kind: "account",
                                 path: "swap_data_account.maker",
-                                account: "SwapData",
+                                account: "swapData",
                             },
                             {
                                 kind: "account",
                                 path: "swap_data_account.nft_mint_maker",
-                                account: "SwapData",
+                                account: "swapData",
                             },
                         ],
                     },
                 },
                 {
-                    name: "swap_data_account_nft_ata",
+                    name: "swapDataAccountNftAta",
                     writable: true,
                 },
                 {
-                    name: "swap_data_account_token_ata",
+                    name: "swapDataAccountTokenAta",
                     writable: true,
                 },
                 {
-                    name: "ns_fee",
+                    name: "nsFee",
                     docs: ["CHECK : in constraints"],
                     writable: true,
                 },
                 {
-                    name: "ns_fee_token_ata",
+                    name: "nsFeeTokenAta",
                     writable: true,
                 },
                 {
@@ -505,11 +505,11 @@ export const idlSwap: CollectionSwap = {
                     writable: true,
                 },
                 {
-                    name: "taker_nft_ata_maker",
+                    name: "takerNftAtaMaker",
                     writable: true,
                 },
                 {
-                    name: "taker_token_ata",
+                    name: "takerTokenAta",
                     writable: true,
                 },
                 {
@@ -517,44 +517,44 @@ export const idlSwap: CollectionSwap = {
                     writable: true,
                 },
                 {
-                    name: "maker_token_ata",
+                    name: "makerTokenAta",
                     writable: true,
                 },
                 {
-                    name: "nft_mint_maker",
+                    name: "nftMintMaker",
                 },
                 {
-                    name: "payment_mint",
+                    name: "paymentMint",
                 },
                 {
                     name: "signer",
                     signer: true,
                 },
                 {
-                    name: "system_program",
+                    name: "systemProgram",
                     address: "11111111111111111111111111111111",
                 },
                 {
-                    name: "sysvar_instructions",
+                    name: "sysvarInstructions",
                 },
                 {
-                    name: "token_program",
+                    name: "tokenProgram",
                 },
                 {
-                    name: "token_program22",
+                    name: "tokenProgram22",
                 },
                 {
-                    name: "ata_program",
+                    name: "ataProgram",
                 },
             ],
             args: [],
         },
         {
-            name: "claim_swap_core",
+            name: "claimSwapCore",
             discriminator: [16, 165, 132, 93, 23, 254, 166, 9],
             accounts: [
                 {
-                    name: "swap_data_account",
+                    name: "swapDataAccount",
                     writable: true,
                     pda: {
                         seeds: [
@@ -565,26 +565,26 @@ export const idlSwap: CollectionSwap = {
                             {
                                 kind: "account",
                                 path: "swap_data_account.maker",
-                                account: "SwapData",
+                                account: "swapData",
                             },
                             {
                                 kind: "account",
                                 path: "swap_data_account.nft_mint_maker",
-                                account: "SwapData",
+                                account: "swapData",
                             },
                         ],
                     },
                 },
                 {
-                    name: "swap_data_account_token_ata",
+                    name: "swapDataAccountTokenAta",
                     writable: true,
                 },
                 {
-                    name: "ns_fee",
+                    name: "nsFee",
                     docs: ["CHECK : in constraints"],
                 },
                 {
-                    name: "ns_fee_token_ata",
+                    name: "nsFeeTokenAta",
                     writable: true,
                 },
                 {
@@ -592,7 +592,7 @@ export const idlSwap: CollectionSwap = {
                     docs: ["CHECK : in constraints"],
                 },
                 {
-                    name: "taker_token_ata",
+                    name: "takerTokenAta",
                     writable: true,
                 },
                 {
@@ -600,45 +600,45 @@ export const idlSwap: CollectionSwap = {
                     writable: true,
                 },
                 {
-                    name: "maker_token_ata",
+                    name: "makerTokenAta",
                     writable: true,
                 },
                 {
-                    name: "nft_mint_maker",
+                    name: "nftMintMaker",
                     writable: true,
                 },
                 {
                     name: "collection",
                 },
                 {
-                    name: "payment_mint",
+                    name: "paymentMint",
                 },
                 {
                     name: "signer",
                     signer: true,
                 },
                 {
-                    name: "system_program",
+                    name: "systemProgram",
                     address: "11111111111111111111111111111111",
                 },
                 {
-                    name: "token_program",
+                    name: "tokenProgram",
                 },
                 {
-                    name: "ata_program",
+                    name: "ataProgram",
                 },
                 {
-                    name: "core_program",
+                    name: "coreProgram",
                 },
             ],
             args: [],
         },
         {
-            name: "close_swap",
+            name: "closeSwap",
             discriminator: [244, 111, 137, 155, 121, 104, 126, 143],
             accounts: [
                 {
-                    name: "swap_data_account",
+                    name: "swapDataAccount",
                     writable: true,
                     pda: {
                         seeds: [
@@ -649,18 +649,18 @@ export const idlSwap: CollectionSwap = {
                             {
                                 kind: "account",
                                 path: "swap_data_account.maker",
-                                account: "SwapData",
+                                account: "swapData",
                             },
                             {
                                 kind: "account",
                                 path: "swap_data_account.nft_mint_maker",
-                                account: "SwapData",
+                                account: "swapData",
                             },
                         ],
                     },
                 },
                 {
-                    name: "swap_data_account_token_ata",
+                    name: "swapDataAccountTokenAta",
                     writable: true,
                 },
                 {
@@ -668,32 +668,32 @@ export const idlSwap: CollectionSwap = {
                     writable: true,
                 },
                 {
-                    name: "maker_token_ata",
+                    name: "makerTokenAta",
                     writable: true,
                 },
                 {
-                    name: "payment_mint",
+                    name: "paymentMint",
                 },
                 {
                     name: "signer",
                     signer: true,
                 },
                 {
-                    name: "system_program",
+                    name: "systemProgram",
                     address: "11111111111111111111111111111111",
                 },
                 {
-                    name: "token_program",
+                    name: "tokenProgram",
                 },
             ],
             args: [],
         },
         {
-            name: "make_swap",
+            name: "makeSwap",
             discriminator: [53, 60, 229, 243, 157, 94, 98, 186],
             accounts: [
                 {
-                    name: "swap_data_account",
+                    name: "swapDataAccount",
                     writable: true,
                     pda: {
                         seeds: [
@@ -707,17 +707,17 @@ export const idlSwap: CollectionSwap = {
                             },
                             {
                                 kind: "account",
-                                path: "nft_mint_maker",
+                                path: "nftMintMaker",
                             },
                         ],
                     },
                 },
                 {
-                    name: "swap_data_account_nft_ata",
+                    name: "swapDataAccountNftAta",
                     writable: true,
                 },
                 {
-                    name: "swap_data_account_token_ata",
+                    name: "swapDataAccountTokenAta",
                     writable: true,
                 },
                 {
@@ -726,21 +726,21 @@ export const idlSwap: CollectionSwap = {
                     signer: true,
                 },
                 {
-                    name: "maker_nft_ata",
+                    name: "makerNftAta",
                     writable: true,
                 },
                 {
-                    name: "maker_token_ata",
+                    name: "makerTokenAta",
                     writable: true,
                 },
                 {
-                    name: "nft_mint_maker",
+                    name: "nftMintMaker",
                 },
                 {
-                    name: "payment_mint",
+                    name: "paymentMint",
                 },
                 {
-                    name: "nft_metadata_maker",
+                    name: "nftMetadataMaker",
                     writable: true,
                     pda: {
                         seeds: [
@@ -750,78 +750,78 @@ export const idlSwap: CollectionSwap = {
                             },
                             {
                                 kind: "account",
-                                path: "metadata_program",
+                                path: "metadataProgram",
                             },
                             {
                                 kind: "account",
-                                path: "nft_mint_maker",
+                                path: "nftMintMaker",
                             },
                         ],
                         program: {
                             kind: "account",
-                            path: "metadata_program",
+                            path: "metadataProgram",
                         },
                     },
                 },
                 {
-                    name: "nft_master_edition_maker",
+                    name: "nftMasterEditionMaker",
                     optional: true,
                 },
                 {
-                    name: "owner_token_record_maker",
+                    name: "ownerTokenRecordMaker",
                     writable: true,
                     optional: true,
                 },
                 {
-                    name: "destination_token_record_maker",
+                    name: "destinationTokenRecordMaker",
                     writable: true,
                     optional: true,
                 },
                 {
-                    name: "auth_rules_maker",
+                    name: "authRulesMaker",
                     optional: true,
                 },
                 {
-                    name: "system_program",
+                    name: "systemProgram",
                     address: "11111111111111111111111111111111",
                 },
                 {
-                    name: "metadata_program",
+                    name: "metadataProgram",
                 },
                 {
-                    name: "sysvar_instructions",
+                    name: "sysvarInstructions",
                 },
                 {
-                    name: "token_program",
+                    name: "tokenProgram",
                 },
                 {
-                    name: "ata_program",
+                    name: "ataProgram",
                 },
                 {
-                    name: "auth_rules_program",
+                    name: "authRulesProgram",
                 },
             ],
             args: [
                 {
-                    name: "bid_to_add",
+                    name: "bidToAdd",
                     type: {
                         defined: {
-                            name: "Bid",
+                            name: "bid",
                         },
                     },
                 },
                 {
-                    name: "end_date",
+                    name: "endDate",
                     type: "i64",
                 },
             ],
         },
         {
-            name: "make_swap22",
+            name: "makeSwap22",
             discriminator: [164, 236, 205, 52, 222, 177, 64, 178],
             accounts: [
                 {
-                    name: "swap_data_account",
+                    name: "swapDataAccount",
                     writable: true,
                     pda: {
                         seeds: [
@@ -835,17 +835,17 @@ export const idlSwap: CollectionSwap = {
                             },
                             {
                                 kind: "account",
-                                path: "nft_mint_maker",
+                                path: "nftMintMaker",
                             },
                         ],
                     },
                 },
                 {
-                    name: "swap_data_account_nft_ata",
+                    name: "swapDataAccountNftAta",
                     writable: true,
                 },
                 {
-                    name: "swap_data_account_token_ata",
+                    name: "swapDataAccountTokenAta",
                     writable: true,
                 },
                 {
@@ -854,57 +854,57 @@ export const idlSwap: CollectionSwap = {
                     signer: true,
                 },
                 {
-                    name: "maker_nft_ata",
+                    name: "makerNftAta",
                     writable: true,
                 },
                 {
-                    name: "maker_token_ata",
+                    name: "makerTokenAta",
                     writable: true,
                 },
                 {
-                    name: "nft_mint_maker",
+                    name: "nftMintMaker",
                 },
                 {
-                    name: "payment_mint",
+                    name: "paymentMint",
                 },
                 {
-                    name: "system_program",
+                    name: "systemProgram",
                     address: "11111111111111111111111111111111",
                 },
                 {
-                    name: "sysvar_instructions",
+                    name: "sysvarInstructions",
                 },
                 {
-                    name: "token_program",
+                    name: "tokenProgram",
                 },
                 {
-                    name: "token_program22",
+                    name: "tokenProgram22",
                 },
                 {
-                    name: "ata_program",
+                    name: "ataProgram",
                 },
             ],
             args: [
                 {
-                    name: "bid_to_add",
+                    name: "bidToAdd",
                     type: {
                         defined: {
-                            name: "Bid",
+                            name: "bid",
                         },
                     },
                 },
                 {
-                    name: "end_date",
+                    name: "endDate",
                     type: "i64",
                 },
             ],
         },
         {
-            name: "make_swap_core",
+            name: "makeSwapCore",
             discriminator: [44, 178, 176, 37, 166, 110, 163, 109],
             accounts: [
                 {
-                    name: "swap_data_account",
+                    name: "swapDataAccount",
                     writable: true,
                     pda: {
                         seeds: [
@@ -918,13 +918,13 @@ export const idlSwap: CollectionSwap = {
                             },
                             {
                                 kind: "account",
-                                path: "nft_mint_maker",
+                                path: "nftMintMaker",
                             },
                         ],
                     },
                 },
                 {
-                    name: "swap_data_account_token_ata",
+                    name: "swapDataAccountTokenAta",
                     writable: true,
                 },
                 {
@@ -933,51 +933,51 @@ export const idlSwap: CollectionSwap = {
                     signer: true,
                 },
                 {
-                    name: "maker_token_ata",
+                    name: "makerTokenAta",
                     writable: true,
                 },
                 {
-                    name: "nft_mint_maker",
+                    name: "nftMintMaker",
                     writable: true,
                 },
                 {
-                    name: "payment_mint",
+                    name: "paymentMint",
                 },
                 {
                     name: "collection",
                 },
                 {
-                    name: "core_program",
+                    name: "coreProgram",
                 },
                 {
-                    name: "system_program",
+                    name: "systemProgram",
                     address: "11111111111111111111111111111111",
                 },
                 {
-                    name: "token_program",
+                    name: "tokenProgram",
                 },
             ],
             args: [
                 {
-                    name: "bid_to_add",
+                    name: "bidToAdd",
                     type: {
                         defined: {
-                            name: "Bid",
+                            name: "bid",
                         },
                     },
                 },
                 {
-                    name: "end_date",
+                    name: "endDate",
                     type: "i64",
                 },
             ],
         },
         {
-            name: "override_time",
+            name: "overrideTime",
             discriminator: [50, 176, 30, 138, 244, 107, 76, 2],
             accounts: [
                 {
-                    name: "swap_data_account",
+                    name: "swapDataAccount",
                     writable: true,
                     pda: {
                         seeds: [
@@ -988,12 +988,12 @@ export const idlSwap: CollectionSwap = {
                             {
                                 kind: "account",
                                 path: "swap_data_account.maker",
-                                account: "SwapData",
+                                account: "swapData",
                             },
                             {
                                 kind: "account",
                                 path: "swap_data_account.nft_mint_maker",
-                                account: "SwapData",
+                                account: "swapData",
                             },
                         ],
                     },
@@ -1006,17 +1006,17 @@ export const idlSwap: CollectionSwap = {
             ],
             args: [
                 {
-                    name: "end_time",
+                    name: "endTime",
                     type: "i64",
                 },
             ],
         },
         {
-            name: "pay_royalties",
+            name: "payRoyalties",
             discriminator: [49, 83, 229, 90, 55, 151, 131, 24],
             accounts: [
                 {
-                    name: "swap_data_account",
+                    name: "swapDataAccount",
                     writable: true,
                     pda: {
                         seeds: [
@@ -1027,29 +1027,29 @@ export const idlSwap: CollectionSwap = {
                             {
                                 kind: "account",
                                 path: "swap_data_account.maker",
-                                account: "SwapData",
+                                account: "swapData",
                             },
                             {
                                 kind: "account",
                                 path: "swap_data_account.nft_mint_maker",
-                                account: "SwapData",
+                                account: "swapData",
                             },
                         ],
                     },
                 },
                 {
-                    name: "swap_data_account_token_ata",
+                    name: "swapDataAccountTokenAta",
                     writable: true,
                 },
                 {
-                    name: "payment_mint",
+                    name: "paymentMint",
                 },
                 {
                     name: "signer",
                     signer: true,
                 },
                 {
-                    name: "nft_metadata",
+                    name: "nftMetadata",
                     pda: {
                         seeds: [
                             {
@@ -1058,72 +1058,72 @@ export const idlSwap: CollectionSwap = {
                             },
                             {
                                 kind: "account",
-                                path: "metadata_program",
+                                path: "metadataProgram",
                             },
                             {
                                 kind: "account",
-                                path: "nft_mint",
+                                path: "nftMint",
                             },
                         ],
                         program: {
                             kind: "account",
-                            path: "metadata_program",
+                            path: "metadataProgram",
                         },
                     },
                 },
                 {
-                    name: "nft_mint",
+                    name: "nftMint",
                 },
                 {
-                    name: "metadata_program",
+                    name: "metadataProgram",
                 },
                 {
-                    name: "token_program",
+                    name: "tokenProgram",
                 },
                 {
                     name: "creator0",
                 },
                 {
-                    name: "creator0_token_ata",
+                    name: "creator0TokenAta",
                     writable: true,
                 },
                 {
                     name: "creator1",
                 },
                 {
-                    name: "creator1_token_ata",
+                    name: "creator1TokenAta",
                     writable: true,
                 },
                 {
                     name: "creator2",
                 },
                 {
-                    name: "creator2_token_ata",
+                    name: "creator2TokenAta",
                     writable: true,
                 },
                 {
                     name: "creator3",
                 },
                 {
-                    name: "creator3_token_ata",
+                    name: "creator3TokenAta",
                     writable: true,
                 },
                 {
                     name: "creator4",
                 },
                 {
-                    name: "creator4_token_ata",
+                    name: "creator4TokenAta",
                     writable: true,
                 },
             ],
             args: [],
         },
         {
-            name: "pay_royalties22",
+            name: "payRoyalties22",
             discriminator: [45, 146, 35, 158, 92, 10, 74, 82],
             accounts: [
                 {
-                    name: "swap_data_account",
+                    name: "swapDataAccount",
                     writable: true,
                     pda: {
                         seeds: [
@@ -1134,35 +1134,35 @@ export const idlSwap: CollectionSwap = {
                             {
                                 kind: "account",
                                 path: "swap_data_account.maker",
-                                account: "SwapData",
+                                account: "swapData",
                             },
                             {
                                 kind: "account",
                                 path: "swap_data_account.nft_mint_maker",
-                                account: "SwapData",
+                                account: "swapData",
                             },
                         ],
                     },
                 },
                 {
-                    name: "nft_mint",
+                    name: "nftMint",
                 },
                 {
                     name: "signer",
                     signer: true,
                 },
                 {
-                    name: "token_program22",
+                    name: "tokenProgram22",
                 },
             ],
             args: [],
         },
         {
-            name: "pay_royalties_core",
+            name: "payRoyaltiesCore",
             discriminator: [160, 136, 87, 195, 165, 47, 227, 132],
             accounts: [
                 {
-                    name: "swap_data_account",
+                    name: "swapDataAccount",
                     writable: true,
                     pda: {
                         seeds: [
@@ -1173,77 +1173,77 @@ export const idlSwap: CollectionSwap = {
                             {
                                 kind: "account",
                                 path: "swap_data_account.maker",
-                                account: "SwapData",
+                                account: "swapData",
                             },
                             {
                                 kind: "account",
                                 path: "swap_data_account.nft_mint_maker",
-                                account: "SwapData",
+                                account: "swapData",
                             },
                         ],
                     },
                 },
                 {
-                    name: "swap_data_account_token_ata",
+                    name: "swapDataAccountTokenAta",
                     writable: true,
                 },
                 {
-                    name: "payment_mint",
+                    name: "paymentMint",
                 },
                 {
                     name: "signer",
                     signer: true,
                 },
                 {
-                    name: "nft_mint",
+                    name: "nftMint",
                 },
                 {
-                    name: "token_program",
+                    name: "tokenProgram",
                 },
                 {
-                    name: "maker_creator0",
+                    name: "makerCreator0",
                 },
                 {
-                    name: "maker_creator0_token_ata",
+                    name: "makerCreator0TokenAta",
                     writable: true,
                 },
                 {
-                    name: "maker_creator1",
+                    name: "makerCreator1",
                 },
                 {
-                    name: "maker_creator1_token_ata",
+                    name: "makerCreator1TokenAta",
                     writable: true,
                 },
                 {
-                    name: "maker_creator2",
+                    name: "makerCreator2",
                 },
                 {
-                    name: "maker_creator2_token_ata",
+                    name: "makerCreator2TokenAta",
                     writable: true,
                 },
                 {
-                    name: "maker_creator3",
+                    name: "makerCreator3",
                 },
                 {
-                    name: "maker_creator3_token_ata",
+                    name: "makerCreator3TokenAta",
                     writable: true,
                 },
                 {
-                    name: "maker_creator4",
+                    name: "makerCreator4",
                 },
                 {
-                    name: "maker_creator4_token_ata",
+                    name: "makerCreator4TokenAta",
                     writable: true,
                 },
             ],
             args: [],
         },
         {
-            name: "remove_bid",
+            name: "removeBid",
             discriminator: [67, 240, 240, 181, 3, 42, 61, 57],
             accounts: [
                 {
-                    name: "swap_data_account",
+                    name: "swapDataAccount",
                     writable: true,
                     pda: {
                         seeds: [
@@ -1254,12 +1254,12 @@ export const idlSwap: CollectionSwap = {
                             {
                                 kind: "account",
                                 path: "swap_data_account.maker",
-                                account: "SwapData",
+                                account: "swapData",
                             },
                             {
                                 kind: "account",
                                 path: "swap_data_account.nft_mint_maker",
-                                account: "SwapData",
+                                account: "swapData",
                             },
                         ],
                     },
@@ -1272,21 +1272,21 @@ export const idlSwap: CollectionSwap = {
             ],
             args: [
                 {
-                    name: "remove_bid",
+                    name: "removeBid",
                     type: {
                         defined: {
-                            name: "Bid",
+                            name: "bid",
                         },
                     },
                 },
             ],
         },
         {
-            name: "take_swap",
+            name: "takeSwap",
             discriminator: [82, 194, 146, 185, 78, 77, 212, 139],
             accounts: [
                 {
-                    name: "swap_data_account",
+                    name: "swapDataAccount",
                     writable: true,
                     pda: {
                         seeds: [
@@ -1297,29 +1297,29 @@ export const idlSwap: CollectionSwap = {
                             {
                                 kind: "account",
                                 path: "swap_data_account.maker",
-                                account: "SwapData",
+                                account: "swapData",
                             },
                             {
                                 kind: "account",
                                 path: "swap_data_account.nft_mint_maker",
-                                account: "SwapData",
+                                account: "swapData",
                             },
                         ],
                     },
                 },
                 {
-                    name: "swap_data_account_token_ata",
+                    name: "swapDataAccountTokenAta",
                     writable: true,
                 },
                 {
                     name: "maker",
                 },
                 {
-                    name: "maker_nft_ata",
+                    name: "makerNftAta",
                     writable: true,
                 },
                 {
-                    name: "maker_token_ata",
+                    name: "makerTokenAta",
                     writable: true,
                 },
                 {
@@ -1328,21 +1328,21 @@ export const idlSwap: CollectionSwap = {
                     signer: true,
                 },
                 {
-                    name: "taker_nft_ata",
+                    name: "takerNftAta",
                     writable: true,
                 },
                 {
-                    name: "taker_token_ata",
+                    name: "takerTokenAta",
                     writable: true,
                 },
                 {
-                    name: "nft_mint_taker",
+                    name: "nftMintTaker",
                 },
                 {
-                    name: "payment_mint",
+                    name: "paymentMint",
                 },
                 {
-                    name: "nft_metadata_taker",
+                    name: "nftMetadataTaker",
                     writable: true,
                     pda: {
                         seeds: [
@@ -1352,74 +1352,74 @@ export const idlSwap: CollectionSwap = {
                             },
                             {
                                 kind: "account",
-                                path: "metadata_program",
+                                path: "metadataProgram",
                             },
                             {
                                 kind: "account",
-                                path: "nft_mint_taker",
+                                path: "nftMintTaker",
                             },
                         ],
                         program: {
                             kind: "account",
-                            path: "metadata_program",
+                            path: "metadataProgram",
                         },
                     },
                 },
                 {
-                    name: "nft_master_edition_taker",
+                    name: "nftMasterEditionTaker",
                     optional: true,
                 },
                 {
-                    name: "owner_token_record_taker",
+                    name: "ownerTokenRecordTaker",
                     writable: true,
                     optional: true,
                 },
                 {
-                    name: "destination_token_record_taker",
+                    name: "destinationTokenRecordTaker",
                     writable: true,
                     optional: true,
                 },
                 {
-                    name: "auth_rules_taker",
+                    name: "authRulesTaker",
                     optional: true,
                 },
                 {
-                    name: "system_program",
+                    name: "systemProgram",
                     address: "11111111111111111111111111111111",
                 },
                 {
-                    name: "metadata_program",
+                    name: "metadataProgram",
                 },
                 {
-                    name: "sysvar_instructions",
+                    name: "sysvarInstructions",
                 },
                 {
-                    name: "token_program",
+                    name: "tokenProgram",
                 },
                 {
-                    name: "ata_program",
+                    name: "ataProgram",
                 },
                 {
-                    name: "auth_rules_program",
+                    name: "authRulesProgram",
                 },
             ],
             args: [
                 {
-                    name: "bid_to_accept",
+                    name: "bidToAccept",
                     type: {
                         defined: {
-                            name: "Bid",
+                            name: "bid",
                         },
                     },
                 },
             ],
         },
         {
-            name: "take_swap22",
+            name: "takeSwap22",
             discriminator: [73, 19, 84, 21, 81, 158, 142, 69],
             accounts: [
                 {
-                    name: "swap_data_account",
+                    name: "swapDataAccount",
                     writable: true,
                     pda: {
                         seeds: [
@@ -1430,29 +1430,29 @@ export const idlSwap: CollectionSwap = {
                             {
                                 kind: "account",
                                 path: "swap_data_account.maker",
-                                account: "SwapData",
+                                account: "swapData",
                             },
                             {
                                 kind: "account",
                                 path: "swap_data_account.nft_mint_maker",
-                                account: "SwapData",
+                                account: "swapData",
                             },
                         ],
                     },
                 },
                 {
-                    name: "swap_data_account_token_ata",
+                    name: "swapDataAccountTokenAta",
                     writable: true,
                 },
                 {
                     name: "maker",
                 },
                 {
-                    name: "maker_nft_ata",
+                    name: "makerNftAta",
                     writable: true,
                 },
                 {
-                    name: "maker_token_ata",
+                    name: "makerTokenAta",
                     writable: true,
                 },
                 {
@@ -1461,53 +1461,53 @@ export const idlSwap: CollectionSwap = {
                     signer: true,
                 },
                 {
-                    name: "taker_nft_ata",
+                    name: "takerNftAta",
                     writable: true,
                 },
                 {
-                    name: "taker_token_ata",
+                    name: "takerTokenAta",
                     writable: true,
                 },
                 {
-                    name: "nft_mint_taker",
+                    name: "nftMintTaker",
                 },
                 {
-                    name: "payment_mint",
+                    name: "paymentMint",
                 },
                 {
-                    name: "hashlist_marker",
+                    name: "hashlistMarker",
                 },
                 {
-                    name: "system_program",
+                    name: "systemProgram",
                     address: "11111111111111111111111111111111",
                 },
                 {
-                    name: "token_program",
+                    name: "tokenProgram",
                 },
                 {
-                    name: "token_program22",
+                    name: "tokenProgram22",
                 },
                 {
-                    name: "ata_program",
+                    name: "ataProgram",
                 },
             ],
             args: [
                 {
-                    name: "bid_to_accept",
+                    name: "bidToAccept",
                     type: {
                         defined: {
-                            name: "Bid",
+                            name: "bid",
                         },
                     },
                 },
             ],
         },
         {
-            name: "take_swap_core",
+            name: "takeSwapCore",
             discriminator: [199, 209, 161, 30, 107, 131, 134, 234],
             accounts: [
                 {
-                    name: "swap_data_account",
+                    name: "swapDataAccount",
                     writable: true,
                     pda: {
                         seeds: [
@@ -1518,25 +1518,25 @@ export const idlSwap: CollectionSwap = {
                             {
                                 kind: "account",
                                 path: "swap_data_account.maker",
-                                account: "SwapData",
+                                account: "swapData",
                             },
                             {
                                 kind: "account",
                                 path: "swap_data_account.nft_mint_maker",
-                                account: "SwapData",
+                                account: "swapData",
                             },
                         ],
                     },
                 },
                 {
-                    name: "swap_data_account_token_ata",
+                    name: "swapDataAccountTokenAta",
                     writable: true,
                 },
                 {
                     name: "maker",
                 },
                 {
-                    name: "maker_token_ata",
+                    name: "makerTokenAta",
                     writable: true,
                 },
                 {
@@ -1545,35 +1545,35 @@ export const idlSwap: CollectionSwap = {
                     signer: true,
                 },
                 {
-                    name: "taker_token_ata",
+                    name: "takerTokenAta",
                     writable: true,
                 },
                 {
-                    name: "nft_mint_taker",
+                    name: "nftMintTaker",
                     writable: true,
                 },
                 {
-                    name: "payment_mint",
+                    name: "paymentMint",
                 },
                 {
                     name: "collection",
                 },
                 {
-                    name: "sysvar_instructions",
+                    name: "sysvarInstructions",
                 },
                 {
-                    name: "token_program",
+                    name: "tokenProgram",
                 },
                 {
-                    name: "core_program",
+                    name: "coreProgram",
                 },
             ],
             args: [
                 {
-                    name: "bid_to_accept",
+                    name: "bidToAccept",
                     type: {
                         defined: {
-                            name: "Bid",
+                            name: "bid",
                         },
                     },
                 },
@@ -1582,185 +1582,190 @@ export const idlSwap: CollectionSwap = {
     ],
     accounts: [
         {
-            name: "SwapData",
+            name: "swapData",
             discriminator: [107, 253, 23, 129, 228, 108, 158, 32],
         },
     ],
     errors: [
         {
             code: 6000,
-            name: "EmptyBids",
+            name: "emptyBids",
             msg: "List of Bids is empty",
         },
         {
             code: 6001,
-            name: "BidAlreadyExists",
+            name: "bidAlreadyExists",
             msg: "Bid already exists",
         },
         {
             code: 6002,
-            name: "IncorrectMint",
+            name: "incorrectMint",
             msg: "Incorrect Mint",
         },
         {
             code: 6003,
-            name: "SeedLengthIncorrect",
+            name: "seedLengthIncorrect",
             msg: "Given seed length is Incorrect",
         },
         {
             code: 6004,
-            name: "UnexpectedState",
+            name: "unexpectedState",
             msg: "The status given is not correct",
         },
         {
             code: 6005,
-            name: "IncorrectFeeAccount",
+            name: "incorrectFeeAccount",
             msg: "Fee Account is not correct",
         },
         {
             code: 6006,
-            name: "IncorrectDate",
+            name: "incorrectDate",
             msg: "Date given is incorrect",
         },
         {
             code: 6007,
-            name: "IncorrectAmount",
+            name: "incorrectAmount",
             msg: "Amount given is incorrect",
         },
         {
             code: 6008,
-            name: "IncorrectPayment",
+            name: "incorrectPayment",
             msg: "Incorrect Payment Mint",
         },
         {
             code: 6009,
-            name: "NoAcceptedBidFound",
+            name: "noAcceptedBidFound",
             msg: "You need to take swap before claimimg it",
         },
         {
             code: 6010,
-            name: "NotClaimed",
+            name: "notClaimed",
             msg: "You need to claim swap before closing it",
         },
         {
             code: 6100,
-            name: "NotMaker",
+            name: "notMaker",
             msg: "wrong signer, only maker can perform this action",
         },
         {
             code: 6101,
-            name: "NotTaker",
+            name: "notTaker",
             msg: "wrong address for Taker",
         },
         {
             code: 6102,
-            name: "IncorrectOwner",
+            name: "incorrectOwner",
             msg: "Owner Given is incorrect",
         },
         {
             code: 6200,
-            name: "UnVerifiedCollection",
+            name: "unVerifiedCollection",
             msg: "Collection is unverified",
         },
         {
             code: 6201,
-            name: "IncorrectCollection",
+            name: "incorrectCollection",
             msg: "Collection doesnt't match givent mint collection",
         },
         {
             code: 6202,
-            name: "UnVerifiedCreator",
+            name: "unVerifiedCreator",
             msg: "Creator is unverified",
         },
         {
             code: 6203,
-            name: "IncorrectCreator",
+            name: "incorrectCreator",
             msg: "Creator passed is incorrect",
         },
         {
             code: 6204,
-            name: "NotCoreAsset",
+            name: "notCoreAsset",
             msg: "Asset is not a Mpl Core asset",
         },
         {
             code: 6300,
-            name: "AlreadyExist",
+            name: "alreadyExist",
             msg: "The item you're trying to add already exists in the SDA",
         },
         {
             code: 6301,
-            name: "CannotFindAccount",
+            name: "cannotFindAccount",
             msg: "Cannot find the account",
         },
         {
             code: 6302,
-            name: "IncorrectState",
+            name: "incorrectState",
             msg: "Swap is not in the adequate state to perform this action",
         },
         {
             code: 6303,
-            name: "CollectionNotFound",
+            name: "collectionNotFound",
             msg: "Cannot find the given collection in the SDA",
         },
         {
             code: 6304,
-            name: "AlreadyTaken",
+            name: "alreadyTaken",
             msg: "Swap already accepted",
         },
         {
             code: 6305,
-            name: "BidNotFound",
-            msg: "Bid not found in the list of bids",
+            name: "alreadyClaimed",
+            msg: "Swap already claimed",
         },
         {
             code: 6306,
-            name: "FeeNotPaid",
-            msg: "Fees are not paid, please pay the fees before closing the swap",
-        },
-        {
-            code: 6307,
-            name: "RoyaltiesAlreadyPaid",
+            name: "royaltiesAlreadyPaid",
             msg: "Royalties already paied",
         },
         {
+            code: 6307,
+            name: "bidNotFound",
+            msg: "Bid not found in the list of bids",
+        },
+        {
             code: 6308,
-            name: "TooLate",
-            msg: "the Swap you tried to accept is expired",
+            name: "feeNotPaid",
+            msg: "Fees are not paid, please pay the fees before closing the swap",
         },
         {
             code: 6309,
-            name: "TooEarly",
+            name: "tooLate",
+            msg: "the Swap you tried to accept is expired",
+        },
+        {
+            code: 6310,
+            name: "tooEarly",
             msg: "Too early to perform this action",
         },
         {
             code: 6900,
-            name: "IncorrectSysvar",
+            name: "incorrectSysvar",
             msg: "Incorrect Sysvar Instruction Program",
         },
         {
             code: 6901,
-            name: "IncorrectMetadata",
+            name: "incorrectMetadata",
             msg: "Incorrect Metadata Program",
         },
         {
             code: 6902,
-            name: "IncorrectSplAta",
+            name: "incorrectSplAta",
             msg: "Incorrect Token ATA Program",
         },
         {
             code: 6903,
-            name: "IncorrectTokenProgram",
+            name: "incorrectTokenProgram",
             msg: "Incorrect Token Program",
         },
         {
             code: 6904,
-            name: "IncorrectCoreProgram",
+            name: "incorrectCoreProgram",
             msg: "Incorrect Core Program",
         },
     ],
     types: [
         {
-            name: "Bid",
+            name: "bid",
             type: {
                 kind: "struct",
                 fields: [
@@ -1773,26 +1778,26 @@ export const idlSwap: CollectionSwap = {
                         type: "i64",
                     },
                     {
-                        name: "maker_neoswap_fee",
+                        name: "makerNeoswapFee",
                         type: "u64",
                     },
                     {
-                        name: "taker_neoswap_fee",
+                        name: "takerNeoswapFee",
                         type: "u64",
                     },
                     {
-                        name: "taker_royalties",
+                        name: "takerRoyalties",
                         type: "u64",
                     },
                     {
-                        name: "maker_royalties",
+                        name: "makerRoyalties",
                         type: "u64",
                     },
                 ],
             },
         },
         {
-            name: "SwapData",
+            name: "swapData",
             type: {
                 kind: "struct",
                 fields: [
@@ -1801,7 +1806,7 @@ export const idlSwap: CollectionSwap = {
                         type: "pubkey",
                     },
                     {
-                        name: "nft_mint_maker",
+                        name: "nftMintMaker",
                         type: "pubkey",
                     },
                     {
@@ -1809,7 +1814,7 @@ export const idlSwap: CollectionSwap = {
                         type: {
                             vec: {
                                 defined: {
-                                    name: "Bid",
+                                    name: "bid",
                                 },
                             },
                         },
@@ -1821,43 +1826,43 @@ export const idlSwap: CollectionSwap = {
                         },
                     },
                     {
-                        name: "nft_mint_taker",
+                        name: "nftMintTaker",
                         type: {
                             option: "pubkey",
                         },
                     },
                     {
-                        name: "accepted_bid",
+                        name: "acceptedBid",
                         type: {
                             option: {
                                 defined: {
-                                    name: "Bid",
+                                    name: "bid",
                                 },
                             },
                         },
                     },
                     {
-                        name: "referer_maker",
+                        name: "refererMaker",
                         type: {
                             option: "pubkey",
                         },
                     },
                     {
-                        name: "referer_taker",
+                        name: "refererTaker",
                         type: {
                             option: "pubkey",
                         },
                     },
                     {
-                        name: "end_time",
+                        name: "endTime",
                         type: "i64",
                     },
                     {
-                        name: "royalties_paid_taker",
+                        name: "royaltiesPaidTaker",
                         type: "bool",
                     },
                     {
-                        name: "royalties_paid_maker",
+                        name: "royaltiesPaidMaker",
                         type: "bool",
                     },
                     {
@@ -1865,14 +1870,14 @@ export const idlSwap: CollectionSwap = {
                         type: "bool",
                     },
                     {
-                        name: "payment_mint",
+                        name: "paymentMint",
                         type: "pubkey",
                     },
                 ],
             },
         },
     ],
-} as any as CollectionSwap;
+} as CollectionSwap;
 
 export type CollectionSwap = {
     address: string;
@@ -3585,26 +3590,31 @@ export type CollectionSwap = {
         },
         {
             code: 6305;
-            name: "bidNotFound";
-            msg: "Bid not found in the list of bids";
+            name: "alreadyClaimed";
+            msg: "Swap already claimed";
         },
         {
             code: 6306;
-            name: "feeNotPaid";
-            msg: "Fees are not paid, please pay the fees before closing the swap";
-        },
-        {
-            code: 6307;
             name: "royaltiesAlreadyPaid";
             msg: "Royalties already paied";
         },
         {
+            code: 6307;
+            name: "bidNotFound";
+            msg: "Bid not found in the list of bids";
+        },
+        {
             code: 6308;
+            name: "feeNotPaid";
+            msg: "Fees are not paid, please pay the fees before closing the swap";
+        },
+        {
+            code: 6309;
             name: "tooLate";
             msg: "the Swap you tried to accept is expired";
         },
         {
-            code: 6309;
+            code: 6310;
             name: "tooEarly";
             msg: "Too early to perform this action";
         },
