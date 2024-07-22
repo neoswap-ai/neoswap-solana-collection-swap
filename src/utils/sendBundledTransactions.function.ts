@@ -126,6 +126,7 @@ export async function sendBundledTransactionsV2(
                 ...cOptionSend,
             });
             processedBTs.push(bt);
+           await isConfirmedTx({transactionHashs:[bt.hash!],connection})
         }
         return processedBTs;
     } catch (error) {

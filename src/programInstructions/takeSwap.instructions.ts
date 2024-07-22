@@ -178,7 +178,7 @@ export async function createTakeSwapInstructions(
 
         const takeIx = await program.methods
             .takeSwap(bidToscBid(bid))
-            .accounts({
+            .accountsStrict({
                 swapDataAccount: swapDataAccount,
                 swapDataAccountTokenAta,
 

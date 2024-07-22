@@ -10,6 +10,7 @@ import {
     VersionedTransaction,
 } from "@solana/web3.js";
 import BN from "bn.js";
+import { CollectionSwap } from "./neoSwap.idl";
 
 export type Bid = {
     collection: string;
@@ -45,6 +46,7 @@ export type SwapData = {
 
     royaltiesPaidMaker: boolean;
     royaltiesPaidTaker: boolean;
+    claimed: boolean;
 
     status: "active" | "expired" | "accepted";
     paymentMint: string;
@@ -67,6 +69,7 @@ export type ScSwapData = {
 
     royaltiesPaidMaker: boolean;
     royaltiesPaidTaker: boolean;
+    claimed: boolean;
 
     paymentMint: PublicKey;
 };
@@ -179,7 +182,7 @@ export type OptionSend = {
 };
 export type EnvOpts = {
     clusterOrUrl?: Cluster | string;
-    program?: Program;
+    program?: Program<CollectionSwap>;
     programId?: string;
     idl?: Idl | true;
     prioritizationFee?: number;
@@ -196,7 +199,7 @@ export type COptionSend = {
 };
 export type CEnvOpts = {
     clusterOrUrl: Cluster | string;
-    program: Program;
+    program: Program<CollectionSwap>;
     connection: Connection;
     programId: string;
     idl: Idl;

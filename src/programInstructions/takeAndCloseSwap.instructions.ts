@@ -23,6 +23,9 @@ import {
     findNftMasterEdition,
     findRuleSet,
     findUserTokenRecord,
+    getCoreCollection,
+    getHashlistMarker,
+    whichStandard,
 } from "../utils/findNftDataAndAccounts.function";
 import { TokenStandard } from "@metaplex-foundation/mpl-token-metadata";
 import { getCreatorData } from "../utils/creators";
@@ -32,6 +35,7 @@ import { WRAPPED_SOL_MINT } from "@metaplex-foundation/js";
 import { addWSol, closeWSol } from "../utils/wsol";
 import { ix2vTx } from "../utils/vtx";
 import { checkEnvOpts, getTakeArgs } from "../utils/check";
+import { MPL_CORE_PROGRAM_ID } from "@metaplex-foundation/mpl-core";
 
 export async function createTakeAndCloseSwapInstructions(
     Data: TakeSArg & EnvOpts
@@ -47,26 +51,17 @@ export async function createTakeAndCloseSwapInstructions(
         signer = taker;
     }
 
-    let takeSwapTx: VersionedTransaction | undefined;
-    let payRoyaltiesTx: VersionedTransaction | undefined;
-    let claimSwapTx: VersionedTransaction | undefined;
-
-    let takeIxs: TransactionInstruction[] = [
+    let takeAndClaimIxs: TransactionInstruction[] = [
         ComputeBudgetProgram.setComputeUnitLimit({
-            units: 8500000,
-        }),
-    ];
-    let payRIxs: TransactionInstruction[] = [
-        ComputeBudgetProgram.setComputeUnitLimit({
-            units: 800000,
-        }),
-    ];
-    let claimSIxs: TransactionInstruction[] = [
-        ComputeBudgetProgram.setComputeUnitLimit({
-            units: 900000,
+            units: 8_500_000,
         }),
     ];
 
+    let payRAndCloseSIxs: TransactionInstruction[] = [
+        ComputeBudgetProgram.setComputeUnitLimit({
+            units: 8_500_000,
+        }),
+    ];
     try {
         let swapDataData = await getSdaData({
             program,
@@ -82,12 +77,13 @@ export async function createTakeAndCloseSwapInstructions(
             acceptedBid,
             royaltiesPaidMaker,
             royaltiesPaidTaker,
-            // taker,
+            claimed,
         } = swapDataData;
 
         if (verifyTaker && swapDataData.taker && swapDataData.taker !== taker)
             throw "signer is not the taker of this swap";
 
+        // checking the bid we want exists in SDA
         const foundBid = bids.find(
             (b) =>
                 b.amount === bid.amount &&
@@ -100,140 +96,91 @@ export async function createTakeAndCloseSwapInstructions(
         if (!foundBid)
             throw `bid ${JSON.stringify(Data.bid)} not found in ${JSON.stringify(bids)} `;
 
-        let nftMasterEditionTaker = signer;
-        let ownerTokenRecordTaker = signer;
-        let destinationTokenRecordTaker = signer;
-        let authRulesTaker = signer;
-        let nftMetadataTaker = signer;
+        // finding which standard the nfts are
+        let makerNftStd = await whichStandard({ connection, mint: nftMintMaker });
+        let takerNftStd = await whichStandard({ connection, mint: nftMintTaker });
 
-        let nftMasterEditionMaker = signer;
-        let ownerTokenRecordMaker = signer;
-        let destinationTokenRecordMaker = signer;
-        let authRulesMaker = signer;
-        let nftMetadataMaker = signer;
+        //
+        // finding payment ATAs
+        //
 
-        let { mintAta: takerNftAta, instruction: tn } = await findOrCreateAta({
-            connection,
-            mint: nftMintTaker,
-            owner: taker,
-            signer,
-        });
-        // console.log(nftMintTaker, "takerTokenProg", takerTokenProg);
-        let takerTokenProg = (
-            await connection.getAccountInfo(new PublicKey(nftMintTaker))
-        )?.owner.toString();
-
-        console.log(
-            nftMintTaker,
-            "takerTokenProg",
-            takerTokenProg == TOKEN_PROGRAM_ID.toString()
-                ? "native"
-                : takerTokenProg == TOKEN_2022_PROGRAM_ID.toString()
-                ? "2022"
-                : "inknown"
-        );
-
-        let makerTokenProg = (
-            await connection.getAccountInfo(new PublicKey(nftMintMaker))
-        )?.owner.toString();
-
-        console.log(
-            nftMintMaker,
-            "makerTokenProg",
-            makerTokenProg == TOKEN_PROGRAM_ID.toString()
-                ? "native"
-                : makerTokenProg == TOKEN_2022_PROGRAM_ID.toString()
-                ? "2022"
-                : "inknown"
-        );
-
-        if (tn) {
-            takeIxs.push(tn);
-        } else console.log("takerNftAta", takerNftAta);
-
-        let { mintAta: takerTokenAta, instruction: tt } = await findOrCreateAta({
+        let { mintAta: takerTokenAta, instruction: takerTokenIx } = await findOrCreateAta({
             connection,
             mint: paymentMint,
             owner: taker,
             signer,
         });
-        if (tt) {
-            takeIxs.push(tt);
-        } else console.log("takerTokenAta", takerTokenAta);
+        if (takerTokenIx) takeAndClaimIxs.push(takerTokenIx);
+        else console.log("takerTokenAta", takerTokenAta);
 
-        let { mintAta: makerNftAta, instruction: mn } = await findOrCreateAta({
-            connection,
-            mint: nftMintTaker,
-            owner: maker,
-            signer,
-        });
-        if (mn) {
-            takeIxs.push(mn);
-        } else console.log("makerNftAta", makerNftAta);
-
-        let { mintAta: makerTokenAta, instruction: mt } = await findOrCreateAta({
-            connection,
-            mint: paymentMint,
-            owner: maker,
-            signer,
-        });
-        if (mt) {
-            takeIxs.push(mt);
-        } else console.log("makerTokenAta", makerTokenAta);
-
-        let { mintAta: swapDataAccountTokenAta, instruction: sdat } = await findOrCreateAta({
+        let { mintAta: swapDataAccountTokenAta, instruction: sdaTokenIx } = await findOrCreateAta({
             connection,
             mint: paymentMint,
             owner: swapDataAccount,
             signer,
         });
-        if (sdat) {
-            takeIxs.push(sdat);
-        } else console.log("swapDataAccountTokenAta", swapDataAccountTokenAta);
+        if (sdaTokenIx) takeAndClaimIxs.push(sdaTokenIx);
+        else console.log("swapDataAccountTokenAta", swapDataAccountTokenAta);
 
-        if (takerTokenProg === TOKEN_PROGRAM_ID.toString()) {
-            // console.log(takerTokenProg, "nftMintTaker findNftDataAndMetadataAccount", nftMintTaker);
+        let { mintAta: makerTokenAta, instruction: makerTokenIx } = await findOrCreateAta({
+            connection,
+            mint: paymentMint,
+            owner: maker,
+            signer,
+        });
+        if (makerTokenIx) takeAndClaimIxs.push(makerTokenIx);
+        else console.log("makerTokenAta", makerTokenAta);
 
-            const { metadataAddress: nftMetadataTaker2, tokenStandard: tokenStandardTaker } =
+        let { mintAta: nsFeeTokenAta, instruction: nsTokenIx } = await findOrCreateAta({
+            connection,
+            mint: paymentMint,
+            owner: NS_FEE,
+            signer,
+        });
+        if (nsTokenIx) takeAndClaimIxs.push(nsTokenIx);
+        else console.log("nsFeeTokenAta", nsFeeTokenAta);
+
+        //
+        // Getting metadata Maker Nft
+        //
+
+        let nftMetadataMaker: string | null = null;
+        let tokenStandardMaker: number | null = null;
+
+        if (makerNftStd === "native") {
+            console.log("makerNftStdmakerNftStdmakerNftStdmakerNftStdmakerNftStd", makerNftStd);
+
+            const { metadataAddress: nftMetadataMaker2, tokenStandard: tokenStandardMaker2 } =
+                await findNftDataAndMetadataAccount({
+                    connection,
+                    mint: nftMintMaker,
+                });
+            nftMetadataMaker = nftMetadataMaker2;
+            tokenStandardMaker = tokenStandardMaker2 ? tokenStandardMaker2 : null;
+            console.log("nftMetadataMaker", nftMetadataMaker);
+        }
+
+        //
+        // Getting metadata Taker Nft
+        //
+
+        let nftMetadataTaker: string | null = null;
+        let tokenStandardTaker: number | null = null;
+
+        if (takerNftStd === "native") {
+            const { metadataAddress: nftMetadataTaker2, tokenStandard: tokenStandardTaker2 } =
                 await findNftDataAndMetadataAccount({
                     connection,
                     mint: nftMintTaker,
                 });
             nftMetadataTaker = nftMetadataTaker2;
+            tokenStandardTaker = tokenStandardTaker2 ? tokenStandardTaker2 : null;
             console.log("nftMetadataTaker", nftMetadataTaker);
-
-            if (tokenStandardTaker == TokenStandard.ProgrammableNonFungible) {
-                const nftMasterEditionF = findNftMasterEdition({
-                    mint: nftMintTaker,
-                });
-                console.log("nftMasterEditionF", nftMasterEditionF);
-
-                const ownerTokenRecordF = findUserTokenRecord({
-                    mint: nftMintTaker,
-                    userMintAta: takerNftAta,
-                });
-                console.log("ownerTokenRecordF", ownerTokenRecordF);
-
-                const destinationTokenRecordF = findUserTokenRecord({
-                    mint: nftMintTaker,
-                    userMintAta: makerNftAta,
-                });
-                console.log("destinationTokenRecordF", destinationTokenRecordF);
-
-                const authRulesF = await findRuleSet({
-                    connection,
-                    mint: nftMintTaker,
-                });
-                console.log("authRulesF", authRulesF);
-
-                nftMasterEditionTaker = nftMasterEditionF;
-                ownerTokenRecordTaker = ownerTokenRecordF;
-                destinationTokenRecordTaker = destinationTokenRecordF;
-                authRulesTaker = authRulesF;
-            }
         }
 
-        console.log("bid", bid);
+        //
+        // taking Swap
+        //
 
         if (!acceptedBid) {
             if (swapDataData.paymentMint === WRAPPED_SOL_MINT.toString()) {
@@ -241,151 +188,379 @@ export async function createTakeAndCloseSwapInstructions(
                 if (bid.amount > 0) amount += bid.amount;
                 console.log("Wrapping " + amount + " lamports to wSOL");
 
-                takeIxs.push(...addWSol(taker, takerTokenAta, amount));
+                takeAndClaimIxs.push(...addWSol(taker, takerTokenAta, amount));
             }
-            if (takerTokenProg === TOKEN_PROGRAM_ID.toString()) {
+            if (takerNftStd == "core") {
+                let takerCoreCollection = await getCoreCollection({
+                    connection,
+                    mint: nftMintTaker,
+                });
                 const takeIx = await program.methods
-                    .takeSwap(bidToscBid(bid))
-                    .accounts({
+                    .takeSwapCore(bidToscBid(bid))
+                    .accountsStrict({
                         swapDataAccount,
                         swapDataAccountTokenAta,
 
                         maker,
-                        makerNftAta,
                         makerTokenAta,
 
                         taker,
-                        takerNftAta,
                         takerTokenAta,
 
                         nftMintTaker,
                         paymentMint,
 
-                        nftMetadataTaker,
-                        nftMasterEditionTaker,
-                        ownerTokenRecordTaker,
-                        destinationTokenRecordTaker,
-                        authRulesTaker,
+                        collection: takerCoreCollection,
 
-                        systemProgram: SystemProgram.programId,
-                        metadataProgram: TOKEN_METADATA_PROGRAM,
+                        coreProgram: MPL_CORE_PROGRAM_ID,
                         sysvarInstructions: SYSVAR_INSTRUCTIONS_PUBKEY,
                         tokenProgram: TOKEN_PROGRAM_ID,
-                        ataProgram: SOLANA_SPL_ATA_PROGRAM_ID,
-                        authRulesProgram: METAPLEX_AUTH_RULES_PROGRAM,
                     })
                     .instruction();
-                takeIxs.push(takeIx);
+                takeAndClaimIxs.push(takeIx);
             } else {
-                let hashlistMarker = PublicKey.findProgramAddressSync(
-                    [
-                        Buffer.from("hashlist_marker"),
-                        new PublicKey(bid.collection).toBuffer(),
-                        new PublicKey(nftMintTaker).toBuffer(),
-                    ],
-                    new PublicKey(FAIR_LAUNCH_PROGRAM_ID)
-                )[0].toString();
-                console.log("hashlistMarker", hashlistMarker);
+                let { mintAta: makerNftAta, instruction: makerAtaMakerNftIx } =
+                    await findOrCreateAta({
+                        connection,
+                        mint: nftMintTaker,
+                        owner: maker,
+                        signer,
+                    });
+                if (makerAtaMakerNftIx) takeAndClaimIxs.push(makerAtaMakerNftIx);
+                else console.log("makerNftAta", makerNftAta);
 
-                const takeIx = await program.methods
-                    .takeSwap22(bidToscBid(Data.bid))
-                    .accounts({
+                let { mintAta: takerNftAta, instruction: takerAtaMakerNftIx } =
+                    await findOrCreateAta({
+                        connection,
+                        mint: nftMintTaker,
+                        owner: taker,
+                        signer,
+                    });
+                if (takerAtaMakerNftIx) takeAndClaimIxs.push(takerAtaMakerNftIx);
+                else console.log("takerNftAta", takerNftAta);
+
+                if (takerNftStd === "native") {
+                    let nftMasterEditionTaker: string | null = null;
+                    let ownerTokenRecordTaker: string | null = null;
+                    let destinationTokenRecordTaker: string | null = null;
+                    let authRulesTaker: string | null = null;
+
+                    if (tokenStandardTaker == TokenStandard.ProgrammableNonFungible) {
+                        const nftMasterEditionF = findNftMasterEdition({
+                            mint: nftMintTaker,
+                        });
+                        console.log("nftMasterEditionF", nftMasterEditionF);
+
+                        const ownerTokenRecordF = findUserTokenRecord({
+                            mint: nftMintTaker,
+                            userMintAta: takerNftAta,
+                        });
+                        console.log("ownerTokenRecordF", ownerTokenRecordF);
+
+                        const destinationTokenRecordF = findUserTokenRecord({
+                            mint: nftMintTaker,
+                            userMintAta: makerNftAta,
+                        });
+                        console.log("destinationTokenRecordF", destinationTokenRecordF);
+
+                        const authRulesF = await findRuleSet({
+                            connection,
+                            mint: nftMintTaker,
+                        });
+                        console.log("authRulesF", authRulesF);
+
+                        nftMasterEditionTaker = nftMasterEditionF;
+                        ownerTokenRecordTaker = ownerTokenRecordF;
+                        destinationTokenRecordTaker = destinationTokenRecordF;
+                        authRulesTaker = authRulesF;
+                    }
+
+                    if (!nftMetadataTaker)
+                        nftMetadataTaker = (
+                            await findNftDataAndMetadataAccount({
+                                connection,
+                                mint: nftMintTaker,
+                            })
+                        ).metadataAddress;
+
+                    const takeIx = await program.methods
+                        .takeSwap(bidToscBid(bid))
+                        .accountsStrict({
+                            swapDataAccount,
+                            swapDataAccountTokenAta,
+
+                            maker,
+                            makerNftAta,
+                            makerTokenAta,
+
+                            taker,
+                            takerNftAta,
+                            takerTokenAta,
+
+                            nftMintTaker,
+                            paymentMint,
+
+                            nftMetadataTaker,
+                            nftMasterEditionTaker,
+                            ownerTokenRecordTaker,
+                            destinationTokenRecordTaker,
+                            authRulesTaker,
+
+                            systemProgram: SystemProgram.programId,
+                            metadataProgram: TOKEN_METADATA_PROGRAM,
+                            sysvarInstructions: SYSVAR_INSTRUCTIONS_PUBKEY,
+                            tokenProgram: TOKEN_PROGRAM_ID,
+                            ataProgram: SOLANA_SPL_ATA_PROGRAM_ID,
+                            authRulesProgram: METAPLEX_AUTH_RULES_PROGRAM,
+                        })
+                        .instruction();
+                    takeAndClaimIxs.push(takeIx);
+                } else {
+                    let makerhashlistMarker = await getHashlistMarker({
+                        collection: Data.bid.collection,
+                        nftMintTaker,
+                    });
+                    console.log("makerhashlistMarker", makerhashlistMarker);
+
+                    const takeIx = await program.methods
+                        .takeSwap22(bidToscBid(Data.bid))
+                        .accountsStrict({
+                            swapDataAccount,
+                            swapDataAccountTokenAta,
+
+                            maker,
+                            makerNftAta,
+                            makerTokenAta,
+
+                            taker,
+                            takerNftAta,
+                            takerTokenAta,
+
+                            nftMintTaker,
+                            paymentMint,
+
+                            hashlistMarker: makerhashlistMarker,
+
+                            systemProgram: SystemProgram.programId,
+                            tokenProgram: TOKEN_PROGRAM_ID,
+                            tokenProgram22: TOKEN_2022_PROGRAM_ID,
+                            ataProgram: SOLANA_SPL_ATA_PROGRAM_ID,
+                        })
+                        .instruction();
+                    takeAndClaimIxs.push(takeIx);
+                }
+            }
+        }
+
+        if (!claimed) {
+            if (makerNftStd === "core") {
+                let coreCollection = await getCoreCollection({ mint: nftMintMaker, connection });
+                const claimCoreIx = await program.methods
+                    .claimSwapCore()
+                    .accountsStrict({
+                        ataProgram: SOLANA_SPL_ATA_PROGRAM_ID,
+                        nsFee: NS_FEE,
+                        nsFeeTokenAta,
+                        signer,
+                        taker,
+                        takerTokenAta,
+                        collection: coreCollection,
+                        maker,
+                        makerTokenAta,
+                        nftMintMaker,
+                        paymentMint,
+                        swapDataAccountTokenAta,
+                        tokenProgram: TOKEN_PROGRAM_ID.toString(),
+                        coreProgram: MPL_CORE_PROGRAM_ID.toString(),
+                        swapDataAccount,
+                        systemProgram: SystemProgram.programId.toString(),
+                    })
+                    .instruction();
+                takeAndClaimIxs.push(claimCoreIx);
+            } else {
+                let { mintAta: swapDataAccountNftAta, instruction: sdaAtaMakerNftIx } =
+                    await findOrCreateAta({
+                        connection,
+                        mint: nftMintMaker,
+                        owner: swapDataAccount,
+                        signer,
+                    });
+                if (sdaAtaMakerNftIx) takeAndClaimIxs.push(sdaAtaMakerNftIx);
+                else console.log("swapDataAccountNftAta", swapDataAccountNftAta);
+
+                let { mintAta: takerNftAtaMaker, instruction: takerAtaMakerNftIx } =
+                    await findOrCreateAta({
+                        connection,
+                        mint: nftMintMaker,
+                        owner: taker,
+                        signer,
+                    });
+                if (takerAtaMakerNftIx) takeAndClaimIxs.push(takerAtaMakerNftIx);
+                else console.log("takerNftAta", takerNftAtaMaker);
+
+                if (makerNftStd === "native") {
+                    let nftMasterEditionMaker: string | null = null;
+                    let ownerTokenRecordMaker: string | null = null;
+                    let destinationTokenRecordMaker: string | null = null;
+                    let authRulesMaker: string | null = null;
+
+                    if (tokenStandardMaker == TokenStandard.ProgrammableNonFungible) {
+                        const nftMasterEditionF = findNftMasterEdition({
+                            mint: nftMintMaker,
+                        });
+                        console.log("nftMasterEditionF", nftMasterEditionF);
+
+                        const ownerTokenRecordF = findUserTokenRecord({
+                            mint: nftMintMaker,
+                            userMintAta: swapDataAccountNftAta,
+                        });
+                        console.log("ownerTokenRecordF", ownerTokenRecordF);
+
+                        const destinationTokenRecordF = findUserTokenRecord({
+                            mint: nftMintMaker,
+                            userMintAta: takerNftAtaMaker,
+                        });
+                        console.log("destinationTokenRecordF", destinationTokenRecordF);
+
+                        const authRulesF = await findRuleSet({
+                            connection,
+                            mint: nftMintMaker,
+                        });
+                        console.log("authRulesF", authRulesF);
+
+                        nftMasterEditionMaker = nftMasterEditionF;
+                        ownerTokenRecordMaker = ownerTokenRecordF;
+                        destinationTokenRecordMaker = destinationTokenRecordF;
+                        authRulesMaker = authRulesF;
+                    }
+                    if (!nftMetadataMaker)
+                        nftMetadataMaker = (
+                            await findNftDataAndMetadataAccount({
+                                connection,
+                                mint: nftMintMaker,
+                            })
+                        ).metadataAddress;
+
+                    const claimIx = await program.methods
+                        .claimSwap()
+                        .accountsStrict({
+                            swapDataAccount,
+                            swapDataAccountNftAta,
+                            swapDataAccountTokenAta,
+
+                            nsFee: NS_FEE,
+                            nsFeeTokenAta,
+
+                            signer,
+
+                            taker,
+                            takerNftAtaMaker,
+                            takerTokenAta,
+
+                            maker,
+                            makerTokenAta,
+
+                            nftMintMaker,
+                            paymentMint,
+
+                            nftMetadataMaker,
+                            nftMasterEditionMaker,
+                            ownerTokenRecordMaker,
+                            destinationTokenRecordMaker,
+                            authRulesMaker,
+
+                            systemProgram: SystemProgram.programId,
+                            metadataProgram: TOKEN_METADATA_PROGRAM,
+                            sysvarInstructions: SYSVAR_INSTRUCTIONS_PUBKEY,
+                            tokenProgram: TOKEN_PROGRAM_ID,
+                            ataProgram: SOLANA_SPL_ATA_PROGRAM_ID,
+                            authRulesProgram: METAPLEX_AUTH_RULES_PROGRAM,
+                        })
+                        .instruction();
+
+                    takeAndClaimIxs.push(claimIx);
+                } else {
+                    console.log("signer", signer);
+                    console.log("taker", taker);
+
+                    const claimIx = await program.methods
+                        .claimSwap22()
+                        .accountsStrict({
+                            swapDataAccount,
+                            swapDataAccountNftAta,
+                            swapDataAccountTokenAta,
+
+                            nsFee: NS_FEE,
+                            nsFeeTokenAta,
+
+                            signer,
+
+                            taker,
+                            takerNftAtaMaker,
+                            takerTokenAta,
+
+                            maker,
+                            makerTokenAta,
+
+                            nftMintMaker,
+                            paymentMint,
+
+                            systemProgram: SystemProgram.programId,
+                            sysvarInstructions: SYSVAR_INSTRUCTIONS_PUBKEY,
+                            tokenProgram: TOKEN_PROGRAM_ID,
+                            tokenProgram22: TOKEN_2022_PROGRAM_ID,
+                            ataProgram: SOLANA_SPL_ATA_PROGRAM_ID,
+                        })
+                        .instruction();
+
+                    takeAndClaimIxs.push(claimIx);
+                }
+            }
+        }
+
+        //
+        // Paying royalties Taker
+        //
+
+        if (!royaltiesPaidTaker) {
+            console.log("royaltiesPaidTaker - takerTokenProg", makerNftStd);
+            if (makerNftStd === "core") {
+                let {
+                    creators: makerCreators,
+                    creatorTokenAta: makerCreatorTokenAta,
+                    instructions: creatorIxs,
+                } = await getCreatorData({
+                    connection,
+                    nftMint: nftMintMaker,
+                    isCore: true,
+                    owner: swapDataAccount,
+                    paymentMint,
+                    signer,
+                });
+                let payTakerCoreIx = await program.methods
+                    .payRoyaltiesCore()
+                    .accountsStrict({
                         swapDataAccount,
                         swapDataAccountTokenAta,
-
-                        maker,
-                        makerNftAta,
-                        makerTokenAta,
-
-                        taker,
-                        takerNftAta,
-                        takerTokenAta,
-
-                        nftMintTaker,
+                        nftMint: nftMintMaker,
                         paymentMint,
-
-                        hashlistMarker,
-
-                        systemProgram: SystemProgram.programId,
-                        // metadataProgram: TOKEN_METADATA_PROGRAM,
-                        // sysvarInstructions: SYSVAR_INSTRUCTIONS_PUBKEY,
+                        signer,
+                        makerCreator0: makerCreators[0],
+                        makerCreator0TokenAta: makerCreatorTokenAta[0],
+                        makerCreator1: makerCreators[1],
+                        makerCreator1TokenAta: makerCreatorTokenAta[1],
+                        makerCreator2: makerCreators[2],
+                        makerCreator2TokenAta: makerCreatorTokenAta[2],
+                        makerCreator3: makerCreators[3],
+                        makerCreator3TokenAta: makerCreatorTokenAta[3],
+                        makerCreator4: makerCreators[4],
+                        makerCreator4TokenAta: makerCreatorTokenAta[4],
                         tokenProgram: TOKEN_PROGRAM_ID,
-                        tokenProgram22: TOKEN_2022_PROGRAM_ID,
-                        ataProgram: SOLANA_SPL_ATA_PROGRAM_ID,
-                        // authRulesProgram: METAPLEX_AUTH_RULES_PROGRAM,
                     })
                     .instruction();
-                takeIxs.push(takeIx);
-            }
-            takeSwapTx = await ix2vTx(takeIxs, cEnvOpts, signer);
-        }
-
-        let { mintAta: swapDataAccountNftAta, instruction: sdan } = await findOrCreateAta({
-            connection,
-            mint: nftMintMaker,
-            owner: swapDataAccount,
-            signer,
-        });
-        let { mintAta: takerNftAtaMaker, instruction: tmn } = await findOrCreateAta({
-            connection,
-            mint: nftMintMaker,
-            owner: taker,
-            signer,
-        });
-
-        if (makerTokenProg === TOKEN_PROGRAM_ID.toString()) {
-            // console.log(makerTokenProg, "nftMintTaker findNftDataAndMetadataAccount", nftMintTaker);
-
-            const { metadataAddress: nftMetadataMaker2, tokenStandard: tokenStandardMaker } =
-                await findNftDataAndMetadataAccount({
-                    connection,
-                    mint: nftMintMaker,
-                });
-            nftMetadataMaker = nftMetadataMaker2;
-            console.log("nftMetadataMaker", nftMetadataMaker);
-
-            if (tokenStandardMaker == TokenStandard.ProgrammableNonFungible) {
-                const nftMasterEditionF = findNftMasterEdition({
-                    mint: nftMintMaker,
-                });
-                console.log("nftMasterEditionF", nftMasterEditionF);
-
-                const ownerTokenRecordF = findUserTokenRecord({
-                    mint: nftMintMaker,
-                    userMintAta: swapDataAccountNftAta,
-                });
-                console.log("ownerTokenRecordF", ownerTokenRecordF);
-
-                const destinationTokenRecordF = findUserTokenRecord({
-                    mint: nftMintMaker,
-                    userMintAta: takerNftAtaMaker,
-                });
-                console.log("destinationTokenRecordF", destinationTokenRecordF);
-
-                const authRulesF = await findRuleSet({
-                    connection,
-                    mint: nftMintMaker,
-                });
-                console.log("authRulesF", authRulesF);
-
-                nftMasterEditionMaker = nftMasterEditionF;
-                ownerTokenRecordMaker = ownerTokenRecordF;
-                destinationTokenRecordMaker = destinationTokenRecordF;
-                authRulesMaker = authRulesF;
-            }
-        }
-
-        console.log("royaltiesPaidTaker", royaltiesPaidTaker);
-        if (!royaltiesPaidTaker) {
-            console.log(
-                "royaltiesPaidTaker - makerTokenProg",
-                makerTokenProg == TOKEN_PROGRAM_ID.toString()
-                    ? "native"
-                    : makerTokenProg == TOKEN_2022_PROGRAM_ID.toString()
-                    ? "2022"
-                    : "inknown"
-            );
-            if (makerTokenProg === TOKEN_PROGRAM_ID.toString()) {
+                payRAndCloseSIxs.push(...creatorIxs);
+                payRAndCloseSIxs.push(payTakerCoreIx);
+            } else if (makerNftStd === "native") {
                 let {
                     creators: makerCreator,
                     creatorTokenAta: makerCreatorTokenAta,
@@ -397,16 +572,25 @@ export async function createTakeAndCloseSwapInstructions(
                     paymentMint,
                     owner: swapDataAccount,
                     signer,
+                    isCore: false,
                 });
 
                 if (creatorIxs.length > 0) {
                     console.log("creatorIxs", creatorIxs.length);
-                    payRIxs.push(...creatorIxs);
+                    payRAndCloseSIxs.push(...creatorIxs);
                 }
 
+                if (!nftMetadataMaker)
+                    nftMetadataMaker = (
+                        await findNftDataAndMetadataAccount({
+                            connection,
+                            mint: nftMintMaker,
+                        })
+                    ).metadataAddress;
+
                 const payRIx = await program.methods
-                    .payTakerRoyalties()
-                    .accounts({
+                    .payRoyalties()
+                    .accountsStrict({
                         swapDataAccount,
                         swapDataAccountTokenAta,
 
@@ -414,54 +598,86 @@ export async function createTakeAndCloseSwapInstructions(
 
                         signer,
 
-                        nftMetadataMaker,
+                        nftMetadata: nftMetadataMaker,
+                        nftMint: nftMintMaker,
 
                         metadataProgram: TOKEN_METADATA_PROGRAM,
                         tokenProgram: TOKEN_PROGRAM_ID.toString(),
 
-                        makerCreator0: makerCreator[0],
-                        makerCreator0TokenAta: makerCreatorTokenAta[0],
-                        makerCreator1: makerCreator[1],
-                        makerCreator1TokenAta: makerCreatorTokenAta[1],
-                        makerCreator2: makerCreator[2],
-                        makerCreator2TokenAta: makerCreatorTokenAta[2],
-                        makerCreator3: makerCreator[3],
-                        makerCreator3TokenAta: makerCreatorTokenAta[3],
-                        makerCreator4: makerCreator[4],
-                        makerCreator4TokenAta: makerCreatorTokenAta[4],
+                        creator0: makerCreator[0],
+                        creator0TokenAta: makerCreatorTokenAta[0],
+                        creator1: makerCreator[1],
+                        creator1TokenAta: makerCreatorTokenAta[1],
+                        creator2: makerCreator[2],
+                        creator2TokenAta: makerCreatorTokenAta[2],
+                        creator3: makerCreator[3],
+                        creator3TokenAta: makerCreatorTokenAta[3],
+                        creator4: makerCreator[4],
+                        creator4TokenAta: makerCreatorTokenAta[4],
                     })
                     .instruction();
-                payRIxs.push(payRIx);
+                payRAndCloseSIxs.push(payRIx);
                 console.log("payRIx", payRIx);
             } else {
                 const payRIx = await program.methods
-                    .payTakerRoyalties22()
-                    .accounts({
+                    .payRoyalties22()
+                    .accountsStrict({
                         swapDataAccount,
-                        nftMintMaker,
+                        nftMint: nftMintMaker,
 
                         signer,
 
-                        metadataProgram: TOKEN_METADATA_PROGRAM,
                         tokenProgram22: TOKEN_2022_PROGRAM_ID,
                     })
                     .instruction();
-                payRIxs.push(payRIx);
+                payRAndCloseSIxs.push(payRIx);
             }
         }
 
-        console.log("royaltiesPaidMaker", royaltiesPaidMaker);
-        if (!royaltiesPaidMaker) {
-            if (takerTokenProg === TOKEN_PROGRAM_ID.toString()) {
-                console.log(
-                    "takerTokenProg",
-                    takerTokenProg == TOKEN_PROGRAM_ID.toString()
-                        ? "native"
-                        : takerTokenProg == TOKEN_2022_PROGRAM_ID.toString()
-                        ? "2022"
-                        : "inknown"
-                );
+        //
+        // Paying royalties maker
+        //
 
+        if (!royaltiesPaidMaker) {
+            console.log("royaltiesPaidMaker - takerTokenProg", takerNftStd);
+
+            if (takerNftStd === "core") {
+                let {
+                    creators: makerCreators,
+                    creatorTokenAta: makerCreatorTokenAta,
+                    instructions: creatorIxs,
+                } = await getCreatorData({
+                    connection,
+                    nftMint: nftMintTaker,
+                    isCore: true,
+                    owner: swapDataAccount,
+                    paymentMint,
+                    signer,
+                });
+                let payTakerCoreIx = await program.methods
+                    .payRoyaltiesCore()
+                    .accountsStrict({
+                        swapDataAccount,
+                        swapDataAccountTokenAta,
+                        nftMint: nftMintTaker,
+                        paymentMint,
+                        signer,
+                        makerCreator0: makerCreators[0],
+                        makerCreator0TokenAta: makerCreatorTokenAta[0],
+                        makerCreator1: makerCreators[1],
+                        makerCreator1TokenAta: makerCreatorTokenAta[1],
+                        makerCreator2: makerCreators[2],
+                        makerCreator2TokenAta: makerCreatorTokenAta[2],
+                        makerCreator3: makerCreators[3],
+                        makerCreator3TokenAta: makerCreatorTokenAta[3],
+                        makerCreator4: makerCreators[4],
+                        makerCreator4TokenAta: makerCreatorTokenAta[4],
+                        tokenProgram: TOKEN_PROGRAM_ID,
+                    })
+                    .instruction();
+                payRAndCloseSIxs.push(...creatorIxs);
+                payRAndCloseSIxs.push(payTakerCoreIx);
+            } else if (takerNftStd === "native") {
                 let {
                     creators: takerCreator,
                     creatorTokenAta: takerCreatorTokenAta,
@@ -472,20 +688,22 @@ export async function createTakeAndCloseSwapInstructions(
                     owner: swapDataAccount,
                     signer,
                     nftMint: nftMintTaker,
+                    isCore: false,
                 });
 
-                if (creatorIxs) payRIxs.push(...creatorIxs);
+                if (creatorIxs) payRAndCloseSIxs.push(...creatorIxs);
 
-                // let nftMetadataTaker = (
-                //     await findNftDataAndMetadataAccount({
-                //         connection,
-                //         mint: nftMintTaker,
-                //     })
-                // ).metadataAddress;
+                if (!nftMetadataTaker)
+                    nftMetadataTaker = (
+                        await findNftDataAndMetadataAccount({
+                            connection,
+                            mint: nftMintTaker,
+                        })
+                    ).metadataAddress;
 
                 const payRIx = await program.methods
-                    .payMakerRoyalties()
-                    .accounts({
+                    .payRoyalties()
+                    .accountsStrict({
                         swapDataAccount,
                         swapDataAccountTokenAta,
 
@@ -493,166 +711,83 @@ export async function createTakeAndCloseSwapInstructions(
 
                         signer,
 
-                        nftMetadataTaker,
+                        nftMint: nftMintTaker,
+                        nftMetadata: nftMetadataTaker,
 
                         metadataProgram: TOKEN_METADATA_PROGRAM,
                         tokenProgram: TOKEN_PROGRAM_ID,
 
-                        takerCreator0: takerCreator[0],
-                        takerCreator0TokenAta: takerCreatorTokenAta[0],
-                        takerCreator1: takerCreator[1],
-                        takerCreator1TokenAta: takerCreatorTokenAta[1],
-                        takerCreator2: takerCreator[2],
-                        takerCreator2TokenAta: takerCreatorTokenAta[2],
-                        takerCreator3: takerCreator[3],
-                        takerCreator3TokenAta: takerCreatorTokenAta[3],
-                        takerCreator4: takerCreator[4],
-                        takerCreator4TokenAta: takerCreatorTokenAta[4],
+                        creator0: takerCreator[0],
+                        creator0TokenAta: takerCreatorTokenAta[0],
+                        creator1: takerCreator[1],
+                        creator1TokenAta: takerCreatorTokenAta[1],
+                        creator2: takerCreator[2],
+                        creator2TokenAta: takerCreatorTokenAta[2],
+                        creator3: takerCreator[3],
+                        creator3TokenAta: takerCreatorTokenAta[3],
+                        creator4: takerCreator[4],
+                        creator4TokenAta: takerCreatorTokenAta[4],
                     })
                     .instruction();
-                payRIxs.push(payRIx);
+                payRAndCloseSIxs.push(payRIx);
             } else {
                 console.log("payMakerRoyalties22 signer,", signer);
 
                 const payRIx = await program.methods
-                    .payMakerRoyalties22()
-                    .accounts({
+                    .payRoyalties22()
+                    .accountsStrict({
                         swapDataAccount,
-                        nftMintTaker,
+                        nftMint: nftMintTaker,
                         signer,
                         tokenProgram22: TOKEN_2022_PROGRAM_ID,
                     })
                     .instruction();
-                payRIxs.push(payRIx);
+                payRAndCloseSIxs.push(payRIx);
             }
         }
 
-        if (!royaltiesPaidMaker || !royaltiesPaidTaker)
-            payRoyaltiesTx = await ix2vTx(payRIxs, cEnvOpts, signer);
+        //
+        // Closing
+        //
 
-        ///////////////////////////////////
+        const closeIx = await program.methods
+            .closeSwap()
+            .accountsStrict({
+                swapDataAccount,
+                swapDataAccountTokenAta,
 
-        if (sdan) claimSIxs.push(sdan);
-        else console.log("swapDataAccountNftAta", swapDataAccountNftAta);
+                maker,
+                makerTokenAta,
 
-        if (tmn) claimSIxs.push(tmn);
-        else console.log("takerNftAta", takerNftAtaMaker);
+                paymentMint,
+                signer,
 
-        if (
-            !!acceptedBid
-            // && !!royaltiesPaidMaker && !!royaltiesPaidTaker
-        ) {
-            // if (mt) claimSIxs.push(mt);
-            // else console.log("makerTokenAta", makerTokenAta);
+                systemProgram: SystemProgram.programId,
+                tokenProgram: TOKEN_PROGRAM_ID,
+            })
+            .instruction();
+        payRAndCloseSIxs.push(closeIx);
 
-            if (tt) claimSIxs.push(tt);
-            else console.log("takerTokenAta", takerTokenAta);
+        if (swapDataData.paymentMint === WRAPPED_SOL_MINT.toString()) {
+            if (signer === taker) payRAndCloseSIxs.push(closeWSol(taker, taker, takerTokenAta));
+            else if (signer === maker)
+                payRAndCloseSIxs.push(closeWSol(maker, maker, makerTokenAta));
         }
 
-        let { mintAta: nsFeeTokenAta, instruction: nst } = await findOrCreateAta({
-            connection,
-            mint: paymentMint,
-            owner: NS_FEE,
-            signer,
-        });
-        if (nst) claimSIxs.push(nst);
-        else console.log("nsFeeTokenAta", nsFeeTokenAta);
+        let takeAndClaimTx: VersionedTransaction | undefined;
 
-        if (makerTokenProg === TOKEN_PROGRAM_ID.toString()) {
-            console.log();
-
-            const initIx = await program.methods
-                .claimSwap()
-                .accounts({
-                    swapDataAccount,
-                    swapDataAccountNftAta,
-                    swapDataAccountTokenAta,
-
-                    nsFee: NS_FEE,
-                    nsFeeTokenAta,
-
-                    signer,
-
-                    taker,
-                    takerNftAtaMaker,
-                    takerTokenAta,
-
-                    maker,
-                    // makerNftAta,
-                    makerTokenAta,
-
-                    nftMintMaker,
-                    paymentMint,
-
-                    nftMetadataMaker,
-                    nftMasterEditionMaker,
-                    ownerTokenRecordMaker,
-                    destinationTokenRecordMaker,
-                    authRulesMaker,
-
-                    systemProgram: SystemProgram.programId,
-                    metadataProgram: TOKEN_METADATA_PROGRAM,
-                    sysvarInstructions: SYSVAR_INSTRUCTIONS_PUBKEY,
-                    tokenProgram: TOKEN_PROGRAM_ID,
-                    tokenProgram22: TOKEN_2022_PROGRAM_ID,
-                    ataProgram: SOLANA_SPL_ATA_PROGRAM_ID,
-                    authRulesProgram: METAPLEX_AUTH_RULES_PROGRAM,
-                })
-                .instruction();
-
-            claimSIxs.push(initIx);
-        } else {
-            console.log("signer", signer);
-            console.log("taker", taker);
-
-            const initIx = await program.methods
-                .claimSwap22()
-                .accounts({
-                    swapDataAccount,
-                    swapDataAccountNftAta,
-                    swapDataAccountTokenAta,
-
-                    nsFee: NS_FEE,
-                    nsFeeTokenAta,
-
-                    signer,
-
-                    taker,
-                    takerNftAtaMaker,
-                    takerTokenAta,
-
-                    maker,
-                    // makerNftAta,
-                    makerTokenAta,
-
-                    nftMintMaker,
-                    paymentMint,
-
-                    systemProgram: SystemProgram.programId,
-                    sysvarInstructions: SYSVAR_INSTRUCTIONS_PUBKEY,
-                    tokenProgram: TOKEN_PROGRAM_ID,
-                    tokenProgram22: TOKEN_2022_PROGRAM_ID,
-                    ataProgram: SOLANA_SPL_ATA_PROGRAM_ID,
-                })
-                .instruction();
-
-            claimSIxs.push(initIx);
-        }
+        if (!acceptedBid || !claimed)
+            takeAndClaimTx = await ix2vTx(takeAndClaimIxs, cEnvOpts, signer);
 
         let { lastValidBlockHeight: blockheight, blockhash } =
             await connection.getLatestBlockhash();
 
-        if (swapDataData.paymentMint === WRAPPED_SOL_MINT.toString() && signer == taker)
-            claimSIxs.push(closeWSol(Data.taker, taker, takerTokenAta));
-
-        claimSwapTx = await ix2vTx(claimSIxs, cEnvOpts, signer);
-
         let bTTakeAndClose: BTv[] = [];
         let priority = 0;
 
-        if (takeSwapTx) {
+        if (takeAndClaimTx) {
             bTTakeAndClose.push({
-                tx: takeSwapTx,
+                tx: takeAndClaimTx,
                 description: DESC.takeSwap,
                 details: takeArgs,
                 priority,
@@ -663,29 +798,17 @@ export async function createTakeAndCloseSwapInstructions(
             priority++;
         } else console.log("no takeSwapTx");
 
-        if (payRoyaltiesTx) {
-            bTTakeAndClose.push({
-                tx: payRoyaltiesTx,
-                description: DESC.payRoyalties,
-                details: takeArgs,
-                priority,
-                status: "pending",
-                blockheight,
-            });
-
-            priority++;
-        } else console.log("no payRoyaltiesTx");
-
         bTTakeAndClose.push({
-            tx: claimSwapTx,
-            description: DESC.claimSwap,
+            tx: await ix2vTx(payRAndCloseSIxs, cEnvOpts, signer),
+            description: DESC.payRoyalties,
             details: takeArgs,
             priority,
             status: "pending",
             blockheight,
         });
-        let bh = (await connection.getLatestBlockhash()).blockhash;
-        bTTakeAndClose.map((b) => (b.tx.message.recentBlockhash = bh));
+
+        bTTakeAndClose.map((b) => (b.tx.message.recentBlockhash = blockhash));
+
         return bTTakeAndClose;
     } catch (error: any) {
         console.log("error init", error);

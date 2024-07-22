@@ -1365,4 +1365,4 @@ export const idlSwap: Idl = {
             msg: "Incorrect Token Program",
         },
     ],
-};
+} as any as Idl;

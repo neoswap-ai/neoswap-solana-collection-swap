@@ -1,14 +1,14 @@
 import { cancelSwap } from "./processor/cancelSwap";
-import { claimSwap } from "./processor/claimSwap";
+// import { claimSwap } from "./processor/claimSwap";
 import { makeSwap } from "./processor/makeSwap";
-import { payRoyalties } from "./processor/payRoyalties";
+// import { payRoyalties } from "./processor/payRoyalties";
 import { takeAndCloseSwap } from "./processor/takeAndCloseSwap";
-import { takeSwap } from "./processor/takeSwap";
+// import { takeSwap } from "./processor/takeSwap";
 import { createCancelSwapInstructions } from "./programInstructions/cancelSwap.instructions";
 import { createClaimSwapInstructions } from "./programInstructions/claimSwap.instructions";
 import { createMakeSwapInstructions } from "./programInstructions/makeSwap.instructions";
 import { createAddBidBt, createRmBidBt } from "./programInstructions/modifyAddBid.instructions";
-import { createPayRoyaltiesInstructions } from "./programInstructions/payRoyalties.instructions";
+// import { createPayRoyaltiesInstructions } from "./programInstructions/payRoyalties.instructions";
 import { createSetNewTime } from "./programInstructions/setNewTime.instructions";
 import { createTakeAndCloseSwapInstructions } from "./programInstructions/takeAndCloseSwap.instructions";
 import { createTakeSwapInstructions } from "./programInstructions/takeSwap.instructions";
@@ -59,7 +59,7 @@ export const TYPES = {
     isClaimSArg,
     isTakeSArg,
     isMakeSArg,
-    isRmBidsArgs
+    isRmBidsArgs,
 };
 
 export const UTILS = {
@@ -95,10 +95,10 @@ export const CREATE_INSTRUCTIONS = {
 
 export const neoColSwap = {
     makeSwap,
-    takeSwap,
+    // takeSwap,
     takeAndCloseSwap,
-    payRoyalties,
-    claimSwap,
+    // payRoyalties,
+    // claimSwap,
     cancelSwap,
     UTILS,
     CREATE_INSTRUCTIONS,

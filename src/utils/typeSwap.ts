@@ -38,6 +38,7 @@ export function swapDataToScSwapData(sda: SwapData): ScSwapData {
         refererMaker,
         refererTaker,
         taker,
+        claimed,
     } = sda;
     console.log({
         bids,
@@ -60,8 +61,9 @@ export function swapDataToScSwapData(sda: SwapData): ScSwapData {
         maker: new PublicKey(maker),
         nftMintMaker: new PublicKey(nftMintMaker),
         paymentMint: new PublicKey(paymentMint),
-        royaltiesPaidMaker: royaltiesPaidMaker,
-        royaltiesPaidTaker: royaltiesPaidTaker,
+        royaltiesPaidMaker,
+        royaltiesPaidTaker,
+        claimed,
         refererMaker: refererMaker ? new PublicKey(refererMaker) : undefined,
         refererTaker: refererTaker ? new PublicKey(refererTaker) : undefined,
         acceptedBid: acceptedBid ? bidToscBid(acceptedBid) : undefined,
@@ -84,6 +86,7 @@ export function scSwapDataToSwapData(scSwapData: ScSwapData): SwapData {
         refererMaker,
         refererTaker,
         taker,
+        claimed,
     } = scSwapData;
     let status: SwapData["status"] = "active";
     if (acceptedBid) status = "accepted";
@@ -96,6 +99,7 @@ export function scSwapDataToSwapData(scSwapData: ScSwapData): SwapData {
         paymentMint: paymentMint.toString(),
         royaltiesPaidMaker,
         royaltiesPaidTaker,
+        claimed,
         refererMaker: refererMaker ? refererMaker.toString() : undefined,
         refererTaker: refererTaker ? refererTaker.toString() : undefined,
         acceptedBid: acceptedBid ? scBidToBid(acceptedBid) : undefined,
