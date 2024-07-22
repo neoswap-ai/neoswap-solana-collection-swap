@@ -11,7 +11,7 @@ export async function createSetNewTime(Data: EnvOpts & SetNewTime): Promise<Bund
     let tx = new Transaction().add(
         await program.methods
             .overrideTime(new BN(newTime))
-            .accounts({
+            .accountsStrict({
                 swapDataAccount,
                 maker,
             })

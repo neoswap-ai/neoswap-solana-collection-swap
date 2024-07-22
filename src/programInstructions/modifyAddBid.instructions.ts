@@ -82,7 +82,7 @@ export async function createAddBidIx(
                 async (bid) =>
                     await program.methods
                         .addBid(bidToscBid(bid))
-                        .accounts({
+                        .accountsStrict({
                             swapDataAccount,
                             maker,
                             swapDataAccountTokenAta,
@@ -146,12 +146,12 @@ export async function createRmBidIx(Data: EnvOpts & RmBidArgs): Promise<Transact
             async (bid) =>
                 await program.methods
                     .removeBid(bidToscBid(bid))
-                    .accounts({
+                    .accountsStrict({
                         swapDataAccount,
                         maker,
-                        swapDataAccountTokenAta,
-                        makerTokenAta,
-                        tokenProgram: TOKEN_PROGRAM_ID,
+                        // swapDataAccountTokenAta,
+                        // makerTokenAta,
+                        // tokenProgram: TOKEN_PROGRAM_ID,
                     })
                     .instruction()
         )

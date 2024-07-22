@@ -3,10 +3,11 @@ import { getProgram } from "./getProgram.obj";
 
 export async function isConfirmedTx(Data: {
     transactionHashs: string[];
-    clusterOrUrl: Cluster | string;
+    clusterOrUrl?: Cluster | string;
     connection?: Connection;
 }) {
-    const connection = Data.connection ? Data.connection : new Connection(Data.clusterOrUrl);
+    const connection = Data.connection || (Data.clusterOrUrl && new Connection(Data.clusterOrUrl));
+    if (!connection) throw new Error("There should be a Program or a Cluster.");
     const blockHashData = await connection.getLatestBlockhash();
     let confirmArray: {
         transactionHash: string;

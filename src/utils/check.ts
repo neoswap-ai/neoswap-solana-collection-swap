@@ -15,6 +15,8 @@ import {
 } from "./types";
 import { getProgram } from "./getProgram.obj";
 import { isVersionedTransaction } from "@solana/wallet-adapter-base";
+import { CollectionSwap } from "./neoSwap.idl";
+import { Program } from "@coral-xyz/anchor";
 
 export function checkOptionSend(Data: OptionSend): COptionSend {
     let {
@@ -53,12 +55,16 @@ export function checkOptionSend(Data: OptionSend): COptionSend {
 }
 
 export async function checkEnvOpts(Data: EnvOpts): Promise<CEnvOpts> {
-    let { clusterOrUrl, program, prioritizationFee, programId, idl } = Data;
+    let { clusterOrUrl, program: anyProgram, prioritizationFee, programId, idl } = Data;
+    let program: Program<CollectionSwap>; //= anyProgram as any as Program<CollectionSwap>|undefined;
+    if (anyProgram && clusterOrUrl) {
+        program = anyProgram as any as Program<CollectionSwap>;
+    } else if (!anyProgram && clusterOrUrl) {
+        console.log("programId", programId);
 
-    if (program && clusterOrUrl) {
-    } else if (!program && clusterOrUrl) {
         program = await getProgram({ clusterOrUrl: clusterOrUrl, programId, idl });
-    } else if (!clusterOrUrl && program) {
+    } else if (!clusterOrUrl && anyProgram) {
+        program = anyProgram as any as Program<CollectionSwap>;
         clusterOrUrl = program.provider.connection.rpcEndpoint;
     } else {
         throw {
@@ -67,7 +73,7 @@ export async function checkEnvOpts(Data: EnvOpts): Promise<CEnvOpts> {
             message: "clusterOrUrl or program is required",
         } as ErrorFeedback;
     }
-    // console.log(programId, " VS ", program.programId.toString());
+    console.log(programId, " VS ", program.programId.toString());
 
     programId = program.programId.toString();
 

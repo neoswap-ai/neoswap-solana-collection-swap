@@ -16,6 +16,7 @@ export async function getSdaData(
     let { program } = await checkEnvOpts(Data);
 
     try {
+        
         const swapData = (await program.account.swapData.fetch(swapDataAccount)) as ScSwapData;
 
         if (!swapData) {

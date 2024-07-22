@@ -155,7 +155,7 @@ export async function createClaimSwapInstructions(
 
         const initIx = await program.methods
             .claimSwap()
-            .accounts({
+            .accountsStrict({
                 swapDataAccount,
                 swapDataAccountNftAta,
                 swapDataAccountTokenAta,
@@ -184,7 +184,7 @@ export async function createClaimSwapInstructions(
                 metadataProgram: TOKEN_METADATA_PROGRAM,
                 sysvarInstructions: SYSVAR_INSTRUCTIONS_PUBKEY,
                 tokenProgram: TOKEN_PROGRAM_ID,
-                tokenProgram22: TOKEN_2022_PROGRAM_ID,
+                // tokenProgram22: TOKEN_2022_PROGRAM_ID,
                 ataProgram: SOLANA_SPL_ATA_PROGRAM_ID,
                 authRulesProgram: METAPLEX_AUTH_RULES_PROGRAM,
             })

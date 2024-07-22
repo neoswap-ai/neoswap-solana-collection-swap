@@ -1,7 +1,12 @@
 import { Connection, PublicKey } from "@solana/web3.js";
-import { TOKEN_METADATA_PROGRAM, METAPLEX_AUTH_RULES } from "./const";
+import { TOKEN_METADATA_PROGRAM, METAPLEX_AUTH_RULES, FAIR_LAUNCH_PROGRAM_ID } from "./const";
 import { ErrorFeedback } from "./types";
 import { Metaplex } from "@metaplex-foundation/js";
+import { TOKEN_2022_PROGRAM_ID, TOKEN_PROGRAM_ID } from "@solana/spl-token";
+import { fetchAsset, MPL_CORE_PROGRAM_ID } from "@metaplex-foundation/mpl-core";
+import { createUmi } from "@metaplex-foundation/umi-bundle-defaults";
+import { dasApi } from "@metaplex-foundation/digital-asset-standard-api";
+
 // import { TOKEN_2022_PROGRAM_ID, getTokenMetadata } from "@solana/spl-token";
 // import { TokenMetadata } from "@solana/spl-token`-metadata";
 // import { DigitalAsset, fetchDigitalAsset } from "@metaplex-foundation/mpl-token-metadata";
@@ -98,4 +103,60 @@ async function getMetaFromMetaplex(Data: { mint: string; connection: Connection 
     return await metaplex.nfts().findByMint({ mintAddress: new PublicKey(mint) });
 
     // return await fetchDigitalAsset(umi, mint as PPublicKey);
+}
+
+export async function whichStandard({
+    connection,
+    mint,
+}: {
+    connection: Connection;
+    mint: string;
+}): Promise<"core" | "native" | "hybrid"> {
+    let tokenProg = (await connection.getAccountInfo(new PublicKey(mint)))?.owner.toString();
+    switch (tokenProg) {
+        case TOKEN_PROGRAM_ID.toString():
+            return "native";
+        case TOKEN_2022_PROGRAM_ID.toString():
+            return "hybrid";
+        case MPL_CORE_PROGRAM_ID.toString():
+            return "core";
+        default:
+            throw "Token standard not supported";
+    }
+}
+
+export async function getCoreCollection({
+    connection,
+    mint,
+}: {
+    connection: Connection;
+    mint: string;
+}): Promise<string> {
+    let umi = createUmi(connection.rpcEndpoint).use(dasApi());
+
+    const coreCollectionData = await fetchAsset(umi, mint);
+
+    if (
+        coreCollectionData.updateAuthority.type == "Collection" &&
+        !!coreCollectionData.updateAuthority.address
+    ) {
+        return coreCollectionData.updateAuthority.address!;
+    } else throw "No core collection found";
+}
+
+export async function getHashlistMarker({
+    collection,
+    nftMintTaker,
+}: {
+    collection: string;
+    nftMintTaker: string;
+}) {
+    return PublicKey.findProgramAddressSync(
+        [
+            Buffer.from("hashlist_marker"),
+            new PublicKey(collection).toBuffer(),
+            new PublicKey(nftMintTaker).toBuffer(),
+        ],
+        new PublicKey(FAIR_LAUNCH_PROGRAM_ID)
+    )[0].toString();
 }
