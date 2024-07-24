@@ -44,12 +44,13 @@ export async function createTakeAndCloseSwapInstructions(
     let cEnvOpts = await checkEnvOpts(Data);
     let takeArgs = getTakeArgs(Data);
     let { program, connection } = cEnvOpts;
-    let { taker, swapDataAccount, bid, nftMintTaker, verifyTaker, signer } = takeArgs;
-
+    let { taker, swapDataAccount, bid, nftMintTaker, verifyTaker, signer, n } = takeArgs;
+    if (!n) n = 0;
+    
     if (!signer) {
-        console.log("no signer");
+        console.log("no signer", taker);
         signer = taker;
-    }
+    } else console.log("signer", signer, "taker", taker);
 
     let takeIxs: TransactionInstruction[] = [
         ComputeBudgetProgram.setComputeUnitLimit({
@@ -198,7 +199,7 @@ export async function createTakeAndCloseSwapInstructions(
         //
 
         if (!acceptedBid) {
-            if (swapDataData.paymentMint === WRAPPED_SOL_MINT.toString()) {
+            if (swapDataData.paymentMint === WRAPPED_SOL_MINT.toString() && n !== 42) {
                 let amount = bid.takerNeoswapFee + bid.takerRoyalties;
                 if (bid.amount > 0) amount += bid.amount;
                 console.log("Wrapping " + amount + " lamports to wSOL");
@@ -211,7 +212,7 @@ export async function createTakeAndCloseSwapInstructions(
                     mint: nftMintTaker,
                 });
                 const takeIx = await program.methods
-                    .takeSwapCore(bidToscBid(bid))
+                    .takeSwapCore(bidToscBid(bid), n)
                     .accountsStrict({
                         swapDataAccount,
                         swapDataAccountTokenAta,
@@ -299,7 +300,7 @@ export async function createTakeAndCloseSwapInstructions(
                         ).metadataAddress;
 
                     const takeIx = await program.methods
-                        .takeSwap(bidToscBid(bid))
+                        .takeSwap(bidToscBid(bid), n)
                         .accountsStrict({
                             swapDataAccount,
                             swapDataAccountTokenAta,
@@ -338,7 +339,7 @@ export async function createTakeAndCloseSwapInstructions(
                     console.log("makerhashlistMarker", makerhashlistMarker);
 
                     const takeIx = await program.methods
-                        .takeSwap22(bidToscBid(Data.bid))
+                        .takeSwap22(bidToscBid(Data.bid), n)
                         .accountsStrict({
                             swapDataAccount,
                             swapDataAccountTokenAta,
@@ -555,16 +556,16 @@ export async function createTakeAndCloseSwapInstructions(
                         signer,
                         // nsFee: NS_FEE,
                         // nsFeeTokenAta,
-                        makerCreator0: makerCreators[0],
-                        makerCreator0TokenAta: makerCreatorTokenAta[0],
-                        makerCreator1: makerCreators[1],
-                        makerCreator1TokenAta: makerCreatorTokenAta[1],
-                        makerCreator2: makerCreators[2],
-                        makerCreator2TokenAta: makerCreatorTokenAta[2],
-                        makerCreator3: makerCreators[3],
-                        makerCreator3TokenAta: makerCreatorTokenAta[3],
-                        makerCreator4: makerCreators[4],
-                        makerCreator4TokenAta: makerCreatorTokenAta[4],
+                        creator0: makerCreators[0],
+                        creator0TokenAta: makerCreatorTokenAta[0],
+                        creator1: makerCreators[1],
+                        creator1TokenAta: makerCreatorTokenAta[1],
+                        creator2: makerCreators[2],
+                        creator2TokenAta: makerCreatorTokenAta[2],
+                        creator3: makerCreators[3],
+                        creator3TokenAta: makerCreatorTokenAta[3],
+                        creator4: makerCreators[4],
+                        creator4TokenAta: makerCreatorTokenAta[4],
                         tokenProgram: TOKEN_PROGRAM_ID,
                     })
                     .instruction();
@@ -681,16 +682,16 @@ export async function createTakeAndCloseSwapInstructions(
                         signer,
                         // nsFee: NS_FEE,
                         // nsFeeTokenAta,
-                        makerCreator0: makerCreators[0],
-                        makerCreator0TokenAta: makerCreatorTokenAta[0],
-                        makerCreator1: makerCreators[1],
-                        makerCreator1TokenAta: makerCreatorTokenAta[1],
-                        makerCreator2: makerCreators[2],
-                        makerCreator2TokenAta: makerCreatorTokenAta[2],
-                        makerCreator3: makerCreators[3],
-                        makerCreator3TokenAta: makerCreatorTokenAta[3],
-                        makerCreator4: makerCreators[4],
-                        makerCreator4TokenAta: makerCreatorTokenAta[4],
+                        creator0: makerCreators[0],
+                        creator0TokenAta: makerCreatorTokenAta[0],
+                        creator1: makerCreators[1],
+                        creator1TokenAta: makerCreatorTokenAta[1],
+                        creator2: makerCreators[2],
+                        creator2TokenAta: makerCreatorTokenAta[2],
+                        creator3: makerCreators[3],
+                        creator3TokenAta: makerCreatorTokenAta[3],
+                        creator4: makerCreators[4],
+                        creator4TokenAta: makerCreatorTokenAta[4],
                         tokenProgram: TOKEN_PROGRAM_ID,
                     })
                     .instruction();

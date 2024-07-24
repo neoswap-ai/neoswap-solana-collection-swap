@@ -1201,38 +1201,38 @@ export const idlSwap: CollectionSwap = {
                     name: "tokenProgram",
                 },
                 {
-                    name: "makerCreator0",
+                    name: "creator0",
                 },
                 {
-                    name: "makerCreator0TokenAta",
+                    name: "creator0TokenAta",
                     writable: true,
                 },
                 {
-                    name: "makerCreator1",
+                    name: "creator1",
                 },
                 {
-                    name: "makerCreator1TokenAta",
+                    name: "creator1TokenAta",
                     writable: true,
                 },
                 {
-                    name: "makerCreator2",
+                    name: "creator2",
                 },
                 {
-                    name: "makerCreator2TokenAta",
+                    name: "creator2TokenAta",
                     writable: true,
                 },
                 {
-                    name: "makerCreator3",
+                    name: "creator3",
                 },
                 {
-                    name: "makerCreator3TokenAta",
+                    name: "creator3TokenAta",
                     writable: true,
                 },
                 {
-                    name: "makerCreator4",
+                    name: "creator4",
                 },
                 {
-                    name: "makerCreator4TokenAta",
+                    name: "creator4TokenAta",
                     writable: true,
                 },
             ],
@@ -1412,6 +1412,10 @@ export const idlSwap: CollectionSwap = {
                         },
                     },
                 },
+                {
+                    name: "n",
+                    type: "u8",
+                },
             ],
         },
         {
@@ -1500,6 +1504,10 @@ export const idlSwap: CollectionSwap = {
                         },
                     },
                 },
+                {
+                    name: "n",
+                    type: "u8",
+                },
             ],
         },
         {
@@ -1576,6 +1584,10 @@ export const idlSwap: CollectionSwap = {
                             name: "bid",
                         },
                     },
+                },
+                {
+                    name: "n",
+                    type: "u8",
                 },
             ],
         },
@@ -3082,38 +3094,38 @@ export type CollectionSwap = {
                     name: "tokenProgram";
                 },
                 {
-                    name: "makerCreator0";
+                    name: "creator0";
                 },
                 {
-                    name: "makerCreator0TokenAta";
+                    name: "creator0TokenAta";
                     writable: true;
                 },
                 {
-                    name: "makerCreator1";
+                    name: "creator1";
                 },
                 {
-                    name: "makerCreator1TokenAta";
+                    name: "creator1TokenAta";
                     writable: true;
                 },
                 {
-                    name: "makerCreator2";
+                    name: "creator2";
                 },
                 {
-                    name: "makerCreator2TokenAta";
+                    name: "creator2TokenAta";
                     writable: true;
                 },
                 {
-                    name: "makerCreator3";
+                    name: "creator3";
                 },
                 {
-                    name: "makerCreator3TokenAta";
+                    name: "creator3TokenAta";
                     writable: true;
                 },
                 {
-                    name: "makerCreator4";
+                    name: "creator4";
                 },
                 {
-                    name: "makerCreator4TokenAta";
+                    name: "creator4TokenAta";
                     writable: true;
                 }
             ];
@@ -3292,6 +3304,10 @@ export type CollectionSwap = {
                             name: "bid";
                         };
                     };
+                },
+                {
+                    name: "n";
+                    type: "u8";
                 }
             ];
         },
@@ -3380,6 +3396,10 @@ export type CollectionSwap = {
                             name: "bid";
                         };
                     };
+                },
+                {
+                    name: "n";
+                    type: "u8";
                 }
             ];
         },
@@ -3457,6 +3477,10 @@ export type CollectionSwap = {
                             name: "bid";
                         };
                     };
+                },
+                {
+                    name: "n";
+                    type: "u8";
                 }
             ];
         }
