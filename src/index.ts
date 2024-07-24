@@ -5,13 +5,13 @@ import { makeSwap } from "./processor/makeSwap";
 import { takeAndCloseSwap } from "./processor/takeAndCloseSwap";
 // import { takeSwap } from "./processor/takeSwap";
 import { createCancelSwapInstructions } from "./programInstructions/cancelSwap.instructions";
-import { createClaimSwapInstructions } from "./programInstructions/claimSwap.instructions";
+// import { createClaimSwapInstructions } from "./programInstructions/claimSwap.instructions";
 import { createMakeSwapInstructions } from "./programInstructions/makeSwap.instructions";
 import { createAddBidBt, createRmBidBt } from "./programInstructions/modifyAddBid.instructions";
 // import { createPayRoyaltiesInstructions } from "./programInstructions/payRoyalties.instructions";
 import { createSetNewTime } from "./programInstructions/setNewTime.instructions";
 import { createTakeAndCloseSwapInstructions } from "./programInstructions/takeAndCloseSwap.instructions";
-import { createTakeSwapInstructions } from "./programInstructions/takeSwap.instructions";
+// import { createTakeSwapInstructions } from "./programInstructions/takeSwap.instructions";
 import {
     checkEnvOpts,
     checkOptionSend,
