@@ -115,7 +115,7 @@ export async function sendBundledTransactionsV2(
         signer ? signer.publicKey.toBase58() : "- unknown signer -",
         " has found to have ",
         bundleTransactions.length,
-        " transaction(s) to send \nBroadcasting to blockchain ..."
+        ` transaction(s) to send \nBroadcasting to blockchain ...`
     );
 
     let processedBTs = [];

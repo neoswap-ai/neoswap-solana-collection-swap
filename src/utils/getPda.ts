@@ -10,7 +10,7 @@ export function getSdaSeed(maker: string, makerMint: string) {
     let buffer = array.map((str) => {
         return Uint8Array.from(str);
     });
-    console.log(buffer, "getSdaSeed", { string, array });
+    // console.log(buffer, "getSdaSeed", { string, array });
     return {
         buffer,
         string,
@@ -18,7 +18,7 @@ export function getSdaSeed(maker: string, makerMint: string) {
 }
 
 export function getSda(maker: string, makerMint: string, programId: string) {
-    console.log("getSda", { maker, makerMint, programId });
+    // console.log("getSda", { maker, makerMint, programId });
 
     return PublicKey.findProgramAddressSync(
         getSdaSeed(maker, makerMint).buffer,

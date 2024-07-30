@@ -143,6 +143,7 @@ export type TakeSArg = {
     nftMintTaker: string;
     bid: Bid;
     verifyTaker?: boolean;
+    unwrap?:boolean
 };
 export type ClaimSArg = {
     swapDataAccount: string;
