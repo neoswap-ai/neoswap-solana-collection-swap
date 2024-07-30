@@ -103,7 +103,7 @@ export async function sendSingleBundleTransaction(
             if (check === true) {
                 keepChecking = false;
                 bt.status = "success";
-                console.log("Transaction confirmed: ", bt.hash);
+                console.log(bt.description.split(".")[0], "confirmed: ", bt.hash);
             } else if (check === null) await delay(retryDelay);
             else {
                 bt.status = "failed";

@@ -60,7 +60,7 @@ export async function checkEnvOpts(Data: EnvOpts): Promise<CEnvOpts> {
     if (anyProgram && clusterOrUrl) {
         program = anyProgram as any as Program<CollectionSwap>;
     } else if (!anyProgram && clusterOrUrl) {
-        console.log("programId", programId);
+        // console.log("programId", programId);
 
         program = await getProgram({ clusterOrUrl: clusterOrUrl, programId, idl });
     } else if (!clusterOrUrl && anyProgram) {
@@ -73,9 +73,8 @@ export async function checkEnvOpts(Data: EnvOpts): Promise<CEnvOpts> {
             message: "clusterOrUrl or program is required",
         } as ErrorFeedback;
     }
-    console.log(programId, " VS ", program.programId.toString());
-
     programId = program.programId.toString();
+    console.log(programId);
 
     return {
         program,
@@ -108,9 +107,9 @@ export function getTakeArgs(
               taker: Keypair;
           })
 ): TakeSArg {
-    let { bid, nftMintTaker, swapDataAccount, taker, verifyTaker, signer, n } = Data;
+    let { bid, nftMintTaker, swapDataAccount, taker, verifyTaker, signer, n, unwrap } = Data;
     taker = typeof taker === "string" ? taker : taker.publicKey.toString();
-    return { bid, nftMintTaker, swapDataAccount, taker, verifyTaker, signer, n };
+    return { bid, nftMintTaker, swapDataAccount, taker, verifyTaker, signer, n, unwrap };
 }
 export function getClaimSArgs(
     Data: any &

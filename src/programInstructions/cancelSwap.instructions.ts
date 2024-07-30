@@ -16,9 +16,7 @@ import {
 } from "../utils/const";
 import {
     findNftDataAndMetadataAccount,
-    findNftMasterEdition,
-    findRuleSet,
-    findUserTokenRecord,
+    findPnftAccounts,
     getCoreCollection,
     whichStandard,
 } from "../utils/findNftDataAndAccounts.function";
@@ -75,6 +73,7 @@ export async function createCancelSwapInstructions(
         }
 
         let tknStd = await whichStandard({ connection, mint: nftMintMaker });
+        console.log(" tknD", tknStd);
 
         if (tknStd === "core") {
             let collection = await getCoreCollection({ connection, mint: nftMintMaker });
@@ -96,11 +95,7 @@ export async function createCancelSwapInstructions(
                 .instruction();
             instructions.push(cancelIxs);
         } else {
-            let {
-                mintAta: makerNftAta,
-                instruction: mN,
-                tokenProgram,
-            } = await findOrCreateAta({
+            let { mintAta: makerNftAta, instruction: mN } = await findOrCreateAta({
                 connection,
                 mint: nftMintMaker,
                 owner: maker,
@@ -129,12 +124,6 @@ export async function createCancelSwapInstructions(
                 let destinationTokenRecordMaker = signer;
                 let authRulesMaker = signer;
 
-                console.log(
-                    nftMintMaker,
-                    "makerTokenProg findNftDataAndMetadataAccount",
-                    tokenProgram == TOKEN_PROGRAM_ID.toString() ? "native" : "2022"
-                );
-
                 const { metadataAddress: nftMetadataMaker, tokenStandard: tokenStandardMaker } =
                     await findNftDataAndMetadataAccount({
                         connection,
@@ -143,33 +132,17 @@ export async function createCancelSwapInstructions(
                 console.log("nftMetadataMaker", nftMetadataMaker);
 
                 if (tokenStandardMaker == TokenStandard.ProgrammableNonFungible) {
-                    const nftMasterEditionF = findNftMasterEdition({
-                        mint: nftMintMaker,
-                    });
-                    console.log("nftMasterEditionF", nftMasterEditionF);
-
-                    const ownerTokenRecordF = findUserTokenRecord({
-                        mint: nftMintMaker,
-                        userMintAta: swapDataAccountNftAta,
-                    });
-                    console.log("ownerTokenRecordF", ownerTokenRecordF);
-
-                    const destinationTokenRecordF = findUserTokenRecord({
-                        mint: nftMintMaker,
-                        userMintAta: makerNftAta,
-                    });
-                    console.log("destinationTokenRecordF", destinationTokenRecordF);
-
-                    const authRulesF = await findRuleSet({
+                    ({
+                        authRules: authRulesMaker,
+                        destinationTokenRecord: destinationTokenRecordMaker,
+                        masterEdition: nftMasterEditionMaker,
+                        ownerTokenRecord: ownerTokenRecordMaker,
+                    } = await findPnftAccounts({
                         connection,
+                        ownerAta: swapDataAccountNftAta,
                         mint: nftMintMaker,
-                    });
-                    console.log("authRulesF", authRulesF);
-
-                    nftMasterEditionMaker = nftMasterEditionF;
-                    ownerTokenRecordMaker = ownerTokenRecordF;
-                    destinationTokenRecordMaker = destinationTokenRecordF;
-                    authRulesMaker = authRulesF;
+                        destinationAta: makerNftAta,
+                    }));
                 }
 
                 const cancelIx = await program.methods
@@ -202,7 +175,7 @@ export async function createCancelSwapInstructions(
                         authRulesProgram: METAPLEX_AUTH_RULES_PROGRAM,
                     })
                     .instruction();
-                console.log("adding cancelIx");
+                console.log("adding native cancelIx");
                 instructions.push(cancelIx);
             } else if (tknStd == "hybrid") {
                 const cancelIx = await program.methods
@@ -227,7 +200,7 @@ export async function createCancelSwapInstructions(
                         ataProgram: SOLANA_SPL_ATA_PROGRAM_ID,
                     })
                     .instruction();
-                console.log("adding cancelIx");
+                console.log("adding hybrid cancelIx");
                 instructions.push(cancelIx);
             } else throw "unsupported token standard";
         }

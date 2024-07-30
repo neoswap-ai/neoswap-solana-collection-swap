@@ -22,11 +22,15 @@ import {
     isUpdateSArg,
     whatIs,
 } from "./utils/check";
+import { getCreatorData } from "./utils/creators";
+import { calculateMakerFee } from "./utils/fees";
 import {
     findNftDataAndMetadataAccount,
     findNftMasterEdition,
     findRuleSet,
     findUserTokenRecord,
+    standardToProgram,
+    whichStandard,
 } from "./utils/findNftDataAndAccounts.function";
 import { findOrCreateAta } from "./utils/findOrCreateAta.function";
 import { getSda } from "./utils/getPda";
@@ -52,6 +56,8 @@ export const NFT_ACCOUNTS = {
     findNftMasterEdition,
     findRuleSet,
     findUserTokenRecord,
+    whichStandard,
+    standardToProgram
 };
 export const TYPES = {
     whatIs,
@@ -79,6 +85,8 @@ export const UTILS = {
     checkEnvOpts,
     checkOptionSend,
     getSda,
+    getCreatorData,
+    calculateMakerFee
     // closeUserPda,
 };
 export const CREATE_INSTRUCTIONS = {
