@@ -15,6 +15,41 @@ import { dasApi } from "@metaplex-foundation/digital-asset-standard-api";
 // import { Umi } from "@metaplex-foundation/umi";
 // import { TOKEN_2022_PROGRAM_ID } from "@solana/spl-token";
 
+export async function findPnftAccounts({
+    ownerAta,
+    connection,
+    mint,
+    destinationAta,
+}: {
+    connection: Connection;
+    mint: string;
+    ownerAta: string;
+    destinationAta: string;
+}) {
+    let [masterEdition, ownerTokenRecord, destinationTokenRecord, authRules] = await Promise.all([
+        findNftMasterEdition({
+            mint,
+        }),
+        findUserTokenRecord({
+            mint,
+            userMintAta: ownerAta,
+        }),
+        findUserTokenRecord({
+            mint,
+            userMintAta: destinationAta,
+        }),
+        await findRuleSet({
+            connection,
+            mint,
+        }),
+    ]);
+    return {
+        masterEdition,
+        ownerTokenRecord,
+        destinationTokenRecord,
+        authRules,
+    };
+}
 export async function findNftDataAndMetadataAccount(Data: {
     connection: Connection;
     mint: string;
@@ -104,7 +139,16 @@ async function getMetaFromMetaplex(Data: { mint: string; connection: Connection 
 
     // return await fetchDigitalAsset(umi, mint as PPublicKey);
 }
-
+export function standardToProgram(standard: "core" | "native" | "hybrid") {
+    switch (standard) {
+        case "core":
+            return MPL_CORE_PROGRAM_ID.toString();
+        case "native":
+            return TOKEN_PROGRAM_ID.toString();
+        case "hybrid":
+            return TOKEN_2022_PROGRAM_ID.toString();
+    }
+}
 export async function whichStandard({
     connection,
     mint,
@@ -113,6 +157,7 @@ export async function whichStandard({
     mint: string;
 }): Promise<"core" | "native" | "hybrid"> {
     let tokenProg = (await connection.getAccountInfo(new PublicKey(mint)))?.owner.toString();
+
     switch (tokenProg) {
         case TOKEN_PROGRAM_ID.toString():
             return "native";
@@ -121,7 +166,7 @@ export async function whichStandard({
         case MPL_CORE_PROGRAM_ID.toString():
             return "core";
         default:
-            throw "Token standard not supported";
+            throw `Token standard not supported for mint ${mint} - ${tokenProg}`;
     }
 }
 

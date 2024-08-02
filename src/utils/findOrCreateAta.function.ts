@@ -10,6 +10,7 @@ import {
     NEOSWAP_PROGRAM_ID_DEV,
 } from "../utils/const";
 import { delay } from "./delay";
+import { standardToProgram, whichStandard } from "./findNftDataAndAccounts.function";
 
 export async function findOrCreateAta(Data: {
     clusterOrUrl?: Cluster | string;
@@ -20,7 +21,7 @@ export async function findOrCreateAta(Data: {
 }): Promise<{
     mintAta: string;
     instruction?: TransactionInstruction;
-    tokenProgram?: string;
+    // tokenStandard: "core" | "native" | "hybrid"
 }> {
     if (!!Data.clusterOrUrl && !!Data.connection) {
     } else if (!!Data.clusterOrUrl) {
@@ -28,12 +29,9 @@ export async function findOrCreateAta(Data: {
     } else if (!!Data.connection) {
         Data.clusterOrUrl = Data.connection.rpcEndpoint;
     } else throw "there should be a Program or a Cluster";
-    // let { mint, owner, signer } = Data;
-    // console.log("mint", mint, "owner", owner, "signer", signer);
-    let tokenProg = (
-        await Data.connection.getAccountInfo(new PublicKey(Data.mint))
-    )?.owner.toString();
-    if (!tokenProg) tokenProg = TOKEN_PROGRAM_ID.toString();
+
+    let tokenStandard = await whichStandard({ connection: Data.connection, mint: Data.mint });
+    let tokenProg = standardToProgram(tokenStandard);
 
     try {
         let values: { address: PublicKey; value: number }[] = [];
@@ -60,11 +58,7 @@ export async function findOrCreateAta(Data: {
                 Data.owner,
                 "mint",
                 Data.mint,
-                tokenProg == TOKEN_PROGRAM_ID.toString()
-                    ? "native"
-                    : tokenProg == TOKEN_2022_PROGRAM_ID.toString()
-                    ? "2022"
-                    : "inknown"
+                tokenStandard
             );
 
             return {
@@ -76,17 +70,15 @@ export async function findOrCreateAta(Data: {
                     new PublicKey(Data.mint),
                     new PublicKey(tokenProg)
                 ),
-                tokenProgram: tokenProg,
             };
         }
         let mintAta = mintAtas[0].pubkey.toString();
-        let tokenProgram = mintAtas[0].account.owner.toString();
         if (mintAtas.length > 1) {
             console.log("more than 1 ata", mintAtas);
 
             for await (const ata of mintAtas) {
                 let balance = await Data.connection.getTokenAccountBalance(ata.pubkey);
-                await delay(1000);
+                await delay(300);
                 if (balance.value.uiAmount || balance.value.uiAmount === 0)
                     values.push({ value: balance.value.uiAmount, address: ata.pubkey });
             }
@@ -95,23 +87,10 @@ export async function findOrCreateAta(Data: {
             mintAta = values[0].address.toString();
         }
 
-        console.log(
-            "mintAta",
-            mintAta,
-            Data.owner,
-            "tokenProgram",
-            tokenProgram == TOKEN_PROGRAM_ID.toString()
-                ? "native"
-                : tokenProg == TOKEN_PROGRAM_ID.toString()
-                ? "native"
-                : tokenProg == TOKEN_2022_PROGRAM_ID.toString()
-                ? "2022"
-                : "inknown"
-        );
+        // console.log(tokenStandard, mintAta, Data.owner);
 
         return {
             mintAta,
-            tokenProgram: tokenProg,
         };
     } catch (eee) {
         const mintAta = PublicKey.findProgramAddressSync(
@@ -134,7 +113,6 @@ export async function findOrCreateAta(Data: {
                 new PublicKey(Data.mint),
                 new PublicKey(tokenProg)
             ),
-            tokenProgram: tokenProg.toString(),
         };
     }
 }
