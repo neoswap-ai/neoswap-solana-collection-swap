@@ -3,6 +3,9 @@ import {
     SystemProgram,
     TransactionInstruction,
     SYSVAR_INSTRUCTIONS_PUBKEY,
+    clusterApiUrl,
+    Cluster,
+    PublicKey,
 } from "@solana/web3.js";
 import { BTv, EnvOpts, MakeSArg, ReturnSwapData, UpdateSArgs } from "../utils/types";
 import { findOrCreateAta } from "../utils/findOrCreateAta.function";
@@ -31,6 +34,12 @@ import { ix2vTx } from "../utils/vtx";
 import { createAddBidIx } from "./modifyAddBid.instructions";
 import { MPL_CORE_PROGRAM_ID } from "@metaplex-foundation/mpl-core";
 import { calculateMakerFee, makerFee } from "../utils/fees";
+import { getCompNFTData } from "../utils/compressedHelper";
+import {
+    SPL_ACCOUNT_COMPRESSION_PROGRAM_ID,
+    SPL_NOOP_PROGRAM_ID,
+} from "@solana/spl-account-compression";
+import { PROGRAM_ID as MPL_BUBBLEGUM_PROGRAM_ID } from "@metaplex-foundation/mpl-bubblegum";
 
 export async function createMakeSwapInstructions(
     Data: MakeSArg & EnvOpts
@@ -82,7 +91,7 @@ export async function createMakeSwapInstructions(
         if (paymentMint === WRAPPED_SOL_MINT.toString()) {
             let maxAmount = calculateMakerFee({ bids });
             console.log("maxAmount", maxAmount);
-            
+
             if (maxAmount) instructions.push(...addWSol(maker, makerTokenAta, maxAmount));
         }
 
@@ -107,6 +116,51 @@ export async function createMakeSwapInstructions(
                 })
                 .instruction();
             instructions.push(initIx);
+        } else if (tokenStd === "compressed") {
+            let cluster = (
+                !cEnvOpts.clusterOrUrl.includes("mainnet") ? "devnet" : "mainnet-beta"
+            ) as Cluster;
+            let {
+                creatorHash,
+                dataHash,
+                index,
+                merkleTree,
+                nonce,
+                proofMeta,
+                root,
+                treeAuthority,
+            } = await getCompNFTData({ cluster, tokenId: nftMintMaker, connection });
+
+            let makeCompData = await program.methods
+                .makeSwapComp(
+                    bidToscBid(oneBid),
+                    new BN(endDate),
+                    Array.from(root),
+                    Array.from(dataHash),
+                    Array.from(creatorHash),
+                    nonce,
+                    index
+                    // new PublicKey(nftMintMaker)
+                )
+                .accountsStrict({
+                    swapDataAccount,
+                    swapDataAccountTokenAta,
+                    maker,
+                    makerTokenAta,
+                    tokenId: nftMintMaker,
+                    merkleTree,
+                    paymentMint,
+                    treeAuthority,
+                    ataProgram: SOLANA_SPL_ATA_PROGRAM_ID,
+                    bubblegumProgram: MPL_BUBBLEGUM_PROGRAM_ID,
+                    compressionProgram: SPL_ACCOUNT_COMPRESSION_PROGRAM_ID,
+                    logWrapper: SPL_NOOP_PROGRAM_ID,
+                    systemProgram: SystemProgram.programId,
+                    tokenProgram: TOKEN_PROGRAM_ID,
+                })
+                .remainingAccounts(proofMeta)
+                .instruction();
+            instructions.push(makeCompData);
         } else {
             let { mintAta: swapDataAccountNftAta, instruction: sn } = await findOrCreateAta({
                 connection,
@@ -203,7 +257,7 @@ export async function createMakeSwapInstructions(
                     })
                     .instruction();
                 instructions.push(initIx);
-            }
+            } else throw "not supported";
         }
 
         let addBidIxs: TransactionInstruction[] = [];

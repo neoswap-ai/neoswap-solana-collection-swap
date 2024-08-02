@@ -22,6 +22,7 @@ import {
     isUpdateSArg,
     whatIs,
 } from "./utils/check";
+import { makeRoot } from "./utils/compressedHelper";
 import { getCreatorData } from "./utils/creators";
 import { calculateMakerFee } from "./utils/fees";
 import {
@@ -57,7 +58,7 @@ export const NFT_ACCOUNTS = {
     findRuleSet,
     findUserTokenRecord,
     whichStandard,
-    standardToProgram
+    standardToProgram,
 };
 export const TYPES = {
     whatIs,
@@ -86,7 +87,8 @@ export const UTILS = {
     checkOptionSend,
     getSda,
     getCreatorData,
-    calculateMakerFee
+    calculateMakerFee,
+    makeRoot,
     // closeUserPda,
 };
 export const CREATE_INSTRUCTIONS = {

@@ -2,7 +2,7 @@ export const idlSwap: CollectionSwap = {
     address: "NSWPpfskKcHo93mxZSgdinqpnFkcdWPsSxBB9Q26Qbq",
     metadata: {
         name: "collectionSwap",
-        version: "0.4.0",
+        version: "0.4.1",
         spec: "0.1.0",
         description: "collectionSwap",
     },
@@ -254,6 +254,118 @@ export const idlSwap: CollectionSwap = {
                 },
             ],
             args: [],
+        },
+        {
+            name: "cancelSwapComp",
+            discriminator: [178, 93, 63, 195, 14, 39, 40, 171],
+            accounts: [
+                {
+                    name: "swapDataAccount",
+                    writable: true,
+                    pda: {
+                        seeds: [
+                            {
+                                kind: "const",
+                                value: [115, 119, 97, 112],
+                            },
+                            {
+                                kind: "account",
+                                path: "swap_data_account.maker",
+                                account: "swapData",
+                            },
+                            {
+                                kind: "account",
+                                path: "swap_data_account.nft_mint_maker",
+                                account: "swapData",
+                            },
+                        ],
+                    },
+                },
+                {
+                    name: "swapDataAccountTokenAta",
+                    writable: true,
+                },
+                {
+                    name: "maker",
+                    writable: true,
+                },
+                {
+                    name: "signer",
+                    signer: true,
+                },
+                {
+                    name: "treeAuthority",
+                    writable: true,
+                    pda: {
+                        seeds: [
+                            {
+                                kind: "account",
+                                path: "merkleTree",
+                            },
+                        ],
+                        program: {
+                            kind: "account",
+                            path: "bubblegumProgram",
+                        },
+                    },
+                },
+                {
+                    name: "merkleTree",
+                    writable: true,
+                },
+                {
+                    name: "logWrapper",
+                },
+                {
+                    name: "compressionProgram",
+                },
+                {
+                    name: "bubblegumProgram",
+                    address: "BGUMAp9Gq7iTEuizy4pqaxsTyUCBK68MDfK752saRPUY",
+                },
+                {
+                    name: "makerTokenAta",
+                    writable: true,
+                },
+                {
+                    name: "paymentMint",
+                },
+                {
+                    name: "systemProgram",
+                    address: "11111111111111111111111111111111",
+                },
+                {
+                    name: "tokenProgram",
+                }
+            ],
+            args: [
+                {
+                    name: "root",
+                    type: {
+                        array: ["u8", 32],
+                    },
+                },
+                {
+                    name: "dataHash",
+                    type: {
+                        array: ["u8", 32],
+                    },
+                },
+                {
+                    name: "creatorHash",
+                    type: {
+                        array: ["u8", 32],
+                    },
+                },
+                {
+                    name: "nonce",
+                    type: "u64",
+                },
+                {
+                    name: "index",
+                    type: "u32",
+                },
+            ],
         },
         {
             name: "cancelSwapCore",
@@ -550,6 +662,137 @@ export const idlSwap: CollectionSwap = {
             args: [],
         },
         {
+            name: "claimSwapComp",
+            discriminator: [56, 220, 147, 71, 118, 108, 37, 64],
+            accounts: [
+                {
+                    name: "swapDataAccount",
+                    writable: true,
+                    pda: {
+                        seeds: [
+                            {
+                                kind: "const",
+                                value: [115, 119, 97, 112],
+                            },
+                            {
+                                kind: "account",
+                                path: "swap_data_account.maker",
+                                account: "swapData",
+                            },
+                            {
+                                kind: "account",
+                                path: "swap_data_account.nft_mint_maker",
+                                account: "swapData",
+                            },
+                        ],
+                    },
+                },
+                {
+                    name: "swapDataAccountTokenAta",
+                    writable: true,
+                },
+                {
+                    name: "nsFee",
+                    docs: ["CHECK : in constraints"],
+                },
+                {
+                    name: "nsFeeTokenAta",
+                    writable: true,
+                },
+                {
+                    name: "taker",
+                    docs: ["CHECK : in constraints"],
+                },
+                {
+                    name: "takerTokenAta",
+                    writable: true,
+                },
+                {
+                    name: "maker",
+                    writable: true,
+                },
+                {
+                    name: "makerTokenAta",
+                    writable: true,
+                },
+                {
+                    name: "paymentMint",
+                },
+                {
+                    name: "treeAuthority",
+                    writable: true,
+                    pda: {
+                        seeds: [
+                            {
+                                kind: "account",
+                                path: "merkleTree",
+                            },
+                        ],
+                        program: {
+                            kind: "account",
+                            path: "bubblegumProgram",
+                        },
+                    },
+                },
+                {
+                    name: "merkleTree",
+                    writable: true,
+                },
+                {
+                    name: "signer",
+                    signer: true,
+                },
+                {
+                    name: "systemProgram",
+                    address: "11111111111111111111111111111111",
+                },
+                {
+                    name: "tokenProgram",
+                },
+                {
+                    name: "ataProgram",
+                },
+                {
+                    name: "logWrapper",
+                },
+                {
+                    name: "compressionProgram",
+                },
+                {
+                    name: "bubblegumProgram",
+                    address: "BGUMAp9Gq7iTEuizy4pqaxsTyUCBK68MDfK752saRPUY",
+                },
+            ],
+            args: [
+                {
+                    name: "creatorHash",
+                    type: {
+                        array: ["u8", 32],
+                    },
+                },
+                {
+                    name: "dataHash",
+                    type: {
+                        array: ["u8", 32],
+                    },
+                },
+                {
+                    name: "root",
+                    type: {
+                        array: ["u8", 32],
+                    },
+                },
+                {
+                    name: "nonce",
+                    type: "u64",
+                },
+                {
+                    name: "index",
+                    type: "u32",
+                },
+            ],
+        },
+        {
             name: "claimSwapCore",
             discriminator: [16, 165, 132, 93, 23, 254, 166, 9],
             accounts: [
@@ -811,7 +1054,7 @@ export const idlSwap: CollectionSwap = {
                     },
                 },
                 {
-                    name: "endDate",
+                    name: "endTime",
                     type: "i64",
                 },
             ],
@@ -896,6 +1139,132 @@ export const idlSwap: CollectionSwap = {
                 {
                     name: "endDate",
                     type: "i64",
+                },
+            ],
+        },
+        {
+            name: "makeSwapComp",
+            discriminator: [207, 55, 144, 111, 235, 221, 201, 172],
+            accounts: [
+                {
+                    name: "swapDataAccount",
+                    writable: true,
+                    pda: {
+                        seeds: [
+                            {
+                                kind: "const",
+                                value: [115, 119, 97, 112],
+                            },
+                            {
+                                kind: "account",
+                                path: "maker",
+                            },
+                            {
+                                kind: "arg",
+                                path: "tokenId",
+                            },
+                        ],
+                    },
+                },
+                {
+                    name: "swapDataAccountTokenAta",
+                    writable: true,
+                },
+                {
+                    name: "maker",
+                    writable: true,
+                    signer: true,
+                },
+                {
+                    name: "makerTokenAta",
+                    writable: true,
+                },
+                {
+                    name: "treeAuthority",
+                    writable: true,
+                    pda: {
+                        seeds: [
+                            {
+                                kind: "account",
+                                path: "merkleTree",
+                            },
+                        ],
+                        program: {
+                            kind: "account",
+                            path: "bubblegumProgram",
+                        },
+                    },
+                },
+                {
+                    name: "merkleTree",
+                    writable: true,
+                },
+                {
+                    name: "tokenId",
+                },
+                {
+                    name: "paymentMint",
+                },
+                {
+                    name: "systemProgram",
+                    address: "11111111111111111111111111111111",
+                },
+                {
+                    name: "tokenProgram",
+                    address: "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+                },
+                {
+                    name: "ataProgram",
+                },
+                {
+                    name: "logWrapper",
+                },
+                {
+                    name: "compressionProgram",
+                },
+                {
+                    name: "bubblegumProgram",
+                    address: "BGUMAp9Gq7iTEuizy4pqaxsTyUCBK68MDfK752saRPUY",
+                },
+            ],
+            args: [
+                {
+                    name: "bidToAdd",
+                    type: {
+                        defined: {
+                            name: "bid",
+                        },
+                    },
+                },
+                {
+                    name: "endDate",
+                    type: "i64",
+                },
+                {
+                    name: "root",
+                    type: {
+                        array: ["u8", 32],
+                    },
+                },
+                {
+                    name: "dataHash",
+                    type: {
+                        array: ["u8", 32],
+                    },
+                },
+                {
+                    name: "creatorHash",
+                    type: {
+                        array: ["u8", 32],
+                    },
+                },
+                {
+                    name: "nonce",
+                    type: "u64",
+                },
+                {
+                    name: "index",
+                    type: "u32",
                 },
             ],
         },
@@ -1156,6 +1525,149 @@ export const idlSwap: CollectionSwap = {
                 },
             ],
             args: [],
+        },
+        {
+            name: "payRoyaltiesComp",
+            discriminator: [71, 14, 0, 184, 170, 143, 114, 147],
+            accounts: [
+                {
+                    name: "swapDataAccount",
+                    writable: true,
+                    pda: {
+                        seeds: [
+                            {
+                                kind: "const",
+                                value: [115, 119, 97, 112],
+                            },
+                            {
+                                kind: "account",
+                                path: "swap_data_account.maker",
+                                account: "swapData",
+                            },
+                            {
+                                kind: "account",
+                                path: "swap_data_account.nft_mint_maker",
+                                account: "swapData",
+                            },
+                        ],
+                    },
+                },
+                {
+                    name: "swapDataAccountTokenAta",
+                    writable: true,
+                },
+                {
+                    name: "paymentMint",
+                },
+                {
+                    name: "owner",
+                },
+                {
+                    name: "signer",
+                    signer: true,
+                },
+                {
+                    name: "merkleTree",
+                    writable: true,
+                },
+                {
+                    name: "tokenProgram",
+                },
+                {
+                    name: "compressionProgram",
+                },
+                {
+                    name: "creator0",
+                },
+                {
+                    name: "creator0TokenAta",
+                    writable: true,
+                },
+                {
+                    name: "creator1",
+                },
+                {
+                    name: "creator1TokenAta",
+                    writable: true,
+                },
+                {
+                    name: "creator2",
+                },
+                {
+                    name: "creator2TokenAta",
+                    writable: true,
+                },
+                {
+                    name: "creator3",
+                },
+                {
+                    name: "creator3TokenAta",
+                    writable: true,
+                },
+                {
+                    name: "creator4",
+                },
+                {
+                    name: "creator4TokenAta",
+                    writable: true,
+                },
+            ],
+            args: [
+                {
+                    name: "root",
+                    type: {
+                        array: ["u8", 32],
+                    },
+                },
+                {
+                    name: "name",
+                    type: "string",
+                },
+                {
+                    name: "symbol",
+                    type: "string",
+                },
+                {
+                    name: "uri",
+                    type: "string",
+                },
+                {
+                    name: "sellerFeeBasisPoints",
+                    type: "u16",
+                },
+                {
+                    name: "primarySaleHappened",
+                    type: "bool",
+                },
+                {
+                    name: "isMutable",
+                    type: "bool",
+                },
+                {
+                    name: "editionNonce",
+                    type: {
+                        option: "u8",
+                    },
+                },
+                {
+                    name: "creators",
+                    type: {
+                        vec: {
+                            defined: {
+                                name: "cCreator",
+                            },
+                        },
+                    },
+                },
+                {
+                    name: "nonce",
+                    type: "u64",
+                },
+                {
+                    name: "index",
+                    type: "u32",
+                },
+            ],
         },
         {
             name: "payRoyaltiesCore",
@@ -1511,6 +2023,169 @@ export const idlSwap: CollectionSwap = {
             ],
         },
         {
+            name: "takeSwapComp",
+            discriminator: [51, 70, 94, 77, 30, 242, 36, 153],
+            accounts: [
+                {
+                    name: "swapDataAccount",
+                    writable: true,
+                    pda: {
+                        seeds: [
+                            {
+                                kind: "const",
+                                value: [115, 119, 97, 112],
+                            },
+                            {
+                                kind: "account",
+                                path: "swap_data_account.maker",
+                                account: "swapData",
+                            },
+                            {
+                                kind: "account",
+                                path: "swap_data_account.nft_mint_maker",
+                                account: "swapData",
+                            },
+                        ],
+                    },
+                },
+                {
+                    name: "swapDataAccountTokenAta",
+                    writable: true,
+                },
+                {
+                    name: "maker",
+                },
+                {
+                    name: "makerTokenAta",
+                    writable: true,
+                },
+                {
+                    name: "treeAuthority",
+                    writable: true,
+                    pda: {
+                        seeds: [
+                            {
+                                kind: "account",
+                                path: "merkleTree",
+                            },
+                        ],
+                        program: {
+                            kind: "account",
+                            path: "bubblegumProgram",
+                        },
+                    },
+                },
+                {
+                    name: "merkleTree",
+                    writable: true,
+                },
+                {
+                    name: "taker",
+                    writable: true,
+                    signer: true,
+                },
+                {
+                    name: "takerTokenAta",
+                    writable: true,
+                },
+                {
+                    name: "nftMintTaker",
+                    writable: true,
+                },
+                {
+                    name: "paymentMint",
+                },
+                {
+                    name: "collection",
+                },
+                {
+                    name: "systemProgram",
+                    address: "11111111111111111111111111111111",
+                },
+                {
+                    name: "tokenProgram",
+                },
+                {
+                    name: "logWrapper",
+                },
+                {
+                    name: "compressionProgram",
+                },
+                {
+                    name: "bubblegumProgram",
+                    address: "BGUMAp9Gq7iTEuizy4pqaxsTyUCBK68MDfK752saRPUY",
+                },
+            ],
+            args: [
+                {
+                    name: "bidToAccept",
+                    type: {
+                        defined: {
+                            name: "bid",
+                        },
+                    },
+                },
+                {
+                    name: "root",
+                    type: {
+                        array: ["u8", 32],
+                    },
+                },
+                {
+                    name: "name",
+                    type: "string",
+                },
+                {
+                    name: "symbol",
+                    type: "string",
+                },
+                {
+                    name: "uri",
+                    type: "string",
+                },
+                {
+                    name: "sellerFeeBasisPoints",
+                    type: "u16",
+                },
+                {
+                    name: "primarySaleHappened",
+                    type: "bool",
+                },
+                {
+                    name: "isMutable",
+                    type: "bool",
+                },
+                {
+                    name: "editionNonce",
+                    type: {
+                        option: "u8",
+                    },
+                },
+                {
+                    name: "creators",
+                    type: {
+                        vec: {
+                            defined: {
+                                name: "cCreator",
+                            },
+                        },
+                    },
+                },
+                {
+                    name: "nonce",
+                    type: "u64",
+                },
+                {
+                    name: "index",
+                    type: "u32",
+                },
+                {
+                    name: "n",
+                    type: "u8",
+                },
+            ],
+        },
+        {
             name: "takeSwapCore",
             discriminator: [199, 209, 161, 30, 107, 131, 134, 234],
             accounts: [
@@ -1721,33 +2396,43 @@ export const idlSwap: CollectionSwap = {
         },
         {
             code: 6305,
+            name: "notTaken",
+            msg: "Swap not taken yet",
+        },
+        {
+            code: 6306,
             name: "alreadyClaimed",
             msg: "Swap already claimed",
         },
         {
-            code: 6306,
+            code: 6307,
             name: "royaltiesAlreadyPaid",
             msg: "Royalties already paied",
         },
         {
-            code: 6307,
+            code: 6308,
             name: "bidNotFound",
             msg: "Bid not found in the list of bids",
         },
         {
-            code: 6308,
+            code: 6309,
             name: "feeNotPaid",
             msg: "Fees are not paid, please pay the fees before closing the swap",
         },
         {
-            code: 6309,
+            code: 6310,
             name: "tooLate",
             msg: "the Swap you tried to accept is expired",
         },
         {
-            code: 6310,
+            code: 6311,
             name: "tooEarly",
             msg: "Too early to perform this action",
+        },
+        {
+            code: 6400,
+            name: "transferNftFailed",
+            msg: "NFT Transfer failed",
         },
         {
             code: 6900,
@@ -1804,6 +2489,26 @@ export const idlSwap: CollectionSwap = {
                     {
                         name: "makerRoyalties",
                         type: "u64",
+                    },
+                ],
+            },
+        },
+        {
+            name: "cCreator",
+            type: {
+                kind: "struct",
+                fields: [
+                    {
+                        name: "address",
+                        type: "pubkey",
+                    },
+                    {
+                        name: "verified",
+                        type: "bool",
+                    },
+                    {
+                        name: "share",
+                        type: "u8",
                     },
                 ],
             },
@@ -1895,7 +2600,7 @@ export type CollectionSwap = {
     address: string;
     metadata: {
         name: "collectionSwap";
-        version: "0.4.0";
+        version: "0.4.1";
         spec: "0.1.0";
         description: "collectionSwap";
     };
@@ -2147,6 +2852,118 @@ export type CollectionSwap = {
                 }
             ];
             args: [];
+        },
+        {
+            name: "cancelSwapComp";
+            discriminator: [178, 93, 63, 195, 14, 39, 40, 171];
+            accounts: [
+                {
+                    name: "swapDataAccount";
+                    writable: true;
+                    pda: {
+                        seeds: [
+                            {
+                                kind: "const";
+                                value: [115, 119, 97, 112];
+                            },
+                            {
+                                kind: "account";
+                                path: "swap_data_account.maker";
+                                account: "swapData";
+                            },
+                            {
+                                kind: "account";
+                                path: "swap_data_account.nft_mint_maker";
+                                account: "swapData";
+                            }
+                        ];
+                    };
+                },
+                {
+                    name: "swapDataAccountTokenAta";
+                    writable: true;
+                },
+                {
+                    name: "maker";
+                    writable: true;
+                },
+                {
+                    name: "signer";
+                    signer: true;
+                },
+                {
+                    name: "treeAuthority";
+                    writable: true;
+                    pda: {
+                        seeds: [
+                            {
+                                kind: "account";
+                                path: "merkleTree";
+                            }
+                        ];
+                        program: {
+                            kind: "account";
+                            path: "bubblegumProgram";
+                        };
+                    };
+                },
+                {
+                    name: "merkleTree";
+                    writable: true;
+                },
+                {
+                    name: "logWrapper";
+                },
+                {
+                    name: "compressionProgram";
+                },
+                {
+                    name: "bubblegumProgram";
+                    address: "BGUMAp9Gq7iTEuizy4pqaxsTyUCBK68MDfK752saRPUY";
+                },
+                {
+                    name: "makerTokenAta";
+                    writable: true;
+                },
+                {
+                    name: "paymentMint";
+                },
+                {
+                    name: "systemProgram";
+                    address: "11111111111111111111111111111111";
+                },
+                {
+                    name: "tokenProgram";
+                }
+            ];
+            args: [
+                {
+                    name: "root";
+                    type: {
+                        array: ["u8", 32];
+                    };
+                },
+                {
+                    name: "dataHash";
+                    type: {
+                        array: ["u8", 32];
+                    };
+                },
+                {
+                    name: "creatorHash";
+                    type: {
+                        array: ["u8", 32];
+                    };
+                },
+                {
+                    name: "nonce";
+                    type: "u64";
+                },
+                {
+                    name: "index";
+                    type: "u32";
+                }
+            ];
         },
         {
             name: "cancelSwapCore";
@@ -2443,6 +3260,137 @@ export type CollectionSwap = {
             args: [];
         },
         {
+            name: "claimSwapComp";
+            discriminator: [56, 220, 147, 71, 118, 108, 37, 64];
+            accounts: [
+                {
+                    name: "swapDataAccount";
+                    writable: true;
+                    pda: {
+                        seeds: [
+                            {
+                                kind: "const";
+                                value: [115, 119, 97, 112];
+                            },
+                            {
+                                kind: "account";
+                                path: "swap_data_account.maker";
+                                account: "swapData";
+                            },
+                            {
+                                kind: "account";
+                                path: "swap_data_account.nft_mint_maker";
+                                account: "swapData";
+                            }
+                        ];
+                    };
+                },
+                {
+                    name: "swapDataAccountTokenAta";
+                    writable: true;
+                },
+                {
+                    name: "nsFee";
+                    docs: ["CHECK : in constraints"];
+                },
+                {
+                    name: "nsFeeTokenAta";
+                    writable: true;
+                },
+                {
+                    name: "taker";
+                    docs: ["CHECK : in constraints"];
+                },
+                {
+                    name: "takerTokenAta";
+                    writable: true;
+                },
+                {
+                    name: "maker";
+                    writable: true;
+                },
+                {
+                    name: "makerTokenAta";
+                    writable: true;
+                },
+                {
+                    name: "paymentMint";
+                },
+                {
+                    name: "treeAuthority";
+                    writable: true;
+                    pda: {
+                        seeds: [
+                            {
+                                kind: "account";
+                                path: "merkleTree";
+                            }
+                        ];
+                        program: {
+                            kind: "account";
+                            path: "bubblegumProgram";
+                        };
+                    };
+                },
+                {
+                    name: "merkleTree";
+                    writable: true;
+                },
+                {
+                    name: "signer";
+                    signer: true;
+                },
+                {
+                    name: "systemProgram";
+                    address: "11111111111111111111111111111111";
+                },
+                {
+                    name: "tokenProgram";
+                },
+                {
+                    name: "ataProgram";
+                },
+                {
+                    name: "logWrapper";
+                },
+                {
+                    name: "compressionProgram";
+                },
+                {
+                    name: "bubblegumProgram";
+                    address: "BGUMAp9Gq7iTEuizy4pqaxsTyUCBK68MDfK752saRPUY";
+                }
+            ];
+            args: [
+                {
+                    name: "creatorHash";
+                    type: {
+                        array: ["u8", 32];
+                    };
+                },
+                {
+                    name: "dataHash";
+                    type: {
+                        array: ["u8", 32];
+                    };
+                },
+                {
+                    name: "root";
+                    type: {
+                        array: ["u8", 32];
+                    };
+                },
+                {
+                    name: "nonce";
+                    type: "u64";
+                },
+                {
+                    name: "index";
+                    type: "u32";
+                }
+            ];
+        },
+        {
             name: "claimSwapCore";
             discriminator: [16, 165, 132, 93, 23, 254, 166, 9];
             accounts: [
@@ -2704,7 +3652,7 @@ export type CollectionSwap = {
                     };
                 },
                 {
-                    name: "endDate";
+                    name: "endTime";
                     type: "i64";
                 }
             ];
@@ -2789,6 +3737,132 @@ export type CollectionSwap = {
                 {
                     name: "endDate";
                     type: "i64";
+                }
+            ];
+        },
+        {
+            name: "makeSwapComp";
+            discriminator: [207, 55, 144, 111, 235, 221, 201, 172];
+            accounts: [
+                {
+                    name: "swapDataAccount";
+                    writable: true;
+                    pda: {
+                        seeds: [
+                            {
+                                kind: "const";
+                                value: [115, 119, 97, 112];
+                            },
+                            {
+                                kind: "account";
+                                path: "maker";
+                            },
+                            {
+                                kind: "arg";
+                                path: "tokenId";
+                            }
+                        ];
+                    };
+                },
+                {
+                    name: "swapDataAccountTokenAta";
+                    writable: true;
+                },
+                {
+                    name: "maker";
+                    writable: true;
+                    signer: true;
+                },
+                {
+                    name: "makerTokenAta";
+                    writable: true;
+                },
+                {
+                    name: "treeAuthority";
+                    writable: true;
+                    pda: {
+                        seeds: [
+                            {
+                                kind: "account";
+                                path: "merkleTree";
+                            }
+                        ];
+                        program: {
+                            kind: "account";
+                            path: "bubblegumProgram";
+                        };
+                    };
+                },
+                {
+                    name: "merkleTree";
+                    writable: true;
+                },
+                {
+                    name: "tokenId";
+                },
+                {
+                    name: "paymentMint";
+                },
+                {
+                    name: "systemProgram";
+                    address: "11111111111111111111111111111111";
+                },
+                {
+                    name: "tokenProgram";
+                    address: "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
+                },
+                {
+                    name: "ataProgram";
+                },
+                {
+                    name: "logWrapper";
+                },
+                {
+                    name: "compressionProgram";
+                },
+                {
+                    name: "bubblegumProgram";
+                    address: "BGUMAp9Gq7iTEuizy4pqaxsTyUCBK68MDfK752saRPUY";
+                }
+            ];
+            args: [
+                {
+                    name: "bidToAdd";
+                    type: {
+                        defined: {
+                            name: "bid";
+                        };
+                    };
+                },
+                {
+                    name: "endDate";
+                    type: "i64";
+                },
+                {
+                    name: "root";
+                    type: {
+                        array: ["u8", 32];
+                    };
+                },
+                {
+                    name: "dataHash";
+                    type: {
+                        array: ["u8", 32];
+                    };
+                },
+                {
+                    name: "creatorHash";
+                    type: {
+                        array: ["u8", 32];
+                    };
+                },
+                {
+                    name: "nonce";
+                    type: "u64";
+                },
+                {
+                    name: "index";
+                    type: "u32";
                 }
             ];
         },
@@ -3049,6 +4123,149 @@ export type CollectionSwap = {
                 }
             ];
             args: [];
+        },
+        {
+            name: "payRoyaltiesComp";
+            discriminator: [71, 14, 0, 184, 170, 143, 114, 147];
+            accounts: [
+                {
+                    name: "swapDataAccount";
+                    writable: true;
+                    pda: {
+                        seeds: [
+                            {
+                                kind: "const";
+                                value: [115, 119, 97, 112];
+                            },
+                            {
+                                kind: "account";
+                                path: "swap_data_account.maker";
+                                account: "swapData";
+                            },
+                            {
+                                kind: "account";
+                                path: "swap_data_account.nft_mint_maker";
+                                account: "swapData";
+                            }
+                        ];
+                    };
+                },
+                {
+                    name: "swapDataAccountTokenAta";
+                    writable: true;
+                },
+                {
+                    name: "paymentMint";
+                },
+                {
+                    name: "owner";
+                },
+                {
+                    name: "signer";
+                    signer: true;
+                },
+                {
+                    name: "merkleTree";
+                    writable: true;
+                },
+                {
+                    name: "tokenProgram";
+                },
+                {
+                    name: "compressionProgram";
+                },
+                {
+                    name: "creator0";
+                },
+                {
+                    name: "creator0TokenAta";
+                    writable: true;
+                },
+                {
+                    name: "creator1";
+                },
+                {
+                    name: "creator1TokenAta";
+                    writable: true;
+                },
+                {
+                    name: "creator2";
+                },
+                {
+                    name: "creator2TokenAta";
+                    writable: true;
+                },
+                {
+                    name: "creator3";
+                },
+                {
+                    name: "creator3TokenAta";
+                    writable: true;
+                },
+                {
+                    name: "creator4";
+                },
+                {
+                    name: "creator4TokenAta";
+                    writable: true;
+                }
+            ];
+            args: [
+                {
+                    name: "root";
+                    type: {
+                        array: ["u8", 32];
+                    };
+                },
+                {
+                    name: "name";
+                    type: "string";
+                },
+                {
+                    name: "symbol";
+                    type: "string";
+                },
+                {
+                    name: "uri";
+                    type: "string";
+                },
+                {
+                    name: "sellerFeeBasisPoints";
+                    type: "u16";
+                },
+                {
+                    name: "primarySaleHappened";
+                    type: "bool";
+                },
+                {
+                    name: "isMutable";
+                    type: "bool";
+                },
+                {
+                    name: "editionNonce";
+                    type: {
+                        option: "u8";
+                    };
+                },
+                {
+                    name: "creators";
+                    type: {
+                        vec: {
+                            defined: {
+                                name: "cCreator";
+                            };
+                        };
+                    };
+                },
+                {
+                    name: "nonce";
+                    type: "u64";
+                },
+                {
+                    name: "index";
+                    type: "u32";
+                }
+            ];
         },
         {
             name: "payRoyaltiesCore";
@@ -3404,6 +4621,169 @@ export type CollectionSwap = {
             ];
         },
         {
+            name: "takeSwapComp";
+            discriminator: [51, 70, 94, 77, 30, 242, 36, 153];
+            accounts: [
+                {
+                    name: "swapDataAccount";
+                    writable: true;
+                    pda: {
+                        seeds: [
+                            {
+                                kind: "const";
+                                value: [115, 119, 97, 112];
+                            },
+                            {
+                                kind: "account";
+                                path: "swap_data_account.maker";
+                                account: "swapData";
+                            },
+                            {
+                                kind: "account";
+                                path: "swap_data_account.nft_mint_maker";
+                                account: "swapData";
+                            }
+                        ];
+                    };
+                },
+                {
+                    name: "swapDataAccountTokenAta";
+                    writable: true;
+                },
+                {
+                    name: "maker";
+                },
+                {
+                    name: "makerTokenAta";
+                    writable: true;
+                },
+                {
+                    name: "treeAuthority";
+                    writable: true;
+                    pda: {
+                        seeds: [
+                            {
+                                kind: "account";
+                                path: "merkleTree";
+                            }
+                        ];
+                        program: {
+                            kind: "account";
+                            path: "bubblegumProgram";
+                        };
+                    };
+                },
+                {
+                    name: "merkleTree";
+                    writable: true;
+                },
+                {
+                    name: "taker";
+                    writable: true;
+                    signer: true;
+                },
+                {
+                    name: "takerTokenAta";
+                    writable: true;
+                },
+                {
+                    name: "nftMintTaker";
+                    writable: true;
+                },
+                {
+                    name: "paymentMint";
+                },
+                {
+                    name: "collection";
+                },
+                {
+                    name: "systemProgram";
+                    address: "11111111111111111111111111111111";
+                },
+                {
+                    name: "tokenProgram";
+                },
+                {
+                    name: "logWrapper";
+                },
+                {
+                    name: "compressionProgram";
+                },
+                {
+                    name: "bubblegumProgram";
+                    address: "BGUMAp9Gq7iTEuizy4pqaxsTyUCBK68MDfK752saRPUY";
+                }
+            ];
+            args: [
+                {
+                    name: "bidToAccept";
+                    type: {
+                        defined: {
+                            name: "bid";
+                        };
+                    };
+                },
+                {
+                    name: "root";
+                    type: {
+                        array: ["u8", 32];
+                    };
+                },
+                {
+                    name: "name";
+                    type: "string";
+                },
+                {
+                    name: "symbol";
+                    type: "string";
+                },
+                {
+                    name: "uri";
+                    type: "string";
+                },
+                {
+                    name: "sellerFeeBasisPoints";
+                    type: "u16";
+                },
+                {
+                    name: "primarySaleHappened";
+                    type: "bool";
+                },
+                {
+                    name: "isMutable";
+                    type: "bool";
+                },
+                {
+                    name: "editionNonce";
+                    type: {
+                        option: "u8";
+                    };
+                },
+                {
+                    name: "creators";
+                    type: {
+                        vec: {
+                            defined: {
+                                name: "cCreator";
+                            };
+                        };
+                    };
+                },
+                {
+                    name: "nonce";
+                    type: "u64";
+                },
+                {
+                    name: "index";
+                    type: "u32";
+                },
+                {
+                    name: "n";
+                    type: "u8";
+                }
+            ];
+        },
+        {
             name: "takeSwapCore";
             discriminator: [199, 209, 161, 30, 107, 131, 134, 234];
             accounts: [
@@ -3614,33 +4994,43 @@ export type CollectionSwap = {
         },
         {
             code: 6305;
+            name: "notTaken";
+            msg: "Swap not taken yet";
+        },
+        {
+            code: 6306;
             name: "alreadyClaimed";
             msg: "Swap already claimed";
         },
         {
-            code: 6306;
+            code: 6307;
             name: "royaltiesAlreadyPaid";
             msg: "Royalties already paied";
         },
         {
-            code: 6307;
+            code: 6308;
             name: "bidNotFound";
             msg: "Bid not found in the list of bids";
         },
         {
-            code: 6308;
+            code: 6309;
             name: "feeNotPaid";
             msg: "Fees are not paid, please pay the fees before closing the swap";
         },
         {
-            code: 6309;
+            code: 6310;
             name: "tooLate";
             msg: "the Swap you tried to accept is expired";
         },
         {
-            code: 6310;
+            code: 6311;
             name: "tooEarly";
             msg: "Too early to perform this action";
+        },
+        {
+            code: 6400;
+            name: "transferNftFailed";
+            msg: "NFT Transfer failed";
         },
         {
             code: 6900;
@@ -3697,6 +5087,26 @@ export type CollectionSwap = {
                     {
                         name: "makerRoyalties";
                         type: "u64";
+                    }
+                ];
+            };
+        },
+        {
+            name: "cCreator";
+            type: {
+                kind: "struct";
+                fields: [
+                    {
+                        name: "address";
+                        type: "pubkey";
+                    },
+                    {
+                        name: "verified";
+                        type: "bool";
+                    },
+                    {
+                        name: "share";
+                        type: "u8";
                     }
                 ];
             };

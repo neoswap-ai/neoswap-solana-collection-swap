@@ -139,7 +139,7 @@ async function getMetaFromMetaplex(Data: { mint: string; connection: Connection 
 
     // return await fetchDigitalAsset(umi, mint as PPublicKey);
 }
-export function standardToProgram(standard: "core" | "native" | "hybrid") {
+export function standardToProgram(standard: "core" | "native" | "hybrid" | "compressed") {
     switch (standard) {
         case "core":
             return MPL_CORE_PROGRAM_ID.toString();
@@ -147,6 +147,8 @@ export function standardToProgram(standard: "core" | "native" | "hybrid") {
             return TOKEN_PROGRAM_ID.toString();
         case "hybrid":
             return TOKEN_2022_PROGRAM_ID.toString();
+        case "compressed":
+            throw "compressed does't have a program";
     }
 }
 export async function whichStandard({
@@ -155,9 +157,8 @@ export async function whichStandard({
 }: {
     connection: Connection;
     mint: string;
-}): Promise<"core" | "native" | "hybrid"> {
+}): Promise<"core" | "native" | "hybrid" | "compressed"> {
     let tokenProg = (await connection.getAccountInfo(new PublicKey(mint)))?.owner.toString();
-
     switch (tokenProg) {
         case TOKEN_PROGRAM_ID.toString():
             return "native";
@@ -166,7 +167,10 @@ export async function whichStandard({
         case MPL_CORE_PROGRAM_ID.toString():
             return "core";
         default:
-            throw `Token standard not supported for mint ${mint} - ${tokenProg}`;
+            let balance = await connection.getBalance(new PublicKey(mint));
+
+            if (balance === 0) return "compressed";
+            else throw `Token standard not supported for mint ${mint}`;
     }
 }
 

@@ -27,6 +27,12 @@ import { ix2vTx } from "../utils/vtx";
 import { closeWSol } from "../utils/wsol";
 import { WRAPPED_SOL_MINT } from "@metaplex-foundation/js";
 import { MPL_CORE_PROGRAM_ID } from "@metaplex-foundation/mpl-core";
+import { getCompNFTData, makeRoot } from "../utils/compressedHelper";
+import { PROGRAM_ID as MPL_BUBBLEGUM_PROGRAM_ID } from "@metaplex-foundation/mpl-bubblegum";
+import {
+    SPL_ACCOUNT_COMPRESSION_PROGRAM_ID,
+    SPL_NOOP_PROGRAM_ID,
+} from "@solana/spl-account-compression";
 
 export async function createCancelSwapInstructions(
     Data: EnvOpts & ClaimSArg
@@ -92,6 +98,45 @@ export async function createCancelSwapInstructions(
                     systemProgram: SystemProgram.programId,
                     tokenProgram: TOKEN_PROGRAM_ID,
                 })
+                .instruction();
+            instructions.push(cancelIxs);
+        } else if (tknStd === "compressed") {
+            let {
+                canopyDepth,
+                collection,
+                creatorHash,
+                dataHash,
+                index,
+                merkleTree,
+                metadata,
+                nonce,
+                proofMeta,
+                root,
+                treeAuthority,
+            } = await getCompNFTData({
+                cluster: "mainnet-beta",
+                tokenId: nftMintMaker,
+                connection,
+            });
+            // makeRoot([{}])
+            let cancelIxs = await program.methods
+                .cancelSwapComp(root, dataHash, creatorHash, nonce, index)
+                .accountsStrict({
+                    maker,
+                    makerTokenAta,
+                    merkleTree,
+                    paymentMint,
+                    signer,
+                    swapDataAccount,
+                    swapDataAccountTokenAta,
+                    treeAuthority,
+                    bubblegumProgram: MPL_BUBBLEGUM_PROGRAM_ID,
+                    compressionProgram: SPL_ACCOUNT_COMPRESSION_PROGRAM_ID,
+                    logWrapper: SPL_NOOP_PROGRAM_ID,
+                    systemProgram: SystemProgram.programId,
+                    tokenProgram: TOKEN_PROGRAM_ID,
+                })
+                .remainingAccounts(proofMeta)
                 .instruction();
             instructions.push(cancelIxs);
         } else {

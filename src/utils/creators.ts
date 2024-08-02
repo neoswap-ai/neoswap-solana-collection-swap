@@ -20,7 +20,7 @@ export async function getCreatorData({
     nftMint: string;
     connection: Connection;
     paymentMint: string;
-    tokenStandard?: "core" | "native" | "hybrid";
+    tokenStandard?: "core" | "native" | "hybrid" | "compressed";
 }) {
     let instructions: TransactionInstruction[] = [];
     // let { connection, nftMint, owner, paymentMint, signer } = Data;
