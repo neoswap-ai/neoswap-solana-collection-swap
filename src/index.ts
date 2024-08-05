@@ -11,6 +11,7 @@ import { createAddBidBt, createRmBidBt } from "./programInstructions/modifyAddBi
 // import { createPayRoyaltiesInstructions } from "./programInstructions/payRoyalties.instructions";
 import { createSetNewTime } from "./programInstructions/setNewTime.instructions";
 import { createTakeAndCloseSwapInstructions } from "./programInstructions/takeAndCloseSwap.instructions";
+import { createLookUpTableAccount } from "./utils/addressLookupTable";
 // import { createTakeSwapInstructions } from "./programInstructions/takeSwap.instructions";
 import {
     checkEnvOpts,
@@ -22,7 +23,7 @@ import {
     isUpdateSArg,
     whatIs,
 } from "./utils/check";
-import { makeRoot } from "./utils/compressedHelper";
+import { makeRoot, recalculateRoot } from "./utils/compressedHelper";
 import { getCreatorData } from "./utils/creators";
 import { calculateMakerFee } from "./utils/fees";
 import {
@@ -89,6 +90,9 @@ export const UTILS = {
     getCreatorData,
     calculateMakerFee,
     makeRoot,
+    recalculateRoot,
+    createLookUpTableAccount,
+    
     // closeUserPda,
 };
 export const CREATE_INSTRUCTIONS = {

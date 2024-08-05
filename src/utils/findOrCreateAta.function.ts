@@ -1,16 +1,8 @@
-import {
-    createAssociatedTokenAccountIdempotentInstruction,
-    TOKEN_2022_PROGRAM_ID,
-    TOKEN_PROGRAM_ID,
-} from "@solana/spl-token";
+import { createAssociatedTokenAccountIdempotentInstruction } from "@solana/spl-token";
 import { Cluster, Connection, PublicKey, TransactionInstruction } from "@solana/web3.js";
-import {
-    SOLANA_SPL_ATA_PROGRAM_ID,
-    NEOSWAP_PROGRAM_ID,
-    NEOSWAP_PROGRAM_ID_DEV,
-} from "../utils/const";
 import { delay } from "./delay";
 import { standardToProgram, whichStandard } from "./findNftDataAndAccounts.function";
+import { SPL_ASSOCIATED_TOKEN_PROGRAM_ID } from "@metaplex-foundation/mpl-toolbox";
 
 export async function findOrCreateAta(Data: {
     clusterOrUrl?: Cluster | string;
@@ -49,7 +41,7 @@ export async function findOrCreateAta(Data: {
                     new PublicKey(tokenProg).toBuffer(),
                     new PublicKey(Data.mint).toBuffer(),
                 ],
-                new PublicKey(SOLANA_SPL_ATA_PROGRAM_ID)
+                new PublicKey(SPL_ASSOCIATED_TOKEN_PROGRAM_ID)
             )[0].toString();
             console.log(
                 "no ata found, creating ",
@@ -99,7 +91,7 @@ export async function findOrCreateAta(Data: {
                 new PublicKey(tokenProg).toBuffer(),
                 new PublicKey(Data.mint).toBuffer(),
             ],
-            new PublicKey(SOLANA_SPL_ATA_PROGRAM_ID)
+            new PublicKey(SPL_ASSOCIATED_TOKEN_PROGRAM_ID)
         )[0].toString();
 
         console.log("no ata found, creating ", mintAta, " from ", Data.owner, "mint", Data.mint);

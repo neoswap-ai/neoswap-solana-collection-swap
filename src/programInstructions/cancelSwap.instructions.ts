@@ -10,7 +10,7 @@ import { findOrCreateAta } from "../utils/findOrCreateAta.function";
 import { TOKEN_2022_PROGRAM_ID, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import {
     METAPLEX_AUTH_RULES_PROGRAM,
-    SOLANA_SPL_ATA_PROGRAM_ID,
+    // SPL_ASSOCIATED_TOKEN_PROGRAM_ID,
     TOKEN_METADATA_PROGRAM,
     VERSION,
 } from "../utils/const";
@@ -33,6 +33,7 @@ import {
     SPL_ACCOUNT_COMPRESSION_PROGRAM_ID,
     SPL_NOOP_PROGRAM_ID,
 } from "@solana/spl-account-compression";
+import { SPL_ASSOCIATED_TOKEN_PROGRAM_ID } from "@metaplex-foundation/mpl-toolbox";
 
 export async function createCancelSwapInstructions(
     Data: EnvOpts & ClaimSArg
@@ -216,7 +217,7 @@ export async function createCancelSwapInstructions(
                         metadataProgram: TOKEN_METADATA_PROGRAM,
                         sysvarInstructions: SYSVAR_INSTRUCTIONS_PUBKEY,
                         tokenProgram: TOKEN_PROGRAM_ID,
-                        ataProgram: SOLANA_SPL_ATA_PROGRAM_ID,
+                        ataProgram: SPL_ASSOCIATED_TOKEN_PROGRAM_ID,
                         authRulesProgram: METAPLEX_AUTH_RULES_PROGRAM,
                     })
                     .instruction();
@@ -242,7 +243,7 @@ export async function createCancelSwapInstructions(
                         systemProgram: SystemProgram.programId,
                         tokenProgram: TOKEN_PROGRAM_ID,
                         tokenProgram22: TOKEN_2022_PROGRAM_ID,
-                        ataProgram: SOLANA_SPL_ATA_PROGRAM_ID,
+                        ataProgram: SPL_ASSOCIATED_TOKEN_PROGRAM_ID,
                     })
                     .instruction();
                 console.log("adding hybrid cancelIx");
