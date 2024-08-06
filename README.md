@@ -41,8 +41,70 @@
 npm install @neoswap/solana-collection-swap
 ```
 
+### Example Usage
+
+```js
+import { Bid, NS_FEE, UTILS, CREATE_INSTRUCTIONS as CI } from "@neoswap/solana-collection-swap";
+
+ let initData = await CI.createMakeSwapInstructions({
+    maker: makerKp.publicKey.toString(),
+    bids,
+    endDate,
+    nftMintMaker,
+    paymentMint,
+    clusterOrUrl: connection.rpcEndpoint,
+    programId,
+  });
+let addBT = await CI.createAddBidBt({
+    maker: makerKp.publicKey.toString(),
+    bids,
+    swapDataAccount,
+    clusterOrUrl: connection.rpcEndpoint,
+    programId,
+  });
+    let rmBT = await CI.createRmBidBt({
+    maker: makerKp.publicKey.toString(),
+    rmBids: bids,
+    swapDataAccount,
+    clusterOrUrl: connection.rpcEndpoint,
+    programId,
+  });
+    let setNewTimeBT = await CI.createSetNewTime({
+    maker: makerKp.publicKey.toString(),
+    swapDataAccount,
+    newTime,
+    clusterOrUrl: connection.rpcEndpoint,
+    programId,
+  });
+
+```
+
+``` js
+
+  let takeData = await CI.createTakeAndCloseSwapInstructions({
+    swapDataAccount,
+    taker: takerKp.publicKey.toString(),
+    n,
+    bid,
+    nftMintTaker,
+    clusterOrUrl: connection.rpcEndpoint,
+    unwrap: false,
+  });
+
+```
+
+```js
+  let cancelBT = await CI.createCancelSwapInstructions({
+    signer: signerKp.publicKey.toString(),
+    swapDataAccount,
+    clusterOrUrl: connection.rpcEndpoint,
+    programId,
+  });
+```
+
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 TODO
+  
 
 <!-- MARKDOWN LINKS & IMAGES -->
 
