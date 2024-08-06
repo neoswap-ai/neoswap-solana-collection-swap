@@ -287,6 +287,7 @@ export async function createTakeAndCloseSwapInstructions(
                         logWrapper: SPL_NOOP_PROGRAM_ID,
                         systemProgram: SystemProgram.programId,
                         tokenProgram: TOKEN_PROGRAM_ID,
+                        sysvarInstructions: SYSVAR_INSTRUCTIONS_PUBKEY,
                     })
                     .remainingAccounts(proofMeta)
                     .instruction();

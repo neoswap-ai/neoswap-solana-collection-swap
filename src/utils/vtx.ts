@@ -16,8 +16,15 @@ export async function ix2vTx(ix: TransactionInstruction[], envOpts: EnvOpts, sig
 
     let { connection, prioritizationFee, lookUpTableAccount } = cEnvOpts;
     // ix.push(addPriorityFeeIx())
-//  return await  createVTxWithLookupTable({ connection, instructions: ix, lookUpTableAccount, payer: signer });
-  
+    console.log("ix2vTx", lookUpTableAccount);
+
+    // return await createVTxWithLookupTable({
+    //     connection,
+    //     instructions: ix,
+    //     lookUpTableAccount,
+    //     payer: signer,
+    // });
+
     let ttx = new Transaction().add(...ix);
     ttx.feePayer = new PublicKey(signer);
     ttx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;

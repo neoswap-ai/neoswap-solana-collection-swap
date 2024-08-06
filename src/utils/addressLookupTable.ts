@@ -24,6 +24,7 @@ import {
     SPL_COMPUTE_BUDGET_PROGRAM_ID,
 } from "@metaplex-foundation/mpl-toolbox";
 import { MPL_CORE_PROGRAM_ID } from "@metaplex-foundation/mpl-core";
+import { delay } from "./delay";
 
 export async function createLookUpTableAccount({
     authority,
@@ -101,16 +102,17 @@ export async function createVTxWithLookupTable({
     connection: Connection;
     payer: string;
 }) {
-    const lookupTable = (await connection.getAddressLookupTable(new PublicKey(lookUpTableAccount)))
-        .value;
-    if (!lookupTable) throw new Error("Lookup table not found");
-
+    // const lookupTable = (await connection.getAddressLookupTable(new PublicKey(lookUpTableAccount)))
+    //     .value;
+    // if (!lookupTable) throw new Error("Lookup table not found");
+    // await delay(1000);
     let recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
     const messageWithLookupTable = new TransactionMessage({
         payerKey: new PublicKey(payer),
         recentBlockhash,
         instructions,
-    }).compileToV0Message([lookupTable]);
+    }).compileToV0Message()//([lookupTable]);
+    // messageWithLookupTable.serialize();
     const transactionWithLookupTable = new VersionedTransaction(messageWithLookupTable);
     return transactionWithLookupTable;
 }

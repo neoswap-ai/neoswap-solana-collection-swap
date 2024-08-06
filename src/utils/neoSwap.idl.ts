@@ -2,7 +2,7 @@ export const idlSwap: CollectionSwap = {
     address: "NSWPpfskKcHo93mxZSgdinqpnFkcdWPsSxBB9Q26Qbq",
     metadata: {
         name: "collectionSwap",
-        version: "0.4.1",
+        version: "0.4.2",
         spec: "0.1.0",
         description: "collectionSwap",
     },
@@ -336,7 +336,7 @@ export const idlSwap: CollectionSwap = {
                 },
                 {
                     name: "tokenProgram",
-                }
+                },
             ],
             args: [
                 {
@@ -2103,6 +2103,9 @@ export const idlSwap: CollectionSwap = {
                     address: "11111111111111111111111111111111",
                 },
                 {
+                    name: "sysvarInstructions",
+                },
+                {
                     name: "tokenProgram",
                 },
                 {
@@ -2600,7 +2603,7 @@ export type CollectionSwap = {
     address: string;
     metadata: {
         name: "collectionSwap";
-        version: "0.4.1";
+        version: "0.4.2";
         spec: "0.1.0";
         description: "collectionSwap";
     };
@@ -4699,6 +4702,9 @@ export type CollectionSwap = {
                 {
                     name: "systemProgram";
                     address: "11111111111111111111111111111111";
+                },
+                {
+                    name: "sysvarInstructions";
                 },
                 {
                     name: "tokenProgram";
