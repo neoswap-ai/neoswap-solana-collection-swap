@@ -1,4 +1,9 @@
-import { ComputeBudgetProgram, LAMPORTS_PER_SOL, Transaction } from "@solana/web3.js";
+import {
+    ComputeBudgetProgram,
+    LAMPORTS_PER_SOL,
+    Transaction,
+    TransactionInstruction,
+} from "@solana/web3.js";
 import { Bid } from "./types";
 
 export async function addPriorityFee(
@@ -28,6 +33,13 @@ export async function addPriorityFee(
     }
 
     return tx;
+}
+
+export async function addPriorityFeeIx(
+    tx: Transaction,
+    prioritizationFee?: number
+): Promise<TransactionInstruction[]> {
+    return (await addPriorityFee(tx, prioritizationFee)).instructions;
 }
 
 const getRecentPrioritizationFeesHM = async (
