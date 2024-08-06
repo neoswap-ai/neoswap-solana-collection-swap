@@ -41,12 +41,58 @@
 npm install @neoswap/solana-collection-swap
 ```
 
-### Example Usage
+### Types
+
+represents the data type in the program
 
 ```js
-import { Bid, NS_FEE, UTILS, CREATE_INSTRUCTIONS as CI } from "@neoswap/solana-collection-swap";
+type SwapData = {
+    maker: string,
+    nftMintMaker: string,
 
- let initData = await CI.createMakeSwapInstructions({
+    bids: Bid[],
+
+    taker?: string,
+    nftMintTaker?: string,
+    acceptedBid?: Bid,
+
+    refererMaker?: string,
+    refererTaker?: string,
+
+    endTime: number,
+
+    royaltiesPaidMaker: boolean,
+    royaltiesPaidTaker: boolean,
+    claimed: boolean,
+
+    status: "active" | "expired" | "accepted",
+    paymentMint: string,
+};
+
+type Bid = {
+    collection: string,
+    amount: number,
+    makerNeoswapFee: number,
+    takerNeoswapFee: number,
+    takerRoyalties: number,
+    makerRoyalties: number,
+};
+```
+
+### Example Usage
+
+## Imports
+
+ypu can also find imports in a destructured way
+
+```js
+import { UTILS, CREATE_INSTRUCTIONS, TYPES } from "@neoswap/solana-collection-swap";
+```
+
+## Create Swap BundleTransaction
+
+```js
+let initData = await CI.createMakeSwapInstructions({
     maker: makerKp.publicKey.toString(),
     bids,
     endDate,
@@ -54,34 +100,40 @@ import { Bid, NS_FEE, UTILS, CREATE_INSTRUCTIONS as CI } from "@neoswap/solana-c
     paymentMint,
     clusterOrUrl: connection.rpcEndpoint,
     programId,
-  });
-let addBT = await CI.createAddBidBt({
-    maker: makerKp.publicKey.toString(),
-    bids,
-    swapDataAccount,
-    clusterOrUrl: connection.rpcEndpoint,
-    programId,
-  });
-    let rmBT = await CI.createRmBidBt({
-    maker: makerKp.publicKey.toString(),
-    rmBids: bids,
-    swapDataAccount,
-    clusterOrUrl: connection.rpcEndpoint,
-    programId,
-  });
-    let setNewTimeBT = await CI.createSetNewTime({
-    maker: makerKp.publicKey.toString(),
-    swapDataAccount,
-    newTime,
-    clusterOrUrl: connection.rpcEndpoint,
-    programId,
-  });
-
+});
 ```
 
-``` js
+````js
+let addBT = await CI.createAddBidBt({
+  maker: makerKp.publicKey.toString(),
+  bids,
+  swapDataAccount,
+  clusterOrUrl: connection.rpcEndpoint,
+  programId,
+});
+  ```
+```js
+  let rmBT = await CI.createRmBidBt({
+  maker: makerKp.publicKey.toString(),
+  rmBids: bids,
+  swapDataAccount,
+  clusterOrUrl: connection.rpcEndpoint,
+  programId,
+});
+  ```
+```js
+  let setNewTimeBT = await CI.createSetNewTime({
+  maker: makerKp.publicKey.toString(),
+  swapDataAccount,
+  newTime,
+  clusterOrUrl: connection.rpcEndpoint,
+  programId,
+});
 
-  let takeData = await CI.createTakeAndCloseSwapInstructions({
+````
+
+```js
+let takeData = await CI.createTakeAndCloseSwapInstructions({
     swapDataAccount,
     taker: takerKp.publicKey.toString(),
     n,
@@ -89,22 +141,21 @@ let addBT = await CI.createAddBidBt({
     nftMintTaker,
     clusterOrUrl: connection.rpcEndpoint,
     unwrap: false,
-  });
-
+});
 ```
 
 ```js
-  let cancelBT = await CI.createCancelSwapInstructions({
+let cancelBT = await CI.createCancelSwapInstructions({
     signer: signerKp.publicKey.toString(),
     swapDataAccount,
     clusterOrUrl: connection.rpcEndpoint,
     programId,
-  });
+});
 ```
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 TODO
-  
+
 
 <!-- MARKDOWN LINKS & IMAGES -->
 
