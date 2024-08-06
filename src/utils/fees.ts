@@ -1,4 +1,9 @@
-import { ComputeBudgetProgram, LAMPORTS_PER_SOL, Transaction } from "@solana/web3.js";
+import {
+    ComputeBudgetProgram,
+    LAMPORTS_PER_SOL,
+    Transaction,
+    TransactionInstruction,
+} from "@solana/web3.js";
 import { Bid } from "./types";
 
 export async function addPriorityFee(
@@ -28,6 +33,13 @@ export async function addPriorityFee(
     }
 
     return tx;
+}
+
+export async function addPriorityFeeIx(
+    tx: Transaction,
+    prioritizationFee?: number
+): Promise<TransactionInstruction[]> {
+    return (await addPriorityFee(tx, prioritizationFee)).instructions;
 }
 
 const getRecentPrioritizationFeesHM = async (
@@ -81,14 +93,14 @@ export function calculateMakerFee({ bids }: { bids: Bid[] }) {
 }
 
 export function makerFee({ bid }: { bid: Bid }) {
-    return bid.amount + bid.makerNeoswapFee + bid.makerRoyalties;
+    return -bid.amount + bid.makerNeoswapFee + bid.makerRoyalties;
 }
 export function takerFee({ bid, n }: { bid: Bid; n: number }) {
     if (n === 42) {
         console.log("fees waived");
         return 0;
     }
-    let takerAmount = -bid.amount + bid.takerNeoswapFee + bid.takerRoyalties;
+    let takerAmount = bid.amount + bid.takerNeoswapFee + bid.takerRoyalties;
 
     if (takerAmount < 0) {
         console.log(

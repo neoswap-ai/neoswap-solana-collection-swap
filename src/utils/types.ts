@@ -143,7 +143,7 @@ export type TakeSArg = {
     nftMintTaker: string;
     bid: Bid;
     verifyTaker?: boolean;
-    unwrap?:boolean
+    unwrap?: boolean;
 };
 export type ClaimSArg = {
     swapDataAccount: string;
@@ -188,6 +188,7 @@ export type EnvOpts = {
     programId?: string;
     idl?: Idl | true;
     prioritizationFee?: number;
+    lookUpTableAccount?: string;
 };
 
 export type COptionSend = {
@@ -206,5 +207,6 @@ export type CEnvOpts = {
     programId: string;
     idl: Idl;
     prioritizationFee?: number;
+    lookUpTableAccount: string;
 };
 export type ReturnSwapData = { bTxs: BundleTransaction[]; swapDataAccount: string };
