@@ -95,7 +95,7 @@ type BundleTransaction ={
 
 ```
 
-#### Example Usage
+## Example Usage
 
 ### Imports
 
@@ -105,7 +105,7 @@ ypu can also find imports in a destructured way
 import { UTILS, CREATE_INSTRUCTIONS, TYPES } from "@neoswap/solana-collection-swap";
 ```
 
-## Create Swap BundleTransaction
+### Create Swap BundleTransaction
 
 ```js
 let initData = await CI.createMakeSwapInstructions({
@@ -119,7 +119,7 @@ let initData = await CI.createMakeSwapInstructions({
 });
 ```
 
-## add bid to Swap
+### add bid to Swap
 ```js
 let addBT = await CI.createAddBidBt({
     maker,
@@ -129,7 +129,7 @@ let addBT = await CI.createAddBidBt({
     programId,
 });
 ```
-## remove bid to Swap
+### remove bid to Swap
 
 ```js
 let rmBT = await CI.createRmBidBt({
@@ -140,7 +140,7 @@ let rmBT = await CI.createRmBidBt({
     programId,
 });
 ```
-## set new time for Swap
+### set new time for Swap
 
 ```js
 let setNewTimeBT = await CI.createSetNewTime({
@@ -152,7 +152,7 @@ let setNewTimeBT = await CI.createSetNewTime({
 });
 ```
 
-## take and claim Swap
+### take and claim Swap
 ```js
 let takeData = await CI.createTakeAndCloseSwapInstructions({
     swapDataAccount,
@@ -163,7 +163,7 @@ let takeData = await CI.createTakeAndCloseSwapInstructions({
     unwrap,
 });
 ```
-## Cancel swap and refund maker
+### Cancel swap and refund maker
 ```js
 let cancelBT = await CI.createCancelSwapInstructions({
     signer: signerKp.publicKey.toString(),
@@ -173,7 +173,7 @@ let cancelBT = await CI.createCancelSwapInstructions({
 });
 ```
 
-### how to process the bundle transaction
+## how to process the bundle transaction
 
 ```js
 let BT : BundleTransaction;
