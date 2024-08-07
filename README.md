@@ -43,7 +43,7 @@ npm install @neoswap/solana-collection-swap
 
 ## Types
 
-represents the data type in the program
+### represents the data type in the program
 
 ```js
 type SwapData = {
@@ -94,7 +94,7 @@ type BundleTransaction = {
 };
 ```
 
-every function also expects these parameters
+### Every function in CREATE_INSTRUCTIONS also expects these parameters
 
 ```js
 type EnvOpts = {
@@ -106,11 +106,11 @@ type EnvOpts = {
 };
 ```
 
-## Example Usage
+# Example Usage
 
 ### Imports
 
-you can also find imports in a destructured way accessible in the package
+You can also find imports in a destructured way accessible in the package
 
 ```js
 import { UTILS, CREATE_INSTRUCTIONS as CI, TYPES } from "@neoswap/solana-collection-swap";
@@ -128,7 +128,7 @@ let initData = await CI.createMakeSwapInstructions({
 });
 ```
 
-### add bid to Swap
+### Add bid to Swap
 
 ```js
 let addBT = await CI.createAddBidBt({
@@ -138,7 +138,7 @@ let addBT = await CI.createAddBidBt({
 });
 ```
 
-### remove bid to Swap
+### Remove bid to Swap
 
 ```js
 let rmBT = await CI.createRmBidBt({
@@ -148,7 +148,7 @@ let rmBT = await CI.createRmBidBt({
 });
 ```
 
-### set new time for Swap
+### Set new time for Swap
 
 ```js
 let setNewTimeBT = await CI.createSetNewTime({
@@ -158,7 +158,7 @@ let setNewTimeBT = await CI.createSetNewTime({
 });
 ```
 
-### take and claim Swap
+### Take and claim Swap
 
 ```js
 let takeData = await CI.createTakeAndCloseSwapInstructions({
@@ -181,7 +181,7 @@ let cancelBT = await CI.createCancelSwapInstructions({
 });
 ```
 
-## how to process the bundle transaction
+## How to process the bundle transaction
 
 ```js
 let BT : BundleTransaction[];
