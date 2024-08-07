@@ -176,10 +176,10 @@ let cancelBT = await CI.createCancelSwapInstructions({
 ## how to process the bundle transaction
 
 ```js
-let BT : BundleTransaction;
+let BT : BundleTransaction[];
 // BT will be updated with most recent information
 BT = await UTILS.sendBundledTransactionsV2({
-          bundleTransactions: [BT],
+          bundleTransactions: BT,
           signer?, // should be a keypair if not provided, function expects the transaction stx to be already signed
           clusterOrUrl, // provide or RPC or connection
           connection,
