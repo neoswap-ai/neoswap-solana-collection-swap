@@ -99,10 +99,10 @@ type BundleTransaction ={
 
 ### Imports
 
-ypu can also find imports in a destructured way
+you can also find imports in a destructured way
 
 ```js
-import { UTILS, CREATE_INSTRUCTIONS, TYPES } from "@neoswap/solana-collection-swap";
+import { UTILS, CREATE_INSTRUCTIONS as CI, TYPES } from "@neoswap/solana-collection-swap";
 ```
 
 ### Create Swap BundleTransaction
