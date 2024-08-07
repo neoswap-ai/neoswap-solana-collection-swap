@@ -27,13 +27,11 @@
 
 <!-- ABOUT THE PROJECT -->
 
-## About The Project
+# About The Project
 
 [Neoswap Website](https://neoswap.xyz/)
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-## Install NPM package
+# Install NPM package
 
 ```sh
 npm install @neoswap/solana-collection-swap
