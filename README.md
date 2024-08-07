@@ -47,26 +47,26 @@ represents the data type in the program
 
 ```js
 type SwapData = {
-    maker: string,
-    nftMintMaker: string,
+    maker: string, // maker public key
+    nftMintMaker: string, // nft mint of the maker
 
-    bids: Bid[],
+    bids: Bid[], // array of bids to initiate with ( max 15 )
 
-    taker?: string,
-    nftMintTaker?: string,
-    acceptedBid?: Bid,
+    taker?: string, // taker public key
+    nftMintTaker?: string, // nft mint of the taker
+    acceptedBid?: Bid, // accepted bid
 
-    refererMaker?: string,
-    refererTaker?: string,
+    refererMaker?: string, // unused
+    refererTaker?: string, // unused
 
-    endTime: number,
+    endTime: number, // date when the swap gets obsolete
 
-    royaltiesPaidMaker: boolean,
-    royaltiesPaidTaker: boolean,
-    claimed: boolean,
+    royaltiesPaidMaker: boolean, // royalties paid for maker NFT
+    royaltiesPaidTaker: boolean, // royalties paid for taker NFT
+    claimed: boolean, // is swap claimed
 
     status: "active" | "expired" | "accepted",
-    paymentMint: string,
+    paymentMint: string, // mint of the payment token
 };
 
 type Bid = {
@@ -79,9 +79,25 @@ type Bid = {
 };
 ```
 
-### Example Usage
+```js
+type BundleTransaction ={
+  tx: Transaction | VersionedTransaction; // transaction object
+  stx:Transaction | VersionedTransaction; // signed transaction object
+  details: MakeSArg | TakeSArg | ClaimSArg | UpdateSArgs | RmBidArgs | SetNewTime; // arguments passed to the package to construct the transactions
+  blockheight?: number; // signature blockheight
+  description: string;  // description of the transaction
+  priority: number; // order of the transactions 0 means should be sent first 
+  status: "pending" | "broadcast" | "success" | "failed" | "Timeout";
+  hash?: string;
+  failedReason?: string;
+  retries?: number;
+}
 
-## Imports
+```
+
+#### Example Usage
+
+### Imports
 
 ypu can also find imports in a destructured way
 
@@ -93,69 +109,90 @@ import { UTILS, CREATE_INSTRUCTIONS, TYPES } from "@neoswap/solana-collection-sw
 
 ```js
 let initData = await CI.createMakeSwapInstructions({
-    maker: makerKp.publicKey.toString(),
+    maker,
     bids,
     endDate,
     nftMintMaker,
     paymentMint,
-    clusterOrUrl: connection.rpcEndpoint,
+    clusterOrUrl,
     programId,
 });
 ```
 
-````js
+## add bid to Swap
+```js
 let addBT = await CI.createAddBidBt({
-  maker: makerKp.publicKey.toString(),
-  bids,
-  swapDataAccount,
-  clusterOrUrl: connection.rpcEndpoint,
-  programId,
-});
-  ```
-```js
-  let rmBT = await CI.createRmBidBt({
-  maker: makerKp.publicKey.toString(),
-  rmBids: bids,
-  swapDataAccount,
-  clusterOrUrl: connection.rpcEndpoint,
-  programId,
-});
-  ```
-```js
-  let setNewTimeBT = await CI.createSetNewTime({
-  maker: makerKp.publicKey.toString(),
-  swapDataAccount,
-  newTime,
-  clusterOrUrl: connection.rpcEndpoint,
-  programId,
-});
-
-````
-
-```js
-let takeData = await CI.createTakeAndCloseSwapInstructions({
+    maker,
+    bids,
     swapDataAccount,
-    taker: takerKp.publicKey.toString(),
-    n,
-    bid,
-    nftMintTaker,
-    clusterOrUrl: connection.rpcEndpoint,
-    unwrap: false,
+    clusterOrUrl,
+    programId,
+});
+```
+## remove bid to Swap
+
+```js
+let rmBT = await CI.createRmBidBt({
+    maker,
+    rmBids,
+    swapDataAccount,
+    clusterOrUrl,
+    programId,
+});
+```
+## set new time for Swap
+
+```js
+let setNewTimeBT = await CI.createSetNewTime({
+    maker,
+    swapDataAccount,
+    newTime,
+    clusterOrUrl,
+    programId,
 });
 ```
 
+## take and claim Swap
+```js
+let takeData = await CI.createTakeAndCloseSwapInstructions({
+    swapDataAccount,
+    taker,
+    bid,
+    nftMintTaker,
+    clusterOrUrl,
+    unwrap,
+});
+```
+## Cancel swap and refund maker
 ```js
 let cancelBT = await CI.createCancelSwapInstructions({
     signer: signerKp.publicKey.toString(),
     swapDataAccount,
-    clusterOrUrl: connection.rpcEndpoint,
+    clusterOrUrl,
     programId,
 });
 ```
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-TODO
+### how to process the bundle transaction
 
+```js
+let BT : BundleTransaction;
+// BT will be updated with most recent information
+BT = await UTILS.sendBundledTransactionsV2({
+          bundleTransactions: [BT],
+          signer?, // should be a keypair if not provided, function expects the transaction stx to be already signed
+          clusterOrUrl, // provide or RPC or connection
+          connection,
+          commitment,
+          prioritizationFee,
+          retryDelay,
+          skipSimulation,
+          skipConfirmation,
+        })
+```
+
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 <!-- MARKDOWN LINKS & IMAGES -->
 
