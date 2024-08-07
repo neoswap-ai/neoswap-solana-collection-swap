@@ -263,7 +263,7 @@ export async function createTakeAndCloseSwapInstructions(
                         metadata.primarySaleHappened,
                         metadata.isMutable,
                         metadata.editionNonce,
-                        metadata.creators,
+                        Buffer.from(metadata.creators.map((c) => c.share)),
                         nonce,
                         index,
                         n

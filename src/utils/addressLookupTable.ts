@@ -6,6 +6,7 @@ import { TOKEN_2022_PROGRAM_ID, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import {
     AddressLookupTableProgram,
     Connection,
+    Keypair,
     PublicKey,
     SystemProgram,
     TransactionInstruction,
@@ -25,6 +26,7 @@ import {
 } from "@metaplex-foundation/mpl-toolbox";
 import { MPL_CORE_PROGRAM_ID } from "@metaplex-foundation/mpl-core";
 import { delay } from "./delay";
+import { ix2vTx } from "./vtx";
 
 export async function createLookUpTableAccount({
     authority,
@@ -32,12 +34,14 @@ export async function createLookUpTableAccount({
     payer,
     additionalAccounts,
     lookUpTableAccount,
+    // keypair,
 }: {
     authority?: string;
     payer: string;
     connection: Connection;
     additionalAccounts?: string[];
     lookUpTableAccount?: string;
+    // keypair?: Keypair;
 }) {
     // let recentSlot = await connection.getSlot();
     // console.log("recentSlot", recentSlot);
@@ -80,6 +84,7 @@ export async function createLookUpTableAccount({
     ];
     if (additionalAccounts) addresses.push(...additionalAccounts.map((acc) => new PublicKey(acc)));
     console.log("AddressLookupTableProgram", AddressLookupTableProgram.programId.toString());
+    
     const addAddressesInstruction = AddressLookupTableProgram.extendLookupTable({
         payer: pay,
         authority: auth,
@@ -88,6 +93,16 @@ export async function createLookUpTableAccount({
     });
     instructions.push(addAddressesInstruction);
 
+    // if (keypair && !lookUpTableAccount) {
+    //     let vtx = await ix2vTx(
+    //         instructions,
+    //         { clusterOrUrl: connection.rpcEndpoint },
+    //         keypair.publicKey.toString()
+    //     );
+    //     vtx.sign([keypair]);
+    //     let lut_hash = await connection.sendTransaction(vtx, { preflightCommitment: "confirmed" });
+    //     console.log("lut_hash", lut_hash);
+    // }
     return { instructions, lookUpTableAccount };
 }
 
@@ -102,17 +117,20 @@ export async function createVTxWithLookupTable({
     connection: Connection;
     payer: string;
 }) {
-    // const lookupTable = (await connection.getAddressLookupTable(new PublicKey(lookUpTableAccount)))
-    //     .value;
-    // if (!lookupTable) throw new Error("Lookup table not found");
-    // await delay(1000);
+    const lookupTable = (await connection.getAddressLookupTable(new PublicKey(lookUpTableAccount)))
+        .value;
+    if (!lookupTable) throw new Error("Lookup table not found");
+    console.log("lookupTable", lookupTable);
+
+    await delay(1000);
     let recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
     const messageWithLookupTable = new TransactionMessage({
         payerKey: new PublicKey(payer),
         recentBlockhash,
         instructions,
-    }).compileToV0Message()//([lookupTable]);
+    }).compileToV0Message([lookupTable]);
     // messageWithLookupTable.serialize();
     const transactionWithLookupTable = new VersionedTransaction(messageWithLookupTable);
+
     return transactionWithLookupTable;
 }

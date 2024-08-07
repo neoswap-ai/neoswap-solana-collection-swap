@@ -1211,7 +1211,6 @@ export const idlSwap: CollectionSwap = {
                 },
                 {
                     name: "tokenProgram",
-                    address: "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
                 },
                 {
                     name: "ataProgram",
@@ -2165,14 +2164,8 @@ export const idlSwap: CollectionSwap = {
                     },
                 },
                 {
-                    name: "creators",
-                    type: {
-                        vec: {
-                            defined: {
-                                name: "cCreator",
-                            },
-                        },
-                    },
+                    name: "creatorsShare",
+                    type: "bytes",
                 },
                 {
                     name: "nonce",
@@ -3812,7 +3805,6 @@ export type CollectionSwap = {
                 },
                 {
                     name: "tokenProgram";
-                    address: "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
                 },
                 {
                     name: "ataProgram";
@@ -4766,14 +4758,8 @@ export type CollectionSwap = {
                     };
                 },
                 {
-                    name: "creators";
-                    type: {
-                        vec: {
-                            defined: {
-                                name: "cCreator";
-                            };
-                        };
-                    };
+                    name: "creatorsShare";
+                    type: "bytes";
                 },
                 {
                     name: "nonce";

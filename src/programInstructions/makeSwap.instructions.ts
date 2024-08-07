@@ -158,6 +158,7 @@ export async function createMakeSwapInstructions(
                     logWrapper: SPL_NOOP_PROGRAM_ID,
                     systemProgram: SystemProgram.programId,
                     tokenProgram: TOKEN_PROGRAM_ID,
+                    // sysvarInstructions: SYSVAR_INST/RUCTIONS_PUBKEY,
                 })
                 .remainingAccounts(proofMeta)
                 .instruction();
