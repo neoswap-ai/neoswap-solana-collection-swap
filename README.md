@@ -10,22 +10,20 @@
 </div>
 
 <!-- TABLE OF CONTENTS -->
-<details>
+<!-- <details>
   <summary>Table of Contents</summary>
   <ol>
     <li>
       <a href="#about-the-project">About The Project</a>
       <a href="#Install-NPM-package">Install NPM package</a>
-
     </li>
     <li>
       <a href="#Install-NPM-package">Installation</a>
-
     </li>
     <li><a href="#usage">Usage</a></li>
 
   </ol>
-</details>
+</details> -->
 
 <!-- ABOUT THE PROJECT -->
 
@@ -43,7 +41,7 @@ npm install @neoswap/solana-collection-swap
 
 ## Types
 
-### represents the data type in the program
+### Represents the data type in the program
 
 ```js
 type SwapData = {
