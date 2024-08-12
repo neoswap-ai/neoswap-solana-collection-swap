@@ -15,9 +15,32 @@ export async function addPriorityFee(
         .map((ix) => ix.keys.filter((key) => key.isWritable).map((key) => key.pubkey.toBase58()))
         .flat();
 
-    if (estimatedFee === 0) {
+    if (!prioritizationFee) {
         estimatedFee = await getRecentPrioritizationFeesHM(
             writableAccounts,
+            "https://rpc.hellomoon.io/13bb514b-0e38-4ff2-a167-6383ef88aa10"
+        );
+        if (estimatedFee < 10000) estimatedFee = 10000;
+        console.log("using getPrioritizationFee from hellomoon", estimatedFee);
+        if (estimatedFee > 0) {
+            tx = tx.add(
+                ComputeBudgetProgram.setComputeUnitPrice({
+                    microLamports: estimatedFee,
+                })
+            );
+        }
+    } else console.log("force fees", estimatedFee);
+
+    return tx;
+}
+
+export async function addPrioFeeIx(ixs: TransactionInstruction[], prioritizationFee?: number) {
+    let estimatedFee = prioritizationFee ? prioritizationFee : 0;
+    let accs = ixs.flatMap((ix) => ix.keys.flatMap((acc) => acc.pubkey.toString()));
+
+    if (!prioritizationFee) {
+        estimatedFee = await getRecentPrioritizationFeesHM(
+            accs,
             "https://rpc.hellomoon.io/13bb514b-0e38-4ff2-a167-6383ef88aa10"
         );
         if (estimatedFee < 10000) estimatedFee = 10000;
@@ -25,14 +48,13 @@ export async function addPriorityFee(
     } else console.log("force fees", estimatedFee);
 
     if (estimatedFee > 0) {
-        tx = tx.add(
+        return [
             ComputeBudgetProgram.setComputeUnitPrice({
                 microLamports: estimatedFee,
-            })
-        );
-    }
-
-    return tx;
+            }),
+            ...ixs,
+        ];
+    } else return ixs;
 }
 
 export async function addPriorityFeeIx(

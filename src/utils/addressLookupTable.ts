@@ -29,6 +29,7 @@ import { MPL_CORE_PROGRAM_ID } from "@metaplex-foundation/mpl-core";
 import { delay } from "./delay";
 import { ix2vTx } from "./vtx";
 import { WRAPPED_SOL_MINT } from "@metaplex-foundation/js";
+import { addPrioFeeIx } from "./fees";
 
 export async function createLookUpTableAccount({
     authority,
@@ -117,26 +118,36 @@ export async function createVTxWithLookupTable({
     instructions,
     lookUpTableAccount,
     payer,
+    prioritizationFee,
 }: {
     lookUpTableAccount?: string;
     instructions: TransactionInstruction[];
     connection: Connection;
     payer: string;
+    prioritizationFee?: number;
 }) {
     // await delay(1000);
-    let recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
+    let recentBlockhash = (await connection.getLatestBlockhash({ commitment: "confirmed" }))
+        .blockhash;
     const transactionMessage = new TransactionMessage({
         payerKey: new PublicKey(payer),
         recentBlockhash,
-        instructions,
+        instructions: await addPrioFeeIx(instructions, prioritizationFee),
     });
     if (lookUpTableAccount) {
-        const lookupTable = (
-            await connection.getAddressLookupTable(new PublicKey(lookUpTableAccount))
-        ).value;
+        const lookupTableResp = await connection.getAddressLookupTable(
+            new PublicKey(lookUpTableAccount),
+            {
+                commitment: "confirmed",
+            }
+        );
+        let lookupTable = lookupTableResp.value!;
+        // console.log("lookUpTableAccount", lookupTable);
+
         if (!lookupTable) throw new Error("Lookup table not found");
 
-        return new VersionedTransaction(transactionMessage.compileToV0Message([lookupTable]));
+        let cMess = transactionMessage.compileToV0Message([lookupTable]);
+        return new VersionedTransaction(cMess);
     }
     return new VersionedTransaction(transactionMessage.compileToV0Message());
 }

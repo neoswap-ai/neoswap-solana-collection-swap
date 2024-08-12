@@ -360,7 +360,35 @@ export async function createTakeAndCloseSwapInstructions(
                                 mint: nftMintTaker,
                             })
                         ).metadataAddress;
+                    console.log(bidToscBid(bid), n);
+                    console.log({
+                        swapDataAccount,
+                        swapDataAccountTokenAta,
 
+                        maker,
+                        makerNftAta,
+                        makerTokenAta,
+
+                        taker,
+                        takerNftAta,
+                        takerTokenAta,
+
+                        nftMintTaker,
+                        // paymentMint,
+
+                        nftMetadataTaker,
+                        nftMasterEditionTaker,
+                        ownerTokenRecordTaker,
+                        destinationTokenRecordTaker,
+                        authRulesTaker,
+
+                        systemProgram: SystemProgram.programId.toString(),
+                        metadataProgram: TOKEN_METADATA_PROGRAM.toString(),
+                        sysvarInstructions: SYSVAR_INSTRUCTIONS_PUBKEY.toString(),
+                        tokenProgram: TOKEN_PROGRAM_ID.toString(),
+                        ataProgram: SPL_ASSOCIATED_TOKEN_PROGRAM_ID.toString(),
+                        authRulesProgram: METAPLEX_AUTH_RULES_PROGRAM.toString(),
+                    });
                     const takeIx = await program.methods
                         .takeSwap(bidToscBid(bid), n)
                         .accountsStrict({
@@ -384,12 +412,12 @@ export async function createTakeAndCloseSwapInstructions(
                             destinationTokenRecordTaker,
                             authRulesTaker,
 
-                            systemProgram: SystemProgram.programId,
-                            metadataProgram: TOKEN_METADATA_PROGRAM,
-                            sysvarInstructions: SYSVAR_INSTRUCTIONS_PUBKEY,
-                            tokenProgram: TOKEN_PROGRAM_ID,
-                            ataProgram: SPL_ASSOCIATED_TOKEN_PROGRAM_ID,
-                            authRulesProgram: METAPLEX_AUTH_RULES_PROGRAM,
+                            systemProgram: SystemProgram.programId.toString(),
+                            metadataProgram: TOKEN_METADATA_PROGRAM.toString(),
+                            sysvarInstructions: SYSVAR_INSTRUCTIONS_PUBKEY.toString(),
+                            tokenProgram: TOKEN_PROGRAM_ID.toString(),
+                            ataProgram: SPL_ASSOCIATED_TOKEN_PROGRAM_ID.toString(),
+                            authRulesProgram: METAPLEX_AUTH_RULES_PROGRAM.toString(),
                         })
                         .instruction();
                     takeIxs.push(takeIx);
@@ -1064,8 +1092,8 @@ export async function createTakeAndCloseSwapInstructions(
 
         if (!acceptedBid) takeTx = await ix2vTx(takeIxs, cEnvOpts, signer);
         if (!claimed) claimTx = await ix2vTx(claimIxs, cEnvOpts, signer);
-        if (!payMakerTx) payMakerTx = await ix2vTx(payRMakerIxs, cEnvOpts, signer);
-        if (!payTakerTx) payTakerTx = await ix2vTx(payRTakerIxs, cEnvOpts, signer);
+        if (!royaltiesPaidMaker) payMakerTx = await ix2vTx(payRMakerIxs, cEnvOpts, signer);
+        if (!royaltiesPaidTaker) payTakerTx = await ix2vTx(payRTakerIxs, cEnvOpts, signer);
         let closeTx = await ix2vTx(closeSIxs, cEnvOpts, signer);
 
         let { lastValidBlockHeight: blockheight, blockhash } =
@@ -1097,7 +1125,7 @@ export async function createTakeAndCloseSwapInstructions(
             });
 
             priority++;
-        } else console.log("no takeSwapTx");
+        } else console.log("no claimTx");
         if (payMakerTx) {
             bTTakeAndClose.push({
                 tx: payMakerTx,
@@ -1109,7 +1137,7 @@ export async function createTakeAndCloseSwapInstructions(
             });
 
             priority++;
-        } else console.log("no takeSwapTx");
+        } else console.log("no payMakerTx");
         if (payTakerTx) {
             bTTakeAndClose.push({
                 tx: payTakerTx,
@@ -1121,7 +1149,7 @@ export async function createTakeAndCloseSwapInstructions(
             });
 
             priority++;
-        } else console.log("no takeSwapTx");
+        } else console.log("no payTakerTx");
 
         bTTakeAndClose.push({
             tx: closeTx,

@@ -39,7 +39,7 @@ export async function getCompNFTData({
     // console.log("treeProof", treeProof);
 
     const conn = connection ?? new Connection(clusterApiUrl(cluster ?? "mainnet-beta"));
-    // console.log(treeProof.tree_id, "connection", connection.rpcEndpoint);
+    // console.log(treeProof.tree_id, "connection");
 
     // retrieve the merkle tree's account from the blockchain
     const treeAccount = await ConcurrentMerkleTreeAccount.fromAccountAddress(
@@ -81,11 +81,11 @@ export async function getCompNFTData({
     // let metaHash = Array.from(hh?.metaHash!);
     // let calcDatahsh = Array.from(hh?.dataHash!);
     let dataHash = Array.from(decode(treeData.compression.data_hash)); //new PublicKey().toBytes();
-    // console.log("dataHash", dataHash, "calcDatahsh", calcDatahsh);
+    // console.log("dataHash", dataHash);
     let creators = metadata.creators;
 
-    let root: number[] = Array.from(new PublicKey(treeProof.root).toBuffer());
-    let leafHash: number[] = Array.from(new PublicKey(treeProof.leaf).toBuffer());
+    let root: number[] = Array.from(decode(treeProof.root.toString()));
+    let leafHash: number[] = Array.from(decode(treeProof.leaf.toString()));
     let owner = newOwner ?? treeData.ownership.owner.toString();
     let onchainRoot = Array.from(treeAccount.getCurrentRoot());
 
@@ -95,14 +95,6 @@ export async function getCompNFTData({
     } else if (getRootHash === "onchain") {
         root = onchainRoot;
     } else if (getRootHash.includes("calculate")) {
-        // console.log('DAS',{
-        //     leafAssetId: tokenId,
-        //     leafIndex: index,
-        //     metadataHash: (dataHash),
-        //     owner: owner,
-        //     creatorHash: creatorHash,
-        // });
-        // console.log("treeData.ownership.delegate", treeData.ownership.delegate);
         let { root: calcRoot, leafHash: calcLeaf } = await recalculateRoot({
             tokenId: tokenId,
             connection: conn,
@@ -112,14 +104,6 @@ export async function getCompNFTData({
             fullproof,
             index,
         });
-        // console.log(bs58.encode(calcLeaf), "calcLeaf vs leafhash", bs58.encode(leafHash));
-        // console.log(
-        //     bs58.encode(calcRoot),
-        //     "calcroot vs roothash",
-        //     bs58.encode(onchainRoot),
-        //     " vs root ",
-        //     bs58.encode(root)
-        // );
 
         if (getRootHash === "calculateAndVerify") {
             if (bs58.encode(calcRoot) !== bs58.encode(onchainRoot)) {
@@ -266,7 +250,7 @@ export async function constructMetaHash(mint: string) {
     } = assetRes;
     const coll = grouping.find((group: any) => group.group_key === "collection")?.group_value;
     const tokenStandard = content.metadata.token_standard;
-    const dataHashBuffer = new PublicKey(compression.data_hash).toBuffer();
+    const dataHashBuffer = decode(compression.data_hash.toString());
 
     // construct metadataArgs to hash later
     // ordering follows https://docs.metaplex.com/programs/token-metadata/accounts
@@ -311,7 +295,8 @@ export async function constructMetaHash(mint: string) {
         tokenProgramVersion: 0,
     };
     const originalMetadata = { ...metadataArgs };
-    const sellerFeeBasisPointsBuffer = new BN(royalty.basis_points).toBuffer("le", 2);
+    let sellesBn = new BN(royalty.basis_points);
+    const sellerFeeBasisPointsBuffer = sellesBn.toArrayLike(Buffer, "le", 2);
 
     // hash function on top of candidate metaHash to compare against data_hash
     const makeDataHash = (metadataArgs: any) =>
