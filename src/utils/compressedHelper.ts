@@ -65,11 +65,11 @@ export async function getCompNFTData({
     const fullproof = treeProof.proof.map((v) => v.toString());
 
     let creatorHash = Array.from(decode(treeData.compression.creator_hash));
-    console.log("creatorHash", creatorHash);
+    // console.log("creatorHash", creatorHash);
 
     let nonce = new BN(treeData.compression.leaf_id);
     let index = Number(treeData.compression.leaf_id);
-    console.log("nonce", nonce, "index", index);
+    // console.log("nonce", nonce, "index", index);
 
     let collection = treeData.grouping.find(
         (v: { group_key: string; group_value: string }) => v.group_key === "collection"
@@ -102,7 +102,7 @@ export async function getCompNFTData({
         //     owner: owner,
         //     creatorHash: creatorHash,
         // });
-        console.log("treeData.ownership.delegate", treeData.ownership.delegate);
+        // console.log("treeData.ownership.delegate", treeData.ownership.delegate);
         let { root: calcRoot, leafHash: calcLeaf } = await recalculateRoot({
             tokenId: tokenId,
             connection: conn,
@@ -112,14 +112,14 @@ export async function getCompNFTData({
             fullproof,
             index,
         });
-        console.log(bs58.encode(calcLeaf), "calcLeaf vs leafhash", bs58.encode(leafHash));
-        console.log(
-            bs58.encode(calcRoot),
-            "calcroot vs roothash",
-            bs58.encode(onchainRoot),
-            " vs root ",
-            bs58.encode(root)
-        );
+        // console.log(bs58.encode(calcLeaf), "calcLeaf vs leafhash", bs58.encode(leafHash));
+        // console.log(
+        //     bs58.encode(calcRoot),
+        //     "calcroot vs roothash",
+        //     bs58.encode(onchainRoot),
+        //     " vs root ",
+        //     bs58.encode(root)
+        // );
 
         if (getRootHash === "calculateAndVerify") {
             if (bs58.encode(calcRoot) !== bs58.encode(onchainRoot)) {
@@ -199,7 +199,7 @@ export async function getMerkleTreeAndIndex(Data: { tokenId: string; Cluster: Cl
 
 export async function getCNFTOwner(Data: { Cluster: Cluster; tokenId: string }) {
     let treeData = await retrieveDASAssetFields(Data.tokenId);
-    console.log("treeData Results", treeData);
+    // console.log("treeData Results", treeData);
     if (!treeData.compression.compressed) throw "not cNFT";
     return treeData.ownership.owner;
 }
@@ -421,7 +421,7 @@ export function hashLeaf({
 }): Uint8Array {
     const delegate = delegateAddress ?? owner;
     const nftVersion = nftVersionNb ?? 1;
-    console.log("leafIndex", leafIndex);
+    // console.log("leafIndex", leafIndex);
 
     return hash([
         u8().serialize(nftVersion),
@@ -455,8 +455,6 @@ export async function recalculateRoot({
     creatorHash: string;
     fullproof: string[];
 }) {
-    console.log("tokenId ", tokenId, index, dataHash);
-
     let leafHash = hashLeaf({
         leafAssetId: new PublicKey(tokenId),
         leafIndex: index,
@@ -464,10 +462,8 @@ export async function recalculateRoot({
         owner: new PublicKey(owner),
         creatorHash: decode(creatorHash),
     });
-    console.log("leafHash 0", bs58.encode(leafHash));
 
     let root = getRoot(bs58.encode(leafHash), fullproof, index);
-    // console.log(bs58.encode(root), "Comp V root S calc", root);
 
     return {
         root: Array.from(bs58.decode(root)),
@@ -541,280 +537,3 @@ export function getRoot(leaf: string, proof: string[], leafIndex: number) {
 
     return root;
 }
-
-// //@ts-ignore
-// export function getMetadataArgsSerializer(): Serializer<MetadataArgsArgs, MetadataArgs> {
-//     return mapSerializer<MetadataArgsArgs, any, MetadataArgs>(
-//         //@ts-ignore
-//         struct<MetadataArgs>(
-//             [
-//                 ["name", string()],
-//                 ["symbol", string()],
-//                 ["uri", string()],
-//                 ["sellerFeeBasisPoints", u16()],
-//                 ["primarySaleHappened", bool()],
-//                 ["isMutable", bool()],
-//                 //@ts-ignore
-//                 ["editionNonce", option(u8())],
-//                 //@ts-ignore
-//                 ["tokenStandard", option(getTokenStandardSerializer())],
-//                 //@ts-ignore
-//                 ["collection", option(getCollectionSerializer())],
-//                 //@ts-ignore
-//                 ["uses", option(getUsesSerializer())],
-//                 ["tokenProgramVersion", getTokenProgramVersionSerializer()],
-//                 //@ts-ignore
-//                 ["creators", array(getCreatorSerializer())],
-//             ],
-//             { description: "MetadataArgs" }
-//         ),
-//         (value) => ({
-//             ...value,
-//             symbol: value.symbol ?? "",
-//             primarySaleHappened: value.primarySaleHappened ?? false,
-//             isMutable: value.isMutable ?? true,
-//             editionNonce: value.editionNonce ?? none(),
-//             tokenStandard: value.tokenStandard ?? some(TokenStandard.NonFungible),
-//             uses: value.uses ?? none(),
-//             tokenProgramVersion: value.tokenProgramVersion ?? TokenProgramVersion.Original,
-//         })
-//         //@ts-ignore
-//     ) as Serializer<MetadataArgsArgs, MetadataArgs>;
-// }
-
-// export type TokenStandardArgs = TokenStandard;
-
-// export function getTokenStandardSerializer(): Serializer<TokenStandardArgs, TokenStandard> {
-//     return scalarEnum<TokenStandard>(TokenStandard, {
-//         description: "TokenStandard",
-//     }) as Serializer<TokenStandardArgs, TokenStandard>;
-// }
-// export type Collection = { verified: boolean; key: PublicKey };
-
-// export type CollectionArgs = Collection;
-
-// export function getCollectionSerializer(): Serializer<CollectionArgs, Collection> {
-//     return struct<Collection>(
-//         [
-//             ["verified", bool()],
-//             //@ts-ignore
-//             ["key", publicKey()],
-//         ],
-//         { description: "Collection" }
-//     ) as Serializer<CollectionArgs, Collection>;
-// }
-
-// export type Uses = { useMethod: UseMethod; remaining: bigint; total: bigint };
-
-// export type UsesArgs = {
-//     useMethod: UseMethodArgs;
-//     remaining: number | bigint;
-//     total: number | bigint;
-// };
-
-// export function getUsesSerializer(): Serializer<UsesArgs, Uses> {
-//     return struct<Uses>(
-//         [
-//             ["useMethod", getUseMethodSerializer()],
-//             ["remaining", u64()],
-//             ["total", u64()],
-//         ],
-//         { description: "Uses" }
-//     ) as Serializer<UsesArgs, Uses>;
-// }
-// export enum UseMethod {
-//     Burn,
-//     Multiple,
-//     Single,
-// }
-
-// export type UseMethodArgs = UseMethod;
-
-// export function getUseMethodSerializer(): Serializer<UseMethodArgs, UseMethod> {
-//     return scalarEnum<UseMethod>(UseMethod, {
-//         description: "UseMethod",
-//     }) as Serializer<UseMethodArgs, UseMethod>;
-// }
-
-// export type TokenProgramVersionArgs = TokenProgramVersion;
-
-// export function getTokenProgramVersionSerializer(): Serializer<
-//     TokenProgramVersionArgs,
-//     TokenProgramVersion
-// > {
-//     return scalarEnum<TokenProgramVersion>(TokenProgramVersion, {
-//         description: "TokenProgramVersion",
-//     }) as Serializer<TokenProgramVersionArgs, TokenProgramVersion>;
-// }
-
-// export type MetadataArgs = {
-//     /** The name of the asset */
-//     name: string;
-//     /** The symbol for the asset */
-//     symbol: string;
-//     /** URI pointing to JSON representing the asset */
-//     uri: string;
-//     /** Royalty basis points that goes to creators in secondary sales (0-10000) */
-//     sellerFeeBasisPoints: number;
-//     primarySaleHappened: boolean;
-//     isMutable: boolean;
-//     /** nonce for easy calculation of editions, if present */
-//     editionNonce: Option<number>;
-//     /** Since we cannot easily change Metadata, we add the new DataV2 fields here at the end. */
-//     tokenStandard: Option<TokenStandard>;
-//     /** Collection */
-//     collection: Option<Collection>;
-//     /** Uses */
-//     uses: Option<Uses>;
-//     tokenProgramVersion: TokenProgramVersion;
-//     creators: Array<Creator>;
-// };
-
-// export type MetadataArgsArgs = {
-//     /** The name of the asset */
-//     name: string;
-//     /** The symbol for the asset */
-//     symbol?: string;
-//     /** URI pointing to JSON representing the asset */
-//     uri: string;
-//     /** Royalty basis points that goes to creators in secondary sales (0-10000) */
-//     sellerFeeBasisPoints: number;
-//     primarySaleHappened?: boolean;
-//     isMutable?: boolean;
-//     /** nonce for easy calculation of editions, if present */
-//     editionNonce?: OptionOrNullable<number>;
-//     /** Since we cannot easily change Metadata, we add the new DataV2 fields here at the end. */
-//     tokenStandard?: OptionOrNullable<TokenStandardArgs>;
-//     /** Collection */
-//     collection: OptionOrNullable<CollectionArgs>;
-//     /** Uses */
-//     uses?: OptionOrNullable<UsesArgs>;
-//     tokenProgramVersion?: TokenProgramVersionArgs;
-//     creators: Array<CreatorArgs>;
-// };
-
-// function hashMetadata(metadata: MetadataArgsArgs): Uint8Array {
-//     return mergeBytes([hashMetadataData(metadata), hashMetadataCreators(metadata.creators)]);
-// }
-
-// function hashMetadataData(metadata: MetadataArgsArgs): Uint8Array {
-//     return hash([
-//         hash(getMetadataArgsSerializer().serialize(metadata)),
-//         u16().serialize(metadata.sellerFeeBasisPoints),
-//     ]);
-// }
-
-// function hashMetadataCreators(creators: MetadataArgsArgs["creators"]): Uint8Array {
-//     return hash(array(getCreatorSerializer(), { size: "remainder" }).serialize(creators));
-// }
-// let treeData = await retrieveDASAssetFields(tokenId);
-// let treeProof = await retrieveDASProofFields(tokenId);
-
-// let compData = await getCompNFTData({ cluster: "mainnet-beta", tokenId, connection }); // let metaData = constructMetaHash(tokenId);
-
-// let tokenId0 = await getLeafAssetId(new PublicKey(compData.merkleTree), new BN(0)); //{ nonce: 0, tree:  });
-// let tokenId0Proof = await getCompNFTData({
-//     cluster: "mainnet-beta",
-//     tokenId: tokenId0.toString(),
-//     connection,
-// }); // let metaData = constructMetaHash(tokenId);
-// let leafhash0 = hashLeaf({
-//     leafAssetId: new PublicKey(tokenId0),
-//     leafIndex: tokenId0Proof.index,
-//     metadataHash: Buffer.from(tokenId0Proof.dataHash),
-//     owner: new PublicKey(tokenId0Proof.owner),
-//     creatorHash: Buffer.from(tokenId0Proof.creatorHash),
-// });
-
-// let tokenId1 = await getLeafAssetId(new PublicKey(tokenId0Proof.merkleTree), new BN(1)); //({ nonce: 1, tree: compData.merkleTree });
-// let tokenId1Proof = await getCompNFTData({
-//     cluster: "mainnet-beta",
-//     tokenId: tokenId1.toString(),
-//     connection,
-// }); // let metaData = constructMetaHash(tokenId);
-// let leafhash1 = hashLeaf({
-//     leafAssetId: new PublicKey(tokenId1),
-//     leafIndex: tokenId1Proof.index,
-//     metadataHash: Buffer.from(tokenId1Proof.dataHash),
-//     owner: new PublicKey(tokenId1Proof.owner),
-//     creatorHash: Buffer.from(tokenId1Proof.creatorHash),
-// });
-
-// let tokenId2 = await getLeafAssetId(new PublicKey(compData.merkleTree), new BN(2)); //({ nonce: 2, tree: compData.merkleTree });
-// let tokenId2Proof = await getCompNFTData({
-//     cluster: "mainnet-beta",
-//     tokenId: tokenId2.toString(),
-//     connection,
-// }); // let metaData = constructMetaHash(tokenId);
-// let leafhash2 = hashLeaf({
-//     leafAssetId: new PublicKey(tokenId2),
-//     leafIndex: tokenId2Proof.index,
-//     metadataHash: Buffer.from(tokenId2Proof.dataHash),
-//     owner: new PublicKey(tokenId2Proof.owner),
-//     creatorHash: Buffer.from(tokenId2Proof.creatorHash),
-// });
-// let io = 0;
-// let proofs = await Promise.all(
-//     [5, 9, 17, 33, 65, 129].map(async (index) => {
-//         await delay(600 * io++);
-//         let tokenId = (
-//             await getLeafAssetId(new PublicKey(compData.merkleTree), new BN(index))
-//         ).toString(); //({ nonce: , tree: compData.merkleTree });
-//         let tokenIdProof = await getCompNFTData({
-//             cluster: "mainnet-beta",
-//             tokenId: tokenId.toString(),
-//             connection,
-//         });
-//         return {
-//             index,
-//             tokenId,
-//             tokenIdProof: tokenIdProof.proofMeta.map((v) => v.pubkey.toString()),
-//         };
-//     })
-// );
-
-// let tokenId417407 = await getLeafAssetId(new PublicKey(compData.merkleTree), compData.nonce);
-
-// // findTokenIdFromLerkleIndex({
-// //     nonce: compData.nonce.toNumber(),
-// //     tree: compData.merkleTree,
-// // });
-
-// console.log(
-//     "tokenId0",
-//     tokenId0.toString(),
-//     tokenId0Proof.proofMeta.map((v) => v.pubkey.toString()),
-//     bs58.encode(leafhash0)
-// );
-
-// console.log(
-//     "tokenId1",
-//     tokenId1.toString(),
-//     tokenId1Proof.proofMeta.map((v) => v.pubkey.toString()),
-//     bs58.encode(leafhash1)
-// );
-
-// console.log(
-//     "tokenId2",
-//     tokenId2.toString(),
-//     tokenId2Proof.proofMeta.map((v) => v.pubkey.toString()),
-//     bs58.encode(leafhash2)
-// );
-// proofs.forEach((v) => console.log(v));
-
-// // console.log(
-// //     compData.index,
-// //     compData.nonce.toNumber(),
-// //     "tokenId417407",
-// //     tokenId417407.toString()
-// // );
-
-// function findTokenIdFromLerkleIndex({ nonce, tree }: { tree: string; nonce: number }) {
-//     // [b"asset", tree.as_ref(), &nonce.to_le_bytes()], &crate::ID)
-
-//     let [pk] = PublicKey.findProgramAddressSync(
-//         [Buffer.from("asset"), new PublicKey(tree).toBuffer(), new BN(nonce).toBuffer()],
-//         BUBBLEGUM_PROGRAM_ID
-//     );
-//     return pk.toString();
-// }

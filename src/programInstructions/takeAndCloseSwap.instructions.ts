@@ -178,7 +178,7 @@ export async function createTakeAndCloseSwapInstructions(
         let tokenStandardMaker: number | null = null;
 
         if (makerNftStd === "native") {
-            console.log("makerNftStdmakerNftStdmakerNftStdmakerNftStdmakerNftStd", makerNftStd);
+            console.log("makerNftStd", makerNftStd);
 
             const { metadataAddress: nftMetadataMaker2, tokenStandard: tokenStandardMaker2 } =
                 await findNftDataAndMetadataAccount({
@@ -770,7 +770,7 @@ export async function createTakeAndCloseSwapInstructions(
                 });
 
                 if (creatorIxs.length > 0) {
-                    console.log("creatorIxs", creatorIxs.length);
+                    console.log("creatorIxs added", creatorIxs.length);
                     payRTakerIxs.push(...creatorIxs);
                 }
 

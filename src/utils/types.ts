@@ -188,7 +188,7 @@ export type EnvOpts = {
     programId?: string;
     idl?: Idl | true;
     prioritizationFee?: number;
-    lookUpTableAccount?: string | true;
+    lookUpTableAccount?: string | false;
 };
 
 export type COptionSend = {

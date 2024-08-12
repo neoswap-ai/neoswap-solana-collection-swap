@@ -92,15 +92,15 @@ export async function getCreatorData({
         })
     );
     let display;
-    console.log(
-        "creators",
-        creators
-            .map((c, i) => {
-                if (c == signer) return undefined;
-                return { address: c, ata: creatorTokenAta[i], share: shares[i] };
-            })
-            .filter((c) => c)
-    );
+    // console.log(
+    //     "creators",
+    //     creators
+    //         .map((c, i) => {
+    //             if (c == signer) return undefined;
+    //             return { address: c, ata: creatorTokenAta[i], share: shares[i] };
+    //         })
+    //         .filter((c) => c)
+    // );
     return {
         instructions,
         creators,
