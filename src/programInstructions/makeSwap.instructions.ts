@@ -59,7 +59,9 @@ export async function createMakeSwapInstructions(
             units: 800000,
         }),
     ];
-
+    let cluster = (
+        !cEnvOpts.clusterOrUrl.includes("mainnet") ? "devnet" : "mainnet-beta"
+    ) as Cluster;
     try {
         let { mintAta: swapDataAccountTokenAta, instruction: st } = await findOrCreateAta({
             connection,
@@ -118,9 +120,6 @@ export async function createMakeSwapInstructions(
                 .instruction();
             instructions.push(initIx);
         } else if (tokenStd === "compressed") {
-            let cluster = (
-                !cEnvOpts.clusterOrUrl.includes("mainnet") ? "devnet" : "mainnet-beta"
-            ) as Cluster;
             let {
                 creatorHash,
                 dataHash,
@@ -163,7 +162,7 @@ export async function createMakeSwapInstructions(
                 .remainingAccounts(proofMeta)
                 .instruction();
             instructions.push(makeCompData);
-        } else {
+        } else if (tokenStd === "native" || tokenStd === "hybrid") {
             let { mintAta: swapDataAccountNftAta, instruction: sn } = await findOrCreateAta({
                 connection,
                 mint: nftMintMaker,
@@ -260,7 +259,7 @@ export async function createMakeSwapInstructions(
                     .instruction();
                 instructions.push(initIx);
             } else throw "not supported";
-        }
+        } else throw "token not supported";
 
         let addBidIxs: TransactionInstruction[] = [];
         if (leftBids.length > 0) {
@@ -295,7 +294,7 @@ export async function createMakeSwapInstructions(
         ];
         console.log("addBidIxs", addBidIxs.length);
 
-        if (addBidIxs.length > 0)
+        if (addBidIxs.length > 0) {
             bTxs.push({
                 description: DESC.addBid,
                 details: { swapDataAccount, bids, maker } as UpdateSArgs,
@@ -303,6 +302,7 @@ export async function createMakeSwapInstructions(
                 status: "pending",
                 tx: await ix2vTx(addBidIxs, cEnvOpts, maker),
             });
+        }
         return {
             bTxs,
             swapDataAccount: swapDataAccount.toString(),
