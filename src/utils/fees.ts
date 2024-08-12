@@ -110,7 +110,6 @@ export function takerFee({ bid, n }: { bid: Bid; n: number }): number {
                 takerAmount / LAMPORTS_PER_SOL +
                 " ) lamports"
         );
-        return takerAmount;
     } else {
         console.log(
             "Wrapping " +
@@ -119,6 +118,6 @@ export function takerFee({ bid, n }: { bid: Bid; n: number }): number {
                 takerAmount / LAMPORTS_PER_SOL +
                 " ) lamports to wSOL"
         );
-        return takerAmount;
     }
+    return takerAmount;
 }

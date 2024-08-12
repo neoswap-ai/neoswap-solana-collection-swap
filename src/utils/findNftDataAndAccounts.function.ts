@@ -159,6 +159,7 @@ export async function whichStandard({
     mint: string;
 }): Promise<"core" | "native" | "hybrid" | "compressed"> {
     let tokenProg = (await connection.getAccountInfo(new PublicKey(mint)))?.owner.toString();
+
     switch (tokenProg) {
         case TOKEN_PROGRAM_ID.toString():
             return "native";
