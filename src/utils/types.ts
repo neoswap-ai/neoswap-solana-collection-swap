@@ -188,7 +188,7 @@ export type EnvOpts = {
     programId?: string;
     idl?: Idl | true;
     prioritizationFee?: number;
-    lookUpTableAccount?: string;
+    lookUpTableAccount?: string | true;
 };
 
 export type COptionSend = {
@@ -207,6 +207,6 @@ export type CEnvOpts = {
     programId: string;
     idl: Idl;
     prioritizationFee?: number;
-    lookUpTableAccount: string;
+    lookUpTableAccount?: string;
 };
 export type ReturnSwapData = { bTxs: BundleTransaction[]; swapDataAccount: string };

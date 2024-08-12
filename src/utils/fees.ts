@@ -84,7 +84,7 @@ export function calculateMakerFee({ bids }: { bids: Bid[] }) {
                 maxAmount / LAMPORTS_PER_SOL +
                 " ) lamports"
         );
-        return;
+        return maxAmount;
     }
     console.log(
         "Wrapping " + maxAmount + " ( " + maxAmount / LAMPORTS_PER_SOL + " ) lamports to wSOL"
@@ -95,14 +95,14 @@ export function calculateMakerFee({ bids }: { bids: Bid[] }) {
 export function makerFee({ bid }: { bid: Bid }) {
     return -bid.amount + bid.makerNeoswapFee + bid.makerRoyalties;
 }
-export function takerFee({ bid, n }: { bid: Bid; n: number }) {
+export function takerFee({ bid, n }: { bid: Bid; n: number }): number {
+    let takerAmount: number;
     if (n === 42) {
         console.log("fees waived");
-        return 0;
-    }
-    let takerAmount = bid.amount + bid.takerNeoswapFee + bid.takerRoyalties;
+        takerAmount = bid.amount;
+    } else takerAmount = bid.amount + bid.takerNeoswapFee + bid.takerRoyalties;
 
-    if (takerAmount < 0) {
+    if (takerAmount <= 0) {
         console.log(
             "Taker will receive funds, no fees to deposit " +
                 takerAmount +
@@ -110,7 +110,7 @@ export function takerFee({ bid, n }: { bid: Bid; n: number }) {
                 takerAmount / LAMPORTS_PER_SOL +
                 " ) lamports"
         );
-        return;
+        return takerAmount;
     } else {
         console.log(
             "Wrapping " +

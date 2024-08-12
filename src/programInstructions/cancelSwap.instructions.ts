@@ -92,7 +92,7 @@ export async function createCancelSwapInstructions(
                     maker,
                     makerTokenAta,
                     nftMintMaker,
-                    paymentMint,
+                    // paymentMint,
                     signer,
                     swapDataAccount,
                     swapDataAccountTokenAta,
@@ -126,7 +126,7 @@ export async function createCancelSwapInstructions(
                     maker,
                     makerTokenAta,
                     merkleTree,
-                    paymentMint,
+                    // paymentMint,
                     signer,
                     swapDataAccount,
                     swapDataAccountTokenAta,
@@ -205,7 +205,7 @@ export async function createCancelSwapInstructions(
                         makerTokenAta,
 
                         nftMintMaker,
-                        paymentMint,
+                        // paymentMint,
 
                         nftMetadataMaker,
                         nftMasterEditionMaker,
@@ -238,7 +238,7 @@ export async function createCancelSwapInstructions(
                         makerTokenAta,
 
                         nftMintMaker,
-                        paymentMint,
+                        // paymentMint,
 
                         systemProgram: SystemProgram.programId,
                         tokenProgram: TOKEN_PROGRAM_ID,

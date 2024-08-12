@@ -1,67 +1,53 @@
-import { decode, encode } from "@coral-xyz/anchor/dist/cjs/utils/bytes/bs58";
+import { decode } from "@coral-xyz/anchor/dist/cjs/utils/bytes/bs58";
 import {
     DasApiAsset,
     GetAssetProofRpcResponse,
 } from "@metaplex-foundation/digital-asset-standard-api";
-import {
-    Creator,
-    LeafSchema,
-    MetadataArgs,
-    TokenProgramVersion,
-    TokenStandard,
-} from "@metaplex-foundation/mpl-bubblegum";
-import { ConcurrentMerkleTreeAccount, MerkleTreeProof } from "@solana/spl-account-compression";
+import { TokenStandard } from "@metaplex-foundation/mpl-bubblegum";
+import { ConcurrentMerkleTreeAccount } from "@solana/spl-account-compression";
 import { AccountMeta, Cluster, clusterApiUrl, Connection, PublicKey } from "@solana/web3.js";
-import { computeMetadataArgsHash } from "@tensor-hq/tensor-common";
+import { BUBBLEGUM_PROGRAM_ID, computeMetadataArgsHash } from "@tensor-hq/tensor-common";
 import BN from "bn.js";
 import { keccak_256 } from "js-sha3";
 import { keccak_256 as bubbleHash } from "@noble/hashes/sha3";
 
 import { createHash } from "crypto";
-import {
-    CreatorArgs,
-    getCreatorSerializer,
-    getHashablePluginSchemaSerializer,
-} from "@metaplex-foundation/mpl-core";
-import {
-    array,
-    bool,
-    mapSerializer,
-    mergeBytes,
-    option,
-    publicKey,
-    scalarEnum,
-    Serializer,
-    string,
-    struct,
-    u16,
-    u64,
-    u8,
-    publicKey as publicKeySerializer,
-} from "@metaplex-foundation/umi/serializers";
-import { none, OptionOrNullable, some, Option } from "@metaplex-foundation/umi";
+import { mergeBytes, publicKey, u64, u8 } from "@metaplex-foundation/umi/serializers";
 import { bs58 } from "@coral-xyz/anchor/dist/cjs/utils/bytes";
+import { PROGRAM_ID as MPL_BUBBLEGUM_PROGRAM_ID } from "@metaplex-foundation/mpl-bubblegum";
+import { getLeafAssetId } from "@metaplex-foundation/mpl-bubblegum";
+import { delay } from "./delay";
 
-export async function getCompNFTData(Data: {
+export async function getCompNFTData({
+    cluster,
+    tokenId,
+    connection,
+    getRootHash,
+    newOwner,
+}: // verifyOwnership,
+{
     tokenId: string;
-    cluster: Cluster;
+    cluster?: Cluster;
     connection?: Connection;
+    getRootHash?: "onchain" | "calculate" | "calculateAndVerify" | "DAS";
     newOwner?: string;
+    // verifyOwnership?: boolean;
 }) {
-    let treeData = await retrieveDASAssetFields(Data.tokenId);
-    console.log("treeData", treeData);
-    let treeProof = await retrieveDASProofFields(Data.tokenId);
-    console.log("treeProof", treeProof);
+    let treeData = await retrieveDASAssetFields(tokenId);
+    // console.log("treeData", treeData);
+    let treeProof = await retrieveDASProofFields(tokenId);
+    // console.log("treeProof", treeProof);
 
-    const connection = Data.connection || new Connection(clusterApiUrl(Data.cluster));
+    const conn = connection || new Connection(clusterApiUrl(cluster || "mainnet-beta"));
+    // console.log(treeProof.tree_id, "connection", connection.rpcEndpoint);
 
     // retrieve the merkle tree's account from the blockchain
     const treeAccount = await ConcurrentMerkleTreeAccount.fromAccountAddress(
-        connection,
+        conn,
         new PublicKey(treeProof.tree_id)
     );
     // console.log("treeAccount", treeAccount);
-
+    // treeAccount.tree.changeLogs[0].
     // extract the needed values for our transfer instruction
     const treeAuthority = treeAccount.getAuthority();
     const canopyDepth = treeAccount.getCanopyDepth();
@@ -76,27 +62,57 @@ export async function getCompNFTData(Data: {
             isSigner: false,
             isWritable: false,
         }));
-    // console.log("proofMeta", proofMeta);
-    // const proof = proofMeta.map((node: AccountMeta) => node.pubkey.toString());
-    // console.log('proof', proof);
-
-    // console.log('treeProof.root', treeProof.root);
-    // console.log('treeData.creator_hash', treeData.compression);
-
-    // let instructions = [];
-    let root = Array.from(treeAccount.getCurrentRoot()); //decode(treeProof.root));
-    console.log(bs58.encode(Array.from(decode(treeProof.root))), " VS root", bs58.encode(root));
+    const fullproof = treeProof.proof.map((v) => v.toString());
 
     let dataHash = Array.from(decode(treeData.compression.data_hash)); //new PublicKey().toBytes();
+    console.log("dataHash", dataHash);
+
     let creatorHash = Array.from(decode(treeData.compression.creator_hash));
+    console.log("creatorHash", creatorHash);
+
     let nonce = new BN(treeData.compression.leaf_id);
     let index = Number(treeData.compression.leaf_id);
+
     let collection = treeData.grouping.find(
         (v: { group_key: string; group_value: string }) => v.group_key === "collection"
     )!.group_value;
 
-    let metadata = (await constructMetaHash(Data.tokenId))?.metadataArgs!;
-    treeData.ownership.owner;
+    let metadata = (await constructMetaHash(tokenId))?.metadataArgs!;
+    let creators = metadata.creators;
+
+    let root: number[] = Array.from(new PublicKey(treeProof.root).toBuffer());
+    let leafHash: number[] = Array.from(new PublicKey(treeProof.leaf).toBuffer());
+    let owner = newOwner || treeData.ownership.owner.toString();
+    let onchainRoot = Array.from(treeAccount.getCurrentRoot());
+  
+    if (!getRootHash) {
+    } else if (getRootHash === "onchain") {
+        root = onchainRoot;
+    } else if (getRootHash.includes("calculate")) {
+        let { root: calcRoot, leafHash: calcLeaf } = await recalculateRoot({
+            tokenId: tokenId,
+            connection: conn,
+            owner,
+            creatorHash: bs58.encode(creatorHash),
+            dataHash: bs58.encode(dataHash),
+            fullproof,
+            index,
+        });
+
+        if (getRootHash === "calculateAndVerify") {
+            if (bs58.encode(calcRoot) !== bs58.encode(onchainRoot)) {
+                console.log(
+                    "Roots don't match, calculated : ",
+                    bs58.encode(calcRoot),
+                    "original :",
+                    bs58.encode(onchainRoot)
+                );
+
+                throw `Roots don't match : owner :${owner} vs DAS:${treeData.ownership.owner.toString()}`;
+            }
+        }
+    }
+
     // console.log('nonce', nonce);
     // console.log("args", root, dataHash, creatorHash, nonce, index);
     // console.log(
@@ -123,6 +139,7 @@ export async function getCompNFTData(Data: {
     // );
 
     return {
+        fullproof,
         root,
         dataHash,
         creatorHash,
@@ -134,8 +151,9 @@ export async function getCompNFTData(Data: {
         canopyDepth,
         collection,
         metadata,
-        owner: treeData.ownership.owner.toString(),
-        leafHash: treeProof.leaf.toString(),
+        owner,
+        leafHash,
+        creators,
     };
 }
 
@@ -392,85 +410,49 @@ function hash(input: Uint8Array | Uint8Array[]): Uint8Array {
     return bubbleHash(Array.isArray(input) ? mergeBytes(input) : input);
 }
 export async function recalculateRoot({
-    newOwner,
+    owner,
     tokenId,
-    connection,
+    creatorHash,
+    dataHash,
+    fullproof,
+    index,
 }: {
     tokenId: string;
-    newOwner: string;
+    owner: string;
     connection: Connection;
+    index: number;
+    dataHash: string;
+
+    creatorHash: string;
+    fullproof: string[];
 }) {
-    // let treeData = await retrieveDASAssetFields(tokenId);
-    // let treeProof = await retrieveDASProofFields(tokenId);
-    let compData = await getCompNFTData({ cluster: "mainnet-beta", tokenId, connection }); // let metaData = constructMetaHash(tokenId);
-    // let leafData: LeafSchema = {
-    //     __kind: "V1",
-    //     creatorHash: Array.from(Buffer.from(treeData.compression.creator_hash)),
-    //     dataHash: Array.from(Buffer.from(treeData.compression.data_hash)),
-    //     delegate: new PublicKey(treeData.ownership.owner),
-    //     id: new PublicKey(treeData.id),
-    //     nonce: new BN(treeData.compression.leaf_id),
-    //     owner: new PublicKey(newOwner),
-    // };
-    // let leafData: LeafSchema = {
-    //     __kind: "V1",
-    //     creatorHash: compData.creatorHash,
-    //     dataHash: compData.dataHash,
-    //     delegate: new PublicKey(newOwner),
-    //     id: new PublicKey(tokenId),
-    //     nonce: compData.nonce,
-    //     owner: new PublicKey(newOwner),
-    // };
-    // if (Data.newOwner) {
-    console.log("compData", compData);
-    // hashLeaf(context, {
-    //     merkleTree,
-    //     owner: publicKey(leafOwner, false),
-    //     delegate: publicKey(input.leafDelegate ?? leafOwner, false),
-    //     leafIndex,
-    //     metadata,
-    //   })
-    let leafhash = hashLeaf({
+    let leafHash = hashLeaf({
         leafAssetId: new PublicKey(tokenId),
-        leafIndex: compData.index,
-        metadataHash: Buffer.from(compData.dataHash),
-        owner: new PublicKey(newOwner),
-        creatorHash: Buffer.from(compData.creatorHash),
-        // delegateAddress,
-        // nftVersionNb: 1,
+        leafIndex: index,
+        metadataHash: Buffer.from(dataHash),
+        owner: new PublicKey(owner),
+        creatorHash: Buffer.from(creatorHash),
     });
-    console.log(compData.leafHash, "leafhash", bs58.encode(leafhash));
+    // console.log("leafHash", bs58.encode(leafHash));
 
-    let rootHash = getRoot(
-        // bs58.encode(leafhash),
-        compData.leafHash,
-        compData.proofMeta.map((v) => v.pubkey.toString()),
-        compData.index
-    );
-    console.log(bs58.encode(compData.root), "V root S", rootHash);
-    //   }
+    let root = getRoot(bs58.encode(leafHash), fullproof, index);
+    // console.log(bs58.encode(root), "Comp V root S calc", root);
+
+    return {
+        root: Array.from(bs58.decode(root)),
+        leafHash: Array.from(leafHash),
+    };
 }
-
-// function hashData(){
-//     Buffer.from(
-//         keccak_256.digest(
-//             Buffer.concat([
-//                 new PublicKey().toBuffer(),
-//                 sellerFeeBasisPointsBuffer,
-//             ])
-//         )
-//     );
-// }
 
 export const getHash = (data: string): string => {
     return createHash("sha256").update(data.toString()).digest("hex");
 };
 
 export const makeRoot = (arr: Array<MerkleNode>): MerkleNode => {
-    if (arr.length === 1) return arr[0];
+    if (arr.length === 1) return arr[1];
     const list = [];
     const length = arr.length;
-    for (let i = 0; i < length; i += 2) {
+    for (let i = 1; i < length; i += 2) {
         const currentItem = arr[i];
         if (i + 1 >= length) {
             list.push(currentItem);
@@ -499,7 +481,7 @@ function leafPath(index: number, depth: number) {
     return index.toString(2).padStart(depth, "0").split("").reverse().join("");
 }
 
-function hashv(a: string, b: string) {
+export function hashv(a: string, b: string) {
     return bs58.encode(
         Buffer.from(
             keccak_256.digest(
@@ -509,7 +491,7 @@ function hashv(a: string, b: string) {
     );
 }
 
-function getRoot(leaf: string, proof: string[], leafIndex: number) {
+export function getRoot(leaf: string, proof: string[], leafIndex: number) {
     let depth = proof.length;
     let path = leafPath(leafIndex, depth);
     console.log(leafIndex, "path", path);
@@ -521,6 +503,7 @@ function getRoot(leaf: string, proof: string[], leafIndex: number) {
         } else {
             root = hashv(proof[i], root);
         }
+        // console.log(i, path[i], "proof", proof[i], "root", root);
     }
 
     return root;
@@ -690,4 +673,115 @@ function getRoot(leaf: string, proof: string[], leafIndex: number) {
 
 // function hashMetadataCreators(creators: MetadataArgsArgs["creators"]): Uint8Array {
 //     return hash(array(getCreatorSerializer(), { size: "remainder" }).serialize(creators));
+// }
+// let treeData = await retrieveDASAssetFields(tokenId);
+// let treeProof = await retrieveDASProofFields(tokenId);
+
+// let compData = await getCompNFTData({ cluster: "mainnet-beta", tokenId, connection }); // let metaData = constructMetaHash(tokenId);
+
+// let tokenId0 = await getLeafAssetId(new PublicKey(compData.merkleTree), new BN(0)); //{ nonce: 0, tree:  });
+// let tokenId0Proof = await getCompNFTData({
+//     cluster: "mainnet-beta",
+//     tokenId: tokenId0.toString(),
+//     connection,
+// }); // let metaData = constructMetaHash(tokenId);
+// let leafhash0 = hashLeaf({
+//     leafAssetId: new PublicKey(tokenId0),
+//     leafIndex: tokenId0Proof.index,
+//     metadataHash: Buffer.from(tokenId0Proof.dataHash),
+//     owner: new PublicKey(tokenId0Proof.owner),
+//     creatorHash: Buffer.from(tokenId0Proof.creatorHash),
+// });
+
+// let tokenId1 = await getLeafAssetId(new PublicKey(tokenId0Proof.merkleTree), new BN(1)); //({ nonce: 1, tree: compData.merkleTree });
+// let tokenId1Proof = await getCompNFTData({
+//     cluster: "mainnet-beta",
+//     tokenId: tokenId1.toString(),
+//     connection,
+// }); // let metaData = constructMetaHash(tokenId);
+// let leafhash1 = hashLeaf({
+//     leafAssetId: new PublicKey(tokenId1),
+//     leafIndex: tokenId1Proof.index,
+//     metadataHash: Buffer.from(tokenId1Proof.dataHash),
+//     owner: new PublicKey(tokenId1Proof.owner),
+//     creatorHash: Buffer.from(tokenId1Proof.creatorHash),
+// });
+
+// let tokenId2 = await getLeafAssetId(new PublicKey(compData.merkleTree), new BN(2)); //({ nonce: 2, tree: compData.merkleTree });
+// let tokenId2Proof = await getCompNFTData({
+//     cluster: "mainnet-beta",
+//     tokenId: tokenId2.toString(),
+//     connection,
+// }); // let metaData = constructMetaHash(tokenId);
+// let leafhash2 = hashLeaf({
+//     leafAssetId: new PublicKey(tokenId2),
+//     leafIndex: tokenId2Proof.index,
+//     metadataHash: Buffer.from(tokenId2Proof.dataHash),
+//     owner: new PublicKey(tokenId2Proof.owner),
+//     creatorHash: Buffer.from(tokenId2Proof.creatorHash),
+// });
+// let io = 0;
+// let proofs = await Promise.all(
+//     [5, 9, 17, 33, 65, 129].map(async (index) => {
+//         await delay(600 * io++);
+//         let tokenId = (
+//             await getLeafAssetId(new PublicKey(compData.merkleTree), new BN(index))
+//         ).toString(); //({ nonce: , tree: compData.merkleTree });
+//         let tokenIdProof = await getCompNFTData({
+//             cluster: "mainnet-beta",
+//             tokenId: tokenId.toString(),
+//             connection,
+//         });
+//         return {
+//             index,
+//             tokenId,
+//             tokenIdProof: tokenIdProof.proofMeta.map((v) => v.pubkey.toString()),
+//         };
+//     })
+// );
+
+// let tokenId417407 = await getLeafAssetId(new PublicKey(compData.merkleTree), compData.nonce);
+
+// // findTokenIdFromLerkleIndex({
+// //     nonce: compData.nonce.toNumber(),
+// //     tree: compData.merkleTree,
+// // });
+
+// console.log(
+//     "tokenId0",
+//     tokenId0.toString(),
+//     tokenId0Proof.proofMeta.map((v) => v.pubkey.toString()),
+//     bs58.encode(leafhash0)
+// );
+
+// console.log(
+//     "tokenId1",
+//     tokenId1.toString(),
+//     tokenId1Proof.proofMeta.map((v) => v.pubkey.toString()),
+//     bs58.encode(leafhash1)
+// );
+
+// console.log(
+//     "tokenId2",
+//     tokenId2.toString(),
+//     tokenId2Proof.proofMeta.map((v) => v.pubkey.toString()),
+//     bs58.encode(leafhash2)
+// );
+// proofs.forEach((v) => console.log(v));
+
+// // console.log(
+// //     compData.index,
+// //     compData.nonce.toNumber(),
+// //     "tokenId417407",
+// //     tokenId417407.toString()
+// // );
+
+// function findTokenIdFromLerkleIndex({ nonce, tree }: { tree: string; nonce: number }) {
+//     // [b"asset", tree.as_ref(), &nonce.to_le_bytes()], &crate::ID)
+
+//     let [pk] = PublicKey.findProgramAddressSync(
+//         [Buffer.from("asset"), new PublicKey(tree).toBuffer(), new BN(nonce).toBuffer()],
+//         BUBBLEGUM_PROGRAM_ID
+//     );
+//     return pk.toString();
 // }

@@ -23,7 +23,7 @@ import {
     isUpdateSArg,
     whatIs,
 } from "./utils/check";
-import { makeRoot, recalculateRoot } from "./utils/compressedHelper";
+import { getCompNFTData, makeRoot, recalculateRoot } from "./utils/compressedHelper";
 import { getCreatorData } from "./utils/creators";
 import { calculateMakerFee } from "./utils/fees";
 import {
@@ -92,6 +92,7 @@ export const UTILS = {
     makeRoot,
     recalculateRoot,
     createLookUpTableAccount,
+    getCompNFTData
     
     // closeUserPda,
 };

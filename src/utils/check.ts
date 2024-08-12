@@ -84,6 +84,11 @@ export async function checkEnvOpts(Data: EnvOpts): Promise<CEnvOpts> {
     programId = program.programId.toString();
     console.log(programId);
 
+    let lookUpTableAccount;
+    if (lUT === undefined) lookUpTableAccount = undefined;
+    else if (lUT === true) lookUpTableAccount = LOOKUP_TABLE_ACCOUNT;
+    else lookUpTableAccount = lUT;
+
     return {
         program,
         clusterOrUrl,
@@ -91,7 +96,7 @@ export async function checkEnvOpts(Data: EnvOpts): Promise<CEnvOpts> {
         prioritizationFee,
         programId,
         idl: program.idl,
-        lookUpTableAccount: lUT || LOOKUP_TABLE_ACCOUNT,
+        lookUpTableAccount,
     };
 }
 export function getMakeArgs(

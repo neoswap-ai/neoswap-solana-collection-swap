@@ -93,7 +93,7 @@ export async function createMakeSwapInstructions(
             let maxAmount = calculateMakerFee({ bids });
             console.log("maxAmount", maxAmount);
 
-            if (maxAmount) instructions.push(...addWSol(maker, makerTokenAta, maxAmount));
+            if (maxAmount > 0) instructions.push(...addWSol(maker, makerTokenAta, maxAmount));
         }
 
         let tokenStd = await whichStandard({ mint: nftMintMaker, connection });

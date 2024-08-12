@@ -17,4 +17,5 @@ export const DESC = {
     addBid: "Adding Bid...",
     rmBid: "Removing Bid...",
     setTime: "Setting new end time..",
+    close: "Closing ..",
 };

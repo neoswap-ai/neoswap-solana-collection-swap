@@ -6,6 +6,7 @@ import { createUmi } from "@metaplex-foundation/umi-bundle-defaults";
 import { dasApi } from "@metaplex-foundation/digital-asset-standard-api";
 import { fetchAsset } from "@metaplex-foundation/mpl-core";
 import { whichStandard } from "./findNftDataAndAccounts.function";
+import { getCompNFTData } from "./compressedHelper";
 
 export async function getCreatorData({
     connection,
@@ -48,7 +49,7 @@ export async function getCreatorData({
         creatorsList = nftData.creators.map((c) => {
             return { address: c.address.toString(), share: c.share };
         });
-    } else {
+    } else if (tokenStandard === "core") {
         console.log(nftMint, "tokenStandard", tokenStandard);
         let umi = createUmi(connection.rpcEndpoint).use(dasApi());
 
@@ -59,6 +60,17 @@ export async function getCreatorData({
                 return { address: c.address, share: c.percentage };
             });
         }
+    } else if (tokenStandard === "compressed") {
+        console.log(nftMint, "tokenStandard", tokenStandard);
+        let { creators } = await getCompNFTData({
+            cluster: "mainnet-beta",
+            tokenId: nftMint,
+            connection,
+        });
+
+        creatorsList = creators.map((c) => {
+            return { address: c.address.toString(), share: c.share };
+        });
     }
     let mintAtaList: string[] = [];
 

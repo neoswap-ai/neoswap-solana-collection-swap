@@ -9,6 +9,7 @@ import {
     Keypair,
     PublicKey,
     SystemProgram,
+    SYSVAR_INSTRUCTIONS_PUBKEY,
     TransactionInstruction,
     TransactionMessage,
     VersionedTransaction,
@@ -27,6 +28,7 @@ import {
 import { MPL_CORE_PROGRAM_ID } from "@metaplex-foundation/mpl-core";
 import { delay } from "./delay";
 import { ix2vTx } from "./vtx";
+import { WRAPPED_SOL_MINT } from "@metaplex-foundation/js";
 
 export async function createLookUpTableAccount({
     authority,
@@ -34,8 +36,8 @@ export async function createLookUpTableAccount({
     payer,
     additionalAccounts,
     lookUpTableAccount,
-    // keypair,
-}: {
+}: // keypair,
+{
     authority?: string;
     payer: string;
     connection: Connection;
@@ -51,16 +53,18 @@ export async function createLookUpTableAccount({
     let instructions: TransactionInstruction[] = [];
     if (!lookUpTableAccount) {
         const currentSlot = await connection.getSlot();
-        console.log("currentSlot:", currentSlot);
-        const slots = await connection.getBlocks(currentSlot - 200);
-        if (slots.length < 100) {
-            throw new Error(`Could find only ${slots.length} ${slots} on the main fork`);
-        }
+        let getblock = Math.max(currentSlot - 200, 0);
+        const slots = (await connection.getBlocks(getblock)).sort((a, b) => b - a);
+        console.log("currentSlot:", currentSlot, " slot used", slots[1]);
+        // if (slots.length < 100) {
+        //     throw new Error(`Could find only ${slots.length} ${slots} on the main fork`);
+        // }
+        // console.log("slots", slots);
 
         const [lookupTableInst, lookupTableAddress] = AddressLookupTableProgram.createLookupTable({
             authority: auth,
             payer: pay,
-            recentSlot: slots[0],
+            recentSlot: slots[1],
         });
         instructions.push(lookupTableInst);
         lookUpTableAccount = lookupTableAddress.toString();
@@ -68,23 +72,25 @@ export async function createLookUpTableAccount({
     }
 
     let addresses = [
+        new PublicKey(NS_FEE),
+        SystemProgram.programId,
         TOKEN_2022_PROGRAM_ID,
         TOKEN_PROGRAM_ID,
-        SystemProgram.programId,
-        SPL_ACCOUNT_COMPRESSION_PROGRAM_ID,
-        MPL_BUBBLEGUM_PROGRAM_ID,
-        SPL_NOOP_PROGRAM_ID,
-        new PublicKey(NS_FEE),
         new PublicKey(SPL_ASSOCIATED_TOKEN_PROGRAM_ID),
-        new PublicKey(SPL_COMPUTE_BUDGET_PROGRAM_ID),
         new PublicKey(MPL_CORE_PROGRAM_ID),
         new PublicKey(METAPLEX_AUTH_RULES_PROGRAM),
+        MPL_BUBBLEGUM_PROGRAM_ID,
+        SPL_ACCOUNT_COMPRESSION_PROGRAM_ID,
+        SPL_NOOP_PROGRAM_ID,
+        new PublicKey(SPL_COMPUTE_BUDGET_PROGRAM_ID),
         new PublicKey(TOKEN_METADATA_PROGRAM),
         new PublicKey(FAIR_LAUNCH_PROGRAM_ID),
+        WRAPPED_SOL_MINT,
+        SYSVAR_INSTRUCTIONS_PUBKEY,
     ];
     if (additionalAccounts) addresses.push(...additionalAccounts.map((acc) => new PublicKey(acc)));
     console.log("AddressLookupTableProgram", AddressLookupTableProgram.programId.toString());
-    
+
     const addAddressesInstruction = AddressLookupTableProgram.extendLookupTable({
         payer: pay,
         authority: auth,
@@ -112,25 +118,25 @@ export async function createVTxWithLookupTable({
     lookUpTableAccount,
     payer,
 }: {
-    lookUpTableAccount: string;
+    lookUpTableAccount?: string;
     instructions: TransactionInstruction[];
     connection: Connection;
     payer: string;
 }) {
-    const lookupTable = (await connection.getAddressLookupTable(new PublicKey(lookUpTableAccount)))
-        .value;
-    if (!lookupTable) throw new Error("Lookup table not found");
-    console.log("lookupTable", lookupTable);
-
     await delay(1000);
     let recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
-    const messageWithLookupTable = new TransactionMessage({
+    const transactionMessage = new TransactionMessage({
         payerKey: new PublicKey(payer),
         recentBlockhash,
         instructions,
-    }).compileToV0Message([lookupTable]);
-    // messageWithLookupTable.serialize();
-    const transactionWithLookupTable = new VersionedTransaction(messageWithLookupTable);
+    });
+    if (lookUpTableAccount) {
+        const lookupTable = (
+            await connection.getAddressLookupTable(new PublicKey(lookUpTableAccount))
+        ).value;
+        if (!lookupTable) throw new Error("Lookup table not found");
 
-    return transactionWithLookupTable;
+        return new VersionedTransaction(transactionMessage.compileToV0Message([lookupTable]));
+    }
+    return new VersionedTransaction(transactionMessage.compileToV0Message());
 }

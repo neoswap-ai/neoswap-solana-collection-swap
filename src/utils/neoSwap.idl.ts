@@ -117,9 +117,6 @@ export const idlSwap: CollectionSwap = {
                     name: "nftMintMaker",
                 },
                 {
-                    name: "paymentMint",
-                },
-                {
                     name: "nftMetadataMaker",
                     writable: true,
                     pda: {
@@ -237,9 +234,6 @@ export const idlSwap: CollectionSwap = {
                     name: "nftMintMaker",
                 },
                 {
-                    name: "paymentMint",
-                },
-                {
                     name: "systemProgram",
                     address: "11111111111111111111111111111111",
                 },
@@ -328,9 +322,6 @@ export const idlSwap: CollectionSwap = {
                     writable: true,
                 },
                 {
-                    name: "paymentMint",
-                },
-                {
                     name: "systemProgram",
                     address: "11111111111111111111111111111111",
                 },
@@ -417,9 +408,6 @@ export const idlSwap: CollectionSwap = {
                     name: "collection",
                 },
                 {
-                    name: "paymentMint",
-                },
-                {
                     name: "systemProgram",
                     address: "11111111111111111111111111111111",
                 },
@@ -496,9 +484,6 @@ export const idlSwap: CollectionSwap = {
                 },
                 {
                     name: "nftMintMaker",
-                },
-                {
-                    name: "paymentMint",
                 },
                 {
                     name: "signer",
@@ -636,9 +621,6 @@ export const idlSwap: CollectionSwap = {
                     name: "nftMintMaker",
                 },
                 {
-                    name: "paymentMint",
-                },
-                {
                     name: "signer",
                     signer: true,
                 },
@@ -714,9 +696,6 @@ export const idlSwap: CollectionSwap = {
                 {
                     name: "makerTokenAta",
                     writable: true,
-                },
-                {
-                    name: "paymentMint",
                 },
                 {
                     name: "treeAuthority",
@@ -854,9 +833,6 @@ export const idlSwap: CollectionSwap = {
                     name: "collection",
                 },
                 {
-                    name: "paymentMint",
-                },
-                {
                     name: "signer",
                     signer: true,
                 },
@@ -913,9 +889,6 @@ export const idlSwap: CollectionSwap = {
                 {
                     name: "makerTokenAta",
                     writable: true,
-                },
-                {
-                    name: "paymentMint",
                 },
                 {
                     name: "signer",
@@ -1410,9 +1383,6 @@ export const idlSwap: CollectionSwap = {
                     writable: true,
                 },
                 {
-                    name: "paymentMint",
-                },
-                {
                     name: "signer",
                     signer: true,
                 },
@@ -1556,9 +1526,6 @@ export const idlSwap: CollectionSwap = {
                     writable: true,
                 },
                 {
-                    name: "paymentMint",
-                },
-                {
                     name: "owner",
                 },
                 {
@@ -1659,6 +1626,14 @@ export const idlSwap: CollectionSwap = {
                     },
                 },
                 {
+                    name: "collection",
+                    type: {
+                        defined: {
+                            name: "cCollection",
+                        },
+                    },
+                },
+                {
                     name: "nonce",
                     type: "u64",
                 },
@@ -1697,9 +1672,6 @@ export const idlSwap: CollectionSwap = {
                 {
                     name: "swapDataAccountTokenAta",
                     writable: true,
-                },
-                {
-                    name: "paymentMint",
                 },
                 {
                     name: "signer",
@@ -1850,9 +1822,6 @@ export const idlSwap: CollectionSwap = {
                     name: "nftMintTaker",
                 },
                 {
-                    name: "paymentMint",
-                },
-                {
                     name: "nftMetadataTaker",
                     writable: true,
                     pda: {
@@ -1987,9 +1956,6 @@ export const idlSwap: CollectionSwap = {
                     name: "nftMintTaker",
                 },
                 {
-                    name: "paymentMint",
-                },
-                {
                     name: "hashlistMarker",
                 },
                 {
@@ -2088,21 +2054,8 @@ export const idlSwap: CollectionSwap = {
                     writable: true,
                 },
                 {
-                    name: "nftMintTaker",
-                    writable: true,
-                },
-                {
-                    name: "paymentMint",
-                },
-                {
-                    name: "collection",
-                },
-                {
                     name: "systemProgram",
                     address: "11111111111111111111111111111111",
-                },
-                {
-                    name: "sysvarInstructions",
                 },
                 {
                     name: "tokenProgram",
@@ -2120,12 +2073,16 @@ export const idlSwap: CollectionSwap = {
             ],
             args: [
                 {
-                    name: "bidToAccept",
+                    name: "bidCollection",
                     type: {
                         defined: {
-                            name: "bid",
+                            name: "cCollection",
                         },
                     },
+                },
+                {
+                    name: "bidTakerAmount",
+                    type: "i64",
                 },
                 {
                     name: "root",
@@ -2164,8 +2121,14 @@ export const idlSwap: CollectionSwap = {
                     },
                 },
                 {
-                    name: "creatorsShare",
-                    type: "bytes",
+                    name: "creators",
+                    type: {
+                        vec: {
+                            defined: {
+                                name: "cCreator",
+                            },
+                        },
+                    },
                 },
                 {
                     name: "nonce",
@@ -2230,9 +2193,6 @@ export const idlSwap: CollectionSwap = {
                 {
                     name: "nftMintTaker",
                     writable: true,
-                },
-                {
-                    name: "paymentMint",
                 },
                 {
                     name: "collection",
@@ -2490,6 +2450,22 @@ export const idlSwap: CollectionSwap = {
             },
         },
         {
+            name: "cCollection",
+            type: {
+                kind: "struct",
+                fields: [
+                    {
+                        name: "key",
+                        type: "pubkey",
+                    },
+                    {
+                        name: "verified",
+                        type: "bool",
+                    },
+                ],
+            },
+        },
+        {
             name: "cCreator",
             type: {
                 kind: "struct",
@@ -2711,9 +2687,6 @@ export type CollectionSwap = {
                     name: "nftMintMaker";
                 },
                 {
-                    name: "paymentMint";
-                },
-                {
                     name: "nftMetadataMaker";
                     writable: true;
                     pda: {
@@ -2831,9 +2804,6 @@ export type CollectionSwap = {
                     name: "nftMintMaker";
                 },
                 {
-                    name: "paymentMint";
-                },
-                {
                     name: "systemProgram";
                     address: "11111111111111111111111111111111";
                 },
@@ -2922,9 +2892,6 @@ export type CollectionSwap = {
                     writable: true;
                 },
                 {
-                    name: "paymentMint";
-                },
-                {
                     name: "systemProgram";
                     address: "11111111111111111111111111111111";
                 },
@@ -3011,9 +2978,6 @@ export type CollectionSwap = {
                     name: "collection";
                 },
                 {
-                    name: "paymentMint";
-                },
-                {
                     name: "systemProgram";
                     address: "11111111111111111111111111111111";
                 },
@@ -3090,9 +3054,6 @@ export type CollectionSwap = {
                 },
                 {
                     name: "nftMintMaker";
-                },
-                {
-                    name: "paymentMint";
                 },
                 {
                     name: "signer";
@@ -3230,9 +3191,6 @@ export type CollectionSwap = {
                     name: "nftMintMaker";
                 },
                 {
-                    name: "paymentMint";
-                },
-                {
                     name: "signer";
                     signer: true;
                 },
@@ -3308,9 +3266,6 @@ export type CollectionSwap = {
                 {
                     name: "makerTokenAta";
                     writable: true;
-                },
-                {
-                    name: "paymentMint";
                 },
                 {
                     name: "treeAuthority";
@@ -3448,9 +3403,6 @@ export type CollectionSwap = {
                     name: "collection";
                 },
                 {
-                    name: "paymentMint";
-                },
-                {
                     name: "signer";
                     signer: true;
                 },
@@ -3507,9 +3459,6 @@ export type CollectionSwap = {
                 {
                     name: "makerTokenAta";
                     writable: true;
-                },
-                {
-                    name: "paymentMint";
                 },
                 {
                     name: "signer";
@@ -4004,9 +3953,6 @@ export type CollectionSwap = {
                     writable: true;
                 },
                 {
-                    name: "paymentMint";
-                },
-                {
                     name: "signer";
                     signer: true;
                 },
@@ -4150,9 +4096,6 @@ export type CollectionSwap = {
                     writable: true;
                 },
                 {
-                    name: "paymentMint";
-                },
-                {
                     name: "owner";
                 },
                 {
@@ -4253,6 +4196,14 @@ export type CollectionSwap = {
                     };
                 },
                 {
+                    name: "collection";
+                    type: {
+                        defined: {
+                            name: "cCollection";
+                        };
+                    };
+                },
+                {
                     name: "nonce";
                     type: "u64";
                 },
@@ -4291,9 +4242,6 @@ export type CollectionSwap = {
                 {
                     name: "swapDataAccountTokenAta";
                     writable: true;
-                },
-                {
-                    name: "paymentMint";
                 },
                 {
                     name: "signer";
@@ -4444,9 +4392,6 @@ export type CollectionSwap = {
                     name: "nftMintTaker";
                 },
                 {
-                    name: "paymentMint";
-                },
-                {
                     name: "nftMetadataTaker";
                     writable: true;
                     pda: {
@@ -4581,9 +4526,6 @@ export type CollectionSwap = {
                     name: "nftMintTaker";
                 },
                 {
-                    name: "paymentMint";
-                },
-                {
                     name: "hashlistMarker";
                 },
                 {
@@ -4682,21 +4624,8 @@ export type CollectionSwap = {
                     writable: true;
                 },
                 {
-                    name: "nftMintTaker";
-                    writable: true;
-                },
-                {
-                    name: "paymentMint";
-                },
-                {
-                    name: "collection";
-                },
-                {
                     name: "systemProgram";
                     address: "11111111111111111111111111111111";
-                },
-                {
-                    name: "sysvarInstructions";
                 },
                 {
                     name: "tokenProgram";
@@ -4714,12 +4643,16 @@ export type CollectionSwap = {
             ];
             args: [
                 {
-                    name: "bidToAccept";
+                    name: "bidCollection";
                     type: {
                         defined: {
-                            name: "bid";
+                            name: "cCollection";
                         };
                     };
+                },
+                {
+                    name: "bidTakerAmount";
+                    type: "i64";
                 },
                 {
                     name: "root";
@@ -4758,8 +4691,14 @@ export type CollectionSwap = {
                     };
                 },
                 {
-                    name: "creatorsShare";
-                    type: "bytes";
+                    name: "creators";
+                    type: {
+                        vec: {
+                            defined: {
+                                name: "cCreator";
+                            };
+                        };
+                    };
                 },
                 {
                     name: "nonce";
@@ -4824,9 +4763,6 @@ export type CollectionSwap = {
                 {
                     name: "nftMintTaker";
                     writable: true;
-                },
-                {
-                    name: "paymentMint";
                 },
                 {
                     name: "collection";
@@ -5079,6 +5015,22 @@ export type CollectionSwap = {
                     {
                         name: "makerRoyalties";
                         type: "u64";
+                    }
+                ];
+            };
+        },
+        {
+            name: "cCollection";
+            type: {
+                kind: "struct";
+                fields: [
+                    {
+                        name: "key";
+                        type: "pubkey";
+                    },
+                    {
+                        name: "verified";
+                        type: "bool";
                     }
                 ];
             };
