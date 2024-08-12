@@ -203,7 +203,7 @@ export async function createTakeAndCloseSwapInstructions(
         if (!acceptedBid) {
             if (swapDataData.paymentMint === WRAPPED_SOL_MINT.toString()) {
                 let amount = takerFee({ bid, n });
-                if (amount) takeIxs.push(...addWSol(taker, takerTokenAta, amount));
+                if (amount > 0) takeIxs.push(...addWSol(taker, takerTokenAta, amount));
             }
             if (takerNftStd == "core") {
                 let takerCoreCollection = await getCoreCollection({

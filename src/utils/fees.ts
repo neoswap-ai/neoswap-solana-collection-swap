@@ -84,13 +84,13 @@ export function makerFee({ bid }: { bid: Bid }) {
     return -bid.amount + bid.makerNeoswapFee + bid.makerRoyalties;
 }
 export function takerFee({ bid, n }: { bid: Bid; n: number }) {
+    let takerAmount;
     if (n === 42) {
         console.log("fees waived");
-        return 0;
-    }
-    let takerAmount = bid.amount + bid.takerNeoswapFee + bid.takerRoyalties;
+        takerAmount = bid.amount;
+    } else takerAmount = bid.amount + bid.takerNeoswapFee + bid.takerRoyalties;
 
-    if (takerAmount < 0) {
+    if (takerAmount <= 0) {
         console.log(
             "Taker will receive funds, no fees to deposit " +
                 takerAmount +
@@ -98,7 +98,6 @@ export function takerFee({ bid, n }: { bid: Bid; n: number }) {
                 takerAmount / LAMPORTS_PER_SOL +
                 " ) lamports"
         );
-        return;
     } else {
         console.log(
             "Wrapping " +
@@ -107,6 +106,6 @@ export function takerFee({ bid, n }: { bid: Bid; n: number }) {
                 takerAmount / LAMPORTS_PER_SOL +
                 " ) lamports to wSOL"
         );
-        return takerAmount;
     }
+    return takerAmount;
 }
