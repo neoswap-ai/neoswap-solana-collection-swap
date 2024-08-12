@@ -38,7 +38,7 @@ export async function getCompNFTData({
     let treeProof = await retrieveDASProofFields(tokenId);
     // console.log("treeProof", treeProof);
 
-    const conn = connection || new Connection(clusterApiUrl(cluster || "mainnet-beta"));
+    const conn = connection ?? new Connection(clusterApiUrl(cluster ?? "mainnet-beta"));
     // console.log(treeProof.tree_id, "connection", connection.rpcEndpoint);
 
     // retrieve the merkle tree's account from the blockchain
@@ -64,31 +64,45 @@ export async function getCompNFTData({
         }));
     const fullproof = treeProof.proof.map((v) => v.toString());
 
-    let dataHash = Array.from(decode(treeData.compression.data_hash)); //new PublicKey().toBytes();
-    console.log("dataHash", dataHash);
-
     let creatorHash = Array.from(decode(treeData.compression.creator_hash));
     console.log("creatorHash", creatorHash);
 
     let nonce = new BN(treeData.compression.leaf_id);
     let index = Number(treeData.compression.leaf_id);
+    console.log("nonce", nonce, "index", index);
 
     let collection = treeData.grouping.find(
         (v: { group_key: string; group_value: string }) => v.group_key === "collection"
     )!.group_value;
 
-    let metadata = (await constructMetaHash(tokenId))?.metadataArgs!;
+    let hh = await constructMetaHash(tokenId);
+
+    let metadata = hh!.metadataArgs!;
+    // let metaHash = Array.from(hh?.metaHash!);
+    // let calcDatahsh = Array.from(hh?.dataHash!);
+    let dataHash = Array.from(decode(treeData.compression.data_hash)); //new PublicKey().toBytes();
+    // console.log("dataHash", dataHash, "calcDatahsh", calcDatahsh);
     let creators = metadata.creators;
 
     let root: number[] = Array.from(new PublicKey(treeProof.root).toBuffer());
     let leafHash: number[] = Array.from(new PublicKey(treeProof.leaf).toBuffer());
-    let owner = newOwner || treeData.ownership.owner.toString();
+    let owner = newOwner ?? treeData.ownership.owner.toString();
     let onchainRoot = Array.from(treeAccount.getCurrentRoot());
-  
+
+    // console.log("owner", owner, " vs ", treeData.ownership.owner.toString());
+
     if (!getRootHash) {
     } else if (getRootHash === "onchain") {
         root = onchainRoot;
     } else if (getRootHash.includes("calculate")) {
+        // console.log('DAS',{
+        //     leafAssetId: tokenId,
+        //     leafIndex: index,
+        //     metadataHash: (dataHash),
+        //     owner: owner,
+        //     creatorHash: creatorHash,
+        // });
+        console.log("treeData.ownership.delegate", treeData.ownership.delegate);
         let { root: calcRoot, leafHash: calcLeaf } = await recalculateRoot({
             tokenId: tokenId,
             connection: conn,
@@ -98,6 +112,14 @@ export async function getCompNFTData({
             fullproof,
             index,
         });
+        console.log(bs58.encode(calcLeaf), "calcLeaf vs leafhash", bs58.encode(leafHash));
+        console.log(
+            bs58.encode(calcRoot),
+            "calcroot vs roothash",
+            bs58.encode(onchainRoot),
+            " vs root ",
+            bs58.encode(root)
+        );
 
         if (getRootHash === "calculateAndVerify") {
             if (bs58.encode(calcRoot) !== bs58.encode(onchainRoot)) {
@@ -308,6 +330,7 @@ export async function constructMetaHash(mint: string) {
         console.log("Original metadataArgs match data_hash");
         return {
             metaHash: computeMetadataArgsHash(metadataArgs),
+            dataHash: hash,
             metadataArgs: metadataArgs,
         };
     } else {
@@ -322,6 +345,7 @@ export async function constructMetaHash(mint: string) {
         console.log("metadataArgs with tokenStandard=null match data_hash");
         return {
             metaHash: computeMetadataArgsHash(metadataArgs),
+            dataHash: hash,
             metadataArgs: metadataArgs,
         };
     } else {
@@ -336,6 +360,7 @@ export async function constructMetaHash(mint: string) {
         console.log('metadataArgs with name + uri = "", tokenStandard=null match data_hash');
         return {
             metaHash: computeMetadataArgsHash(metadataArgs),
+            dataHash: hash,
             metadataArgs: metadataArgs,
         };
     } else {
@@ -349,6 +374,7 @@ export async function constructMetaHash(mint: string) {
         console.log('metadataArgs with name + uri = "", tokenStandard=0 match data_hash');
         return {
             metaHash: computeMetadataArgsHash(metadataArgs),
+            dataHash: hash,
             metadataArgs: metadataArgs,
         };
     } else {
@@ -365,6 +391,7 @@ export async function constructMetaHash(mint: string) {
         console.log("reversing creators worked");
         return {
             metaHash: computeMetadataArgsHash(metadataArgs),
+            dataHash: hash,
             metadataArgs: metadataArgs,
         };
     } else {
@@ -386,7 +413,7 @@ export function hashLeaf({
 }: {
     owner: PublicKey;
     delegateAddress?: PublicKey;
-    leafIndex: number | bigint;
+    leafIndex: number;
     metadataHash: Buffer;
     nftVersionNb?: number;
     leafAssetId: PublicKey;
@@ -394,20 +421,22 @@ export function hashLeaf({
 }): Uint8Array {
     const delegate = delegateAddress ?? owner;
     const nftVersion = nftVersionNb ?? 1;
+    console.log("leafIndex", leafIndex);
 
     return hash([
         u8().serialize(nftVersion),
         publicKey().serialize(leafAssetId),
         publicKey().serialize(owner),
         publicKey().serialize(delegate),
-        u64().serialize(leafIndex),
-        metadataHash,
-        creatorHash,
+        u64().serialize(BigInt(leafIndex)),
+        Uint8Array.from(metadataHash),
+        Uint8Array.from(creatorHash),
     ]);
 }
 
 function hash(input: Uint8Array | Uint8Array[]): Uint8Array {
-    return bubbleHash(Array.isArray(input) ? mergeBytes(input) : input);
+    return hashb(Array.isArray(input) ? input : [input]);
+    // return bubbleHash(Array.isArray(input) ? mergeBytes(input) : input);
 }
 export async function recalculateRoot({
     owner,
@@ -426,14 +455,16 @@ export async function recalculateRoot({
     creatorHash: string;
     fullproof: string[];
 }) {
+    console.log("tokenId ", tokenId, index, dataHash);
+
     let leafHash = hashLeaf({
         leafAssetId: new PublicKey(tokenId),
         leafIndex: index,
-        metadataHash: Buffer.from(dataHash),
+        metadataHash: decode(dataHash),
         owner: new PublicKey(owner),
-        creatorHash: Buffer.from(creatorHash),
+        creatorHash: decode(creatorHash),
     });
-    // console.log("leafHash", bs58.encode(leafHash));
+    console.log("leafHash 0", bs58.encode(leafHash));
 
     let root = getRoot(bs58.encode(leafHash), fullproof, index);
     // console.log(bs58.encode(root), "Comp V root S calc", root);
@@ -490,11 +521,13 @@ export function hashv(a: string, b: string) {
         )
     );
 }
-
+export function hashb(a: Uint8Array[]) {
+    return Uint8Array.from(keccak_256.digest(Buffer.concat(a)));
+}
 export function getRoot(leaf: string, proof: string[], leafIndex: number) {
     let depth = proof.length;
     let path = leafPath(leafIndex, depth);
-    console.log(leafIndex, "path", path);
+    // console.log(leafIndex, "path", path);
 
     let root = leaf;
     for (let i = 0; i < depth; i++) {

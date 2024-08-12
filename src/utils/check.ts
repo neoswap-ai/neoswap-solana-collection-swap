@@ -82,7 +82,7 @@ export async function checkEnvOpts(Data: EnvOpts): Promise<CEnvOpts> {
         } as ErrorFeedback;
     }
     programId = program.programId.toString();
-    console.log(programId);
+    // console.log(programId);
 
     let lookUpTableAccount;
     if (lUT === undefined) lookUpTableAccount = undefined;

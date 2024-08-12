@@ -123,7 +123,7 @@ export async function createVTxWithLookupTable({
     connection: Connection;
     payer: string;
 }) {
-    await delay(1000);
+    // await delay(1000);
     let recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
     const transactionMessage = new TransactionMessage({
         payerKey: new PublicKey(payer),

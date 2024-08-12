@@ -16,7 +16,7 @@ export async function ix2vTx(ix: TransactionInstruction[], envOpts: EnvOpts, sig
 
     let { connection, prioritizationFee, lookUpTableAccount } = cEnvOpts;
     // ix.push(addPriorityFeeIx())
-    console.log("ix2vTx", lookUpTableAccount);
+    // console.log("ix2vTx", lookUpTableAccount);
 
     return await createVTxWithLookupTable({
         connection,
