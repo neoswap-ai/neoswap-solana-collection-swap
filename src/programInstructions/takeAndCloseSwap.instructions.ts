@@ -215,7 +215,7 @@ export async function createTakeAndCloseSwapInstructions(
         let takerAmount = takerFee({ bid, n });
         if (!acceptedBid) {
             if (swapDataData.paymentMint === WRAPPED_SOL_MINT.toString()) {
-                if (takerAmount < 0) takeIxs.push(...addWSol(taker, takerTokenAta, takerAmount));
+                if (takerAmount > 0) takeIxs.push(...addWSol(taker, takerTokenAta, takerAmount));
             }
             if (takerNftStd == "core") {
                 let takerCoreCollection = await getCoreCollection({
@@ -269,7 +269,7 @@ export async function createTakeAndCloseSwapInstructions(
                         // bidToscBid(bid),
                         // bidToscBid(bid).collection,
                         metadata.collection,
-                        new BN(takerAmount || 0),
+                        new BN(takerAmount),
                         Array.from(root),
                         // Array.from(dataHash),
                         // Array.from(creatorHash),
@@ -471,7 +471,7 @@ export async function createTakeAndCloseSwapInstructions(
                     collection,
                     metadata,
                 } = await getCompNFTData({ cluster, tokenId: nftMintMaker, connection });
-                console.log("was claim makerNFT");
+                // console.log("was claim makerNFT");
 
                 if (!metadata) throw "Compressed no metadata found";
                 if (metadata.collection == null) throw "Compressed no collection found";
@@ -696,7 +696,7 @@ export async function createTakeAndCloseSwapInstructions(
                     signer,
                     tokenStandard: makerNftStd,
                 });
-                console.log("was pay royalties taker", makerCreators, makerCreatorTokenAta);
+                // console.log("was pay royalties taker", makerCreators, makerCreatorTokenAta);
 
                 let cluster = (
                     !cEnvOpts.clusterOrUrl.includes("mainnet") ? "devnet" : "mainnet-beta"
