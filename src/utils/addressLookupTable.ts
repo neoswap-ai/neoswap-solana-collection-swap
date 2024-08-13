@@ -88,6 +88,7 @@ export async function createLookUpTableAccount({
         new PublicKey(FAIR_LAUNCH_PROGRAM_ID),
         WRAPPED_SOL_MINT,
         SYSVAR_INSTRUCTIONS_PUBKEY,
+        
     ];
     if (additionalAccounts) addresses.push(...additionalAccounts.map((acc) => new PublicKey(acc)));
     console.log("AddressLookupTableProgram", AddressLookupTableProgram.programId.toString());

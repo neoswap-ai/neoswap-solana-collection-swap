@@ -7,6 +7,7 @@ import { dasApi } from "@metaplex-foundation/digital-asset-standard-api";
 import { fetchAsset } from "@metaplex-foundation/mpl-core";
 import { whichStandard } from "./findNftDataAndAccounts.function";
 import { getCompNFTData } from "./compressedHelper";
+import { AssetStandard } from "./types";
 
 export async function getCreatorData({
     connection,
@@ -21,7 +22,7 @@ export async function getCreatorData({
     nftMint: string;
     connection: Connection;
     paymentMint: string;
-    tokenStandard?: "core" | "native" | "hybrid" | "compressed";
+    tokenStandard?: AssetStandard;
 }) {
     let instructions: TransactionInstruction[] = [];
     // let { connection, nftMint, owner, paymentMint, signer } = Data;

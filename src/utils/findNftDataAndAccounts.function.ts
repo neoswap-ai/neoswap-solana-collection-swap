@@ -1,6 +1,6 @@
 import { Connection, PublicKey } from "@solana/web3.js";
 import { TOKEN_METADATA_PROGRAM, METAPLEX_AUTH_RULES, FAIR_LAUNCH_PROGRAM_ID } from "./const";
-import { ErrorFeedback } from "./types";
+import { AssetStandard, ErrorFeedback } from "./types";
 import { Metaplex } from "@metaplex-foundation/js";
 import { TOKEN_2022_PROGRAM_ID, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { fetchAsset, MPL_CORE_PROGRAM_ID } from "@metaplex-foundation/mpl-core";
@@ -139,7 +139,7 @@ async function getMetaFromMetaplex(Data: { mint: string; connection: Connection 
 
     // return await fetchDigitalAsset(umi, mint as PPublicKey);
 }
-export function standardToProgram(standard: "core" | "native" | "hybrid" | "compressed") {
+export function standardToProgram(standard: AssetStandard) {
     switch (standard) {
         case "core":
             return MPL_CORE_PROGRAM_ID.toString();
@@ -157,7 +157,7 @@ export async function whichStandard({
 }: {
     connection: Connection;
     mint: string;
-}): Promise<"core" | "native" | "hybrid" | "compressed"> {
+}): Promise<AssetStandard> {
     let tokenProg = (await connection.getAccountInfo(new PublicKey(mint)))?.owner.toString();
 
     switch (tokenProg) {

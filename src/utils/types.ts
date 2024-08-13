@@ -12,6 +12,7 @@ import {
 import BN from "bn.js";
 import { CollectionSwap } from "./neoSwap.idl";
 
+export type AssetStandard = "core" | "native" | "hybrid" | "compressed";
 export type Bid = {
     collection: string;
     amount: number;

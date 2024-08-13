@@ -54,11 +54,7 @@ export async function createMakeSwapInstructions(
     let swapDataAccount = getSda(maker, nftMintMaker, program.programId.toString());
     console.log("swapDataAccount", swapDataAccount);
 
-    let instructions: TransactionInstruction[] = [
-        ComputeBudgetProgram.setComputeUnitLimit({
-            units: 800000,
-        }),
-    ];
+    let instructions: TransactionInstruction[] = [];
     let cluster = (
         !cEnvOpts.clusterOrUrl.includes("mainnet") ? "devnet" : "mainnet-beta"
     ) as Cluster;

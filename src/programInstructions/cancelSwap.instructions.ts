@@ -44,11 +44,7 @@ export async function createCancelSwapInstructions(
     let { program, connection } = cEnvOpts;
     let { signer, swapDataAccount } = ClaimSArgs;
 
-    let instructions: TransactionInstruction[] = [
-        ComputeBudgetProgram.setComputeUnitLimit({
-            units: 800000,
-        }),
-    ];
+    let instructions: TransactionInstruction[] = [];
     try {
         let swapDataData = await getSdaData({
             program,

@@ -1,5 +1,5 @@
 import { BN, Program } from "@coral-xyz/anchor";
-import { Bid } from "../utils/types";
+import { AssetStandard, Bid, BTv, CEnvOpts, TakeSArg } from "../utils/types";
 import { bidToscBid } from "../utils/typeSwap";
 import { CollectionSwap } from "../utils/neoSwap.idl";
 import {
@@ -7,7 +7,14 @@ import {
     findPnftAccounts,
     getHashlistMarker,
 } from "../utils/findNftDataAndAccounts.function";
-import { Cluster, Connection, SystemProgram, SYSVAR_INSTRUCTIONS_PUBKEY } from "@solana/web3.js";
+import {
+    Cluster,
+    Connection,
+    SystemProgram,
+    SYSVAR_INSTRUCTIONS_PUBKEY,
+    TransactionInstruction,
+    VersionedTransaction,
+} from "@solana/web3.js";
 import { TOKEN_2022_PROGRAM_ID, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { SPL_ASSOCIATED_TOKEN_PROGRAM_ID } from "@metaplex-foundation/mpl-toolbox";
 import { TokenStandard } from "@metaplex-foundation/mpl-token-metadata";
@@ -18,6 +25,8 @@ import {
     SPL_ACCOUNT_COMPRESSION_PROGRAM_ID,
     SPL_NOOP_PROGRAM_ID,
 } from "@solana/spl-account-compression";
+import { DESC } from "../utils/descriptions";
+import { appendToBT, ix2vTx } from "../utils/vtx";
 
 export async function takeSwap22Ix({
     bid,
@@ -258,4 +267,166 @@ export async function takeSwapCompIx({
         })
         .remainingAccounts(proofMeta)
         .instruction();
+}
+
+export async function parseTakeAndCloseTxs({
+    cEnvOpts,
+    claimIxs,
+    closeSIxs,
+    payRMakerIxs,
+    payRTakerIxs,
+    signer,
+    takeIxs,
+    acceptedBid,
+    claimed,
+    royaltiesPaidMaker,
+    royaltiesPaidTaker,
+    takeArgs,
+    connection,
+    makerNftStd,
+    takerNftStd,
+}: {
+    acceptedBid?: Bid;
+    claimed?: boolean;
+    royaltiesPaidMaker?: boolean;
+    royaltiesPaidTaker?: boolean;
+    makerNftStd: AssetStandard;
+    takerNftStd: AssetStandard;
+    takeIxs: TransactionInstruction[];
+    claimIxs: TransactionInstruction[];
+    payRMakerIxs: TransactionInstruction[];
+    payRTakerIxs: TransactionInstruction[];
+    closeSIxs: TransactionInstruction[];
+    cEnvOpts: CEnvOpts;
+    signer: string;
+    takeArgs: TakeSArg;
+    connection: Connection;
+}) {
+    let takeTx: VersionedTransaction | undefined;
+    let claimTx: VersionedTransaction | undefined;
+    let payMakerTx: VersionedTransaction | undefined;
+    let payTakerTx: VersionedTransaction | undefined;
+    let closeTx: VersionedTransaction | undefined;
+    let BT: BTv[] = [];
+
+    if (makerNftStd === "compressed" || takerNftStd === "compressed") {
+        console.log("not clump");
+        if (!acceptedBid) {
+            BT = appendToBT({
+                BT,
+                tx: await ix2vTx(takeIxs, cEnvOpts, signer),
+                description: DESC.takeSwap,
+                details: takeArgs,
+            });
+        }
+        if (!claimed) {
+            BT = appendToBT({
+                BT,
+                tx: await ix2vTx(claimIxs, cEnvOpts, signer),
+                description: DESC.claimSwap,
+                details: takeArgs,
+            });
+        }
+
+        if (makerNftStd !== "compressed") {
+            if (!royaltiesPaidMaker) {
+                BT = appendToBT({
+                    BT,
+                    tx: await ix2vTx(payRMakerIxs, cEnvOpts, signer),
+                    description: DESC.payRoyalties,
+                    details: takeArgs,
+                });
+            }
+            if (!royaltiesPaidTaker) {
+                BT = appendToBT({
+                    BT,
+                    tx: await ix2vTx(payRTakerIxs.concat(closeSIxs), cEnvOpts, signer),
+                    description: DESC.close,
+                    details: takeArgs,
+                });
+            } else {
+                BT = appendToBT({
+                    BT,
+                    tx: await ix2vTx(closeSIxs, cEnvOpts, signer),
+                    description: DESC.close,
+                    details: takeArgs,
+                });
+            }
+        } else if (takerNftStd !== "compressed") {
+            if (!royaltiesPaidTaker) {
+                BT = appendToBT({
+                    BT,
+                    tx: await ix2vTx(payRTakerIxs, cEnvOpts, signer),
+                    description: DESC.payRoyalties,
+                    details: takeArgs,
+                });
+            }
+            if (!royaltiesPaidMaker) {
+                BT = appendToBT({
+                    BT,
+                    tx: await ix2vTx(payRMakerIxs.concat(closeSIxs), cEnvOpts, signer),
+                    description: DESC.close,
+                    details: takeArgs,
+                });
+            } else {
+                BT = appendToBT({
+                    BT,
+                    tx: await ix2vTx(closeSIxs, cEnvOpts, signer),
+                    description: DESC.close,
+                    details: takeArgs,
+                });
+            }
+        } else {
+            BT = appendToBT({
+                BT,
+                tx: await ix2vTx(payRMakerIxs, cEnvOpts, signer),
+                description: DESC.payMakerRoyalties,
+                details: takeArgs,
+            });
+            BT = appendToBT({
+                BT,
+                tx: await ix2vTx(payRTakerIxs, cEnvOpts, signer),
+                description: DESC.payTakerRoyalties,
+                details: takeArgs,
+            });
+            BT = appendToBT({
+                BT,
+                tx: await ix2vTx(closeSIxs, cEnvOpts, signer),
+                description: DESC.close,
+                details: takeArgs,
+            });
+        }
+    } else {
+        console.log("clump");
+        let clumpAccept = [];
+        if (!acceptedBid) clumpAccept.push(...takeIxs);
+        if (!claimed) clumpAccept.push(...claimIxs);
+        if (clumpAccept.length > 0)
+            BT = appendToBT({
+                tx: await ix2vTx(clumpAccept, cEnvOpts, signer),
+                BT,
+                description: DESC.takeSwap,
+                details: takeArgs,
+            });
+
+        let clumpClose = [];
+        if (!royaltiesPaidMaker) clumpClose.push(...payRMakerIxs);
+        if (!royaltiesPaidTaker) clumpClose.push(...payRTakerIxs);
+        clumpClose.push(...closeSIxs);
+        if (clumpClose.length > 0)
+            BT = appendToBT({
+                tx: await ix2vTx(clumpClose, cEnvOpts, signer),
+                BT,
+                description: DESC.close,
+                details: takeArgs,
+            });
+    }
+
+    let { lastValidBlockHeight: blockheight, blockhash } = await connection.getLatestBlockhash();
+
+    BT.map((b) => {
+        b.tx.message.recentBlockhash = blockhash;
+        b.blockheight = blockheight;
+    });
+    return BT;
 }

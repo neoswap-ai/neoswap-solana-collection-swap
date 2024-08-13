@@ -47,6 +47,7 @@ import { getCompNFTData } from "../utils/compressedHelper";
 import { PROGRAM_ID as MPL_BUBBLEGUM_PROGRAM_ID } from "@metaplex-foundation/mpl-bubblegum";
 import { SPL_ASSOCIATED_TOKEN_PROGRAM_ID } from "@metaplex-foundation/mpl-toolbox";
 import BN from "bn.js";
+import { parseTakeAndCloseTxs } from "./takeSwapUtils";
 
 export async function createTakeAndCloseSwapInstructions(
     Data: TakeSArg & EnvOpts
@@ -63,31 +64,11 @@ export async function createTakeAndCloseSwapInstructions(
         signer = taker;
     } else console.log("signer", signer, "taker", taker);
 
-    let takeIxs: TransactionInstruction[] = [
-        ComputeBudgetProgram.setComputeUnitLimit({
-            units: 8_500_000,
-        }),
-    ];
-    let claimIxs: TransactionInstruction[] = [
-        ComputeBudgetProgram.setComputeUnitLimit({
-            units: 8_500_000,
-        }),
-    ];
-    let payRMakerIxs: TransactionInstruction[] = [
-        ComputeBudgetProgram.setComputeUnitLimit({
-            units: 8_500_000,
-        }),
-    ];
-    let payRTakerIxs: TransactionInstruction[] = [
-        ComputeBudgetProgram.setComputeUnitLimit({
-            units: 8_500_000,
-        }),
-    ];
-    let closeSIxs: TransactionInstruction[] = [
-        ComputeBudgetProgram.setComputeUnitLimit({
-            units: 8_500_000,
-        }),
-    ];
+    let takeIxs: TransactionInstruction[] = [];
+    let claimIxs: TransactionInstruction[] = [];
+    let payRMakerIxs: TransactionInstruction[] = [];
+    let payRTakerIxs: TransactionInstruction[] = [];
+    let closeSIxs: TransactionInstruction[] = [];
     try {
         let swapDataData = await getSdaData({
             program,
@@ -360,35 +341,7 @@ export async function createTakeAndCloseSwapInstructions(
                                 mint: nftMintTaker,
                             })
                         ).metadataAddress;
-                    console.log(bidToscBid(bid), n);
-                    console.log({
-                        swapDataAccount,
-                        swapDataAccountTokenAta,
 
-                        maker,
-                        makerNftAta,
-                        makerTokenAta,
-
-                        taker,
-                        takerNftAta,
-                        takerTokenAta,
-
-                        nftMintTaker,
-                        // paymentMint,
-
-                        nftMetadataTaker,
-                        nftMasterEditionTaker,
-                        ownerTokenRecordTaker,
-                        destinationTokenRecordTaker,
-                        authRulesTaker,
-
-                        systemProgram: SystemProgram.programId.toString(),
-                        metadataProgram: TOKEN_METADATA_PROGRAM.toString(),
-                        sysvarInstructions: SYSVAR_INSTRUCTIONS_PUBKEY.toString(),
-                        tokenProgram: TOKEN_PROGRAM_ID.toString(),
-                        ataProgram: SPL_ASSOCIATED_TOKEN_PROGRAM_ID.toString(),
-                        authRulesProgram: METAPLEX_AUTH_RULES_PROGRAM.toString(),
-                    });
                     const takeIx = await program.methods
                         .takeSwap(bidToscBid(bid), n)
                         .accountsStrict({
@@ -504,7 +457,7 @@ export async function createTakeAndCloseSwapInstructions(
                 if (!metadata) throw "Compressed no metadata found";
                 if (metadata.collection == null) throw "Compressed no collection found";
 
-                let takeIx = await program.methods
+                let claimCompIx = await program.methods
                     .claimSwapComp(
                         Array.from(creatorHash),
                         Array.from(dataHash),
@@ -541,7 +494,7 @@ export async function createTakeAndCloseSwapInstructions(
                     })
                     .remainingAccounts(proofMeta)
                     .instruction();
-                claimIxs.push(takeIx);
+                claimIxs.push(claimCompIx);
             } else {
                 // if (sdaAtaMakerNftIx) claimIxs.push(sdaAtaMakerNftIx);
                 // else console.log("swapDataAccountNftAta", swapDataAccountNftAta);
@@ -1084,84 +1037,23 @@ export async function createTakeAndCloseSwapInstructions(
             if (signer === taker) closeSIxs.push(closeWSol(taker, taker, takerTokenAta));
             else if (signer === maker) closeSIxs.push(closeWSol(maker, maker, makerTokenAta));
         }
-
-        let takeTx: VersionedTransaction | undefined;
-        let claimTx: VersionedTransaction | undefined;
-        let payMakerTx: VersionedTransaction | undefined;
-        let payTakerTx: VersionedTransaction | undefined;
-
-        if (!acceptedBid) takeTx = await ix2vTx(takeIxs, cEnvOpts, signer);
-        if (!claimed) claimTx = await ix2vTx(claimIxs, cEnvOpts, signer);
-        if (!royaltiesPaidMaker) payMakerTx = await ix2vTx(payRMakerIxs, cEnvOpts, signer);
-        if (!royaltiesPaidTaker) payTakerTx = await ix2vTx(payRTakerIxs, cEnvOpts, signer);
-        let closeTx = await ix2vTx(closeSIxs, cEnvOpts, signer);
-
-        let { lastValidBlockHeight: blockheight, blockhash } =
-            await connection.getLatestBlockhash();
-
-        let bTTakeAndClose: BTv[] = [];
-        let priority = 0;
-
-        if (takeTx) {
-            bTTakeAndClose.push({
-                tx: takeTx,
-                description: DESC.takeSwap,
-                details: takeArgs,
-                priority,
-                status: "pending",
-                blockheight,
-            });
-
-            priority++;
-        } else console.log("no takeSwapTx");
-        if (claimTx) {
-            bTTakeAndClose.push({
-                tx: claimTx,
-                description: DESC.claimSwap,
-                details: takeArgs,
-                priority,
-                status: "pending",
-                blockheight,
-            });
-
-            priority++;
-        } else console.log("no claimTx");
-        if (payMakerTx) {
-            bTTakeAndClose.push({
-                tx: payMakerTx,
-                description: DESC.payRoyalties,
-                details: takeArgs,
-                priority,
-                status: "pending",
-                blockheight,
-            });
-
-            priority++;
-        } else console.log("no payMakerTx");
-        if (payTakerTx) {
-            bTTakeAndClose.push({
-                tx: payTakerTx,
-                description: DESC.payRoyalties,
-                details: takeArgs,
-                priority,
-                status: "pending",
-                blockheight,
-            });
-
-            priority++;
-        } else console.log("no payTakerTx");
-
-        bTTakeAndClose.push({
-            tx: closeTx,
-            description: DESC.close,
-            details: takeArgs,
-            priority,
-            status: "pending",
-            blockheight,
+        let bTTakeAndClose = parseTakeAndCloseTxs({
+            cEnvOpts,
+            claimIxs,
+            closeSIxs,
+            connection,
+            makerNftStd,
+            payRMakerIxs,
+            payRTakerIxs,
+            signer,
+            takeArgs,
+            takeIxs,
+            takerNftStd,
+            acceptedBid,
+            claimed,
+            royaltiesPaidMaker,
+            royaltiesPaidTaker,
         });
-
-        bTTakeAndClose.map((b) => (b.tx.message.recentBlockhash = blockhash));
-
         return bTTakeAndClose;
     } catch (error: any) {
         console.log("error init", error);
