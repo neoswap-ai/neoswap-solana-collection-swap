@@ -19,4 +19,4 @@ export const LOOKUP_TABLE_ACCOUNT = "6kHF7MUNKYg2jaAAcxkQvM3ahW4zaNRnYSmtDn6ne79
 export const NEOSWAP_IDL = idlSwap;
 export const NS_FEE = "FjecsBcSXQh4rjPSksh2eBiXUswcMpAwU25ykcr842j8";
 
-export const VERSION = "0.8.3-beta1";
+export const VERSION = "0.8.4-beta0";

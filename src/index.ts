@@ -38,6 +38,7 @@ import { findOrCreateAta } from "./utils/findOrCreateAta.function";
 import { getSda } from "./utils/getPda";
 import { getProgram } from "./utils/getProgram.obj";
 import { getOpenSda, getSdaData } from "./utils/getSdaData.function";
+import { getIdlForBlock } from "./utils/idl/idlGetter";
 import { isConfirmedTx } from "./utils/isConfirmedTx.function";
 import {
     sendBundledTransactions,
@@ -92,8 +93,8 @@ export const UTILS = {
     makeRoot,
     recalculateRoot,
     createLookUpTableAccount,
-    getCompNFTData
-    
+    getCompNFTData,
+    getIdlForBlock,
     // closeUserPda,
 };
 export const CREATE_INSTRUCTIONS = {

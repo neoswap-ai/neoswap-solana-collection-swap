@@ -1,5 +1,5 @@
 // August 12th, 7:30 AM
-export const idlSwap: CollectionSwap = {
+export const idlSwapV0_4_2: CollectionSwapV0_4_2 = {
     address: "NSWPpfskKcHo93mxZSgdinqpnFkcdWPsSxBB9Q26Qbq",
     metadata: {
         name: "collectionSwap",
@@ -2567,9 +2567,9 @@ export const idlSwap: CollectionSwap = {
             },
         },
     ],
-} as CollectionSwap;
+} as CollectionSwapV0_4_2;
 
-export type CollectionSwap = {
+export type CollectionSwapV0_4_2 = {
     address: string;
     metadata: {
         name: "collectionSwap";
