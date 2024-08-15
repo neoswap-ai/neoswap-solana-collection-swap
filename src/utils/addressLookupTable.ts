@@ -88,7 +88,6 @@ export async function createLookUpTableAccount({
         new PublicKey(FAIR_LAUNCH_PROGRAM_ID),
         WRAPPED_SOL_MINT,
         SYSVAR_INSTRUCTIONS_PUBKEY,
-        
     ];
     if (additionalAccounts) addresses.push(...additionalAccounts.map((acc) => new PublicKey(acc)));
     console.log("AddressLookupTableProgram", AddressLookupTableProgram.programId.toString());
@@ -121,7 +120,7 @@ export async function createVTxWithLookupTable({
     payer,
     prioritizationFee,
 }: {
-    lookUpTableAccount?: string;
+    lookUpTableAccount?: string | false;
     instructions: TransactionInstruction[];
     connection: Connection;
     payer: string;
@@ -135,7 +134,14 @@ export async function createVTxWithLookupTable({
         recentBlockhash,
         instructions: await addPrioFeeIx(instructions, prioritizationFee),
     });
-    if (lookUpTableAccount) {
+    console.log(
+        "lookUpTableAccountlookUpTableAccount",
+        lookUpTableAccount,
+        lookUpTableAccount === false,
+        !!lookUpTableAccount
+    );
+
+    if (!!lookUpTableAccount) {
         const lookupTableResp = await connection.getAddressLookupTable(
             new PublicKey(lookUpTableAccount),
             {
@@ -143,7 +149,7 @@ export async function createVTxWithLookupTable({
             }
         );
         let lookupTable = lookupTableResp.value!;
-        // console.log("lookUpTableAccount", lookupTable);
+        console.log("lookUpTableAccountlookUpTableAccount", lookupTable);
 
         if (!lookupTable) throw new Error("Lookup table not found");
 

@@ -83,10 +83,11 @@ export async function checkEnvOpts(Data: EnvOpts): Promise<CEnvOpts> {
     }
     programId = program.programId.toString();
     // console.log(programId);
+    console.log("lookUpTableAccount LUT", lUT === false, lUT === undefined, lUT);
 
-    let lookUpTableAccount: string | undefined = LOOKUP_TABLE_ACCOUNT;
-    if (lUT === undefined) lookUpTableAccount = LOOKUP_TABLE_ACCOUNT;
-    else if (lUT === false) lookUpTableAccount = undefined;
+    let lookUpTableAccount: string | false = LOOKUP_TABLE_ACCOUNT;
+    if (lUT === false) lookUpTableAccount = false;
+    else if (lUT === undefined) lookUpTableAccount = LOOKUP_TABLE_ACCOUNT;
     else lookUpTableAccount = lUT;
 
     return {

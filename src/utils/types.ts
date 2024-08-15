@@ -208,6 +208,6 @@ export type CEnvOpts = {
     programId: string;
     idl: Idl;
     prioritizationFee?: number;
-    lookUpTableAccount?: string;
+    lookUpTableAccount?: string | false;
 };
 export type ReturnSwapData = { bTxs: BundleTransaction[]; swapDataAccount: string };

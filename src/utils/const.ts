@@ -13,9 +13,10 @@ export const METAPLEX_AUTH_RULES_PROGRAM = "auth9SigNpDKz4sJJ1DfCTuZrZNSAgh9sFD3
 
 export const FAIR_LAUNCH_PROGRAM_ID = "8bvPnYE5Pvz2Z9dE6RAqWr1rzLknTndZ9hwvRE6kPDXP";
 
-export const LOOKUP_TABLE_ACCOUNT = "7jeiD7raNQtu8KKn4z2cFNZtTTWx8hbRa7KBMnb7LxA7";
+export const LOOKUP_TABLE_ACCOUNT = "6kHF7MUNKYg2jaAAcxkQvM3ahW4zaNRnYSmtDn6ne79N";
+// export const LOOKUP_TABLE_ACCOUNT = "7jeiD7raNQtu8KKn4z2cFNZtTTWx8hbRa7KBMnb7LxA7";
 
 export const NEOSWAP_IDL = idlSwap;
 export const NS_FEE = "FjecsBcSXQh4rjPSksh2eBiXUswcMpAwU25ykcr842j8";
 
-export const VERSION = "0.8.3-beta0";
+export const VERSION = "0.8.3-beta1";
