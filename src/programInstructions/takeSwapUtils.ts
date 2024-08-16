@@ -151,7 +151,7 @@ export async function takeSwapIx({
     }
 
     return await program.methods
-        .takeSwap(bidToscBid(bid), n)
+        .takeSwap(bidToscBid(bid), n, null, null)
         .accountsStrict({
             swapDataAccount,
             swapDataAccountTokenAta,

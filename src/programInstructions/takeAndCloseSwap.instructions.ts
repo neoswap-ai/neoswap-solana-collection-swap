@@ -48,9 +48,11 @@ import { PROGRAM_ID as MPL_BUBBLEGUM_PROGRAM_ID } from "@metaplex-foundation/mpl
 import { SPL_ASSOCIATED_TOKEN_PROGRAM_ID } from "@metaplex-foundation/mpl-toolbox";
 import BN from "bn.js";
 import { parseTakeAndCloseTxs } from "./takeSwapUtils";
+import { option } from "@metaplex-foundation/umi/serializers";
+import { none, some } from "@metaplex-foundation/umi";
 
 export async function createTakeAndCloseSwapInstructions(
-    Data: TakeSArg & EnvOpts
+    Data: TakeSArg & EnvOpts // & { index: number }
 ): Promise<BundleTransaction[]> {
     console.log(VERSION);
     let cEnvOpts = await checkEnvOpts(Data);
@@ -342,8 +344,11 @@ export async function createTakeAndCloseSwapInstructions(
                             })
                         ).metadataAddress;
 
+                    let isTrait = true;
+                    let traitIndex = 0;
+
                     const takeIx = await program.methods
-                        .takeSwap(bidToscBid(bid), n)
+                        .takeSwap(bidToscBid(bid), n, isTrait, traitIndex)
                         .accountsStrict({
                             swapDataAccount,
                             swapDataAccountTokenAta,
@@ -372,6 +377,9 @@ export async function createTakeAndCloseSwapInstructions(
                             ataProgram: SPL_ASSOCIATED_TOKEN_PROGRAM_ID.toString(),
                             authRulesProgram: METAPLEX_AUTH_RULES_PROGRAM.toString(),
                         })
+                        .remainingAccounts([
+                            { isSigner: false, isWritable: false, pubkey: program.programId },
+                        ])
                         .instruction();
                     takeIxs.push(takeIx);
                 } else {
@@ -1034,7 +1042,7 @@ export async function createTakeAndCloseSwapInstructions(
             swapDataData.paymentMint === WRAPPED_SOL_MINT.toString() &&
             (unwrap === undefined || unwrap === true)
         ) {
-            if (signer === taker) closeSIxs.push(closeWSol(taker, taker, takerTokenAta));
+            if (signer === taker) claimIxs.push(closeWSol(taker, taker, takerTokenAta));
             else if (signer === maker) closeSIxs.push(closeWSol(maker, maker, makerTokenAta));
         }
         let bTTakeAndClose = parseTakeAndCloseTxs({

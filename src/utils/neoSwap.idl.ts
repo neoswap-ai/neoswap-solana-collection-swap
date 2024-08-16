@@ -2,7 +2,7 @@ export const idlSwap: CollectionSwap = {
     address: "NSWPpfskKcHo93mxZSgdinqpnFkcdWPsSxBB9Q26Qbq",
     metadata: {
         name: "collectionSwap",
-        version: "0.4.2",
+        version: "0.5.0",
         spec: "0.1.0",
         description: "collectionSwap",
     },
@@ -1894,7 +1894,21 @@ export const idlSwap: CollectionSwap = {
                 },
                 {
                     name: "n",
-                    type: "u8",
+                    type: {
+                        option: "u8",
+                    },
+                },
+                {
+                    name: "isTraitBid",
+                    type: {
+                        option: "bool",
+                    },
+                },
+                {
+                    name: "traitIndex",
+                    type: {
+                        option: "u32",
+                    },
                 },
             ],
         },
@@ -1983,7 +1997,9 @@ export const idlSwap: CollectionSwap = {
                 },
                 {
                     name: "n",
-                    type: "u8",
+                    type: {
+                        option: "u8",
+                    },
                 },
             ],
         },
@@ -2140,7 +2156,9 @@ export const idlSwap: CollectionSwap = {
                 },
                 {
                     name: "n",
-                    type: "u8",
+                    type: {
+                        option: "u8",
+                    },
                 },
             ],
         },
@@ -2218,7 +2236,9 @@ export const idlSwap: CollectionSwap = {
                 },
                 {
                     name: "n",
-                    type: "u8",
+                    type: {
+                        option: "u8",
+                    },
                 },
             ],
         },
@@ -2284,6 +2304,11 @@ export const idlSwap: CollectionSwap = {
             code: 6010,
             name: "notClaimed",
             msg: "You need to claim swap before closing it",
+        },
+        {
+            code: 6011,
+            name: "incorrectTraitRootVerification",
+            msg: "Incorrect trait proof",
         },
         {
             code: 6100,
@@ -2572,7 +2597,7 @@ export type CollectionSwap = {
     address: string;
     metadata: {
         name: "collectionSwap";
-        version: "0.4.2";
+        version: "0.5.0";
         spec: "0.1.0";
         description: "collectionSwap";
     };
@@ -4464,7 +4489,21 @@ export type CollectionSwap = {
                 },
                 {
                     name: "n";
-                    type: "u8";
+                    type: {
+                        option: "u8";
+                    };
+                },
+                {
+                    name: "isTraitBid";
+                    type: {
+                        option: "bool";
+                    };
+                },
+                {
+                    name: "traitIndex";
+                    type: {
+                        option: "u32";
+                    };
                 }
             ];
         },
@@ -4553,7 +4592,9 @@ export type CollectionSwap = {
                 },
                 {
                     name: "n";
-                    type: "u8";
+                    type: {
+                        option: "u8";
+                    };
                 }
             ];
         },
@@ -4710,7 +4751,9 @@ export type CollectionSwap = {
                 },
                 {
                     name: "n";
-                    type: "u8";
+                    type: {
+                        option: "u8";
+                    };
                 }
             ];
         },
@@ -4788,7 +4831,9 @@ export type CollectionSwap = {
                 },
                 {
                     name: "n";
-                    type: "u8";
+                    type: {
+                        option: "u8";
+                    };
                 }
             ];
         }
@@ -4854,6 +4899,11 @@ export type CollectionSwap = {
             code: 6010;
             name: "notClaimed";
             msg: "You need to claim swap before closing it";
+        },
+        {
+            code: 6011;
+            name: "incorrectTraitRootVerification";
+            msg: "Incorrect trait proof";
         },
         {
             code: 6100;
