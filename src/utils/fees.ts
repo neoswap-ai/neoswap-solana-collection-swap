@@ -1,4 +1,9 @@
-import { ComputeBudgetProgram, LAMPORTS_PER_SOL, Transaction } from "@solana/web3.js";
+import {
+    ComputeBudgetProgram,
+    LAMPORTS_PER_SOL,
+    Transaction,
+    TransactionInstruction,
+} from "@solana/web3.js";
 import { Bid } from "./types";
 
 export async function addPriorityFee(
@@ -10,24 +15,55 @@ export async function addPriorityFee(
         .map((ix) => ix.keys.filter((key) => key.isWritable).map((key) => key.pubkey.toBase58()))
         .flat();
 
-    if (estimatedFee === 0) {
+    if (!prioritizationFee) {
         estimatedFee = await getRecentPrioritizationFeesHM(
             writableAccounts,
             "https://rpc.hellomoon.io/13bb514b-0e38-4ff2-a167-6383ef88aa10"
         );
         if (estimatedFee < 10000) estimatedFee = 10000;
         console.log("using getPrioritizationFee from hellomoon", estimatedFee);
+        if (estimatedFee > 0) {
+            tx = tx.add(
+                ComputeBudgetProgram.setComputeUnitPrice({
+                    microLamports: estimatedFee,
+                })
+            );
+        }
     } else console.log("force fees", estimatedFee);
 
-    if (estimatedFee > 0) {
-        tx = tx.add(
-            ComputeBudgetProgram.setComputeUnitPrice({
-                microLamports: estimatedFee,
-            })
+    return tx;
+}
+
+export async function addPrioFeeIx(ixs: TransactionInstruction[], prioritizationFee?: number) {
+    let estimatedFee = prioritizationFee ? prioritizationFee : 0;
+    let accs = ixs.flatMap((ix) => ix.keys.flatMap((acc) => acc.pubkey.toString()));
+
+    if (prioritizationFee! >= 0) {
+        console.log("force fees", estimatedFee);
+    } else {
+        estimatedFee = await getRecentPrioritizationFeesHM(
+            accs,
+            "https://rpc.hellomoon.io/13bb514b-0e38-4ff2-a167-6383ef88aa10"
         );
+        if (estimatedFee < 10000) estimatedFee = 10000;
+        console.log("using getPrioritizationFee from hellomoon", estimatedFee);
     }
 
-    return tx;
+    if (estimatedFee > 0) {
+        return [
+            ComputeBudgetProgram.setComputeUnitPrice({
+                microLamports: estimatedFee,
+            }),
+            ...ixs,
+        ];
+    } else return ixs;
+}
+
+export async function addPriorityFeeIx(
+    tx: Transaction,
+    prioritizationFee?: number
+): Promise<TransactionInstruction[]> {
+    return (await addPriorityFee(tx, prioritizationFee)).instructions;
 }
 
 const getRecentPrioritizationFeesHM = async (
@@ -72,7 +108,7 @@ export function calculateMakerFee({ bids }: { bids: Bid[] }) {
                 maxAmount / LAMPORTS_PER_SOL +
                 " ) lamports"
         );
-        return;
+        return maxAmount;
     }
     console.log(
         "Wrapping " + maxAmount + " ( " + maxAmount / LAMPORTS_PER_SOL + " ) lamports to wSOL"
@@ -83,8 +119,8 @@ export function calculateMakerFee({ bids }: { bids: Bid[] }) {
 export function makerFee({ bid }: { bid: Bid }) {
     return -bid.amount + bid.makerNeoswapFee + bid.makerRoyalties;
 }
-export function takerFee({ bid, n }: { bid: Bid; n: number }) {
-    let takerAmount;
+export function takerFee({ bid, n }: { bid: Bid; n: number }): number {
+    let takerAmount: number;
     if (n === 42) {
         console.log("fees waived");
         takerAmount = bid.amount;

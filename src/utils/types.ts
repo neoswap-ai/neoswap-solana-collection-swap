@@ -12,6 +12,7 @@ import {
 import BN from "bn.js";
 import { CollectionSwap } from "./neoSwap.idl";
 
+export type AssetStandard = "core" | "native" | "hybrid" | "compressed";
 export type Bid = {
     collection: string;
     amount: number;
@@ -143,7 +144,7 @@ export type TakeSArg = {
     nftMintTaker: string;
     bid: Bid;
     verifyTaker?: boolean;
-    unwrap?:boolean
+    unwrap?: boolean;
 };
 export type ClaimSArg = {
     swapDataAccount: string;
@@ -188,6 +189,7 @@ export type EnvOpts = {
     programId?: string;
     idl?: Idl | true;
     prioritizationFee?: number;
+    lookUpTableAccount?: string | false;
 };
 
 export type COptionSend = {
@@ -206,5 +208,6 @@ export type CEnvOpts = {
     programId: string;
     idl: Idl;
     prioritizationFee?: number;
+    lookUpTableAccount?: string | false;
 };
 export type ReturnSwapData = { bTxs: BundleTransaction[]; swapDataAccount: string };

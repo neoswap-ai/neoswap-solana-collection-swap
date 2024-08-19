@@ -11,6 +11,7 @@ import { createAddBidBt, createRmBidBt } from "./programInstructions/modifyAddBi
 // import { createPayRoyaltiesInstructions } from "./programInstructions/payRoyalties.instructions";
 import { createSetNewTime } from "./programInstructions/setNewTime.instructions";
 import { createTakeAndCloseSwapInstructions } from "./programInstructions/takeAndCloseSwap.instructions";
+import { createLookUpTableAccount } from "./utils/addressLookupTable";
 // import { createTakeSwapInstructions } from "./programInstructions/takeSwap.instructions";
 import {
     checkEnvOpts,
@@ -22,6 +23,7 @@ import {
     isUpdateSArg,
     whatIs,
 } from "./utils/check";
+import { getCompNFTData, makeRoot, recalculateRoot } from "./utils/compressedHelper";
 import { getCreatorData } from "./utils/creators";
 import { calculateMakerFee } from "./utils/fees";
 import {
@@ -36,6 +38,7 @@ import { findOrCreateAta } from "./utils/findOrCreateAta.function";
 import { getSda } from "./utils/getPda";
 import { getProgram } from "./utils/getProgram.obj";
 import { getOpenSda, getSdaData } from "./utils/getSdaData.function";
+import { getIdlForBlock } from "./utils/idl/idlGetter";
 import { isConfirmedTx } from "./utils/isConfirmedTx.function";
 import {
     sendBundledTransactions,
@@ -57,7 +60,7 @@ export const NFT_ACCOUNTS = {
     findRuleSet,
     findUserTokenRecord,
     whichStandard,
-    standardToProgram
+    standardToProgram,
 };
 export const TYPES = {
     whatIs,
@@ -86,7 +89,12 @@ export const UTILS = {
     checkOptionSend,
     getSda,
     getCreatorData,
-    calculateMakerFee
+    calculateMakerFee,
+    makeRoot,
+    recalculateRoot,
+    createLookUpTableAccount,
+    getCompNFTData,
+    getIdlForBlock,
     // closeUserPda,
 };
 export const CREATE_INSTRUCTIONS = {

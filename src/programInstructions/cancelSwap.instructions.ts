@@ -10,7 +10,7 @@ import { findOrCreateAta } from "../utils/findOrCreateAta.function";
 import { TOKEN_2022_PROGRAM_ID, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import {
     METAPLEX_AUTH_RULES_PROGRAM,
-    SOLANA_SPL_ATA_PROGRAM_ID,
+    // SPL_ASSOCIATED_TOKEN_PROGRAM_ID,
     TOKEN_METADATA_PROGRAM,
     VERSION,
 } from "../utils/const";
@@ -27,6 +27,13 @@ import { ix2vTx } from "../utils/vtx";
 import { closeWSol } from "../utils/wsol";
 import { WRAPPED_SOL_MINT } from "@metaplex-foundation/js";
 import { MPL_CORE_PROGRAM_ID } from "@metaplex-foundation/mpl-core";
+import { getCompNFTData, makeRoot } from "../utils/compressedHelper";
+import { PROGRAM_ID as MPL_BUBBLEGUM_PROGRAM_ID } from "@metaplex-foundation/mpl-bubblegum";
+import {
+    SPL_ACCOUNT_COMPRESSION_PROGRAM_ID,
+    SPL_NOOP_PROGRAM_ID,
+} from "@solana/spl-account-compression";
+import { SPL_ASSOCIATED_TOKEN_PROGRAM_ID } from "@metaplex-foundation/mpl-toolbox";
 
 export async function createCancelSwapInstructions(
     Data: EnvOpts & ClaimSArg
@@ -37,11 +44,7 @@ export async function createCancelSwapInstructions(
     let { program, connection } = cEnvOpts;
     let { signer, swapDataAccount } = ClaimSArgs;
 
-    let instructions: TransactionInstruction[] = [
-        ComputeBudgetProgram.setComputeUnitLimit({
-            units: 800000,
-        }),
-    ];
+    let instructions: TransactionInstruction[] = [];
     try {
         let swapDataData = await getSdaData({
             program,
@@ -85,13 +88,52 @@ export async function createCancelSwapInstructions(
                     maker,
                     makerTokenAta,
                     nftMintMaker,
-                    paymentMint,
+                    // paymentMint,
                     signer,
                     swapDataAccount,
                     swapDataAccountTokenAta,
                     systemProgram: SystemProgram.programId,
                     tokenProgram: TOKEN_PROGRAM_ID,
                 })
+                .instruction();
+            instructions.push(cancelIxs);
+        } else if (tknStd === "compressed") {
+            let {
+                canopyDepth,
+                collection,
+                creatorHash,
+                dataHash,
+                index,
+                merkleTree,
+                metadata,
+                nonce,
+                proofMeta,
+                root,
+                treeAuthority,
+            } = await getCompNFTData({
+                cluster: "mainnet-beta",
+                tokenId: nftMintMaker,
+                connection,
+            });
+            // makeRoot([{}])
+            let cancelIxs = await program.methods
+                .cancelSwapComp(root, dataHash, creatorHash, nonce, index)
+                .accountsStrict({
+                    maker,
+                    makerTokenAta,
+                    merkleTree,
+                    // paymentMint,
+                    signer,
+                    swapDataAccount,
+                    swapDataAccountTokenAta,
+                    treeAuthority,
+                    bubblegumProgram: MPL_BUBBLEGUM_PROGRAM_ID,
+                    compressionProgram: SPL_ACCOUNT_COMPRESSION_PROGRAM_ID,
+                    logWrapper: SPL_NOOP_PROGRAM_ID,
+                    systemProgram: SystemProgram.programId,
+                    tokenProgram: TOKEN_PROGRAM_ID,
+                })
+                .remainingAccounts(proofMeta)
                 .instruction();
             instructions.push(cancelIxs);
         } else {
@@ -159,7 +201,7 @@ export async function createCancelSwapInstructions(
                         makerTokenAta,
 
                         nftMintMaker,
-                        paymentMint,
+                        // paymentMint,
 
                         nftMetadataMaker,
                         nftMasterEditionMaker,
@@ -171,7 +213,7 @@ export async function createCancelSwapInstructions(
                         metadataProgram: TOKEN_METADATA_PROGRAM,
                         sysvarInstructions: SYSVAR_INSTRUCTIONS_PUBKEY,
                         tokenProgram: TOKEN_PROGRAM_ID,
-                        ataProgram: SOLANA_SPL_ATA_PROGRAM_ID,
+                        ataProgram: SPL_ASSOCIATED_TOKEN_PROGRAM_ID,
                         authRulesProgram: METAPLEX_AUTH_RULES_PROGRAM,
                     })
                     .instruction();
@@ -192,12 +234,12 @@ export async function createCancelSwapInstructions(
                         makerTokenAta,
 
                         nftMintMaker,
-                        paymentMint,
+                        // paymentMint,
 
                         systemProgram: SystemProgram.programId,
                         tokenProgram: TOKEN_PROGRAM_ID,
                         tokenProgram22: TOKEN_2022_PROGRAM_ID,
-                        ataProgram: SOLANA_SPL_ATA_PROGRAM_ID,
+                        ataProgram: SPL_ASSOCIATED_TOKEN_PROGRAM_ID,
                     })
                     .instruction();
                 console.log("adding hybrid cancelIx");

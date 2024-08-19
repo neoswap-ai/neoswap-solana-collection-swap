@@ -3,13 +3,16 @@ import {
     SystemProgram,
     TransactionInstruction,
     SYSVAR_INSTRUCTIONS_PUBKEY,
+    clusterApiUrl,
+    Cluster,
+    PublicKey,
 } from "@solana/web3.js";
 import { BTv, EnvOpts, MakeSArg, ReturnSwapData, UpdateSArgs } from "../utils/types";
 import { findOrCreateAta } from "../utils/findOrCreateAta.function";
 import { TOKEN_2022_PROGRAM_ID, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import {
     METAPLEX_AUTH_RULES_PROGRAM,
-    SOLANA_SPL_ATA_PROGRAM_ID,
+    // SPL_ASSOCIATED_TOKEN_PROGRAM_ID,
     TOKEN_METADATA_PROGRAM,
     VERSION,
 } from "../utils/const";
@@ -31,6 +34,13 @@ import { ix2vTx } from "../utils/vtx";
 import { createAddBidIx } from "./modifyAddBid.instructions";
 import { MPL_CORE_PROGRAM_ID } from "@metaplex-foundation/mpl-core";
 import { calculateMakerFee, makerFee } from "../utils/fees";
+import { getCompNFTData } from "../utils/compressedHelper";
+import {
+    SPL_ACCOUNT_COMPRESSION_PROGRAM_ID,
+    SPL_NOOP_PROGRAM_ID,
+} from "@solana/spl-account-compression";
+import { PROGRAM_ID as MPL_BUBBLEGUM_PROGRAM_ID } from "@metaplex-foundation/mpl-bubblegum";
+import { SPL_ASSOCIATED_TOKEN_PROGRAM_ID } from "@metaplex-foundation/mpl-toolbox";
 
 export async function createMakeSwapInstructions(
     Data: MakeSArg & EnvOpts
@@ -44,12 +54,10 @@ export async function createMakeSwapInstructions(
     let swapDataAccount = getSda(maker, nftMintMaker, program.programId.toString());
     console.log("swapDataAccount", swapDataAccount);
 
-    let instructions: TransactionInstruction[] = [
-        ComputeBudgetProgram.setComputeUnitLimit({
-            units: 800000,
-        }),
-    ];
-
+    let instructions: TransactionInstruction[] = [];
+    let cluster = (
+        !cEnvOpts.clusterOrUrl.includes("mainnet") ? "devnet" : "mainnet-beta"
+    ) as Cluster;
     try {
         let { mintAta: swapDataAccountTokenAta, instruction: st } = await findOrCreateAta({
             connection,
@@ -82,8 +90,8 @@ export async function createMakeSwapInstructions(
         if (paymentMint === WRAPPED_SOL_MINT.toString()) {
             let maxAmount = calculateMakerFee({ bids });
             console.log("maxAmount", maxAmount);
-            
-            if (maxAmount) instructions.push(...addWSol(maker, makerTokenAta, maxAmount));
+
+            if (maxAmount > 0) instructions.push(...addWSol(maker, makerTokenAta, maxAmount));
         }
 
         let tokenStd = await whichStandard({ mint: nftMintMaker, connection });
@@ -107,7 +115,50 @@ export async function createMakeSwapInstructions(
                 })
                 .instruction();
             instructions.push(initIx);
-        } else {
+        } else if (tokenStd === "compressed") {
+            let {
+                creatorHash,
+                dataHash,
+                index,
+                merkleTree,
+                nonce,
+                proofMeta,
+                root,
+                treeAuthority,
+            } = await getCompNFTData({ cluster, tokenId: nftMintMaker, connection });
+
+            let makeCompData = await program.methods
+                .makeSwapComp(
+                    bidToscBid(oneBid),
+                    new BN(endDate),
+                    Array.from(root),
+                    Array.from(dataHash),
+                    Array.from(creatorHash),
+                    nonce,
+                    index
+                    // new PublicKey(nftMintMaker)
+                )
+                .accountsStrict({
+                    swapDataAccount,
+                    swapDataAccountTokenAta,
+                    maker,
+                    makerTokenAta,
+                    tokenId: nftMintMaker,
+                    merkleTree,
+                    paymentMint,
+                    treeAuthority,
+                    ataProgram: SPL_ASSOCIATED_TOKEN_PROGRAM_ID,
+                    bubblegumProgram: MPL_BUBBLEGUM_PROGRAM_ID,
+                    compressionProgram: SPL_ACCOUNT_COMPRESSION_PROGRAM_ID,
+                    logWrapper: SPL_NOOP_PROGRAM_ID,
+                    systemProgram: SystemProgram.programId,
+                    tokenProgram: TOKEN_PROGRAM_ID,
+                    // sysvarInstructions: SYSVAR_INST/RUCTIONS_PUBKEY,
+                })
+                .remainingAccounts(proofMeta)
+                .instruction();
+            instructions.push(makeCompData);
+        } else if (tokenStd === "native" || tokenStd === "hybrid") {
             let { mintAta: swapDataAccountNftAta, instruction: sn } = await findOrCreateAta({
                 connection,
                 mint: nftMintMaker,
@@ -175,7 +226,7 @@ export async function createMakeSwapInstructions(
                         metadataProgram: TOKEN_METADATA_PROGRAM,
                         sysvarInstructions: SYSVAR_INSTRUCTIONS_PUBKEY,
                         tokenProgram: TOKEN_PROGRAM_ID,
-                        ataProgram: SOLANA_SPL_ATA_PROGRAM_ID,
+                        ataProgram: SPL_ASSOCIATED_TOKEN_PROGRAM_ID,
                         authRulesProgram: METAPLEX_AUTH_RULES_PROGRAM,
                     })
                     .instruction();
@@ -199,12 +250,12 @@ export async function createMakeSwapInstructions(
                         sysvarInstructions: SYSVAR_INSTRUCTIONS_PUBKEY,
                         tokenProgram: TOKEN_PROGRAM_ID,
                         tokenProgram22: TOKEN_2022_PROGRAM_ID,
-                        ataProgram: SOLANA_SPL_ATA_PROGRAM_ID,
+                        ataProgram: SPL_ASSOCIATED_TOKEN_PROGRAM_ID,
                     })
                     .instruction();
                 instructions.push(initIx);
-            }
-        }
+            } else throw "not supported";
+        } else throw "token not supported";
 
         let addBidIxs: TransactionInstruction[] = [];
         if (leftBids.length > 0) {
@@ -239,7 +290,7 @@ export async function createMakeSwapInstructions(
         ];
         console.log("addBidIxs", addBidIxs.length);
 
-        if (addBidIxs.length > 0)
+        if (addBidIxs.length > 0) {
             bTxs.push({
                 description: DESC.addBid,
                 details: { swapDataAccount, bids, maker } as UpdateSArgs,
@@ -247,6 +298,7 @@ export async function createMakeSwapInstructions(
                 status: "pending",
                 tx: await ix2vTx(addBidIxs, cEnvOpts, maker),
             });
+        }
         return {
             bTxs,
             swapDataAccount: swapDataAccount.toString(),

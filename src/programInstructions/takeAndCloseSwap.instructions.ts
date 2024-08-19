@@ -1,5 +1,6 @@
 import { getSdaData } from "../utils/getSdaData.function";
 import {
+    Cluster,
     ComputeBudgetProgram,
     PublicKey,
     SYSVAR_INSTRUCTIONS_PUBKEY,
@@ -12,9 +13,9 @@ import { findOrCreateAta } from "../utils/findOrCreateAta.function";
 import { TOKEN_2022_PROGRAM_ID, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import {
     FAIR_LAUNCH_PROGRAM_ID,
-    METAPLEX_AUTH_RULES_PROGRAM,
     NS_FEE,
-    SOLANA_SPL_ATA_PROGRAM_ID,
+    // SPL_ASSOCIATED_TOKEN_PROGRAM_ID,
+    METAPLEX_AUTH_RULES_PROGRAM,
     TOKEN_METADATA_PROGRAM,
     VERSION,
 } from "../utils/const";
@@ -38,6 +39,15 @@ import { ix2vTx } from "../utils/vtx";
 import { checkEnvOpts, getTakeArgs } from "../utils/check";
 import { MPL_CORE_PROGRAM_ID } from "@metaplex-foundation/mpl-core";
 import { takerFee } from "../utils/fees";
+import {
+    SPL_ACCOUNT_COMPRESSION_PROGRAM_ID,
+    SPL_NOOP_PROGRAM_ID,
+} from "@solana/spl-account-compression";
+import { getCompNFTData } from "../utils/compressedHelper";
+import { PROGRAM_ID as MPL_BUBBLEGUM_PROGRAM_ID } from "@metaplex-foundation/mpl-bubblegum";
+import { SPL_ASSOCIATED_TOKEN_PROGRAM_ID } from "@metaplex-foundation/mpl-toolbox";
+import BN from "bn.js";
+import { parseTakeAndCloseTxs } from "./takeSwapUtils";
 
 export async function createTakeAndCloseSwapInstructions(
     Data: TakeSArg & EnvOpts
@@ -54,21 +64,11 @@ export async function createTakeAndCloseSwapInstructions(
         signer = taker;
     } else console.log("signer", signer, "taker", taker);
 
-    let takeIxs: TransactionInstruction[] = [
-        ComputeBudgetProgram.setComputeUnitLimit({
-            units: 8_500_000,
-        }),
-    ];
-    let claimIxs: TransactionInstruction[] = [
-        ComputeBudgetProgram.setComputeUnitLimit({
-            units: 8_500_000,
-        }),
-    ];
-    let payRAndCloseSIxs: TransactionInstruction[] = [
-        ComputeBudgetProgram.setComputeUnitLimit({
-            units: 8_500_000,
-        }),
-    ];
+    let takeIxs: TransactionInstruction[] = [];
+    let claimIxs: TransactionInstruction[] = [];
+    let payRMakerIxs: TransactionInstruction[] = [];
+    let payRTakerIxs: TransactionInstruction[] = [];
+    let closeSIxs: TransactionInstruction[] = [];
     try {
         let swapDataData = await getSdaData({
             program,
@@ -151,13 +151,6 @@ export async function createTakeAndCloseSwapInstructions(
         if (nsTokenIx) claimIxs.push(nsTokenIx);
         else console.log("nsFeeTokenAta", nsFeeTokenAta);
 
-        let { mintAta: swapDataAccountNftAta, instruction: sdaAtaMakerNftIx } =
-            await findOrCreateAta({
-                connection,
-                mint: nftMintMaker,
-                owner: swapDataAccount,
-                signer,
-            });
         //
         // Getting metadata Maker Nft
         //
@@ -166,7 +159,7 @@ export async function createTakeAndCloseSwapInstructions(
         let tokenStandardMaker: number | null = null;
 
         if (makerNftStd === "native") {
-            console.log("makerNftStdmakerNftStdmakerNftStdmakerNftStdmakerNftStd", makerNftStd);
+            console.log("makerNftStd", makerNftStd);
 
             const { metadataAddress: nftMetadataMaker2, tokenStandard: tokenStandardMaker2 } =
                 await findNftDataAndMetadataAccount({
@@ -200,10 +193,10 @@ export async function createTakeAndCloseSwapInstructions(
         // taking Swap
         //
 
+        let takerAmount = takerFee({ bid, n });
         if (!acceptedBid) {
             if (swapDataData.paymentMint === WRAPPED_SOL_MINT.toString()) {
-                let amount = takerFee({ bid, n });
-                if (amount > 0) takeIxs.push(...addWSol(taker, takerTokenAta, amount));
+                if (takerAmount > 0) takeIxs.push(...addWSol(taker, takerTokenAta, takerAmount));
             }
             if (takerNftStd == "core") {
                 let takerCoreCollection = await getCoreCollection({
@@ -223,7 +216,7 @@ export async function createTakeAndCloseSwapInstructions(
                         takerTokenAta,
 
                         nftMintTaker,
-                        paymentMint,
+                        // paymentMint,
 
                         collection: takerCoreCollection,
 
@@ -231,6 +224,73 @@ export async function createTakeAndCloseSwapInstructions(
                         sysvarInstructions: SYSVAR_INSTRUCTIONS_PUBKEY,
                         tokenProgram: TOKEN_PROGRAM_ID,
                     })
+                    .instruction();
+                takeIxs.push(takeIx);
+            } else if (takerNftStd === "compressed") {
+                let cluster = (
+                    !cEnvOpts.clusterOrUrl.includes("mainnet") ? "devnet" : "mainnet-beta"
+                ) as Cluster;
+                let {
+                    creatorHash,
+                    dataHash,
+                    index,
+                    merkleTree,
+                    nonce,
+                    proofMeta,
+                    root,
+                    treeAuthority,
+                    collection,
+                    metadata,
+                } = await getCompNFTData({ cluster, tokenId: nftMintTaker, connection });
+                if (!metadata) throw "Compressed no metadata found";
+                if (metadata.collection == null) throw "Compressed no collection found";
+
+                let takeIx = await program.methods
+                    .takeSwapComp(
+                        // bidToscBid(bid),
+                        // bidToscBid(bid).collection,
+                        metadata.collection,
+                        new BN(takerAmount),
+                        Array.from(root),
+                        // Array.from(dataHash),
+                        // Array.from(creatorHash),
+                        metadata.name,
+                        metadata.symbol,
+                        metadata.uri,
+                        metadata.sellerFeeBasisPoints,
+                        metadata.primarySaleHappened,
+                        metadata.isMutable,
+                        metadata.editionNonce,
+                        metadata.creators,
+                        // (metadata.creators.map((c) => c.address)),
+                        // (metadata.creators.map((c) => c.verified)),
+                        // Buffer.from(metadata.creators.map((c) => c.share)),
+                        nonce,
+                        index,
+                        n
+                    )
+                    .accountsStrict({
+                        swapDataAccount,
+                        swapDataAccountTokenAta,
+                        maker,
+                        makerTokenAta,
+                        // tokenId: nftMintMaker,
+                        merkleTree,
+                        // paymentMint,
+                        treeAuthority,
+                        // collection,
+                        // nftMintTaker,
+                        taker,
+                        takerTokenAta,
+                        // ataProgram: SPL_ASSOCIATED_TOKEN_PROGRAM_ID,
+                        bubblegumProgram: MPL_BUBBLEGUM_PROGRAM_ID,
+                        compressionProgram: SPL_ACCOUNT_COMPRESSION_PROGRAM_ID,
+                        logWrapper: SPL_NOOP_PROGRAM_ID,
+                        systemProgram: SystemProgram.programId,
+                        tokenProgram: TOKEN_PROGRAM_ID,
+                        // sysvarInstructions: SYSVAR_INSTRUCTIONS_PUBKEY,
+                    })
+                    .remainingAccounts(proofMeta)
                     .instruction();
                 takeIxs.push(takeIx);
             } else {
@@ -297,7 +357,7 @@ export async function createTakeAndCloseSwapInstructions(
                             takerTokenAta,
 
                             nftMintTaker,
-                            paymentMint,
+                            // paymentMint,
 
                             nftMetadataTaker,
                             nftMasterEditionTaker,
@@ -305,12 +365,12 @@ export async function createTakeAndCloseSwapInstructions(
                             destinationTokenRecordTaker,
                             authRulesTaker,
 
-                            systemProgram: SystemProgram.programId,
-                            metadataProgram: TOKEN_METADATA_PROGRAM,
-                            sysvarInstructions: SYSVAR_INSTRUCTIONS_PUBKEY,
-                            tokenProgram: TOKEN_PROGRAM_ID,
-                            ataProgram: SOLANA_SPL_ATA_PROGRAM_ID,
-                            authRulesProgram: METAPLEX_AUTH_RULES_PROGRAM,
+                            systemProgram: SystemProgram.programId.toString(),
+                            metadataProgram: TOKEN_METADATA_PROGRAM.toString(),
+                            sysvarInstructions: SYSVAR_INSTRUCTIONS_PUBKEY.toString(),
+                            tokenProgram: TOKEN_PROGRAM_ID.toString(),
+                            ataProgram: SPL_ASSOCIATED_TOKEN_PROGRAM_ID.toString(),
+                            authRulesProgram: METAPLEX_AUTH_RULES_PROGRAM.toString(),
                         })
                         .instruction();
                     takeIxs.push(takeIx);
@@ -336,14 +396,14 @@ export async function createTakeAndCloseSwapInstructions(
                             takerTokenAta,
 
                             nftMintTaker,
-                            paymentMint,
+                            // paymentMint,
 
                             hashlistMarker: makerhashlistMarker,
 
                             systemProgram: SystemProgram.programId,
                             tokenProgram: TOKEN_PROGRAM_ID,
                             tokenProgram22: TOKEN_2022_PROGRAM_ID,
-                            ataProgram: SOLANA_SPL_ATA_PROGRAM_ID,
+                            ataProgram: SPL_ASSOCIATED_TOKEN_PROGRAM_ID,
                         })
                         .instruction();
                     takeIxs.push(takeIx);
@@ -357,7 +417,7 @@ export async function createTakeAndCloseSwapInstructions(
                 const claimCoreIx = await program.methods
                     .claimSwapCore()
                     .accountsStrict({
-                        ataProgram: SOLANA_SPL_ATA_PROGRAM_ID,
+                        ataProgram: SPL_ASSOCIATED_TOKEN_PROGRAM_ID,
                         nsFee: NS_FEE,
                         nsFeeTokenAta,
                         signer,
@@ -367,7 +427,7 @@ export async function createTakeAndCloseSwapInstructions(
                         maker,
                         makerTokenAta,
                         nftMintMaker,
-                        paymentMint,
+                        // paymentMint,
                         swapDataAccountTokenAta,
                         tokenProgram: TOKEN_PROGRAM_ID.toString(),
                         coreProgram: MPL_CORE_PROGRAM_ID.toString(),
@@ -376,9 +436,75 @@ export async function createTakeAndCloseSwapInstructions(
                     })
                     .instruction();
                 claimIxs.push(claimCoreIx);
+            } else if (makerNftStd === "compressed") {
+                let cluster = (
+                    cEnvOpts.clusterOrUrl.includes("devnet") ? "devnet" : "mainnet-beta"
+                ) as Cluster;
+                let {
+                    creatorHash,
+                    dataHash,
+                    index,
+                    merkleTree,
+                    nonce,
+                    proofMeta,
+                    root,
+                    treeAuthority,
+                    collection,
+                    metadata,
+                } = await getCompNFTData({ cluster, tokenId: nftMintMaker, connection });
+                // console.log("was claim makerNFT");
+
+                if (!metadata) throw "Compressed no metadata found";
+                if (metadata.collection == null) throw "Compressed no collection found";
+
+                let claimCompIx = await program.methods
+                    .claimSwapComp(
+                        Array.from(creatorHash),
+                        Array.from(dataHash),
+                        Array.from(root),
+                        nonce,
+                        index
+                    )
+                    .accountsStrict({
+                        swapDataAccount,
+                        swapDataAccountTokenAta,
+                        signer,
+
+                        maker,
+                        makerTokenAta,
+                        // tokenId: nftMintMaker,
+                        merkleTree,
+                        // paymentMint,
+                        treeAuthority,
+                        // collection,
+                        // nftMintTaker,
+                        taker,
+                        takerTokenAta,
+
+                        nsFee: NS_FEE,
+                        nsFeeTokenAta,
+
+                        ataProgram: SPL_ASSOCIATED_TOKEN_PROGRAM_ID,
+                        bubblegumProgram: MPL_BUBBLEGUM_PROGRAM_ID,
+                        compressionProgram: SPL_ACCOUNT_COMPRESSION_PROGRAM_ID,
+                        logWrapper: SPL_NOOP_PROGRAM_ID,
+                        systemProgram: SystemProgram.programId,
+                        tokenProgram: TOKEN_PROGRAM_ID,
+                        // sysvarInstructions: SYSVAR_INSTRUCTIONS_PUBKEY,
+                    })
+                    .remainingAccounts(proofMeta)
+                    .instruction();
+                claimIxs.push(claimCompIx);
             } else {
                 // if (sdaAtaMakerNftIx) claimIxs.push(sdaAtaMakerNftIx);
                 // else console.log("swapDataAccountNftAta", swapDataAccountNftAta);
+                let { mintAta: swapDataAccountNftAta, instruction: sdaAtaMakerNftIx } =
+                    await findOrCreateAta({
+                        connection,
+                        mint: nftMintMaker,
+                        owner: swapDataAccount,
+                        signer,
+                    });
 
                 let { mintAta: takerNftAtaMaker, instruction: takerAtaMakerNftIx } =
                     await findOrCreateAta({
@@ -437,7 +563,7 @@ export async function createTakeAndCloseSwapInstructions(
                             makerTokenAta,
 
                             nftMintMaker,
-                            paymentMint,
+                            // paymentMint,
 
                             nftMetadataMaker,
                             nftMasterEditionMaker,
@@ -449,7 +575,7 @@ export async function createTakeAndCloseSwapInstructions(
                             metadataProgram: TOKEN_METADATA_PROGRAM,
                             sysvarInstructions: SYSVAR_INSTRUCTIONS_PUBKEY,
                             tokenProgram: TOKEN_PROGRAM_ID,
-                            ataProgram: SOLANA_SPL_ATA_PROGRAM_ID,
+                            ataProgram: SPL_ASSOCIATED_TOKEN_PROGRAM_ID,
                             authRulesProgram: METAPLEX_AUTH_RULES_PROGRAM,
                         })
                         .instruction();
@@ -479,13 +605,13 @@ export async function createTakeAndCloseSwapInstructions(
                             makerTokenAta,
 
                             nftMintMaker,
-                            paymentMint,
+                            // paymentMint,
 
                             systemProgram: SystemProgram.programId,
                             sysvarInstructions: SYSVAR_INSTRUCTIONS_PUBKEY,
                             tokenProgram: TOKEN_PROGRAM_ID,
                             tokenProgram22: TOKEN_2022_PROGRAM_ID,
-                            ataProgram: SOLANA_SPL_ATA_PROGRAM_ID,
+                            ataProgram: SPL_ASSOCIATED_TOKEN_PROGRAM_ID,
                         })
                         .instruction();
 
@@ -519,7 +645,7 @@ export async function createTakeAndCloseSwapInstructions(
                         swapDataAccount,
                         swapDataAccountTokenAta,
                         nftMint: nftMintMaker,
-                        paymentMint,
+                        // paymentMint,
                         signer,
                         // nsFee: NS_FEE,
                         // nsFeeTokenAta,
@@ -536,8 +662,80 @@ export async function createTakeAndCloseSwapInstructions(
                         tokenProgram: TOKEN_PROGRAM_ID,
                     })
                     .instruction();
-                payRAndCloseSIxs.push(...creatorIxs);
-                payRAndCloseSIxs.push(payTakerCoreIx);
+                payRTakerIxs.push(...creatorIxs);
+                payRTakerIxs.push(payTakerCoreIx);
+            } else if (makerNftStd === "compressed") {
+                let {
+                    creators: makerCreators,
+                    creatorTokenAta: makerCreatorTokenAta,
+                    instructions: creatorIxs,
+                } = await getCreatorData({
+                    connection,
+                    nftMint: nftMintMaker,
+                    owner: taker,
+                    paymentMint,
+                    signer,
+                    tokenStandard: makerNftStd,
+                });
+                // console.log("was pay royalties taker", makerCreators, makerCreatorTokenAta);
+
+                let cluster = (
+                    !cEnvOpts.clusterOrUrl.includes("mainnet") ? "devnet" : "mainnet-beta"
+                ) as Cluster;
+                let { index, merkleTree, nonce, proofMeta, root, metadata, owner } =
+                    await getCompNFTData({
+                        cluster,
+                        tokenId: nftMintMaker,
+                        connection,
+                        getRootHash: "calculate",
+                        newOwner: taker,
+                    });
+                if (!metadata) throw "Compressed no metadata found";
+                if (metadata.collection == null) throw "Compressed no collection found";
+
+                let payTakerCoreIx = await program.methods
+                    .payRoyaltiesComp(
+                        root,
+                        metadata.name,
+                        metadata.symbol,
+                        metadata.uri,
+                        metadata.sellerFeeBasisPoints,
+                        metadata.primarySaleHappened,
+                        metadata.isMutable,
+                        metadata.editionNonce,
+                        metadata.creators,
+                        metadata.collection,
+                        nonce,
+                        index
+                    )
+                    .accountsStrict({
+                        swapDataAccount,
+                        swapDataAccountTokenAta,
+                        // nftMint: nftMintMaker,
+
+                        // paymentMint,
+                        merkleTree,
+                        owner,
+                        signer,
+                        // nsFee: NS_FEE,
+                        // nsFeeTokenAta,
+                        creator0: makerCreators[0],
+                        creator0TokenAta: makerCreatorTokenAta[0],
+                        creator1: makerCreators[1],
+                        creator1TokenAta: makerCreatorTokenAta[1],
+                        creator2: makerCreators[2],
+                        creator2TokenAta: makerCreatorTokenAta[2],
+                        creator3: makerCreators[3],
+                        creator3TokenAta: makerCreatorTokenAta[3],
+                        creator4: makerCreators[4],
+                        creator4TokenAta: makerCreatorTokenAta[4],
+                        tokenProgram: TOKEN_PROGRAM_ID,
+                        compressionProgram: SPL_ACCOUNT_COMPRESSION_PROGRAM_ID,
+                    })
+                    .remainingAccounts(proofMeta)
+                    .instruction();
+                payRTakerIxs.push(...creatorIxs);
+                payRTakerIxs.push(payTakerCoreIx);
             } else if (makerNftStd === "native") {
                 let {
                     creators: makerCreator,
@@ -553,8 +751,8 @@ export async function createTakeAndCloseSwapInstructions(
                 });
 
                 if (creatorIxs.length > 0) {
-                    console.log("creatorIxs", creatorIxs.length);
-                    payRAndCloseSIxs.push(...creatorIxs);
+                    console.log("creatorIxs added", creatorIxs.length);
+                    payRTakerIxs.push(...creatorIxs);
                 }
 
                 if (!nftMetadataMaker)
@@ -571,7 +769,7 @@ export async function createTakeAndCloseSwapInstructions(
                         swapDataAccount,
                         swapDataAccountTokenAta,
 
-                        paymentMint,
+                        // paymentMint,
 
                         signer,
 
@@ -596,7 +794,7 @@ export async function createTakeAndCloseSwapInstructions(
                         creator4TokenAta: makerCreatorTokenAta[4],
                     })
                     .instruction();
-                payRAndCloseSIxs.push(payRIx);
+                payRTakerIxs.push(payRIx);
                 // console.log("payRIx", payRIx);
             } else {
                 const payRIx = await program.methods
@@ -614,7 +812,7 @@ export async function createTakeAndCloseSwapInstructions(
                         // tokenProgram: TOKEN_PROGRAM_ID,
                     })
                     .instruction();
-                payRAndCloseSIxs.push(payRIx);
+                payRTakerIxs.push(payRIx);
             }
         }
 
@@ -644,7 +842,7 @@ export async function createTakeAndCloseSwapInstructions(
                         swapDataAccount,
                         swapDataAccountTokenAta,
                         nftMint: nftMintTaker,
-                        paymentMint,
+                        // paymentMint,
                         signer,
                         // nsFee: NS_FEE,
                         // nsFeeTokenAta,
@@ -661,8 +859,79 @@ export async function createTakeAndCloseSwapInstructions(
                         tokenProgram: TOKEN_PROGRAM_ID,
                     })
                     .instruction();
-                payRAndCloseSIxs.push(...creatorIxs);
-                payRAndCloseSIxs.push(payTakerCoreIx);
+                payRMakerIxs.push(...creatorIxs);
+                payRMakerIxs.push(payTakerCoreIx);
+            } else if (takerNftStd === "compressed") {
+                let {
+                    creators: makerCreators,
+                    creatorTokenAta: makerCreatorTokenAta,
+                    instructions: creatorIxs,
+                } = await getCreatorData({
+                    connection,
+                    nftMint: nftMintTaker,
+                    owner: maker,
+                    paymentMint,
+                    signer,
+                    tokenStandard: takerNftStd,
+                });
+
+                let cluster = (
+                    !cEnvOpts.clusterOrUrl.includes("mainnet") ? "devnet" : "mainnet-beta"
+                ) as Cluster;
+                let { index, merkleTree, nonce, proofMeta, root, metadata, owner } =
+                    await getCompNFTData({
+                        cluster,
+                        tokenId: nftMintTaker,
+                        connection,
+                        getRootHash: "calculate",
+                        newOwner: maker,
+                    });
+                if (!metadata) throw "Compressed no metadata found";
+                if (metadata.collection == null) throw "Compressed no collection found";
+
+                let payTakerCoreIx = await program.methods
+                    .payRoyaltiesComp(
+                        root,
+                        metadata.name,
+                        metadata.symbol,
+                        metadata.uri,
+                        metadata.sellerFeeBasisPoints,
+                        metadata.primarySaleHappened,
+                        metadata.isMutable,
+                        metadata.editionNonce,
+                        metadata.creators,
+                        metadata.collection,
+                        nonce,
+                        index
+                    )
+                    .accountsStrict({
+                        swapDataAccount,
+                        swapDataAccountTokenAta,
+                        // nftMint: nftMintMaker,
+
+                        // paymentMint,
+                        merkleTree,
+                        owner,
+                        signer,
+                        // nsFee: NS_FEE,
+                        // nsFeeTokenAta,
+                        creator0: makerCreators[0],
+                        creator0TokenAta: makerCreatorTokenAta[0],
+                        creator1: makerCreators[1],
+                        creator1TokenAta: makerCreatorTokenAta[1],
+                        creator2: makerCreators[2],
+                        creator2TokenAta: makerCreatorTokenAta[2],
+                        creator3: makerCreators[3],
+                        creator3TokenAta: makerCreatorTokenAta[3],
+                        creator4: makerCreators[4],
+                        creator4TokenAta: makerCreatorTokenAta[4],
+                        tokenProgram: TOKEN_PROGRAM_ID,
+                        compressionProgram: SPL_ACCOUNT_COMPRESSION_PROGRAM_ID,
+                    })
+                    .remainingAccounts(proofMeta)
+                    .instruction();
+                payRMakerIxs.push(...creatorIxs);
+                payRMakerIxs.push(payTakerCoreIx);
             } else if (takerNftStd === "native") {
                 let {
                     creators: takerCreator,
@@ -677,7 +946,7 @@ export async function createTakeAndCloseSwapInstructions(
                     tokenStandard: takerNftStd,
                 });
 
-                if (creatorIxs) payRAndCloseSIxs.push(...creatorIxs);
+                if (creatorIxs) payRMakerIxs.push(...creatorIxs);
 
                 if (!nftMetadataTaker)
                     nftMetadataTaker = (
@@ -693,7 +962,7 @@ export async function createTakeAndCloseSwapInstructions(
                         swapDataAccount,
                         swapDataAccountTokenAta,
 
-                        paymentMint,
+                        // paymentMint,
 
                         signer,
 
@@ -718,7 +987,7 @@ export async function createTakeAndCloseSwapInstructions(
                         creator4TokenAta: takerCreatorTokenAta[4],
                     })
                     .instruction();
-                payRAndCloseSIxs.push(payRIx);
+                payRMakerIxs.push(payRIx);
             } else {
                 // console.log("payMakerRoyalties22 signer,", signer);
 
@@ -735,7 +1004,7 @@ export async function createTakeAndCloseSwapInstructions(
                         // tokenProgram: TOKEN_PROGRAM_ID,
                     })
                     .instruction();
-                payRAndCloseSIxs.push(payRIx);
+                payRMakerIxs.push(payRIx);
             }
         }
 
@@ -752,72 +1021,39 @@ export async function createTakeAndCloseSwapInstructions(
 
                 maker,
                 makerTokenAta,
-                paymentMint,
+                // paymentMint,
                 signer,
 
                 systemProgram: SystemProgram.programId,
                 tokenProgram: TOKEN_PROGRAM_ID,
             })
             .instruction();
-        payRAndCloseSIxs.push(closeIx);
+        closeSIxs.push(closeIx);
 
         if (
             swapDataData.paymentMint === WRAPPED_SOL_MINT.toString() &&
             (unwrap === undefined || unwrap === true)
         ) {
-            if (signer === taker) payRAndCloseSIxs.push(closeWSol(taker, taker, takerTokenAta));
-            else if (signer === maker)
-                payRAndCloseSIxs.push(closeWSol(maker, maker, makerTokenAta));
+            if (signer === taker) closeSIxs.push(closeWSol(taker, taker, takerTokenAta));
+            else if (signer === maker) closeSIxs.push(closeWSol(maker, maker, makerTokenAta));
         }
-
-        let takeTx: VersionedTransaction | undefined;
-        let claimTx: VersionedTransaction | undefined;
-
-        if (!acceptedBid) takeTx = await ix2vTx(takeIxs, cEnvOpts, signer);
-        if (!claimed) claimTx = await ix2vTx(claimIxs, cEnvOpts, signer);
-
-        let { lastValidBlockHeight: blockheight, blockhash } =
-            await connection.getLatestBlockhash();
-
-        let bTTakeAndClose: BTv[] = [];
-        let priority = 0;
-
-        if (takeTx) {
-            bTTakeAndClose.push({
-                tx: takeTx,
-                description: DESC.takeSwap,
-                details: takeArgs,
-                priority,
-                status: "pending",
-                blockheight,
-            });
-
-            priority++;
-        } else console.log("no takeSwapTx");
-        if (claimTx) {
-            bTTakeAndClose.push({
-                tx: claimTx,
-                description: DESC.claimSwap,
-                details: takeArgs,
-                priority,
-                status: "pending",
-                blockheight,
-            });
-
-            priority++;
-        } else console.log("no takeSwapTx");
-
-        bTTakeAndClose.push({
-            tx: await ix2vTx(payRAndCloseSIxs, cEnvOpts, signer),
-            description: DESC.payRoyalties,
-            details: takeArgs,
-            priority,
-            status: "pending",
-            blockheight,
+        let bTTakeAndClose = parseTakeAndCloseTxs({
+            cEnvOpts,
+            claimIxs,
+            closeSIxs,
+            connection,
+            makerNftStd,
+            payRMakerIxs,
+            payRTakerIxs,
+            signer,
+            takeArgs,
+            takeIxs,
+            takerNftStd,
+            acceptedBid,
+            claimed,
+            royaltiesPaidMaker,
+            royaltiesPaidTaker,
         });
-
-        bTTakeAndClose.map((b) => (b.tx.message.recentBlockhash = blockhash));
-
         return bTTakeAndClose;
     } catch (error: any) {
         console.log("error init", error);

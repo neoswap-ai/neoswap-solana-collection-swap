@@ -17,6 +17,7 @@ import { getProgram } from "./getProgram.obj";
 import { isVersionedTransaction } from "@solana/wallet-adapter-base";
 import { CollectionSwap } from "./neoSwap.idl";
 import { Program } from "@coral-xyz/anchor";
+import { LOOKUP_TABLE_ACCOUNT } from "./const";
 
 export function checkOptionSend(Data: OptionSend): COptionSend {
     let {
@@ -55,7 +56,14 @@ export function checkOptionSend(Data: OptionSend): COptionSend {
 }
 
 export async function checkEnvOpts(Data: EnvOpts): Promise<CEnvOpts> {
-    let { clusterOrUrl, program: anyProgram, prioritizationFee, programId, idl } = Data;
+    let {
+        clusterOrUrl,
+        program: anyProgram,
+        prioritizationFee,
+        programId,
+        idl,
+        lookUpTableAccount: lUT,
+    } = Data;
     let program: Program<CollectionSwap>; //= anyProgram as any as Program<CollectionSwap>|undefined;
     if (anyProgram && clusterOrUrl) {
         program = anyProgram as any as Program<CollectionSwap>;
@@ -74,7 +82,13 @@ export async function checkEnvOpts(Data: EnvOpts): Promise<CEnvOpts> {
         } as ErrorFeedback;
     }
     programId = program.programId.toString();
-    console.log(programId);
+    // console.log(programId);
+    console.log("lookUpTableAccount LUT", lUT === false, lUT === undefined, lUT);
+
+    let lookUpTableAccount: string | false = LOOKUP_TABLE_ACCOUNT;
+    if (lUT === false) lookUpTableAccount = false;
+    else if (lUT === undefined) lookUpTableAccount = LOOKUP_TABLE_ACCOUNT;
+    else lookUpTableAccount = lUT;
 
     return {
         program,
@@ -83,6 +97,7 @@ export async function checkEnvOpts(Data: EnvOpts): Promise<CEnvOpts> {
         prioritizationFee,
         programId,
         idl: program.idl,
+        lookUpTableAccount,
     };
 }
 export function getMakeArgs(
