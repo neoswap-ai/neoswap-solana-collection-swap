@@ -17,6 +17,7 @@ import {
 import { PROGRAM_ID as MPL_BUBBLEGUM_PROGRAM_ID } from "@metaplex-foundation/mpl-bubblegum";
 import {
     FAIR_LAUNCH_PROGRAM_ID,
+    METAPLEX_AUTH_RULES,
     METAPLEX_AUTH_RULES_PROGRAM,
     NS_FEE,
     TOKEN_METADATA_PROGRAM,
@@ -80,6 +81,7 @@ export async function createLookUpTableAccount({
         new PublicKey(SPL_ASSOCIATED_TOKEN_PROGRAM_ID),
         new PublicKey(MPL_CORE_PROGRAM_ID),
         new PublicKey(METAPLEX_AUTH_RULES_PROGRAM),
+        new PublicKey(METAPLEX_AUTH_RULES),
         MPL_BUBBLEGUM_PROGRAM_ID,
         SPL_ACCOUNT_COMPRESSION_PROGRAM_ID,
         SPL_NOOP_PROGRAM_ID,
