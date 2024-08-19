@@ -25,6 +25,7 @@ import {
 } from "./utils/check";
 import { getCompNFTData, makeRoot, recalculateRoot } from "./utils/compressedHelper";
 import { getCreatorData } from "./utils/creators";
+import { DESC } from "./utils/descriptions";
 import { calculateMakerFee } from "./utils/fees";
 import {
     findNftDataAndMetadataAccount,
@@ -95,6 +96,7 @@ export const UTILS = {
     createLookUpTableAccount,
     getCompNFTData,
     getIdlForBlock,
+    DESC,
     // closeUserPda,
 };
 export const CREATE_INSTRUCTIONS = {
