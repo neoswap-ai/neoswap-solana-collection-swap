@@ -1,5 +1,6 @@
 import { getSdaData } from "../utils/getSdaData.function";
 import {
+    AccountMeta,
     Cluster,
     ComputeBudgetProgram,
     PublicKey,
@@ -58,7 +59,18 @@ export async function createTakeAndCloseSwapInstructions(
     let cEnvOpts = await checkEnvOpts(Data);
     let takeArgs = getTakeArgs(Data);
     let { program, connection } = cEnvOpts;
-    let { taker, swapDataAccount, bid, nftMintTaker, verifyTaker, signer, n, unwrap } = takeArgs;
+    let {
+        taker,
+        swapDataAccount,
+        bid,
+        nftMintTaker,
+        verifyTaker,
+        signer,
+        n,
+        unwrap,
+        traitIndex,
+        traitProofs,
+    } = takeArgs;
     if (!n) n = 0;
 
     if (!signer) {
@@ -197,6 +209,15 @@ export async function createTakeAndCloseSwapInstructions(
 
         let takerAmount = takerFee({ bid, n });
         if (!acceptedBid) {
+            let traitsMeta: AccountMeta[] = [];
+            let isTrait = false;
+            if (traitIndex && traitProofs) {
+                traitsMeta = traitProofs.map((proof) => {
+                    return { isSigner: false, isWritable: false, pubkey: new PublicKey(proof) };
+                });
+                isTrait = true;
+            }
+
             if (swapDataData.paymentMint === WRAPPED_SOL_MINT.toString()) {
                 if (takerAmount > 0) takeIxs.push(...addWSol(taker, takerTokenAta, takerAmount));
             }
@@ -344,11 +365,8 @@ export async function createTakeAndCloseSwapInstructions(
                             })
                         ).metadataAddress;
 
-                    let isTrait = true;
-                    let traitIndex = 0;
-
                     const takeIx = await program.methods
-                        .takeSwap(bidToscBid(bid), n, isTrait, traitIndex)
+                        .takeSwap(bidToscBid(bid), n, isTrait, traitIndex ?? null)
                         .accountsStrict({
                             swapDataAccount,
                             swapDataAccountTokenAta,
@@ -377,9 +395,7 @@ export async function createTakeAndCloseSwapInstructions(
                             ataProgram: SPL_ASSOCIATED_TOKEN_PROGRAM_ID.toString(),
                             authRulesProgram: METAPLEX_AUTH_RULES_PROGRAM.toString(),
                         })
-                        .remainingAccounts([
-                            { isSigner: false, isWritable: false, pubkey: program.programId },
-                        ])
+                        .remainingAccounts(traitsMeta)
                         .instruction();
                     takeIxs.push(takeIx);
                 } else {

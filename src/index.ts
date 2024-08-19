@@ -23,7 +23,13 @@ import {
     isUpdateSArg,
     whatIs,
 } from "./utils/check";
-import { getCompNFTData, getRoot, makeRoot, recalculateRoot } from "./utils/compressedHelper";
+import {
+    getTraitRoot,
+    getCompNFTData,
+    getRoot,
+    makeRoot,
+    recalculateRoot,
+} from "./utils/compressedHelper";
 import { getCreatorData } from "./utils/creators";
 import { calculateMakerFee } from "./utils/fees";
 import {
@@ -61,6 +67,9 @@ export const NFT_ACCOUNTS = {
     findUserTokenRecord,
     whichStandard,
     standardToProgram,
+    getCreatorData,
+    addWSol,
+    closeWSol,
 };
 export const TYPES = {
     whatIs,
@@ -69,11 +78,23 @@ export const TYPES = {
     isTakeSArg,
     isMakeSArg,
     isRmBidsArgs,
+    bidToscBid,
+    checkEnvOpts,
+    checkOptionSend,
+};
+
+export const COMP = {
+    makeRoot,
+    recalculateRoot,
+    getCompNFTData,
+    getRoot,
+    getTraitRoot,
 };
 
 export const UTILS = {
     NFT_ACCOUNTS,
     TYPES,
+    COMP,
     getProgram,
     getSdaData,
     getOpenSda,

@@ -145,6 +145,8 @@ export type TakeSArg = {
     bid: Bid;
     verifyTaker?: boolean;
     unwrap?: boolean;
+    traitProofs?: string[];
+    traitIndex?: number;
 };
 export type ClaimSArg = {
     swapDataAccount: string;

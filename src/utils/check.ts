@@ -116,15 +116,39 @@ export function getMakeArgs(
 }
 
 export function getTakeArgs(
-    Data: // any &
-    | TakeSArg
-        | (Omit<TakeSArg, "taker"> & {
-              taker: Keypair;
-          })
+    Data: any &
+        (
+            | TakeSArg
+            | (Omit<TakeSArg, "taker"> & {
+                  taker: Keypair;
+              })
+        )
 ): TakeSArg {
-    let { bid, nftMintTaker, swapDataAccount, taker, verifyTaker, signer, n, unwrap } = Data;
+    let {
+        bid,
+        nftMintTaker,
+        swapDataAccount,
+        taker,
+        verifyTaker,
+        signer,
+        n,
+        unwrap,
+        traitIndex,
+        traitProofs,
+    } = Data;
     taker = typeof taker === "string" ? taker : taker.publicKey.toString();
-    return { bid, nftMintTaker, swapDataAccount, taker, verifyTaker, signer, n, unwrap };
+    return {
+        bid,
+        nftMintTaker,
+        swapDataAccount,
+        taker,
+        verifyTaker,
+        signer,
+        n,
+        unwrap,
+        traitIndex,
+        traitProofs,
+    };
 }
 export function getClaimSArgs(
     Data: any &

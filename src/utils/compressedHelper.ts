@@ -17,6 +17,7 @@ import { bs58 } from "@coral-xyz/anchor/dist/cjs/utils/bytes";
 import { PROGRAM_ID as MPL_BUBBLEGUM_PROGRAM_ID } from "@metaplex-foundation/mpl-bubblegum";
 import { getLeafAssetId } from "@metaplex-foundation/mpl-bubblegum";
 import { delay } from "./delay";
+import * as crypto from "crypto";
 
 export async function getCompNFTData({
     cluster,
@@ -505,6 +506,7 @@ export function hashv(a: string, b: string) {
 export function hashb(a: Uint8Array[]) {
     return Uint8Array.from(keccak_256.digest(Buffer.concat(a)));
 }
+
 export function getRoot(leaf: string, proof: string[], leafIndex: number) {
     let depth = proof.length;
     let path = leafPath(leafIndex, depth);
@@ -521,4 +523,38 @@ export function getRoot(leaf: string, proof: string[], leafIndex: number) {
     }
 
     return root;
+}
+
+interface CheckTraitRoot {
+    trait_root: string;
+    proofs: string[];
+    index: number;
+    mint: string;
+}
+
+export function getTraitRoot(rootCtx: CheckTraitRoot): string {
+    let currentHash = new PublicKey(rootCtx.mint).toBuffer();
+
+    rootCtx.proofs.forEach((proofStr, i) => {
+        const hasher = crypto.createHash("sha256");
+        let proof = bs58.decode(proofStr);
+
+        if (((rootCtx.index >> i) & 1) === 0) {
+            hasher.update(currentHash);
+            hasher.update(proof);
+        } else {
+            hasher.update(proof);
+            hasher.update(currentHash);
+        }
+
+        currentHash = hasher.digest();
+    });
+
+    return bs58.encode(currentHash);
+}
+
+export function checkTraitRoot(ctx: CheckTraitRoot): boolean {
+    const root = getTraitRoot(ctx);
+    console.log(`trait Root: ${root}`);
+    return root === ctx.trait_root;
 }
