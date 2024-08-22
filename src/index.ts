@@ -29,6 +29,7 @@ import {
     getRoot,
     makeRoot,
     recalculateRoot,
+    hashTwo,
 } from "./utils/compressedHelper";
 import { getCreatorData } from "./utils/creators";
 import { DESC } from "./utils/descriptions";
@@ -90,6 +91,7 @@ export const COMP = {
     getCompNFTData,
     getRoot,
     getTraitRoot,
+    hashTwo,
 };
 
 export const UTILS = {
