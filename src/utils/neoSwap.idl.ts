@@ -1910,6 +1910,14 @@ export const idlSwap: CollectionSwap = {
                         option: "u32",
                     },
                 },
+                {
+                    name: "traitProof",
+                    type: {
+                        option: {
+                            vec: "pubkey",
+                        },
+                    },
+                },
             ],
         },
         {
@@ -1999,6 +2007,26 @@ export const idlSwap: CollectionSwap = {
                     name: "n",
                     type: {
                         option: "u8",
+                    },
+                },
+                {
+                    name: "isTraitBid",
+                    type: {
+                        option: "bool",
+                    },
+                },
+                {
+                    name: "traitIndex",
+                    type: {
+                        option: "u32",
+                    },
+                },
+                {
+                    name: "traitProof",
+                    type: {
+                        option: {
+                            vec: "pubkey",
+                        },
                     },
                 },
             ],
@@ -2239,6 +2267,45 @@ export const idlSwap: CollectionSwap = {
                     type: {
                         option: "u8",
                     },
+                },
+                {
+                    name: "isTraitBid",
+                    type: {
+                        option: "bool",
+                    },
+                },
+                {
+                    name: "traitIndex",
+                    type: {
+                        option: "u32",
+                    },
+                },
+                {
+                    name: "traitProof",
+                    type: {
+                        option: {
+                            vec: "pubkey",
+                        },
+                    },
+                },
+            ],
+        },
+        {
+            name: "verifyLeafCpi",
+            discriminator: [120, 5, 221, 220, 39, 61, 164, 27],
+            accounts: [
+                {
+                    name: "nftMintTaker",
+                },
+            ],
+            args: [
+                {
+                    name: "traitRoot",
+                    type: "pubkey",
+                },
+                {
+                    name: "traitIndex",
+                    type: "u32",
                 },
             ],
         },
@@ -4504,6 +4571,14 @@ export type CollectionSwap = {
                     type: {
                         option: "u32";
                     };
+                },
+                {
+                    name: "traitProof";
+                    type: {
+                        option: {
+                            vec: "pubkey";
+                        };
+                    };
                 }
             ];
         },
@@ -4594,6 +4669,26 @@ export type CollectionSwap = {
                     name: "n";
                     type: {
                         option: "u8";
+                    };
+                },
+                {
+                    name: "isTraitBid";
+                    type: {
+                        option: "bool";
+                    };
+                },
+                {
+                    name: "traitIndex";
+                    type: {
+                        option: "u32";
+                    };
+                },
+                {
+                    name: "traitProof";
+                    type: {
+                        option: {
+                            vec: "pubkey";
+                        };
                     };
                 }
             ];
@@ -4834,6 +4929,45 @@ export type CollectionSwap = {
                     type: {
                         option: "u8";
                     };
+                },
+                {
+                    name: "isTraitBid";
+                    type: {
+                        option: "bool";
+                    };
+                },
+                {
+                    name: "traitIndex";
+                    type: {
+                        option: "u32";
+                    };
+                },
+                {
+                    name: "traitProof";
+                    type: {
+                        option: {
+                            vec: "pubkey";
+                        };
+                    };
+                }
+            ];
+        },
+        {
+            name: "verifyLeafCpi";
+            discriminator: [120, 5, 221, 220, 39, 61, 164, 27];
+            accounts: [
+                {
+                    name: "nftMintTaker";
+                }
+            ];
+            args: [
+                {
+                    name: "traitRoot";
+                    type: "pubkey";
+                },
+                {
+                    name: "traitIndex";
+                    type: "u32";
                 }
             ];
         }

@@ -67,7 +67,7 @@ export async function takeSwap22Ix({
     console.log("makerhashlistMarker", makerhashlistMarker);
 
     return await program.methods
-        .takeSwap22(bidToscBid(bid), n)
+        .takeSwap22(bidToscBid(bid), n, null, null, null)
         .accountsStrict({
             swapDataAccount,
             swapDataAccountTokenAta,
@@ -151,7 +151,7 @@ export async function takeSwapIx({
     }
 
     return await program.methods
-        .takeSwap(bidToscBid(bid), n, null, null)
+        .takeSwap(bidToscBid(bid), n, null, null, null)
         .accountsStrict({
             swapDataAccount,
             swapDataAccountTokenAta,
@@ -312,121 +312,178 @@ export async function parseTakeAndCloseTxs({
     if (makerNftStd === "compressed" || takerNftStd === "compressed") {
         console.log("not clump");
         if (!acceptedBid) {
-            BT = appendToBT({
-                BT,
-                tx: await ix2vTx(takeIxs, cEnvOpts, signer),
-                description: DESC.takeSwap,
-                details: takeArgs,
-            });
+            BT.push(
+                appendToBT({
+                    BT,
+                    tx: await ix2vTx(takeIxs, cEnvOpts, signer),
+                    description: DESC.takeSwap,
+                    details: takeArgs,
+                })
+            );
         }
         if (!claimed) {
-            BT = appendToBT({
-                BT,
-                tx: await ix2vTx(claimIxs, cEnvOpts, signer),
-                description: DESC.claimSwap,
-                details: takeArgs,
-            });
+            BT.push(
+                appendToBT({
+                    BT,
+                    tx: await ix2vTx(claimIxs, cEnvOpts, signer),
+                    description: DESC.claimSwap,
+                    details: takeArgs,
+                })
+            );
         }
 
         if (makerNftStd !== "compressed") {
             if (!royaltiesPaidMaker) {
-                BT = appendToBT({
-                    BT,
-                    tx: await ix2vTx(payRMakerIxs, cEnvOpts, signer),
-                    description: DESC.payRoyalties,
-                    details: takeArgs,
-                });
+                BT.push(
+                    appendToBT({
+                        BT,
+                        tx: await ix2vTx(payRMakerIxs, cEnvOpts, signer),
+                        description: DESC.payRoyalties,
+                        details: takeArgs,
+                    })
+                );
             }
             if (!royaltiesPaidTaker) {
-                BT = appendToBT({
-                    BT,
-                    tx: await ix2vTx(payRTakerIxs.concat(closeSIxs), cEnvOpts, signer),
-                    description: DESC.close,
-                    details: takeArgs,
-                });
+                BT.push(
+                    appendToBT({
+                        BT,
+                        tx: await ix2vTx(payRTakerIxs.concat(closeSIxs), cEnvOpts, signer),
+                        description: DESC.close,
+                        details: takeArgs,
+                    })
+                );
             } else {
-                BT = appendToBT({
-                    BT,
-                    tx: await ix2vTx(closeSIxs, cEnvOpts, signer),
-                    description: DESC.close,
-                    details: takeArgs,
-                });
+                BT.push(
+                    appendToBT({
+                        BT,
+                        tx: await ix2vTx(closeSIxs, cEnvOpts, signer),
+                        description: DESC.close,
+                        details: takeArgs,
+                    })
+                );
             }
         } else if (takerNftStd !== "compressed") {
             if (!royaltiesPaidTaker) {
-                BT = appendToBT({
-                    BT,
-                    tx: await ix2vTx(payRTakerIxs, cEnvOpts, signer),
-                    description: DESC.payRoyalties,
-                    details: takeArgs,
-                });
+                BT.push(
+                    appendToBT({
+                        BT,
+                        tx: await ix2vTx(payRTakerIxs, cEnvOpts, signer),
+                        description: DESC.payRoyalties,
+                        details: takeArgs,
+                    })
+                );
             }
             if (!royaltiesPaidMaker) {
-                BT = appendToBT({
-                    BT,
-                    tx: await ix2vTx(payRMakerIxs.concat(closeSIxs), cEnvOpts, signer),
-                    description: DESC.close,
-                    details: takeArgs,
-                });
+                BT.push(
+                    appendToBT({
+                        BT,
+                        tx: await ix2vTx(payRMakerIxs.concat(closeSIxs), cEnvOpts, signer),
+                        description: DESC.close,
+                        details: takeArgs,
+                    })
+                );
             } else {
-                BT = appendToBT({
+                BT.push(
+                    appendToBT({
+                        BT,
+                        tx: await ix2vTx(closeSIxs, cEnvOpts, signer),
+                        description: DESC.close,
+                        details: takeArgs,
+                    })
+                );
+            }
+        } else {
+            BT.push(
+                appendToBT({
+                    BT,
+                    tx: await ix2vTx(payRMakerIxs, cEnvOpts, signer),
+                    description: DESC.payMakerRoyalties,
+                    details: takeArgs,
+                })
+            );
+            BT.push(
+                appendToBT({
+                    BT,
+                    tx: await ix2vTx(payRTakerIxs, cEnvOpts, signer),
+                    description: DESC.payTakerRoyalties,
+                    details: takeArgs,
+                })
+            );
+            BT.push(
+                appendToBT({
                     BT,
                     tx: await ix2vTx(closeSIxs, cEnvOpts, signer),
                     description: DESC.close,
                     details: takeArgs,
-                });
-            }
-        } else {
-            BT = appendToBT({
-                BT,
-                tx: await ix2vTx(payRMakerIxs, cEnvOpts, signer),
-                description: DESC.payMakerRoyalties,
-                details: takeArgs,
-            });
-            BT = appendToBT({
-                BT,
-                tx: await ix2vTx(payRTakerIxs, cEnvOpts, signer),
-                description: DESC.payTakerRoyalties,
-                details: takeArgs,
-            });
-            BT = appendToBT({
-                BT,
-                tx: await ix2vTx(closeSIxs, cEnvOpts, signer),
-                description: DESC.close,
-                details: takeArgs,
-            });
+                })
+            );
         }
     } else {
         console.log("clump");
         let clumpAccept = [];
-        if (!acceptedBid) clumpAccept.push(...takeIxs);
-        if (!claimed) clumpAccept.push(...claimIxs);
-        if (clumpAccept.length > 0)
-            BT = appendToBT({
-                tx: await ix2vTx(clumpAccept, cEnvOpts, signer),
-                BT,
-                description: DESC.takeSwap,
-                details: takeArgs,
-            });
+        try {
+            if (!acceptedBid) clumpAccept.push(...takeIxs);
+            if (!claimed) clumpAccept.push(...claimIxs);
+            if (clumpAccept.length > 0) {
+                let testVtx = appendToBT({
+                    tx: await ix2vTx(clumpAccept, cEnvOpts, signer),
+                    BT,
+                    description: DESC.takeSwap,
+                    details: takeArgs,
+                });
+
+                let seri = testVtx.tx.serialize().length;
+                console.log("seri length", seri);
+                if (seri > 1232) {
+                    throw "takeSwapIx too large";
+                } else BT.push(testVtx);
+            }
+        } catch (error) {
+            console.log("clumpAccept error", error);
+
+            if (!acceptedBid) {
+                BT.push(
+                    appendToBT({
+                        BT,
+                        tx: await ix2vTx(takeIxs, cEnvOpts, signer),
+                        description: DESC.takeSwap,
+                        details: takeArgs,
+                    })
+                );
+            }
+            if (!claimed) {
+                BT.push(
+                    appendToBT({
+                        BT,
+                        tx: await ix2vTx(claimIxs, cEnvOpts, signer),
+                        description: DESC.claimSwap,
+                        details: takeArgs,
+                    })
+                );
+            }
+        }
 
         let clumpClose = [];
         if (!royaltiesPaidMaker) clumpClose.push(...payRMakerIxs);
         if (!royaltiesPaidTaker) clumpClose.push(...payRTakerIxs);
         clumpClose.push(...closeSIxs);
         if (clumpClose.length > 0)
-            BT = appendToBT({
-                tx: await ix2vTx(clumpClose, cEnvOpts, signer),
-                BT,
-                description: DESC.close,
-                details: takeArgs,
-            });
+            BT.push(
+                appendToBT({
+                    tx: await ix2vTx(clumpClose, cEnvOpts, signer),
+                    BT,
+                    description: DESC.close,
+                    details: takeArgs,
+                })
+            );
     }
 
     let { lastValidBlockHeight: blockheight, blockhash } = await connection.getLatestBlockhash();
 
-    BT.map((b) => {
+    BT.map((b, i) => {
         b.tx.message.recentBlockhash = blockhash;
         b.blockheight = blockheight;
+        console.log(i, "b serialized size", b.description, b.tx.serialize().length);
     });
     return BT;
 }

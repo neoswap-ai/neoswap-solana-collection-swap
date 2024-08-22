@@ -209,13 +209,19 @@ export async function createTakeAndCloseSwapInstructions(
 
         let takerAmount = takerFee({ bid, n });
         if (!acceptedBid) {
-            let traitsMeta: AccountMeta[] = [];
+            let traitsProofPk: PublicKey[] = [];
             let isTrait = false;
-            if (traitIndex && traitProofs) {
-                traitsMeta = traitProofs.map((proof) => {
-                    return { isSigner: false, isWritable: false, pubkey: new PublicKey(proof) };
-                });
+            let traitInd: number | null = null;
+            console.log("traitIndex && traitProofs", traitIndex, traitProofs);
+
+            if (traitIndex !== undefined && traitProofs !== undefined && traitProofs.length > 0) {
+                // traitsMeta = traitProofs.map((proof) => {
+                //     return { isSigner: false, isWritable: false, pubkey: new PublicKey(proof) };
+                // });
+                traitInd = traitIndex ?? null;
+                traitsProofPk = traitProofs.map((proof) => new PublicKey(proof));
                 isTrait = true;
+                console.log(isTrait, "istraitsMeta");
             }
 
             if (swapDataData.paymentMint === WRAPPED_SOL_MINT.toString()) {
@@ -227,7 +233,7 @@ export async function createTakeAndCloseSwapInstructions(
                     mint: nftMintTaker,
                 });
                 const takeIx = await program.methods
-                    .takeSwapCore(bidToscBid(bid), n)
+                    .takeSwapCore(bidToscBid(bid), n, isTrait, traitInd, traitsProofPk)
                     .accountsStrict({
                         swapDataAccount,
                         swapDataAccountTokenAta,
@@ -366,7 +372,7 @@ export async function createTakeAndCloseSwapInstructions(
                         ).metadataAddress;
 
                     const takeIx = await program.methods
-                        .takeSwap(bidToscBid(bid), n, isTrait, traitIndex ?? null)
+                        .takeSwap(bidToscBid(bid), n, isTrait, traitIndex ?? null, traitsProofPk)
                         .accountsStrict({
                             swapDataAccount,
                             swapDataAccountTokenAta,
@@ -395,7 +401,7 @@ export async function createTakeAndCloseSwapInstructions(
                             ataProgram: SPL_ASSOCIATED_TOKEN_PROGRAM_ID.toString(),
                             authRulesProgram: METAPLEX_AUTH_RULES_PROGRAM.toString(),
                         })
-                        .remainingAccounts(traitsMeta)
+                        // .remainingAccounts(traitsMeta)
                         .instruction();
                     takeIxs.push(takeIx);
                 } else {
@@ -406,7 +412,7 @@ export async function createTakeAndCloseSwapInstructions(
                     console.log("makerhashlistMarker", makerhashlistMarker);
 
                     const takeIx = await program.methods
-                        .takeSwap22(bidToscBid(Data.bid), n)
+                        .takeSwap22(bidToscBid(Data.bid), n, isTrait, traitInd, traitsProofPk)
                         .accountsStrict({
                             swapDataAccount,
                             swapDataAccountTokenAta,

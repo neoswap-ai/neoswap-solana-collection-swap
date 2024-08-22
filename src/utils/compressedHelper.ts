@@ -532,22 +532,37 @@ interface CheckTraitRoot {
     mint: string;
 }
 
+export function hashTwo(
+    currentProof: string,
+    toHashWith: string | Buffer,
+    index: number,
+    currentDepth: number
+) {
+    const hasher = crypto.createHash("sha256");
+    let proof = bs58.decode(currentProof);
+
+    let updateHash;
+    if (typeof toHashWith === "string") {
+        updateHash = bs58.decode(toHashWith);
+    } else {
+        updateHash = toHashWith;
+    }
+    if (((index >> currentDepth) & 1) === 0) {
+        hasher.update(updateHash);
+        hasher.update(proof);
+    } else {
+        hasher.update(proof);
+        hasher.update(updateHash);
+    }
+
+    return hasher.digest();
+}
+
 export function getTraitRoot(rootCtx: CheckTraitRoot): string {
     let currentHash = new PublicKey(rootCtx.mint).toBuffer();
 
     rootCtx.proofs.forEach((proofStr, i) => {
-        const hasher = crypto.createHash("sha256");
-        let proof = bs58.decode(proofStr);
-
-        if (((rootCtx.index >> i) & 1) === 0) {
-            hasher.update(currentHash);
-            hasher.update(proof);
-        } else {
-            hasher.update(proof);
-            hasher.update(currentHash);
-        }
-
-        currentHash = hasher.digest();
+        currentHash = hashTwo(proofStr, currentHash, rootCtx.index, i);
     });
 
     return bs58.encode(currentHash);

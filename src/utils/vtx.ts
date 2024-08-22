@@ -49,13 +49,13 @@ export function appendToBT({
     details: any;
     description: string;
 }) {
-    BT.push({
+    return {
         tx,
         description,
         details,
         priority: BT.length,
         status: "pending",
         blockheight: 0,
-    });
-    return BT;
+    } as BTv;
+    // return BT;
 }
