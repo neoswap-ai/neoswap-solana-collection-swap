@@ -526,7 +526,7 @@ export function getRoot(leaf: string, proof: string[], leafIndex: number) {
 }
 
 interface CheckTraitRoot {
-    trait_root: string;
+    trait_root?: string;
     proofs: string[];
     index: number;
     mint: string;
