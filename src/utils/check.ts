@@ -1,4 +1,5 @@
 import {
+  Cluster,
   Connection,
   Keypair,
   Transaction,
@@ -99,6 +100,10 @@ export async function checkEnvOpts(Data: EnvOpts): Promise<CEnvOpts> {
   else if (lUT === undefined) lookUpTableAccount = LOOKUP_TABLE_ACCOUNT;
   else lookUpTableAccount = lUT;
 
+  let cluster = (
+    clusterOrUrl.includes("mainnet") ? "devnet" : "mainnet-beta"
+  ) as Cluster;
+
   return {
     program,
     clusterOrUrl,
@@ -107,6 +112,7 @@ export async function checkEnvOpts(Data: EnvOpts): Promise<CEnvOpts> {
     programId,
     idl: program.idl,
     lookUpTableAccount,
+    cluster,
   };
 }
 export function getMakeArgs(
@@ -133,7 +139,7 @@ export async function getMakeTraitsArgs(
 ): Promise<MakeTraitSArg & { bids: Bid[] }> {
   let { traitBids, endDate, maker, nftMintMaker, paymentMint } = Data;
   let cEnvOpts = await checkEnvOpts(Data);
-  
+
   let bids: Bid[] = await Promise.all(
     traitBids.map(async (bidTrait) => {
       let bid: Bid = {
@@ -167,12 +173,13 @@ export function getTakeArgs(
     taker,
     verifyTaker,
     signer,
-    n,
+    n: nn,
     unwrap,
     traitIndex,
     traitProofs,
   } = Data;
   taker = typeof taker === "string" ? taker : taker.publicKey.toString();
+
   return {
     bid,
     nftMintTaker,
@@ -180,7 +187,7 @@ export function getTakeArgs(
     taker,
     verifyTaker,
     signer,
-    n,
+    n: nn ?? 0,
     unwrap,
     traitIndex,
     traitProofs,
