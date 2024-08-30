@@ -7,6 +7,7 @@ import { takeAndCloseSwap } from "./processor/takeAndCloseSwap";
 import { createCancelSwapInstructions } from "./programInstructions/cancelSwap.instructions";
 // import { createClaimSwapInstructions } from "./programInstructions/claimSwap.instructions";
 import { createMakeSwapInstructions } from "./programInstructions/makeSwap.instructions";
+import { createMakeTraitSwapInstructions } from "./programInstructions/makeTraitSwap.instructions";
 import { createAddBidBt, createRmBidBt } from "./programInstructions/modifyAddBid.instructions";
 // import { createPayRoyaltiesInstructions } from "./programInstructions/payRoyalties.instructions";
 import { createSetNewTime } from "./programInstructions/setNewTime.instructions";
@@ -125,6 +126,7 @@ export const UTILS = {
 };
 export const CREATE_INSTRUCTIONS = {
     createMakeSwapInstructions,
+    createMakeTraitSwapInstructions,
     // createTakeSwapInstructions,
     // createPayRoyaltiesInstructions,
     // createClaimSwapInstructions,

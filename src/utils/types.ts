@@ -29,6 +29,22 @@ export type ScBid = {
     takerRoyalties: BN;
     makerRoyalties: BN;
 };
+export type TraitBid = {
+    proofs: string[];
+    amount: number;
+    makerNeoswapFee: number;
+    takerNeoswapFee: number;
+    takerRoyalties: number;
+    makerRoyalties: number;
+};
+export type TraitBidAccount = {
+    owner: string;
+    traitProofs: string[];
+};
+export type ScTraitBidAccount = {
+    owner: PublicKey;
+    traitProofs: PublicKey[];
+};
 
 export type SwapData = {
     maker: string;
@@ -136,6 +152,15 @@ export type MakeSArg = {
     bids: Bid[];
     endDate: number;
 };
+export type MakeTraitSArg = {
+    maker: string;
+    nftMintMaker: string;
+    paymentMint: string;
+    traitBids: TraitBid[];
+    endDate: number;
+};
+
+
 export type TakeSArg = {
     swapDataAccount: string;
     taker: string;
