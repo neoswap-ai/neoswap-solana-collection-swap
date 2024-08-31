@@ -1,10 +1,4 @@
-import {
-  Cluster,
-  Connection,
-  Keypair,
-  Transaction,
-  VersionedTransaction,
-} from "@solana/web3.js";
+import { Cluster, Connection, Keypair, Transaction, VersionedTransaction } from "@solana/web3.js";
 import {
   Act,
   Bid,
@@ -44,8 +38,7 @@ export function checkOptionSend(Data: OptionSend): COptionSend {
   if (!retryDelay) retryDelay = 5000;
 
   if (connection && clusterOrUrl) {
-  } else if (!connection && clusterOrUrl)
-    connection = new Connection(clusterOrUrl);
+  } else if (!connection && clusterOrUrl) connection = new Connection(clusterOrUrl);
   else if (!clusterOrUrl && connection) clusterOrUrl = connection.rpcEndpoint;
   else
     throw {
@@ -74,12 +67,10 @@ export async function checkEnvOpts(Data: EnvOpts): Promise<CEnvOpts> {
     idl,
     lookUpTableAccount: lUT,
   } = Data;
-  let program: Program<CollectionSwap>; //= anyProgram as any as Program<CollectionSwap>|undefined;
+  let program: Program<CollectionSwap>;
   if (anyProgram && clusterOrUrl) {
     program = anyProgram as any as Program<CollectionSwap>;
   } else if (!anyProgram && clusterOrUrl) {
-    // console.log("programId", programId);
-
     program = await getProgram({ clusterOrUrl: clusterOrUrl, programId, idl });
   } else if (!clusterOrUrl && anyProgram) {
     program = anyProgram as any as Program<CollectionSwap>;
@@ -93,16 +84,14 @@ export async function checkEnvOpts(Data: EnvOpts): Promise<CEnvOpts> {
   }
   programId = program.programId.toString();
   // console.log(programId);
-  console.log("lookUpTableAccount LUT", lUT === false, lUT === undefined, lUT);
 
   let lookUpTableAccount: string | false = LOOKUP_TABLE_ACCOUNT;
+
   if (lUT === false) lookUpTableAccount = false;
   else if (lUT === undefined) lookUpTableAccount = LOOKUP_TABLE_ACCOUNT;
   else lookUpTableAccount = lUT;
 
-  let cluster = (
-    clusterOrUrl.includes("mainnet") ? "devnet" : "mainnet-beta"
-  ) as Cluster;
+  let cluster = (clusterOrUrl.includes("mainnet") ? "devnet" : "mainnet-beta") as Cluster;
 
   return {
     program,
@@ -228,11 +217,25 @@ export function isMakeSArg(Data: Act): Data is MakeSArg {
   }
 }
 
+export function isMakeTraitSArg(Data: Act): Data is MakeTraitSArg {
+  if (
+    "endDate" in Data &&
+    "maker" in Data &&
+    "nftMintMaker" in Data &&
+    "paymentMint" in Data &&
+    "bids" in Data
+  ) {
+    return true;
+  } else {
+    return false;
+  }
+}
 export function isTakeSArg(Data: Act): Data is TakeSArg {
+  // prettier-ignore
   if (
     "taker" in Data &&
     "bid" in Data &&
-    "nftMintTaker" in Data &&
+  "nftMintTaker" in Data &&
     "swapDataAccount" in Data
   ) {
     return true;
@@ -270,10 +273,9 @@ export function isRmBidsArgs(Data: Act): Data is RmBidArgs {
   }
 }
 
-export function whatIs(
-  Data: Act
-):
-  | "MakeSArg"
+export function whatIs(Data: Act): // prettier-ignore
+| "MakeSArg"
+  | "MakeTraitSArg"
   | "TakeSArg"
   | "ClaimSArg"
   | "UpdateSArgs"
@@ -281,6 +283,7 @@ export function whatIs(
   | "RmBidArgs"
   | "unknown" {
   if (isMakeSArg(Data)) return "MakeSArg";
+  if (isMakeTraitSArg(Data)) return "MakeTraitSArg";
   if (isTakeSArg(Data)) return "TakeSArg";
   if (isClaimSArg(Data)) return "ClaimSArg";
   if (isUpdateSArg(Data)) return "UpdateSArgs";
