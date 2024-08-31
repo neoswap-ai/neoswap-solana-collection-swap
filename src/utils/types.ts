@@ -138,6 +138,7 @@ export type BundleTxBase = {
 };
 export type Act =
   | MakeSArg
+  | MakeTraitSArg
   | TakeSArg
   | ClaimSArg
   | UpdateSArgs
