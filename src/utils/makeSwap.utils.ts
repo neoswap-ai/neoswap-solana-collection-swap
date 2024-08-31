@@ -287,8 +287,10 @@ export async function createAdditionalTraitSwapBidIx({
 }) {
   let makeBidIxs: TransactionInstruction[] = [];
   let addBidIxs: TransactionInstruction[] = [];
+  let firstBids: Bid[] = [];
+
   if (otherBids.length > 0) {
-    let bidDataIxs = await createAddBidIx({
+    ({ ataIxs: makeBidIxs, bidIxs: addBidIxs } = await createAddBidIx({
       swapDataAccount,
       bids: otherBids,
       maker,
@@ -296,16 +298,17 @@ export async function createAdditionalTraitSwapBidIx({
       makerTokenAta,
       swapDataAccountTokenAta,
       ...cEnvOpts,
-    });
-    makeBidIxs.push(...bidDataIxs.ataIxs);
-    addBidIxs = bidDataIxs.bidIxs;
+    }));
     if (addBidIxs.length <= 3) {
       makeBidIxs.push(...addBidIxs);
       addBidIxs = [];
+      firstBids = otherBids;
     } else {
       makeBidIxs.push(...addBidIxs.slice(0, 3));
       addBidIxs = addBidIxs.slice(3);
+      firstBids = otherBids.slice(0, 3);
+      otherBids = otherBids.slice(3);
     }
   }
-  return { makeBidIxs, addBidIxs };
+  return { makeBidIxs, addBidIxs, firstBids, otherBids };
 }

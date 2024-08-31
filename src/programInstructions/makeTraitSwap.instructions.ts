@@ -107,7 +107,12 @@ export async function createMakeTraitSwapInstructions(
     });
     instructions.push(...makeTraitSwapIxs);
 
-    let { addBidIxs, makeBidIxs } = await createAdditionalTraitSwapBidIx({
+    let {
+      addBidIxs,
+      makeBidIxs,
+      firstBids: firstAddedBids,
+      otherBids: otherAddedBids,
+    } = await createAdditionalTraitSwapBidIx({
       cEnvOpts,
       maker,
       makerTokenAta,
@@ -121,7 +126,7 @@ export async function createMakeTraitSwapInstructions(
     let bTxs: BTv[] = [
       appendToBT({
         description: DESC.makeSwap,
-        details: { ...Data, firstBid },
+        details: { ...Data, thisBids: { ...firstBid, firstAddedBids }, bids },
         tx: await ix2vTx(instructions, cEnvOpts, maker),
       }),
     ];
@@ -131,7 +136,12 @@ export async function createMakeTraitSwapInstructions(
         appendToBT({
           BT: bTxs,
           description: DESC.addBid,
-          details: { swapDataAccount, bids, maker } as UpdateSArgs,
+          details: {
+            swapDataAccount,
+            thisBids: { otherAddedBids },
+            bids,
+            maker,
+          } as UpdateSArgs,
           tx: await ix2vTx(addBidIxs, cEnvOpts, maker),
         })
       );
