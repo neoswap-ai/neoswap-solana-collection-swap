@@ -16,6 +16,7 @@ import {
   createTakeSwapIxs,
   parseTakeAndCloseTxs,
 } from "../utils/takeSwap.utils";
+import { appendBtByChunk, createTakeBatchTransactions } from "../utils/makeSwap.utils";
 
 export async function createTakeAndCloseSwapInstructions(
   Data: TakeSArg & EnvOpts // & { index: number }
@@ -277,24 +278,37 @@ export async function createTakeAndCloseSwapInstructions(
     });
     if (addToClaimIxs.length > 1) claimIxs.push(...addToClaimIxs);
 
-    let bTTakeAndClose = parseTakeAndCloseTxs({
+    let BTs = await appendBtByChunk(
+      createTakeBatchTransactions({
+        takeIxs,
+        claimIxs,
+        payRMakerIxs,
+        payRTakerIxs,
+        closeSIxs,
+        Data,
+      }),
       cEnvOpts,
-      claimIxs,
-      closeSIxs,
-      connection,
-      makerNftStd,
-      payRMakerIxs,
-      payRTakerIxs,
-      signer,
-      takeArgs,
-      takeIxs,
-      takerNftStd,
-      acceptedBid,
-      claimed,
-      royaltiesPaidMaker,
-      royaltiesPaidTaker,
-    });
-    return bTTakeAndClose;
+      signer
+    );
+    return BTs;
+    // let bTTakeAndClose = parseTakeAndCloseTxs({
+    //   cEnvOpts,
+    //   claimIxs,
+    //   closeSIxs,
+    //   connection,
+    //   makerNftStd,
+    //   payRMakerIxs,
+    //   payRTakerIxs,
+    //   signer,
+    //   takeArgs,
+    //   takeIxs,
+    //   takerNftStd,
+    //   acceptedBid,
+    //   claimed,
+    //   royaltiesPaidMaker,
+    //   royaltiesPaidTaker,
+    // });
+    // return bTTakeAndClose;
   } catch (error: any) {
     console.log("error init", error);
 

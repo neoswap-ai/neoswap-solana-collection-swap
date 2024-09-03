@@ -1,11 +1,5 @@
 import { TransactionInstruction } from "@solana/web3.js";
-import {
-  BTv,
-  EnvOpts,
-  MakeTraitSArg,
-  ReturnSwapData,
-  UpdateSArgs,
-} from "../utils/types";
+import { BTv, EnvOpts, MakeTraitSArg, ReturnSwapData, UpdateSArgs } from "../utils/types";
 import { findOrCreateAta } from "../utils/findOrCreateAta.function";
 import { VERSION } from "../utils/const";
 import { whichStandard } from "../utils/findNftDataAndAccounts.function";
@@ -21,6 +15,8 @@ import {
   getBidsForMake,
   createTraitBidSwapIx,
   createAdditionalTraitSwapBidIx,
+  appendBtByChunk,
+  createMakeBatchTransactions,
 } from "../utils/makeSwap.utils";
 
 export async function createMakeTraitSwapInstructions(
@@ -30,33 +26,21 @@ export async function createMakeTraitSwapInstructions(
   let cEnvOpts = await checkEnvOpts(Data);
   let makeArgs = await getMakeTraitsArgs(Data);
   let { program, connection, cluster } = cEnvOpts;
-  let {
-    bids: givenBids,
-    traitBids,
-    endDate,
-    maker,
-    nftMintMaker,
-    paymentMint,
-  } = makeArgs;
+  let { bids: givenBids, traitBids, endDate, maker, nftMintMaker, paymentMint } = makeArgs;
 
-  let swapDataAccount = getSda(
-    maker,
-    nftMintMaker,
-    program.programId.toString()
-  );
+  let swapDataAccount = getSda(maker, nftMintMaker, program.programId.toString());
   console.log("swapDataAccount", swapDataAccount);
 
-  let instructions: TransactionInstruction[] = [];
-
+  // let instructions: TransactionInstruction[][] = [];
+  let initializeCoreSwap: TransactionInstruction[] = [];
   try {
-    let { mintAta: swapDataAccountTokenAta, instruction: st } =
-      await findOrCreateAta({
-        connection,
-        mint: paymentMint,
-        owner: swapDataAccount,
-        signer: maker,
-      });
-    if (st) instructions.push(st);
+    let { mintAta: swapDataAccountTokenAta, instruction: st } = await findOrCreateAta({
+      connection,
+      mint: paymentMint,
+      owner: swapDataAccount,
+      signer: maker,
+    });
+    if (st) initializeCoreSwap.push(st);
     else console.log("swapDataAccountTokenAta", swapDataAccountTokenAta);
 
     let { mintAta: makerTokenAta, instruction: mt } = await findOrCreateAta({
@@ -65,7 +49,7 @@ export async function createMakeTraitSwapInstructions(
       owner: maker,
       signer: maker,
     });
-    if (mt) instructions.push(mt);
+    if (mt) initializeCoreSwap.push(mt);
     else console.log("makerTokenAta", makerTokenAta);
 
     let { bids, firstBid, otherBids } = getBidsForMake(givenBids);
@@ -76,15 +60,14 @@ export async function createMakeTraitSwapInstructions(
       signer: maker,
       traitBids,
     });
-    instructions.push(...initializeBidAccountIxs);
+    // instructions.push(...initializeBidAccountIxs);
 
     // if wSOL
     if (paymentMint === WRAPPED_SOL_MINT.toString()) {
       let maxAmount = calculateMakerFee({ bids });
       console.log("Wsol maxAmount", maxAmount);
 
-      if (maxAmount > 0)
-        instructions.push(...addWSol(maker, makerTokenAta, maxAmount));
+      if (maxAmount > 0) initializeCoreSwap.push(...addWSol(maker, makerTokenAta, maxAmount));
     }
 
     let tokenStd = await whichStandard({ mint: nftMintMaker, connection });
@@ -103,15 +86,15 @@ export async function createMakeTraitSwapInstructions(
       swapDataAccount,
       swapDataAccountTokenAta,
       tokenStd,
-      traitBids,
+      // traitBids,
     });
-    instructions.push(...makeTraitSwapIxs);
+    initializeCoreSwap.push(...makeTraitSwapIxs);
 
     let {
       addBidIxs,
-      makeBidIxs,
-      firstBids: firstAddedBids,
-      otherBids: otherAddedBids,
+      // makeBidIxs,
+      // firstBids: firstAddedBids,
+      // otherBids: otherAddedBids,
     } = await createAdditionalTraitSwapBidIx({
       cEnvOpts,
       maker,
@@ -121,32 +104,21 @@ export async function createMakeTraitSwapInstructions(
       swapDataAccount,
       swapDataAccountTokenAta,
     });
-    instructions.push(...makeBidIxs);
 
-    let bTxs: BTv[] = [
-      appendToBT({
-        description: DESC.makeSwap,
-        details: { ...Data, thisBids: { ...firstBid, firstAddedBids }, bids },
-        tx: await ix2vTx(instructions, cEnvOpts, maker),
+    let bTxs: BTv[] = await appendBtByChunk(
+      createMakeBatchTransactions({
+        initializeCoreSwap,
+        addBidIxs,
+        initializeBidAccountIxs,
+        traitBids,
+        firstBid,
+        otherBids,
+        Data: makeArgs,
       }),
-    ];
-
-    if (addBidIxs.length > 0) {
-      bTxs.push(
-        appendToBT({
-          BT: bTxs,
-          description: DESC.addBid,
-          details: {
-            swapDataAccount,
-            thisBids: { otherAddedBids },
-            bids,
-            maker,
-          } as UpdateSArgs,
-          tx: await ix2vTx(addBidIxs, cEnvOpts, maker),
-        })
-      );
-    }
-    console.log("addBidIxs", addBidIxs.length);
+      cEnvOpts,
+      maker
+    );
+    console.log("bTxs", bTxs);
 
     return {
       bTxs,

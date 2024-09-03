@@ -1,7 +1,7 @@
 import { BN } from "@coral-xyz/anchor";
 import { makerFee } from "./fees";
 import { findTraitBidAccount } from "./traitBid";
-import { AssetStandard, Bid, CEnvOpts, TraitBid } from "./types";
+import { AssetStandard, Bid, BTv, CEnvOpts, EnvOpts, TraitBid } from "./types";
 import {
   Connection,
   PublicKey,
@@ -26,8 +26,14 @@ import {
 import { PROGRAM_ID as MPL_BUBBLEGUM_PROGRAM_ID } from "@metaplex-foundation/mpl-bubblegum";
 import { findOrCreateAta } from "./findOrCreateAta.function";
 import { TokenStandard } from "@metaplex-foundation/mpl-token-metadata";
-import { METAPLEX_AUTH_RULES_PROGRAM, TOKEN_METADATA_PROGRAM } from "./const";
+import {
+  MAX_BYTE_PER_TRANSACTION,
+  METAPLEX_AUTH_RULES_PROGRAM,
+  TOKEN_METADATA_PROGRAM,
+} from "./const";
 import { createAddBidIx } from "../programInstructions/modifyAddBid.instructions";
+import { appendToBT, ix2vTx } from "./vtx";
+import { DESC } from "./descriptions";
 
 export function getBidsForMake(bids: Bid[]) {
   let outBids = bids.sort((bidA, bidB) => {
@@ -53,7 +59,7 @@ export async function getBidAccountInstructions({
   cEnvOpts: CEnvOpts;
 }) {
   let { program } = cEnvOpts;
-  let instructions: TransactionInstruction[] = [];
+  let instructions: TransactionInstruction[][] = [];
   for await (let traitBid of traitBids) {
     let traitBidAccount = await findTraitBidAccount(traitBid.proofs, cEnvOpts);
     console.log("traitBidAccount", traitBidAccount);
@@ -65,7 +71,7 @@ export async function getBidAccountInstructions({
         systemProgram: SystemProgram.programId,
       })
       .instruction();
-    instructions.push(createBidAccountIx);
+    instructions.push([createBidAccountIx]);
   }
   return instructions;
 }
@@ -83,7 +89,7 @@ export async function createTraitBidSwapIx({
   swapDataAccount,
   swapDataAccountTokenAta,
 }: {
-  traitBids: TraitBid[];
+  // traitBids: TraitBid[];
   signer: string;
   cEnvOpts: CEnvOpts;
   tokenStd: AssetStandard;
@@ -121,20 +127,12 @@ export async function createTraitBidSwapIx({
       .instruction();
     instructions.push(initIx);
   } else if (tokenStd === "compressed") {
-    let {
-      creatorHash,
-      dataHash,
-      index,
-      merkleTree,
-      nonce,
-      proofMeta,
-      root,
-      treeAuthority,
-    } = await getCompNFTData({
-      cluster: cEnvOpts.cluster,
-      tokenId: nftMintMaker,
-      connection,
-    });
+    let { creatorHash, dataHash, index, merkleTree, nonce, proofMeta, root, treeAuthority } =
+      await getCompNFTData({
+        cluster: cEnvOpts.cluster,
+        tokenId: nftMintMaker,
+        connection,
+      });
 
     let makeCompData = await program.methods
       .makeSwapComp(
@@ -167,13 +165,12 @@ export async function createTraitBidSwapIx({
       .instruction();
     instructions.push(makeCompData);
   } else if (tokenStd === "native" || tokenStd === "hybrid") {
-    let { mintAta: swapDataAccountNftAta, instruction: sn } =
-      await findOrCreateAta({
-        connection,
-        mint: nftMintMaker,
-        owner: swapDataAccount,
-        signer: maker,
-      });
+    let { mintAta: swapDataAccountNftAta, instruction: sn } = await findOrCreateAta({
+      connection,
+      mint: nftMintMaker,
+      owner: swapDataAccount,
+      signer: maker,
+    });
     if (sn) instructions.push(sn);
     else console.log("swapDataAccountNftAta", swapDataAccountNftAta);
 
@@ -285,12 +282,12 @@ export async function createAdditionalTraitSwapBidIx({
   swapDataAccountTokenAta: string;
   cEnvOpts: CEnvOpts;
 }) {
-  let makeBidIxs: TransactionInstruction[] = [];
+  // let makeBidIxs: TransactionInstruction[] = [];
   let addBidIxs: TransactionInstruction[] = [];
-  let firstBids: Bid[] = [];
+  // let addBids: Bid[] = [];
 
   if (otherBids.length > 0) {
-    ({ ataIxs: makeBidIxs, bidIxs: addBidIxs } = await createAddBidIx({
+    ({ bidIxs: addBidIxs } = await createAddBidIx({
       swapDataAccount,
       bids: otherBids,
       maker,
@@ -299,16 +296,204 @@ export async function createAdditionalTraitSwapBidIx({
       swapDataAccountTokenAta,
       ...cEnvOpts,
     }));
-    if (addBidIxs.length <= 3) {
-      makeBidIxs.push(...addBidIxs);
-      addBidIxs = [];
-      firstBids = otherBids;
+    // addBidIxs = addBidIxs.slice(3);
+
+    // if (addBidIxs.length <= 3) {
+    //   makeBidIxs.push(...addBidIxs);
+    //   addBidIxs = [];
+    //   firstBids = otherBids;
+    // } else {
+    //   makeBidIxs.push(...addBidIxs.slice(0, 3));
+    //   firstBids = otherBids.slice(0, 3);
+    //   otherBids = otherBids.slice(3);
+    // }
+  }
+  return { addBidIxs };
+}
+
+export async function appendBtByChunk(
+  txsArray: AppendToTx[],
+  envOpts: EnvOpts,
+  signer: string,
+  maxTransactionSize: number = MAX_BYTE_PER_TRANSACTION
+): Promise<BTv[]> {
+  let bTxs: BTv[] = [];
+  let currentChunk: TransactionInstruction[] = [];
+  let currentDetails: any = {};
+  let currentDescription: string = "";
+
+  for (const chunk of txsArray) {
+    // console.log("chunk", chunk);
+    const tempChunk = [...currentChunk, ...chunk.ixs];
+    const vTx = await ix2vTx(tempChunk, envOpts, signer);
+
+    let clumpLength = 0;
+    try {
+      clumpLength = vTx.serialize().length;
+    } catch (error) {
+      console.log("error serializing", error);
+    }
+
+    console.log("clumpLength", clumpLength, " of ", currentDescription, " and ", chunk.description);
+
+    if (clumpLength <= maxTransactionSize && clumpLength > 0) {
+      console.log("clumping");
+
+      currentChunk = tempChunk;
+      currentDetails = { ...currentDetails, ...chunk.details };
+      if (!currentDescription.includes(chunk.description))
+        currentDescription =
+          currentDescription.slice(0, -3) +
+          (currentDescription.length === 0 ? "" : " and ") +
+          chunk.description;
     } else {
-      makeBidIxs.push(...addBidIxs.slice(0, 3));
-      addBidIxs = addBidIxs.slice(3);
-      firstBids = otherBids.slice(0, 3);
-      otherBids = otherBids.slice(3);
+      if (currentChunk.length > 0) {
+        console.log("not clumping");
+        bTxs.push(
+          appendToBT({
+            BT: bTxs,
+            description: currentDescription,
+            details: currentDetails,
+            tx: await ix2vTx(currentChunk, envOpts, signer),
+          })
+        );
+      }
+      currentChunk = chunk.ixs;
+      currentDetails = chunk.details;
+      currentDescription = chunk.description;
     }
   }
-  return { makeBidIxs, addBidIxs, firstBids, otherBids };
+
+  if (currentChunk.length > 0) {
+    bTxs.push(
+      appendToBT({
+        BT: bTxs,
+        description: currentDescription,
+        details: currentDetails,
+        tx: await ix2vTx(currentChunk, envOpts, signer),
+      })
+    );
+  }
+
+  // change transaction after make to be Synchronous/
+  bTxs.forEach((btx, i) => {
+    if (i != 0) btx.priority = bTxs[0].priority + 1;
+  });
+
+  return bTxs;
 }
+
+export function createMakeBatchTransactions({
+  Data,
+  addBidIxs,
+  // bids,
+  firstBid,
+  initializeBidAccountIxs,
+  initializeCoreSwap,
+  otherBids,
+  traitBids,
+}: {
+  initializeCoreSwap: TransactionInstruction[];
+  addBidIxs: TransactionInstruction[];
+  initializeBidAccountIxs?: TransactionInstruction[][];
+  firstBid: Bid;
+  otherBids: Bid[];
+  Data: any;
+  // bids: any;
+  traitBids?: TraitBid[];
+}): AppendToTx[] {
+  let toreturn = [
+    {
+      ixs: initializeCoreSwap,
+      description: DESC.makeSwap,
+      details: { ...Data, thisBids: { ...firstBid }, bids: [firstBid, ...otherBids] },
+    },
+    ...addBidIxs.map((ix, i) => ({
+      ixs: [ix],
+      description: DESC.addBid,
+      details: { ...Data, thisBids: [otherBids[i]], bids: [firstBid, ...otherBids] },
+    })),
+  ];
+  if (initializeBidAccountIxs) {
+    toreturn.push(
+      ...initializeBidAccountIxs.map((initializeBidAccountIx) => ({
+        ixs: initializeBidAccountIx,
+        description: DESC.addBidAccount,
+        details: { ...Data, traitBids, bids: [firstBid, ...otherBids] },
+      }))
+    );
+  }
+  return toreturn;
+}
+export function createTakeBatchTransactions({
+  Data,
+  claimIxs,
+  closeSIxs,
+  payRMakerIxs,
+  payRTakerIxs,
+  takeIxs,
+}: {
+  takeIxs: TransactionInstruction[];
+  claimIxs: TransactionInstruction[];
+  payRMakerIxs: TransactionInstruction[];
+  payRTakerIxs: TransactionInstruction[];
+  closeSIxs: TransactionInstruction[];
+
+  Data: any;
+}): AppendToTx[] {
+  let toreturn: AppendToTx[] = [];
+  let i = 0;
+  if (takeIxs.length > 0) {
+    toreturn.push({
+      ixs: takeIxs,
+      description: DESC.takeSwap,
+      details: Data,
+      priority: i,
+    });
+    i++;
+  }
+
+  if (claimIxs.length > 0) {
+    toreturn.push({
+      ixs: claimIxs,
+      description: DESC.claimSwap,
+      details: Data,
+      priority: i,
+    });
+    i++;
+  }
+  if (payRMakerIxs.length > 0) {
+    toreturn.push({
+      ixs: payRMakerIxs,
+      description: DESC.payMakerRoyalties,
+      details: Data,
+      priority: i,
+    });
+  }
+  if (payRTakerIxs.length > 0) {
+    toreturn.push({
+      ixs: payRTakerIxs,
+      description: DESC.payTakerRoyalties,
+      details: Data,
+      priority: i,
+    });
+  }
+  if (payRTakerIxs.length > 0 || payRMakerIxs.length > 0) i++;
+
+  if (closeSIxs.length > 0) {
+    toreturn.push({
+      ixs: closeSIxs,
+      description: DESC.close,
+      details: Data,
+      priority: i++,
+    });
+  }
+
+  return toreturn;
+}
+export type AppendToTx = {
+  ixs: TransactionInstruction[];
+  description: string;
+  details: any;
+  priority?: number;
+};
