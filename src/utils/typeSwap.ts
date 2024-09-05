@@ -1,10 +1,14 @@
 import BN from "bn.js";
 import {
   Bid,
+  BidAccount,
   ScBid,
+  ScBidAccount,
   ScSwapData,
+  ScSwapType,
   ScTraitBidAccount,
   SwapData,
+  SwapType,
   TraitBidAccount,
 } from "./types";
 import { PublicKey } from "@solana/web3.js";
@@ -30,18 +34,14 @@ export function scBidToBid(bid: ScBid): Bid {
     takerRoyalties: bid.takerRoyalties.toNumber(),
   };
 }
-export function traitBidToScTraitBid(
-  traitBid: TraitBidAccount
-): ScTraitBidAccount {
+export function traitBidToScTraitBid(traitBid: TraitBidAccount): ScTraitBidAccount {
   return {
     owner: new PublicKey(traitBid.owner),
     traitProofs: traitBid.traitProofs.map((proof) => new PublicKey(proof)),
   };
 }
 
-export function scTraitBidToTraitBid(
-  scTraitBid: ScTraitBidAccount
-): TraitBidAccount {
+export function scTraitBidToTraitBid(scTraitBid: ScTraitBidAccount): TraitBidAccount {
   return {
     owner: scTraitBid.owner.toString(),
     traitProofs: scTraitBid.traitProofs.map((proof) => proof.toString()),
@@ -63,7 +63,11 @@ export function swapDataToScSwapData(sda: SwapData): ScSwapData {
     refererTaker,
     taker,
     claimed,
+    swapType: nSwapType,
   } = sda;
+
+  let swapType: ScSwapType = nSwapType == SwapType.native ? { native: {} } : { traits: {} };
+
   console.log({
     bids,
     endTime,
@@ -93,6 +97,7 @@ export function swapDataToScSwapData(sda: SwapData): ScSwapData {
     acceptedBid: acceptedBid ? bidToscBid(acceptedBid) : undefined,
     taker: taker ? new PublicKey(taker) : undefined,
     nftMintTaker: nftMintTaker ? new PublicKey(nftMintTaker) : undefined,
+    swapType,
   };
 }
 
@@ -111,11 +116,13 @@ export function scSwapDataToSwapData(scSwapData: ScSwapData): SwapData {
     refererTaker,
     taker,
     claimed,
+    swapType: nSwapType,
   } = scSwapData;
   let status: SwapData["status"] = "active";
   if (acceptedBid) status = "accepted";
-  else if (endTime.lt(new BN(Date.now() / 1000)) && endTime.toNumber() != 0)
-    status = "expired";
+  else if (endTime.lt(new BN(Date.now() / 1000)) && endTime.toNumber() != 0) status = "expired";
+
+  let swapType: SwapType = "native" in nSwapType ? SwapType.native : SwapType.traits;
   return {
     bids: bids.map(scBidToBid),
     endTime: endTime.toNumber(),
@@ -130,6 +137,21 @@ export function scSwapDataToSwapData(scSwapData: ScSwapData): SwapData {
     acceptedBid: acceptedBid ? scBidToBid(acceptedBid) : undefined,
     nftMintTaker: nftMintTaker ? nftMintTaker.toString() : undefined,
     taker: taker ? taker.toString() : undefined,
+    swapType,
     status,
+  };
+}
+
+export function scBidAccountToBidAccount(scBidAccount: ScBidAccount): BidAccount {
+  return {
+    owner: scBidAccount.owner.toString(),
+    proofs: scBidAccount.proofs.map((x) => x.toString()),
+  };
+}
+
+export function bidAccountToScBidAccount(bidAccount: BidAccount): ScBidAccount {
+  return {
+    owner: new PublicKey(bidAccount.owner),
+    proofs: bidAccount.proofs.map((x) => new PublicKey(x)),
   };
 }

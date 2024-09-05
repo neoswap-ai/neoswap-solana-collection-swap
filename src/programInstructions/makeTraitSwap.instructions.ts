@@ -82,7 +82,6 @@ export async function createMakeTraitSwapInstructions(
       makerTokenAta,
       nftMintMaker,
       paymentMint,
-      signer: maker,
       swapDataAccount,
       swapDataAccountTokenAta,
       tokenStd,

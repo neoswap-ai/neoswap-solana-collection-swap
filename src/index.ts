@@ -46,7 +46,7 @@ import {
 import { findOrCreateAta } from "./utils/findOrCreateAta.function";
 import { getSda } from "./utils/getPda";
 import { getProgram } from "./utils/getProgram.obj";
-import { getOpenSda, getSdaData } from "./utils/getSdaData.function";
+import { getBidAccountData, getOpenSda, getSdaData } from "./utils/getSdaData.function";
 import { getIdlForBlock } from "./utils/idl/idlGetter";
 import { isConfirmedTx } from "./utils/isConfirmedTx.function";
 import {
@@ -123,6 +123,7 @@ export const UTILS = {
   getCompNFTData,
   getRoot,
   getIdlForBlock,
+  getBidAccountData,
   DESC,
   // closeUserPda,
 };

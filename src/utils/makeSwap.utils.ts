@@ -90,7 +90,6 @@ export async function createTraitBidSwapIx({
   swapDataAccountTokenAta,
 }: {
   // traitBids: TraitBid[];
-  signer: string;
   cEnvOpts: CEnvOpts;
   tokenStd: AssetStandard;
   nftMintMaker: string;
@@ -111,7 +110,7 @@ export async function createTraitBidSwapIx({
       connection,
     });
     const initIx = await program.methods
-      .makeSwapCore(bidToscBid(firstBid), new BN(endDate))
+      .makeSwapCore(bidToscBid(firstBid), new BN(endDate), true)
       .accountsStrict({
         collection: coreCollection,
         maker,
@@ -142,7 +141,8 @@ export async function createTraitBidSwapIx({
         Array.from(dataHash),
         Array.from(creatorHash),
         nonce,
-        index
+        index,
+        true
       )
       .accountsStrict({
         swapDataAccount,
@@ -209,7 +209,7 @@ export async function createTraitBidSwapIx({
       }
 
       const initIx = await program.methods
-        .makeSwap(bidToscBid(firstBid), new BN(endDate))
+        .makeSwap(bidToscBid(firstBid), new BN(endDate), true)
         .accountsStrict({
           swapDataAccount,
           swapDataAccountNftAta,
@@ -239,7 +239,7 @@ export async function createTraitBidSwapIx({
       instructions.push(initIx);
     } else if (tokenStd === "hybrid") {
       const initIx = await program.methods
-        .makeSwap22(bidToscBid(firstBid), new BN(endDate))
+        .makeSwap22(bidToscBid(firstBid), new BN(endDate), true)
         .accountsStrict({
           swapDataAccount,
           swapDataAccountNftAta,

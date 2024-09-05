@@ -65,6 +65,8 @@ export type SwapData = {
   royaltiesPaidTaker: boolean;
   claimed: boolean;
 
+  swapType: SwapType;
+
   status: "active" | "expired" | "accepted";
   paymentMint: string;
 };
@@ -88,8 +90,21 @@ export type ScSwapData = {
   royaltiesPaidTaker: boolean;
   claimed: boolean;
 
+  swapType: ScSwapType;
+
   paymentMint: PublicKey;
 };
+
+export type BidAccount = {
+  owner: string;
+  proofs: string[];
+};
+
+export type ScBidAccount = {
+  owner: PublicKey;
+  proofs: PublicKey[];
+};
+
 //
 //
 //
@@ -248,3 +263,10 @@ export type ReturnSwapData = {
   bTxs: BundleTransaction[];
   swapDataAccount: string;
 };
+
+export enum SwapType {
+  native = 0,
+  traits = 1,
+}
+
+export type ScSwapType = { native: {} } | { traits: {} };

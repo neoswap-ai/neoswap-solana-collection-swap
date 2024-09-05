@@ -98,8 +98,9 @@ export async function createMakeSwapInstructions(
 
     if (tokenStd === "core") {
       let coreCollection = await getCoreCollection({ mint: nftMintMaker, connection });
+      program.idl.types[5].type.variants[0];
       const initIx = await program.methods
-        .makeSwapCore(bidToscBid(oneBid), new BN(endDate))
+        .makeSwapCore(bidToscBid(oneBid), new BN(endDate), false)
         .accountsStrict({
           collection: coreCollection,
           maker,
@@ -126,7 +127,8 @@ export async function createMakeSwapInstructions(
           Array.from(dataHash),
           Array.from(creatorHash),
           nonce,
-          index
+          index,
+          false
           // new PublicKey(nftMintMaker)
         )
         .accountsStrict({
@@ -194,7 +196,7 @@ export async function createMakeSwapInstructions(
         }
 
         const initIx = await program.methods
-          .makeSwap(bidToscBid(oneBid), new BN(endDate))
+          .makeSwap(bidToscBid(oneBid), new BN(endDate), false)
           .accountsStrict({
             swapDataAccount,
             swapDataAccountNftAta,
@@ -224,7 +226,7 @@ export async function createMakeSwapInstructions(
         initializeCoreSwap.push(initIx);
       } else if (tokenStd === "hybrid") {
         const initIx = await program.methods
-          .makeSwap22(bidToscBid(oneBid), new BN(endDate))
+          .makeSwap22(bidToscBid(oneBid), new BN(endDate), false)
           .accountsStrict({
             swapDataAccount,
             swapDataAccountNftAta,

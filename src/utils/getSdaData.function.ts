@@ -1,6 +1,6 @@
 import { PublicKey } from "@solana/web3.js";
-import { EnvOpts, ErrorFeedback, ScSwapData, SwapData } from "./types";
-import { scSwapDataToSwapData } from "./typeSwap";
+import { BidAccount, EnvOpts, ErrorFeedback, ScBidAccount, ScSwapData, SwapData } from "./types";
+import { scBidAccountToBidAccount, scSwapDataToSwapData } from "./typeSwap";
 import { AVOID_LIST } from "./avoidList";
 import { checkEnvOpts } from "./check";
 import { NEOSWAP_PROGRAM_ID, VERSION } from "./const";
@@ -16,9 +16,7 @@ export async function getSdaData(
   let { program } = await checkEnvOpts(Data);
 
   try {
-    const swapData = (await program.account.swapData.fetch(
-      swapDataAccount
-    )) as ScSwapData;
+    const swapData = (await program.account.swapData.fetch(swapDataAccount)) as ScSwapData;
 
     return scSwapDataToSwapData(swapData);
   } catch (error) {
@@ -61,9 +59,7 @@ export async function getOpenSda(
     } else {
       console.log("not NSWP");
 
-      let openPda = await program.provider.connection.getParsedProgramAccounts(
-        program.programId
-      );
+      let openPda = await program.provider.connection.getParsedProgramAccounts(program.programId);
       console.log("openPda", openPda.length);
 
       AVOID_LIST.forEach((x) => {
@@ -74,9 +70,7 @@ export async function getOpenSda(
         openPda.map(async (x, i) => {
           await delay(i * 100);
           try {
-            let sdaData = (await program.account.swapData.fetch(
-              x.pubkey
-            )) as ScSwapData;
+            let sdaData = (await program.account.swapData.fetch(x.pubkey)) as ScSwapData;
             swapDatas.push({
               sda: x.pubkey.toString(),
               data: scSwapDataToSwapData(sdaData),
@@ -98,4 +92,19 @@ export async function getOpenSda(
       message: error,
     } as ErrorFeedback;
   }
+}
+
+export async function getBidAccountData(
+  Data: EnvOpts & {
+    bidAccount: string;
+  }
+): Promise<BidAccount> {
+  console.log("getBidAccountData", VERSION);
+  let { program } = await checkEnvOpts(Data);
+  let { bidAccount } = Data;
+  let bidAccountData = scBidAccountToBidAccount(
+    (await program.account.bidAccount.fetch(bidAccount)) as ScBidAccount
+  );
+
+  return bidAccountData;
 }

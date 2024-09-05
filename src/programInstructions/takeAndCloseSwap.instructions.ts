@@ -72,12 +72,17 @@ export async function createTakeAndCloseSwapInstructions(
     // checking the bid we want exists in SDA
     const foundBid = bids.find(
       (b) =>
-        b.amount === bid.amount &&
-        b.collection === bid.collection &&
-        b.takerNeoswapFee === bid.takerNeoswapFee &&
-        b.takerRoyalties === bid.takerRoyalties &&
-        b.makerRoyalties === bid.makerRoyalties &&
-        b.makerNeoswapFee === bid.makerNeoswapFee
+        (b.amount === bid.amount &&
+          b.collection === bid.collection &&
+          b.makerRoyalties === bid.makerRoyalties &&
+          b.makerNeoswapFee === bid.makerNeoswapFee &&
+          b.takerNeoswapFee === bid.takerNeoswapFee &&
+          b.takerRoyalties === bid.takerRoyalties) ||
+        (n === 42 &&
+          b.amount === bid.amount &&
+          b.collection === bid.collection &&
+          b.makerRoyalties === bid.makerRoyalties &&
+          b.makerNeoswapFee === bid.makerNeoswapFee)
     );
     if (!foundBid) throw `bid ${JSON.stringify(Data.bid)} not found in ${JSON.stringify(bids)} `;
 
