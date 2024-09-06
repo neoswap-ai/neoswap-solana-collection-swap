@@ -145,13 +145,13 @@ export function scSwapDataToSwapData(scSwapData: ScSwapData): SwapData {
 export function scBidAccountToBidAccount(scBidAccount: ScBidAccount): BidAccount {
   return {
     owner: scBidAccount.owner.toString(),
-    proofs: scBidAccount.proofs.map((x) => x.toString()),
+    roots: scBidAccount.roots.map((x) => x.toString()),
   };
 }
 
 export function bidAccountToScBidAccount(bidAccount: BidAccount): ScBidAccount {
   return {
     owner: new PublicKey(bidAccount.owner),
-    proofs: bidAccount.proofs.map((x) => new PublicKey(x)),
+    roots: bidAccount.roots.map((x) => new PublicKey(x)),
   };
 }

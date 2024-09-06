@@ -1,7 +1,7 @@
 import { BN } from "@coral-xyz/anchor";
 import { makerFee } from "./fees";
 import { findTraitBidAccount } from "./traitBid";
-import { AssetStandard, Bid, BTv, CEnvOpts, EnvOpts, TraitBid } from "./types";
+import { AppendToTx, AssetStandard, Bid, BTv, CEnvOpts, EnvOpts, TraitBid } from "./types";
 import {
   Connection,
   PublicKey,
@@ -34,6 +34,7 @@ import {
 import { createAddBidIx } from "../programInstructions/modifyAddBid.instructions";
 import { appendToBT, ix2vTx } from "./vtx";
 import { DESC } from "./descriptions";
+import { checkEnvOpts } from "./check";
 
 export function getBidsForMake(bids: Bid[]) {
   let outBids = bids.sort((bidA, bidB) => {
@@ -61,7 +62,7 @@ export async function getBidAccountInstructions({
   let { program } = cEnvOpts;
   let instructions: TransactionInstruction[][] = [];
   for await (let traitBid of traitBids) {
-    let traitBidAccount = await findTraitBidAccount(traitBid.proofs, cEnvOpts);
+    let traitBidAccount = await findTraitBidAccount(traitBid.proofs, signer, cEnvOpts);
     console.log("traitBidAccount", traitBidAccount);
     let createBidAccountIx = await program.methods
       .createBidAccount(traitBid.proofs.map((proof) => new PublicKey(proof)))
@@ -311,78 +312,6 @@ export async function createAdditionalTraitSwapBidIx({
   return { addBidIxs };
 }
 
-export async function appendBtByChunk(
-  txsArray: AppendToTx[],
-  envOpts: EnvOpts,
-  signer: string,
-  maxTransactionSize: number = MAX_BYTE_PER_TRANSACTION
-): Promise<BTv[]> {
-  let bTxs: BTv[] = [];
-  let currentChunk: TransactionInstruction[] = [];
-  let currentDetails: any = {};
-  let currentDescription: string = "";
-
-  for (const chunk of txsArray) {
-    // console.log("chunk", chunk);
-    const tempChunk = [...currentChunk, ...chunk.ixs];
-    const vTx = await ix2vTx(tempChunk, envOpts, signer);
-
-    let clumpLength = 0;
-    try {
-      clumpLength = vTx.serialize().length;
-    } catch (error) {
-      console.log("error serializing", error);
-    }
-
-    console.log("clumpLength", clumpLength, " of ", currentDescription, " and ", chunk.description);
-
-    if (clumpLength <= maxTransactionSize && clumpLength > 0) {
-      console.log("clumping");
-
-      currentChunk = tempChunk;
-      currentDetails = { ...currentDetails, ...chunk.details };
-      if (!currentDescription.includes(chunk.description))
-        currentDescription =
-          currentDescription.slice(0, -3) +
-          (currentDescription.length === 0 ? "" : " and ") +
-          chunk.description;
-    } else {
-      if (currentChunk.length > 0) {
-        console.log("not clumping");
-        bTxs.push(
-          appendToBT({
-            BT: bTxs,
-            description: currentDescription,
-            details: currentDetails,
-            tx: await ix2vTx(currentChunk, envOpts, signer),
-          })
-        );
-      }
-      currentChunk = chunk.ixs;
-      currentDetails = chunk.details;
-      currentDescription = chunk.description;
-    }
-  }
-
-  if (currentChunk.length > 0) {
-    bTxs.push(
-      appendToBT({
-        BT: bTxs,
-        description: currentDescription,
-        details: currentDetails,
-        tx: await ix2vTx(currentChunk, envOpts, signer),
-      })
-    );
-  }
-
-  // change transaction after make to be Synchronous/
-  bTxs.forEach((btx, i) => {
-    if (i != 0) btx.priority = bTxs[0].priority + 1;
-  });
-
-  return bTxs;
-}
-
 export function createMakeBatchTransactions({
   Data,
   addBidIxs,
@@ -407,11 +336,13 @@ export function createMakeBatchTransactions({
       ixs: initializeCoreSwap,
       description: DESC.makeSwap,
       details: { ...Data, thisBids: { ...firstBid }, bids: [firstBid, ...otherBids] },
+      actions: ["makeSwap"],
     },
     ...addBidIxs.map((ix, i) => ({
       ixs: [ix],
       description: DESC.addBid,
       details: { ...Data, thisBids: [otherBids[i]], bids: [firstBid, ...otherBids] },
+      actions: ["addBid"],
     })),
   ];
   if (initializeBidAccountIxs) {
@@ -420,6 +351,7 @@ export function createMakeBatchTransactions({
         ixs: initializeBidAccountIx,
         description: DESC.addBidAccount,
         details: { ...Data, traitBids, bids: [firstBid, ...otherBids] },
+        actions: ["addBidAccount"],
       }))
     );
   }
@@ -447,6 +379,7 @@ export function createTakeBatchTransactions({
     toreturn.push({
       ixs: takeIxs,
       description: DESC.takeSwap,
+      actions: ["takeSwap"],
       details: Data,
       priority: i,
     });
@@ -457,6 +390,7 @@ export function createTakeBatchTransactions({
     toreturn.push({
       ixs: claimIxs,
       description: DESC.claimSwap,
+      actions: ["claimSwap"],
       details: Data,
       priority: i,
     });
@@ -466,6 +400,7 @@ export function createTakeBatchTransactions({
     toreturn.push({
       ixs: payRMakerIxs,
       description: DESC.payMakerRoyalties,
+      actions: ["payMakerRoyalties"],
       details: Data,
       priority: i,
     });
@@ -474,6 +409,7 @@ export function createTakeBatchTransactions({
     toreturn.push({
       ixs: payRTakerIxs,
       description: DESC.payTakerRoyalties,
+      actions: ["payTakerRoyalties"],
       details: Data,
       priority: i,
     });
@@ -484,6 +420,7 @@ export function createTakeBatchTransactions({
     toreturn.push({
       ixs: closeSIxs,
       description: DESC.close,
+      actions: ["close"],
       details: Data,
       priority: i++,
     });
@@ -491,9 +428,47 @@ export function createTakeBatchTransactions({
 
   return toreturn;
 }
-export type AppendToTx = {
-  ixs: TransactionInstruction[];
-  description: string;
-  details: any;
-  priority?: number;
-};
+
+export async function createBidAccountInstructions({
+  envOpts,
+
+  signer,
+  roots,
+}: {
+  roots: string[];
+  signer: string;
+  envOpts: EnvOpts;
+}) {
+  let { program } = await checkEnvOpts(envOpts);
+  let traitBidAccount = await findTraitBidAccount(roots, signer, envOpts);
+  console.log("traitBidAccount", traitBidAccount);
+  return await program.methods
+    .createBidAccount(roots.map((proof) => new PublicKey(proof)))
+    .accountsStrict({
+      bidAccount: traitBidAccount,
+      signer,
+      systemProgram: SystemProgram.programId,
+    })
+    .instruction();
+}
+
+export async function closeBidAccountInstructions({
+  envOpts,
+  signer,
+  bidAccount,
+}: {
+  bidAccount: string;
+  signer: string;
+  envOpts: EnvOpts;
+}) {
+  let { program } = await checkEnvOpts(envOpts);
+
+  return await program.methods
+    .closeBidAccount()
+    .accountsStrict({
+      bidAccount,
+      signer,
+      systemProgram: SystemProgram.programId,
+    })
+    .instruction();
+}

@@ -16,7 +16,8 @@ import {
   createTakeSwapIxs,
   parseTakeAndCloseTxs,
 } from "../utils/takeSwap.utils";
-import { appendBtByChunk, createTakeBatchTransactions } from "../utils/makeSwap.utils";
+import { createTakeBatchTransactions } from "../utils/makeSwap.utils";
+import { appendBtByChunk } from "../utils/vtx";
 
 export async function createTakeAndCloseSwapInstructions(
   Data: TakeSArg & EnvOpts // & { index: number }
@@ -221,7 +222,9 @@ export async function createTakeAndCloseSwapInstructions(
         tokenStandardMaker,
         nftMetadataMaker,
       }).then((claimData) => {
-        takeIxs.push(...claimData.claimIxs);
+        console.log("claimData", claimData);
+
+        claimIxs.push(...claimData.claimIxs);
         if (claimData.nftMetadataMaker) nftMetadataMaker = claimData.nftMetadataMaker;
       });
     }

@@ -7,6 +7,7 @@ import {
   PublicKey,
   Signer,
   Transaction,
+  TransactionInstruction,
   VersionedTransaction,
 } from "@solana/web3.js";
 import BN from "bn.js";
@@ -97,12 +98,12 @@ export type ScSwapData = {
 
 export type BidAccount = {
   owner: string;
-  proofs: string[];
+  roots: string[];
 };
 
 export type ScBidAccount = {
   owner: PublicKey;
-  proofs: PublicKey[];
+  roots: PublicKey[];
 };
 
 //
@@ -145,6 +146,7 @@ export type T = {
 export type BundleTxBase = {
   blockheight?: number;
   description: string;
+  actions: string[];
   priority: number;
   status: "pending" | "broadcast" | "success" | "failed" | "Timeout";
   hash?: string;
@@ -160,7 +162,7 @@ export type Act =
   | RmBidArgs
   | SetNewTime;
 
-export type BTAct = BundleTxBase & { details: Act | any };
+export type BTAct = BundleTxBase & { details: Act & { bids?: Bid[] } };
 
 export type BTv = BTAct & vT;
 export type BTt = BTAct & T;
@@ -178,8 +180,8 @@ export type MakeTraitSArg = {
   maker: string;
   nftMintMaker: string;
   paymentMint: string;
-  traitBids: TraitBid[];
   endDate: number;
+  traitBids: TraitBid[];
 };
 
 export type TakeSArg = {
@@ -270,3 +272,11 @@ export enum SwapType {
 }
 
 export type ScSwapType = { native: {} } | { traits: {} };
+
+export type AppendToTx = {
+  ixs: TransactionInstruction[];
+  actions: string[];
+  description: string;
+  details: any;
+  priority?: number;
+};

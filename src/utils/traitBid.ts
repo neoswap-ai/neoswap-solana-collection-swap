@@ -5,7 +5,7 @@ import { checkEnvOpts } from "./check";
 import bs58 from "bs58";
 import crypto from "crypto";
 
-export async function findTraitBidAccount(proofs: string[], envOpts: EnvOpts) {
+export async function findTraitBidAccount(proofs: string[], maker: string, envOpts: EnvOpts) {
   //   let fullproof = proofs.map((proof) => {
   //     let prooof = new Uint8Array(new PublicKey(proof).toBuffer());
   //     console.log(prooof, "proofproofproofproofproof");
@@ -26,7 +26,7 @@ export async function findTraitBidAccount(proofs: string[], envOpts: EnvOpts) {
 
   let cEnvOpts = await checkEnvOpts(envOpts);
   let bidAccount = PublicKey.findProgramAddressSync(
-    [seeds],
+    [seeds, new PublicKey(maker).toBytes()],
     new PublicKey(cEnvOpts.programId)
   )[0].toString();
   console.log(bidAccount, " - bidAccountbidAccountbidAccountbidAccount");

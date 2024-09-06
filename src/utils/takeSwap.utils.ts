@@ -93,6 +93,7 @@ export async function createTakeSwapIxs({
   if (swapDataData.paymentMint === WRAPPED_SOL_MINT.toString()) {
     if (takerAmount > 0) takeIxs.push(...addWSol(taker, takerTokenAta, takerAmount));
   }
+  console.log("takerNftStd", takerNftStd, traitProofs);
   if (takerNftStd == "core") {
     let takerCoreCollection = await getCoreCollection({
       connection,
@@ -850,6 +851,7 @@ export async function parseTakeAndCloseTxs({
           BT,
           tx: await ix2vTx(takeIxs, cEnvOpts, signer),
           description: DESC.takeSwap,
+          actions: ["takeSwap"],
           details: takeArgs,
         })
       );
@@ -860,6 +862,7 @@ export async function parseTakeAndCloseTxs({
           BT,
           tx: await ix2vTx(claimIxs, cEnvOpts, signer),
           description: DESC.claimSwap,
+          actions: ["claimSwap"],
           details: takeArgs,
         })
       );
@@ -873,6 +876,7 @@ export async function parseTakeAndCloseTxs({
             tx: await ix2vTx(payRMakerIxs, cEnvOpts, signer),
             description: DESC.payRoyalties,
             details: takeArgs,
+            actions: ["payRoyalties"],
           })
         );
       }
@@ -882,6 +886,7 @@ export async function parseTakeAndCloseTxs({
             BT,
             tx: await ix2vTx(payRTakerIxs.concat(closeSIxs), cEnvOpts, signer),
             description: DESC.close,
+            actions: ["closeSwap"],
             details: takeArgs,
           })
         );
@@ -891,6 +896,7 @@ export async function parseTakeAndCloseTxs({
             BT,
             tx: await ix2vTx(closeSIxs, cEnvOpts, signer),
             description: DESC.close,
+            actions: ["closeSwap"],
             details: takeArgs,
           })
         );
@@ -902,6 +908,7 @@ export async function parseTakeAndCloseTxs({
             BT,
             tx: await ix2vTx(payRTakerIxs, cEnvOpts, signer),
             description: DESC.payRoyalties,
+            actions: ["payRoyalties"],
             details: takeArgs,
           })
         );
@@ -913,6 +920,7 @@ export async function parseTakeAndCloseTxs({
             tx: await ix2vTx(payRMakerIxs.concat(closeSIxs), cEnvOpts, signer),
             description: DESC.close,
             details: takeArgs,
+            actions: ["closeSwap"],
           })
         );
       } else {
@@ -922,6 +930,7 @@ export async function parseTakeAndCloseTxs({
             tx: await ix2vTx(closeSIxs, cEnvOpts, signer),
             description: DESC.close,
             details: takeArgs,
+            actions: ["closeSwap"],
           })
         );
       }
@@ -932,6 +941,7 @@ export async function parseTakeAndCloseTxs({
           tx: await ix2vTx(payRMakerIxs, cEnvOpts, signer),
           description: DESC.payMakerRoyalties,
           details: takeArgs,
+          actions: ["payMakerRoyalties"],
         })
       );
       BT.push(
@@ -940,6 +950,7 @@ export async function parseTakeAndCloseTxs({
           tx: await ix2vTx(payRTakerIxs, cEnvOpts, signer),
           description: DESC.payTakerRoyalties,
           details: takeArgs,
+          actions: ["payTakerRoyalties"],
         })
       );
       BT.push(
@@ -948,6 +959,7 @@ export async function parseTakeAndCloseTxs({
           tx: await ix2vTx(closeSIxs, cEnvOpts, signer),
           description: DESC.close,
           details: takeArgs,
+          actions: ["closeSwap"],
         })
       );
     }
@@ -963,6 +975,7 @@ export async function parseTakeAndCloseTxs({
           BT,
           description: DESC.takeSwap,
           details: takeArgs,
+          actions: ["takeSwap"],
         });
 
         let seri = testVtx.tx.serialize().length;
@@ -981,6 +994,7 @@ export async function parseTakeAndCloseTxs({
             tx: await ix2vTx(takeIxs, cEnvOpts, signer),
             description: DESC.takeSwap,
             details: takeArgs,
+            actions: ["takeSwap"],
           })
         );
       }
@@ -991,6 +1005,7 @@ export async function parseTakeAndCloseTxs({
             tx: await ix2vTx(claimIxs, cEnvOpts, signer),
             description: DESC.claimSwap,
             details: takeArgs,
+            actions: ["claimSwap"],
           })
         );
       }
@@ -1007,6 +1022,7 @@ export async function parseTakeAndCloseTxs({
           BT,
           description: DESC.close,
           details: takeArgs,
+          actions: ["closeSwap"],
         })
       );
   }
@@ -1016,7 +1032,6 @@ export async function parseTakeAndCloseTxs({
   BT.map((b, i) => {
     b.tx.message.recentBlockhash = blockhash;
     b.blockheight = blockheight;
-    console.log(i, "b serialized size", b.description, b.tx.serialize().length);
   });
   return BT;
 }

@@ -129,10 +129,11 @@ export async function getMakeTraitsArgs(
   let { traitBids, endDate, maker, nftMintMaker, paymentMint } = Data;
   let cEnvOpts = await checkEnvOpts(Data);
 
+  maker = typeof maker === "string" ? maker : maker.publicKey.toString();
   let bids: Bid[] = await Promise.all(
     traitBids.map(async (bidTrait) => {
       let bid: Bid = {
-        collection: await findTraitBidAccount(bidTrait.proofs, cEnvOpts),
+        collection: await findTraitBidAccount(bidTrait.proofs, maker, cEnvOpts),
         amount: bidTrait.amount,
         makerNeoswapFee: bidTrait.makerNeoswapFee,
         takerNeoswapFee: bidTrait.takerNeoswapFee,
@@ -142,7 +143,6 @@ export async function getMakeTraitsArgs(
       return bid;
     })
   );
-  maker = typeof maker === "string" ? maker : maker.publicKey.toString();
 
   return { bids, traitBids, endDate, maker, nftMintMaker, paymentMint };
 }

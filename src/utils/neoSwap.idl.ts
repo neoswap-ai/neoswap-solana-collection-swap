@@ -1,5 +1,5 @@
 export const idlSwap: CollectionSwap = {
-  address: "NSWPpfskKcHo93mxZSgdinqpnFkcdWPsSxBB9Q26Qbq",
+  address: "2vumtPDSVo3UKqYYxMVbDaQz1K4foQf6A31KiUaii1M7",
   metadata: {
     name: "collectionSwap",
     version: "0.5.0",
@@ -2739,7 +2739,7 @@ export const idlSwap: CollectionSwap = {
             type: "pubkey",
           },
           {
-            name: "proofs",
+            name: "roots",
             type: {
               vec: "pubkey",
             },
@@ -5629,7 +5629,7 @@ export type CollectionSwap = {
             type: "pubkey";
           },
           {
-            name: "proofs";
+            name: "roots";
             type: {
               vec: "pubkey";
             };

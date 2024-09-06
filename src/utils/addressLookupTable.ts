@@ -18,6 +18,7 @@ import {
   FAIR_LAUNCH_PROGRAM_ID,
   METAPLEX_AUTH_RULES,
   METAPLEX_AUTH_RULES_PROGRAM,
+  NEOSWAP_PROGRAM_ID,
   NS_FEE,
   NS_FEE_WSOL,
   TOKEN_METADATA_PROGRAM,
@@ -89,6 +90,8 @@ export async function createLookUpTableAccount({
     new PublicKey(FAIR_LAUNCH_PROGRAM_ID),
     WRAPPED_SOL_MINT,
     SYSVAR_INSTRUCTIONS_PUBKEY,
+    new PublicKey(NEOSWAP_PROGRAM_ID),
+    new PublicKey("2vumtPDSVo3UKqYYxMVbDaQz1K4foQf6A31KiUaii1M7"),
   ];
   if (additionalAccounts) addresses.push(...additionalAccounts.map((acc) => new PublicKey(acc)));
   console.log("AddressLookupTableProgram", AddressLookupTableProgram.programId.toString());
@@ -120,12 +123,14 @@ export async function createVTxWithLookupTable({
   lookUpTableAccount,
   payer,
   prioritizationFee,
+  skipVerbose,
 }: {
   lookUpTableAccount?: string | false;
   instructions: TransactionInstruction[];
   connection: Connection;
   payer: string;
   prioritizationFee?: number;
+  skipVerbose?: boolean;
 }) {
   // await delay(1000);
   let recentBlockhash = (await connection.getLatestBlockhash({ commitment: "confirmed" }))
@@ -133,7 +138,7 @@ export async function createVTxWithLookupTable({
   const transactionMessage = new TransactionMessage({
     payerKey: new PublicKey(payer),
     recentBlockhash,
-    instructions: await addPrioFeeIx(instructions, prioritizationFee),
+    instructions: await addPrioFeeIx(instructions, prioritizationFee, skipVerbose),
   });
 
   if (!!lookUpTableAccount) {
@@ -143,7 +148,7 @@ export async function createVTxWithLookupTable({
         {commitment: "confirmed"}
     );
     let lookupTable = lookupTableResp.value!;
-    console.log("lookUpTableAccountlookUpTableAccount", lookupTable);
+    if (!skipVerbose) console.log("lookUpTableAccountlookUpTableAccount", lookupTable);
 
     if (!lookupTable) throw new Error("Lookup table not found");
 

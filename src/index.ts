@@ -49,6 +49,7 @@ import { getProgram } from "./utils/getProgram.obj";
 import { getBidAccountData, getOpenSda, getSdaData } from "./utils/getSdaData.function";
 import { getIdlForBlock } from "./utils/idl/idlGetter";
 import { isConfirmedTx } from "./utils/isConfirmedTx.function";
+import { closeBidAccountInstructions, createBidAccountInstructions } from "./utils/makeSwap.utils";
 import {
   sendBundledTransactions,
   sendBundledTransactionsV2,
@@ -138,6 +139,8 @@ export const CREATE_INSTRUCTIONS = {
   createAddBidBt,
   createRmBidBt,
   createSetNewTime,
+  createBidAccountInstructions,
+  closeBidAccountInstructions,
 };
 
 export const neoColSwap = {

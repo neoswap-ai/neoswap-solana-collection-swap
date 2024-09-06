@@ -30,7 +30,7 @@ import { DESC } from "../utils/descriptions";
 import { WRAPPED_SOL_MINT } from "@metaplex-foundation/js";
 import { addWSol } from "../utils/wsol";
 import { checkEnvOpts, getMakeArgs } from "../utils/check";
-import { ix2vTx } from "../utils/vtx";
+import { appendBtByChunk, ix2vTx } from "../utils/vtx";
 import { createAddBidIx } from "./modifyAddBid.instructions";
 import { MPL_CORE_PROGRAM_ID } from "@metaplex-foundation/mpl-core";
 import { calculateMakerFee, makerFee } from "../utils/fees";
@@ -41,7 +41,7 @@ import {
 } from "@solana/spl-account-compression";
 import { PROGRAM_ID as MPL_BUBBLEGUM_PROGRAM_ID } from "@metaplex-foundation/mpl-bubblegum";
 import { SPL_ASSOCIATED_TOKEN_PROGRAM_ID } from "@metaplex-foundation/mpl-toolbox";
-import { appendBtByChunk, createMakeBatchTransactions } from "../utils/makeSwap.utils";
+import { createMakeBatchTransactions } from "../utils/makeSwap.utils";
 
 export async function createMakeSwapInstructions(
   Data: MakeSArg & EnvOpts

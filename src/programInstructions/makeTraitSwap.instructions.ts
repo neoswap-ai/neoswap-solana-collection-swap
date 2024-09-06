@@ -8,14 +8,13 @@ import { DESC } from "../utils/descriptions";
 import { WRAPPED_SOL_MINT } from "@metaplex-foundation/js";
 import { addWSol } from "../utils/wsol";
 import { checkEnvOpts, getMakeTraitsArgs } from "../utils/check";
-import { appendToBT, ix2vTx } from "../utils/vtx";
+import { appendBtByChunk, appendToBT, ix2vTx } from "../utils/vtx";
 import { calculateMakerFee } from "../utils/fees";
 import {
   getBidAccountInstructions,
   getBidsForMake,
   createTraitBidSwapIx,
   createAdditionalTraitSwapBidIx,
-  appendBtByChunk,
   createMakeBatchTransactions,
 } from "../utils/makeSwap.utils";
 
