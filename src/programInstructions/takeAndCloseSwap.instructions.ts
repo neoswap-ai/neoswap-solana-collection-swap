@@ -99,6 +99,7 @@ export async function createTakeAndCloseSwapInstructions(
     ) {
       bidAccount = foundBid.collection;
     }
+
     //
     // finding payment ATAs
     //
@@ -115,7 +116,7 @@ export async function createTakeAndCloseSwapInstructions(
       } else {
         claimIxs.push(takerTokenIx);
       }
-    } else console.log("takerTokenAta", takerTokenAta);
+    } else console.log("skip initialization of takerTokenAta", takerTokenAta);
 
     let { mintAta: swapDataAccountTokenAta, instruction: sdaTokenIx } = await findOrCreateAta({
       connection,
@@ -123,8 +124,6 @@ export async function createTakeAndCloseSwapInstructions(
       owner: swapDataAccount,
       signer,
     });
-    // if (sdaTokenIx) takeAndClaimIxs.push(sdaTokenIx);
-    // else console.log("swapDataAccountTokenAta", swapDataAccountTokenAta);
 
     let { mintAta: makerTokenAta, instruction: makerTokenIx } = await findOrCreateAta({
       connection,
@@ -138,7 +137,7 @@ export async function createTakeAndCloseSwapInstructions(
       } else {
         claimIxs.push(makerTokenIx);
       }
-    } else console.log("makerTokenAta", makerTokenAta);
+    } else console.log("skip initialization of makerTokenAta", makerTokenAta);
 
     let { mintAta: nsFeeTokenAta, instruction: nsTokenIx } = await findOrCreateAta({
       connection,
@@ -147,7 +146,7 @@ export async function createTakeAndCloseSwapInstructions(
       signer,
     });
     if (nsTokenIx) claimIxs.push(nsTokenIx);
-    else console.log("nsFeeTokenAta", nsFeeTokenAta);
+    else console.log("skip initialization of nsFeeTokenAta", nsFeeTokenAta);
 
     // Getting metadata Maker Nft
     let nftMetadataMaker: string | undefined;
@@ -167,6 +166,7 @@ export async function createTakeAndCloseSwapInstructions(
     let tokenStandardTaker: number | undefined;
 
     if (takerNftStd === "native") {
+      console.log("takerNftStd", takerNftStd);
       ({ metadataAddress: nftMetadataTaker, tokenStandard: tokenStandardTaker } =
         await findNftDataAndMetadataAccount({
           connection,
@@ -299,24 +299,6 @@ export async function createTakeAndCloseSwapInstructions(
       signer
     );
     return BTs;
-    // let bTTakeAndClose = parseTakeAndCloseTxs({
-    //   cEnvOpts,
-    //   claimIxs,
-    //   closeSIxs,
-    //   connection,
-    //   makerNftStd,
-    //   payRMakerIxs,
-    //   payRTakerIxs,
-    //   signer,
-    //   takeArgs,
-    //   takeIxs,
-    //   takerNftStd,
-    //   acceptedBid,
-    //   claimed,
-    //   royaltiesPaidMaker,
-    //   royaltiesPaidTaker,
-    // });
-    // return bTTakeAndClose;
   } catch (error: any) {
     console.log("error init", error);
 

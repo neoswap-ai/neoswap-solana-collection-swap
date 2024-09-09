@@ -93,7 +93,7 @@ export async function createTakeSwapIxs({
   if (swapDataData.paymentMint === WRAPPED_SOL_MINT.toString()) {
     if (takerAmount > 0) takeIxs.push(...addWSol(taker, takerTokenAta, takerAmount));
   }
-  console.log("takerNftStd", takerNftStd, traitProofs);
+  // console.log("takerNftStd", takerNftStd, traitProofs);
   if (takerNftStd == "core") {
     let takerCoreCollection = await getCoreCollection({
       connection,
@@ -114,7 +114,6 @@ export async function createTakeSwapIxs({
         takerTokenAta,
 
         nftMintTaker,
-        // paymentMint,
 
         collection: takerCoreCollection,
 
@@ -129,15 +128,14 @@ export async function createTakeSwapIxs({
       !cEnvOpts.clusterOrUrl.includes("mainnet") ? "devnet" : "mainnet-beta"
     ) as Cluster;
     let {
-      creatorHash,
-      dataHash,
+      // creatorHash,
+      // dataHash,
       index,
       merkleTree,
       nonce,
       proofMeta,
       root,
       treeAuthority,
-      collection,
       metadata,
     } = await getCompNFTData({
       cluster,
@@ -147,55 +145,52 @@ export async function createTakeSwapIxs({
     if (!metadata) throw "Compressed no metadata found";
     if (metadata.collection == null) throw "Compressed no collection found";
     if (traitInd !== null && traitProofs !== undefined && traitsProofPk.length > 0 && bidAccount) {
-      let takeIx = await program.methods
-        .takeSwapCompTraits(
-          new BN(takerAmount),
-          Array.from(root),
-          Array.from(dataHash),
-          Array.from(creatorHash),
-          nonce,
-          index,
-          traitInd,
-          traitsProofPk,
-          n
-        )
-        .accountsStrict({
-          swapDataAccount,
-          swapDataAccountTokenAta,
+      throw "Compressed traits not supported";
+      // let takeIx = await program.methods
+      //   .takeSwapCompTraits(
+      //     new BN(takerAmount),
+      //     Array.from(root),
+      //     Array.from(dataHash),
+      //     Array.from(creatorHash),
+      //     nonce,
+      //     index,
+      //     traitInd,
+      //     traitsProofPk,
+      //     n
+      //   )
+      //   .accountsStrict({
+      //     swapDataAccount,
+      //     swapDataAccountTokenAta,
 
-          bidAccount,
+      //     bidAccount,
 
-          maker,
-          makerTokenAta,
-          // tokenId: nftMintMaker,
-          merkleTree,
-          // paymentMint,
-          treeAuthority,
-          // collection,
-          // nftMintTaker,
-          taker,
-          takerTokenAta,
-          // ataProgram: SPL_ASSOCIATED_TOKEN_PROGRAM_ID,
-          bubblegumProgram: MPL_BUBBLEGUM_PROGRAM_ID,
-          compressionProgram: SPL_ACCOUNT_COMPRESSION_PROGRAM_ID,
-          logWrapper: SPL_NOOP_PROGRAM_ID,
-          systemProgram: SystemProgram.programId,
-          tokenProgram: TOKEN_PROGRAM_ID,
-          // sysvarInstructions: SYSVAR_INSTRUCTIONS_PUBKEY,
-        })
-        .remainingAccounts(proofMeta)
-        .instruction();
-      takeIxs.push(takeIx);
+      //     maker,
+      //     makerTokenAta,
+      //     // tokenId: nftMintMaker,
+      //     merkleTree,
+      //     // paymentMint,
+      //     treeAuthority,
+      //     // collection,
+      //     // nftMintTaker,
+      //     taker,
+      //     takerTokenAta,
+      //     // ataProgram: SPL_ASSOCIATED_TOKEN_PROGRAM_ID,
+      //     bubblegumProgram: MPL_BUBBLEGUM_PROGRAM_ID,
+      //     compressionProgram: SPL_ACCOUNT_COMPRESSION_PROGRAM_ID,
+      //     logWrapper: SPL_NOOP_PROGRAM_ID,
+      //     systemProgram: SystemProgram.programId,
+      //     tokenProgram: TOKEN_PROGRAM_ID,
+      //     // sysvarInstructions: SYSVAR_INSTRUCTIONS_PUBKEY,
+      //   })
+      //   .remainingAccounts(proofMeta)
+      //   .instruction();
+      // takeIxs.push(takeIx);
     } else {
       let takeIx = await program.methods
         .takeSwapComp(
-          // bidToscBid(bid),
-          // bidToscBid(bid).collection,
           metadata.collection,
           new BN(takerAmount),
           Array.from(root),
-          // Array.from(dataHash),
-          // Array.from(creatorHash),
           metadata.name,
           metadata.symbol,
           metadata.uri,
@@ -204,9 +199,6 @@ export async function createTakeSwapIxs({
           metadata.isMutable,
           metadata.editionNonce,
           metadata.creators,
-          // (metadata.creators.map((c) => c.address)),
-          // (metadata.creators.map((c) => c.verified)),
-          // Buffer.from(metadata.creators.map((c) => c.share)),
           nonce,
           index,
           n
@@ -216,21 +208,15 @@ export async function createTakeSwapIxs({
           swapDataAccountTokenAta,
           maker,
           makerTokenAta,
-          // tokenId: nftMintMaker,
           merkleTree,
-          // paymentMint,
           treeAuthority,
-          // collection,
-          // nftMintTaker,
           taker,
           takerTokenAta,
-          // ataProgram: SPL_ASSOCIATED_TOKEN_PROGRAM_ID,
           bubblegumProgram: MPL_BUBBLEGUM_PROGRAM_ID,
           compressionProgram: SPL_ACCOUNT_COMPRESSION_PROGRAM_ID,
           logWrapper: SPL_NOOP_PROGRAM_ID,
           systemProgram: SystemProgram.programId,
           tokenProgram: TOKEN_PROGRAM_ID,
-          // sysvarInstructions: SYSVAR_INSTRUCTIONS_PUBKEY,
         })
         .remainingAccounts(proofMeta)
         .instruction();
@@ -315,7 +301,6 @@ export async function createTakeSwapIxs({
           ataProgram: SPL_ASSOCIATED_TOKEN_PROGRAM_ID.toString(),
           authRulesProgram: METAPLEX_AUTH_RULES_PROGRAM.toString(),
         })
-        // .remainingAccounts(traitsMeta)
         .instruction();
       takeIxs.push(takeIx);
     } else {
@@ -437,7 +422,6 @@ export async function createClaimSwapIxs({
       tokenId: nftMintMaker,
       connection,
     });
-    // console.log("was claim makerNFT");
 
     if (!metadata) throw "Compressed no metadata found";
     if (metadata.collection == null) throw "Compressed no collection found";
@@ -451,12 +435,8 @@ export async function createClaimSwapIxs({
 
         maker,
         makerTokenAta,
-        // tokenId: nftMintMaker,
         merkleTree,
-        // paymentMint,
         treeAuthority,
-        // collection,
-        // nftMintTaker,
         taker,
         takerTokenAta,
 
@@ -469,15 +449,12 @@ export async function createClaimSwapIxs({
         logWrapper: SPL_NOOP_PROGRAM_ID,
         systemProgram: SystemProgram.programId,
         tokenProgram: TOKEN_PROGRAM_ID,
-        // sysvarInstructions: SYSVAR_INSTRUCTIONS_PUBKEY,
       })
       .remainingAccounts(proofMeta)
       .instruction();
     claimIxs.push(claimCompIx);
   } else {
-    // if (sdaAtaMakerNftIx) claimIxs.push(sdaAtaMakerNftIx);
-    // else console.log("swapDataAccountNftAta", swapDataAccountNftAta);
-    let { mintAta: swapDataAccountNftAta, instruction: sdaAtaMakerNftIx } = await findOrCreateAta({
+    let { mintAta: swapDataAccountNftAta } = await findOrCreateAta({
       connection,
       mint: nftMintMaker,
       owner: swapDataAccount,
@@ -491,7 +468,7 @@ export async function createClaimSwapIxs({
       signer,
     });
     if (takerAtaMakerNftIx) claimIxs.push(takerAtaMakerNftIx);
-    else console.log("takerNftAta", takerNftAtaMaker);
+    else console.log("skip initialization of takerNftAta", takerNftAtaMaker);
 
     if (makerNftStd === "native") {
       let nftMasterEditionMaker: string | null = null;
@@ -512,13 +489,14 @@ export async function createClaimSwapIxs({
           ownerAta: swapDataAccountNftAta,
         }));
       }
-      if (!nftMetadataMaker)
+      if (!nftMetadataMaker) {
         nftMetadataMaker = (
           await findNftDataAndMetadataAccount({
             connection,
             mint: nftMintMaker,
           })
         ).metadataAddress;
+      }
 
       const claimIx = await program.methods
         .claimSwap()
@@ -559,9 +537,6 @@ export async function createClaimSwapIxs({
 
       claimIxs.push(claimIx);
     } else {
-      // console.log("signer", signer);
-      // console.log("taker", taker);
-
       const claimIx = await program.methods
         .claimSwap22()
         .accountsStrict({
@@ -626,13 +601,8 @@ export async function createPayRoyaltiesIxs({
 }) {
   let { program } = cEnvOpts;
   let payRTakerIxs: TransactionInstruction[] = [];
-  console.log("royaltiesPaidTaker", tokenStandard);
   if (tokenStandard === "core") {
-    let {
-      creators,
-      creatorTokenAta,
-      instructions: creatorIxs,
-    } = await getCreatorData({
+    let { creators, creatorTokenAta, creatorAtaIxs } = await getCreatorData({
       connection,
       nftMint,
       owner: nftCurrentOwner,
@@ -645,11 +615,11 @@ export async function createPayRoyaltiesIxs({
       .accountsStrict({
         swapDataAccount,
         swapDataAccountTokenAta,
+
         nftMint,
-        // paymentMint,
+
         signer,
-        // nsFee: NS_FEE,
-        // nsFeeTokenAta,
+
         creator0: creators[0],
         creator0TokenAta: creatorTokenAta[0],
         creator1: creators[1],
@@ -660,16 +630,17 @@ export async function createPayRoyaltiesIxs({
         creator3TokenAta: creatorTokenAta[3],
         creator4: creators[4],
         creator4TokenAta: creatorTokenAta[4],
+
         tokenProgram: TOKEN_PROGRAM_ID,
       })
       .instruction();
-    payRTakerIxs.push(...creatorIxs);
+    payRTakerIxs.push(...creatorAtaIxs);
     payRTakerIxs.push(payTakerCoreIx);
   } else if (tokenStandard === "compressed") {
     let {
       creators: creators,
       creatorTokenAta: creatorTokenAta,
-      instructions: creatorIxs,
+      creatorAtaIxs,
     } = await getCreatorData({
       connection,
       nftMint,
@@ -678,11 +649,11 @@ export async function createPayRoyaltiesIxs({
       signer,
       tokenStandard,
     });
-    // console.log("was pay royalties taker", creators, creatorTokenAta);
 
     let cluster = (
       !cEnvOpts.clusterOrUrl.includes("mainnet") ? "devnet" : "mainnet-beta"
     ) as Cluster;
+
     let { index, merkleTree, nonce, proofMeta, root, metadata, owner } = await getCompNFTData({
       cluster,
       tokenId: nftMint,
@@ -690,6 +661,7 @@ export async function createPayRoyaltiesIxs({
       getRootHash: "calculate",
       newOwner: payer,
     });
+
     if (!metadata) throw "Compressed no metadata found";
     if (metadata.collection == null) throw "Compressed no collection found";
 
@@ -711,14 +683,12 @@ export async function createPayRoyaltiesIxs({
       .accountsStrict({
         swapDataAccount,
         swapDataAccountTokenAta,
-        // nftMint: nftMintPayer,
 
-        // paymentMint,
         merkleTree,
+
         owner,
         signer,
-        // nsFee: NS_FEE,
-        // nsFeeTokenAta,
+
         creator0: creators[0],
         creator0TokenAta: creatorTokenAta[0],
         creator1: creators[1],
@@ -729,18 +699,19 @@ export async function createPayRoyaltiesIxs({
         creator3TokenAta: creatorTokenAta[3],
         creator4: creators[4],
         creator4TokenAta: creatorTokenAta[4],
+
         tokenProgram: TOKEN_PROGRAM_ID,
         compressionProgram: SPL_ACCOUNT_COMPRESSION_PROGRAM_ID,
       })
       .remainingAccounts(proofMeta)
       .instruction();
-    payRTakerIxs.push(...creatorIxs);
+    payRTakerIxs.push(...creatorAtaIxs);
     payRTakerIxs.push(payTakerCoreIx);
   } else if (tokenStandard === "native") {
     let {
       creators: payerCreator,
       creatorTokenAta: creatorTokenAta,
-      instructions: creatorIxs,
+      creatorAtaIxs,
     } = await getCreatorData({
       connection,
       nftMint,
@@ -750,9 +721,9 @@ export async function createPayRoyaltiesIxs({
       tokenStandard,
     });
 
-    if (creatorIxs.length > 0) {
-      console.log("creatorIxs added", creatorIxs.length);
-      payRTakerIxs.push(...creatorIxs);
+    if (creatorAtaIxs.length > 0) {
+      console.log("creatorAtaIxs added", creatorAtaIxs.length);
+      payRTakerIxs.push(...creatorAtaIxs);
     }
 
     if (!nftMetadata)
