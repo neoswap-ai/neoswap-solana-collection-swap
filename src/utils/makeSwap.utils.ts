@@ -59,20 +59,25 @@ export async function getBidAccountInstructions({
   signer: string;
   cEnvOpts: CEnvOpts;
 }) {
-  let { program } = cEnvOpts;
+  let { program, connection } = cEnvOpts;
   let instructions: TransactionInstruction[][] = [];
   for await (let traitBid of traitBids) {
     let traitBidAccount = await findTraitBidAccount(traitBid.proofs, signer, cEnvOpts);
     console.log("traitBidAccount", traitBidAccount);
-    let createBidAccountIx = await program.methods
-      .createBidAccount(traitBid.proofs.map((proof) => new PublicKey(proof)))
-      .accountsStrict({
-        bidAccount: traitBidAccount,
-        signer,
-        systemProgram: SystemProgram.programId,
-      })
-      .instruction();
-    instructions.push([createBidAccountIx]);
+    let traitAccountData = await connection.getParsedAccountInfo(new PublicKey(traitBidAccount));
+    console.log("traitAccountData", traitAccountData.value);
+
+    if (traitAccountData.value === null) {
+      let createBidAccountIx = await program.methods
+        .createBidAccount(traitBid.proofs.map((proof) => new PublicKey(proof)))
+        .accountsStrict({
+          bidAccount: traitBidAccount,
+          signer,
+          systemProgram: SystemProgram.programId,
+        })
+        .instruction();
+      instructions.push([createBidAccountIx]);
+    } else console.log("traitBidAccount", traitBidAccount, "already exists");
   }
   return instructions;
 }
