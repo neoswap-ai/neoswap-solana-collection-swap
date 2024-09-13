@@ -141,12 +141,13 @@ export async function sendBundledTransactionsV3(
   Data: OptionSend & {
     bundleTransactions: BundleTransaction[];
     signer?: Keypair;
+    extraSimulation?: boolean;
   }
 ): Promise<BundleTransaction[]> {
   let cOptionSend = checkOptionSend(Data);
   let { prioritizationFee, connection } = cOptionSend;
 
-  let { bundleTransactions, signer } = Data;
+  let { bundleTransactions, signer, extraSimulation: simu } = Data;
 
   let recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
 
@@ -201,6 +202,29 @@ export async function sendBundledTransactionsV3(
       let bts = await Promise.all(
         txsToSend.bts.map(async (txSend, i) => {
           await delay(i * 100);
+          try {
+            if (simu && isVersionedTransaction(txSend.tx)) {
+              console.log("simulate", i, "------------------------------");
+              let simu = (await connection.simulateTransaction(txSend.tx)).value;
+              simu.logs?.forEach((log) => console.log(log));
+              // console.log(());
+
+              console.log("Was simulate", i, "------------------------------");
+            }
+          } catch (err) {
+            console.log(String(err));
+
+            if (!String(err).includes("Attempt to debit an account but found")) {
+              console.log(err);
+              if (!cOptionSend.skipSimulation)
+                throw {
+                  blockchain: "solana",
+                  status: "error",
+                  message: `some transaction were not simulated correctly ${err}`,
+                } as ErrorFeedback;
+            } else console.log("Attempt to debit an account but found no record of a prior credit");
+          }
+
           return await sendSingleBundleTransaction({
             bt: txSend,
             ...cOptionSend,
