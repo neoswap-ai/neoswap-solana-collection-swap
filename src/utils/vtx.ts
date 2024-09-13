@@ -43,19 +43,21 @@ export function appendToBT({
   details,
   tx,
   actions,
+  priority,
 }: {
   BT?: BTv[];
   tx: VersionedTransaction;
   details: any;
   actions: string[];
   description: string;
+  priority?: number;
 }) {
   return {
     tx,
     description,
     details,
     actions,
-    priority: BT != undefined ? BT.length : 0,
+    priority: priority ?? (BT != undefined ? BT.length : 0),
     status: "pending",
     blockheight: 0,
   } as BTv;
@@ -66,6 +68,7 @@ export async function appendBtByChunk(
   txsArray: AppendToTx[],
   envOpts: EnvOpts,
   signer: string,
+  reWritePriority?: boolean,
   maxTransactionSize: number = MAX_BYTE_PER_TRANSACTION
 ): Promise<BTv[]> {
   let bTxs: BTv[] = [];
@@ -75,10 +78,8 @@ export async function appendBtByChunk(
   let currentDescription: string = "";
 
   for (const chunk of txsArray) {
-    // console.log("chunk", chunk);
     const tempChunk = [...currentChunk, ...chunk.ixs];
     const vTx = await ix2vTx(tempChunk, envOpts, signer, undefined, true);
-
     let clumpLength = 0;
     try {
       clumpLength = vTx.serialize().length;
@@ -131,21 +132,30 @@ export async function appendBtByChunk(
         description: currentDescription,
         actions: currentActions,
         details: currentDetails,
+        // priority: currentPriority,
         tx: await ix2vTx(currentChunk, envOpts, signer),
       })
     );
   }
 
   // change transaction after make to be Synchronous/
-  bTxs.forEach((btx, i) => {
-    if (i != 0) btx.priority = bTxs[0].priority + 1;
-    // console.log(
-    //   btx.description,
-    //   "btx",
-    //   btx.tx.serialize().length,
-    //   btx.tx.message.staticAccountKeys.map((v) => v.toString())
-    // );
-  });
+  if (reWritePriority) {
+    let forcePriority = 0;
+    bTxs.forEach((btx, i) => {
+      console.log("btx.description", btx.description);
+      console.log("btx.actions", btx.actions);
+
+      if (btx.actions.includes("claimSwap") || btx.actions.includes("makeSwap")) {
+        forcePriority++;
+        btx.priority = forcePriority;
+        forcePriority++;
+      } else if (btx.actions.includes("takeSwap")) {
+        btx.priority = forcePriority;
+        forcePriority++;
+      } else btx.priority = forcePriority;
+      console.log("btx.priority", btx.priority);
+    });
+  }
 
   return bTxs;
 }

@@ -1,7 +1,7 @@
 import { BN } from "@coral-xyz/anchor";
 import { makerFee } from "./fees";
 import { findTraitBidAccount } from "./traitBid";
-import { AppendToTx, AssetStandard, Bid, BTv, CEnvOpts, EnvOpts, TraitBid } from "./types";
+import { AppendToTx, AssetStandard, Bid, CEnvOpts, EnvOpts, TraitBid } from "./types";
 import {
   Connection,
   PublicKey,
@@ -26,13 +26,8 @@ import {
 import { PROGRAM_ID as MPL_BUBBLEGUM_PROGRAM_ID } from "@metaplex-foundation/mpl-bubblegum";
 import { findOrCreateAta } from "./findOrCreateAta.function";
 import { TokenStandard } from "@metaplex-foundation/mpl-token-metadata";
-import {
-  MAX_BYTE_PER_TRANSACTION,
-  METAPLEX_AUTH_RULES_PROGRAM,
-  TOKEN_METADATA_PROGRAM,
-} from "./const";
+import { METAPLEX_AUTH_RULES_PROGRAM, TOKEN_METADATA_PROGRAM } from "./const";
 import { createAddBidIx } from "../programInstructions/modifyAddBid.instructions";
-import { appendToBT, ix2vTx } from "./vtx";
 import { DESC } from "./descriptions";
 import { checkEnvOpts } from "./check";
 
@@ -244,6 +239,23 @@ export async function createTraitBidSwapIx({
         .instruction();
       instructions.push(initIx);
     } else if (tokenStd === "hybrid") {
+      // const mintInfo = await getMint(
+      //   connection,
+      //   new PublicKey(nftMintMaker),
+      //   "confirmed",
+      //   TOKEN_2022_PROGRAM_ID
+      // );
+      // const transferHook = getTransferHook(mintInfo);
+      // console.log("transferHook", transferHook);
+
+      // const extraAccountsAccount = getExtraAccountMetaAddress(
+      //   new PublicKey(nftMintMaker),
+      //   transferHook!.programId
+      // );
+      // const extraAccountsInfo = await connection.getAccountInfo(extraAccountsAccount, "confirmed");
+      // const extraAccountMetas = getExtraAccountMetas(extraAccountsInfo!);
+      // console.log("extraAccountMetas", extraAccountMetas);
+
       const initIx = await program.methods
         .makeSwap22(bidToscBid(firstBid), new BN(endDate), true)
         .accountsStrict({
@@ -251,9 +263,12 @@ export async function createTraitBidSwapIx({
           swapDataAccountNftAta,
           swapDataAccountTokenAta,
 
-          maker: maker,
+          maker,
           makerNftAta,
           makerTokenAta,
+
+          // extraAccountMetaList: new PublicKey(extraAccountMetas[0].addressConfig).toString(),
+          // hookProgram: transferHook!.programId!,
 
           nftMintMaker: nftMintMaker,
           paymentMint,
@@ -329,27 +344,14 @@ export function createMakeBatchTransactions({
 }: {
   initializeCoreSwap: TransactionInstruction[];
   addBidIxs: TransactionInstruction[];
-  initializeBidAccountIxs?: TransactionInstruction[][];
   firstBid: Bid;
   otherBids: Bid[];
   Data: any;
   // bids: any;
+  initializeBidAccountIxs?: TransactionInstruction[][];
   traitBids?: TraitBid[];
 }): AppendToTx[] {
-  let toreturn = [
-    {
-      ixs: initializeCoreSwap,
-      description: DESC.makeSwap,
-      details: { ...Data, thisBids: { ...firstBid }, bids: [firstBid, ...otherBids] },
-      actions: ["makeSwap"],
-    },
-    ...addBidIxs.map((ix, i) => ({
-      ixs: [ix],
-      description: DESC.addBid,
-      details: { ...Data, thisBids: [otherBids[i]], bids: [firstBid, ...otherBids] },
-      actions: ["addBid"],
-    })),
-  ];
+  let toreturn: AppendToTx[] = [];
   if (initializeBidAccountIxs) {
     toreturn.push(
       ...initializeBidAccountIxs.map((initializeBidAccountIx) => ({
@@ -357,9 +359,28 @@ export function createMakeBatchTransactions({
         description: DESC.addBidAccount,
         details: { ...Data, traitBids, bids: [firstBid, ...otherBids] },
         actions: ["addBidAccount"],
+        // priority: 0,
       }))
     );
   }
+  toreturn.push(
+    ...[
+      {
+        ixs: initializeCoreSwap,
+        description: DESC.makeSwap,
+        details: { ...Data, thisBids: { ...firstBid }, bids: [firstBid, ...otherBids] },
+        actions: ["makeSwap"],
+        // priority: 1,
+      },
+      ...addBidIxs.map((ix, i) => ({
+        ixs: [ix],
+        description: DESC.addBid,
+        details: { ...Data, thisBids: [otherBids[i]], bids: [firstBid, ...otherBids] },
+        actions: ["addBid"],
+        // priority: 2,
+      })),
+    ]
+  );
   return toreturn;
 }
 export function createTakeBatchTransactions({

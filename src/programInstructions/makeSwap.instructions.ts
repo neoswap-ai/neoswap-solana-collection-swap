@@ -1,13 +1,10 @@
 import {
-  ComputeBudgetProgram,
   SystemProgram,
   TransactionInstruction,
   SYSVAR_INSTRUCTIONS_PUBKEY,
-  clusterApiUrl,
   Cluster,
-  PublicKey,
 } from "@solana/web3.js";
-import { BTv, EnvOpts, MakeSArg, ReturnSwapData, UpdateSArgs } from "../utils/types";
+import { BTv, EnvOpts, MakeSArg, ReturnSwapData } from "../utils/types";
 import { findOrCreateAta } from "../utils/findOrCreateAta.function";
 import { TOKEN_2022_PROGRAM_ID, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import {
@@ -26,11 +23,10 @@ import {
 import { TokenStandard } from "@metaplex-foundation/mpl-token-metadata";
 import { getSda } from "../utils/getPda";
 import { bidToscBid } from "../utils/typeSwap";
-import { DESC } from "../utils/descriptions";
 import { WRAPPED_SOL_MINT } from "@metaplex-foundation/js";
 import { addWSol } from "../utils/wsol";
 import { checkEnvOpts, getMakeArgs } from "../utils/check";
-import { appendBtByChunk, ix2vTx } from "../utils/vtx";
+import { appendBtByChunk } from "../utils/vtx";
 import { createAddBidIx } from "./modifyAddBid.instructions";
 import { MPL_CORE_PROGRAM_ID } from "@metaplex-foundation/mpl-core";
 import { calculateMakerFee, makerFee } from "../utils/fees";
@@ -225,6 +221,26 @@ export async function createMakeSwapInstructions(
           .instruction();
         initializeCoreSwap.push(initIx);
       } else if (tokenStd === "hybrid") {
+        // const mintInfo = await getMint(
+        //   connection,
+        //   new PublicKey(nftMintMaker),
+        //   "confirmed",
+        //   TOKEN_2022_PROGRAM_ID
+        // );
+        // const transferHook = getTransferHook(mintInfo);
+        // console.log("transferHook", transferHook);
+
+        // const extraAccountsAccount = getExtraAccountMetaAddress(
+        //   new PublicKey(nftMintMaker),
+        //   transferHook!.programId
+        // );
+        // const extraAccountsInfo = await connection.getAccountInfo(
+        //   extraAccountsAccount,
+        //   "confirmed"
+        // );
+        // const extraAccountMetas = getExtraAccountMetas(extraAccountsInfo!);
+        // console.log("extraAccountMetas", extraAccountMetas);
+
         const initIx = await program.methods
           .makeSwap22(bidToscBid(oneBid), new BN(endDate), false)
           .accountsStrict({
@@ -232,11 +248,14 @@ export async function createMakeSwapInstructions(
             swapDataAccountNftAta,
             swapDataAccountTokenAta,
 
-            maker: maker,
+            maker,
             makerNftAta,
             makerTokenAta,
 
-            nftMintMaker: nftMintMaker,
+            // extraAccountMetaList: new PublicKey(transferHook!.authority!).toString(),
+            // hookProgram: transferHook!.programId!.toString(),
+
+            nftMintMaker,
             paymentMint,
 
             systemProgram: SystemProgram.programId,
@@ -245,6 +264,23 @@ export async function createMakeSwapInstructions(
             tokenProgram22: TOKEN_2022_PROGRAM_ID,
             ataProgram: SPL_ASSOCIATED_TOKEN_PROGRAM_ID,
           })
+          // .remainingAccounts(
+          //   // {
+          //   //   pubkey: transferHook!.programId!,
+          //   //   isSigner: false,
+          //   //   isWritable: false,
+          //   // },
+          //   extraAccountMetas.map((meta) => ({
+          //     pubkey: new PublicKey(meta.addressConfig),
+          //     isSigner: meta.isSigner,
+          //     isWritable: meta.isWritable,
+          //   }))
+          //   // {
+          //   //   pubkey: TOKEN_2022_PROGRAM_ID,
+          //   //   isSigner: false,
+          //   //   isWritable: false,
+          //   // },
+          // )
           .instruction();
         initializeCoreSwap.push(initIx);
       } else throw "not supported";
@@ -274,7 +310,8 @@ export async function createMakeSwapInstructions(
         Data: makeArgs,
       }),
       cEnvOpts,
-      maker
+      maker,
+      true
     );
 
     return {

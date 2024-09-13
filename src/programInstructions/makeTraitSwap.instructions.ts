@@ -114,7 +114,8 @@ export async function createMakeTraitSwapInstructions(
         Data: makeArgs,
       }),
       cEnvOpts,
-      maker
+      maker,
+      true
     );
     console.log("bTxs", bTxs);
 

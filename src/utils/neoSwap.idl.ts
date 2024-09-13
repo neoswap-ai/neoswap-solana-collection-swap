@@ -1088,6 +1088,11 @@ export const idlSwap: CollectionSwap = {
       discriminator: [164, 236, 205, 52, 222, 177, 64, 178],
       accounts: [
         {
+          name: "maker",
+          writable: true,
+          signer: true,
+        },
+        {
           name: "swapDataAccount",
           writable: true,
           pda: {
@@ -1114,11 +1119,6 @@ export const idlSwap: CollectionSwap = {
         {
           name: "swapDataAccountTokenAta",
           writable: true,
-        },
-        {
-          name: "maker",
-          writable: true,
-          signer: true,
         },
         {
           name: "makerNftAta",
@@ -3978,6 +3978,11 @@ export type CollectionSwap = {
       discriminator: [164, 236, 205, 52, 222, 177, 64, 178];
       accounts: [
         {
+          name: "maker";
+          writable: true;
+          signer: true;
+        },
+        {
           name: "swapDataAccount";
           writable: true;
           pda: {
@@ -4004,11 +4009,6 @@ export type CollectionSwap = {
         {
           name: "swapDataAccountTokenAta";
           writable: true;
-        },
-        {
-          name: "maker";
-          writable: true;
-          signer: true;
         },
         {
           name: "makerNftAta";

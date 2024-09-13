@@ -296,7 +296,8 @@ export async function createTakeAndCloseSwapInstructions(
         Data,
       }),
       cEnvOpts,
-      signer
+      signer,
+      true
     );
     return BTs;
     // let bTTakeAndClose = parseTakeAndCloseTxs({
