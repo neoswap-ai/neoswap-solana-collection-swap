@@ -1,5 +1,5 @@
 // Sep 9, 2024 at 10:04:36 UTC
-export const idlSwap: CollectionSwapV0_5_0 = {
+export const idlSwapV0_5_0: CollectionSwapV0_5_0 = {
   address: "2vumtPDSVo3UKqYYxMVbDaQz1K4foQf6A31KiUaii1M7",
   metadata: {
     name: "collectionSwap",
