@@ -22,4 +22,4 @@ export const NS_FEE_WSOL = "7kyAFKHwoUJSW9cewTs8D7DE8mz7dLD9ykKaRm2pcXok";
 
 export const MAX_BYTE_PER_TRANSACTION = 1232;
 
-export const VERSION = "0.9.2";
+export const VERSION = "0.9.3";
