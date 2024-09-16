@@ -19,10 +19,10 @@ export function getIdlForBlock(
   | CollectionSwapV0_4_0_1
   | CollectionSwapV0_4_0_0
   | CollectionSwapV0_5_0 {
-  if (block >= 283218720) return idlSwapV0_4_2;
+  if (block >= 288742556) return idlSwapV0_5_0;
+  else if (block >= 283218720) return idlSwapV0_4_2;
   else if (block >= 281140432) return idlSwapV0_4_1;
   else if (block >= 279440968) return idlSwapV0_4_0_1;
   else if (block >= 279073352) return idlSwapV0_4_0_0;
-  else if (block >= 288742556) return idlSwapV0_5_0;
   else throw new Error("Unsupported block");
 }
